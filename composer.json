@@ -1,40 +1,43 @@
 {
-    "name": "fostercommerce/craft-foster-checkout",
-    "description": "A companion plugin to the Foster Checkout Commerce templates.",
-    "type": "craft-plugin",
-    "license": "mit",
-    "version": "1.0",
-    "support": {
-        "email": "support@fostercommerce.com"
-    },
-    "require": {
-        "php": ">=8.0.2",
-        "craftcms/cms": "^4.4.6"
-    },
-    "require-dev": {
-        "roave/security-advisories": "dev-latest"
-    },
-    "autoload": {
-        "psr-4": {
-            "fostercommerce\\craftfostercheckout\\": "src/"
-        }
-    },
-    "extra": {
-        "handle": "foster-checkout",
-        "name": "Foster Checkout",
-        "developer": "Foster Commerce",
-        "documentationUrl": "",
-        "class": "fostercommerce\\craftfostercheckout\\FosterCheckout"
-    },
-    "config": {
-        "sort-packages": true,
-        "platform": {
-            "php": "8.0.2"
-        },
-        "allow-plugins": {
-            "yiisoft/yii2-composer": true,
-            "craftcms/plugin-installer": true
-        }
+  "name": "fostercommerce/craft-foster-checkout",
+  "description": "A companion plugin to the Foster Checkout Commerce templates.",
+  "type": "craft-plugin",
+  "license": "mit",
+  "version": "1.0",
+  "support": {
+    "email": "support@fostercommerce.com"
+  },
+  "require": {
+    "php": ">=8.0.2",
+    "craftcms/cms": "^4.4.6"
+  },
+  "require-dev": {
+    "craftcms/phpstan": "dev-main",
+    "roave/security-advisories": "dev-latest"
+  },
+  "autoload": {
+    "psr-4": {
+      "fostercommerce\\craftfostercheckout\\": "src/"
     }
+  },
+  "extra": {
+    "handle": "foster-checkout",
+    "name": "Foster Checkout",
+    "developer": "Foster Commerce",
+    "documentationUrl": "",
+    "class": "fostercommerce\\craftfostercheckout\\FosterCheckout"
+  },
+  "config": {
+    "sort-packages": true,
+    "platform": {
+      "php": "8.0.2"
+    },
+    "allow-plugins": {
+      "yiisoft/yii2-composer": true,
+      "craftcms/plugin-installer": true
+    }
+  },
+  "scripts": {
+    "phpstan": "phpstan --memory-limit=1G"
+  }
 }
-
