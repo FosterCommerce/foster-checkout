@@ -12,6 +12,7 @@
     "craftcms/cms": "^4.4.6"
   },
   "require-dev": {
+    "craftcms/ecs": "dev-main",
     "craftcms/phpstan": "dev-main",
     "roave/security-advisories": "dev-latest"
   },
