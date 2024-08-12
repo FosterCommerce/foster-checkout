@@ -11,7 +11,6 @@ use yii\web\Response;
  */
 class CheckoutController extends Controller
 {
-
     protected array|int|bool $allowAnonymous = ['get-critical-data', 'get-payment-form', 'get-discounts'];
 
     public function actionGetCriticalData(): Response
@@ -20,14 +19,14 @@ class CheckoutController extends Controller
             'countries' => FosterCheckout::getInstance()->checkout->getCountries(),
             'regions' => FosterCheckout::getInstance()->checkout->getRegions(),
             'paths' => FosterCheckout::getInstance()->getSettings()->paths,
-            'gateways' => FosterCheckout::getInstance()->checkout->getGateways()
+            'gateways' => FosterCheckout::getInstance()->checkout->getGateways(),
         ]);
     }
 
     public function actionGetPaymentForm(): Response
     {
         return $this->asJson([
-            'paymentForm' => FosterCheckout::getInstance()->checkout->getPaymentForm()
+            'paymentForm' => FosterCheckout::getInstance()->checkout->getPaymentForm(),
         ]);
     }
 
@@ -37,5 +36,4 @@ class CheckoutController extends Controller
             'discounts' => FosterCheckout::getInstance()->checkout->getDiscounts(),
         ]);
     }
-
 }

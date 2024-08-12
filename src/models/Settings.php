@@ -2,7 +2,6 @@
 
 namespace fostercommerce\craftfostercheckout\models;
 
-use Craft;
 use craft\base\Model;
 
 /**
@@ -19,7 +18,7 @@ class Settings extends Model
     public array $paths = [
         'cart' => '/cart',
         'checkout' => '/checkout',
-        'cancel' => '/'
+        'cancel' => '/',
     ];
 
     public array $products = [];
@@ -27,35 +26,35 @@ class Settings extends Model
     public array $notes = [
         'cart' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'emptyCart' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'login' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'email' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'address' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'shipping' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'payment' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'order' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
-        ]
+            'fieldHandle' => '',
+        ],
     ];
 }

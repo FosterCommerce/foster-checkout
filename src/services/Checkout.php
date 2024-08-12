@@ -2,12 +2,12 @@
 
 namespace fostercommerce\craftfostercheckout\services;
 
-use craft\elements\Entry;
-use craft\elements\Asset;
-use craft\elements\GlobalSet;
-use craft\commerce\Plugin;
 use craft\commerce\elements\Variant;
 use craft\commerce\models\LineItem;
+use craft\commerce\Plugin;
+use craft\elements\Asset;
+use craft\elements\Entry;
+use craft\elements\GlobalSet;
 use craft\errors\InvalidFieldException;
 use fostercommerce\craftfostercheckout\FosterCheckout;
 use yii\base\Component;
@@ -66,7 +66,6 @@ class Checkout extends Component
         $note = null;
 
         if ($elementHandle and $fieldHandle) {
-
             $global = GlobalSet::find()->handle($elementHandle)->one() ?? null;
             $entry = Entry::find()->section($elementHandle)->one() ?? null;
             $element = $global ?? $entry;
@@ -99,18 +98,17 @@ class Checkout extends Component
         $fieldData = null;
 
         if (is_string($productType)) {
-
             if (!empty($products[$productType]['image']['product'])) {
                 $fieldData = [
                     'handle' => $products[$productType]['image']['product'],
-                    'level' => 'product'
+                    'level' => 'product',
                 ];
             }
 
             if (!empty($products[$productType]['image']['variant'])) {
                 $fieldData = [
                     'handle' => $products[$productType]['image']['variant'],
-                    'level' => 'variant'
+                    'level' => 'variant',
                 ];
             }
         }
@@ -198,7 +196,7 @@ class Checkout extends Component
                 'id' => $gateway->id,
                 'handle' => $gateway->handle,
                 'name' => $gateway->name,
-                'type' => $gateway->paymentType
+                'type' => $gateway->paymentType,
             ];
         }
 
@@ -213,7 +211,7 @@ class Checkout extends Component
         $cart = Plugin::getInstance()->getCarts()->getCart();
 
         return $cart->gateway->getPaymentFormHtml([
-            'currency' => $cart->paymentCurrency
+            'currency' => $cart->paymentCurrency,
         ]);
     }
 }

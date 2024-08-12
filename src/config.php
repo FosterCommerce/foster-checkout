@@ -52,7 +52,7 @@ return [
 
         // The path the user should be taken to if they cancel the checkout process
         // (ex. '/')
-        'cancel' => ''
+        'cancel' => '',
     ],
 
     // Product Settings
@@ -75,35 +75,35 @@ return [
     'notes' => [
         'cart' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'emptyCart' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'login' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'email' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'address' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'shipping' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'payment' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'order' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
-        ]
-    ]
+            'fieldHandle' => '',
+        ],
+    ],
 ];

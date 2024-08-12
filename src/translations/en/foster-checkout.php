@@ -1,4 +1,5 @@
 <?php
+
     return [
         'Cart' => 'Cart',
         'Checkout' => 'Checkout',
@@ -88,5 +89,5 @@
         'You will receive an order confirmation email shortly.' => 'You will receive an order confirmation email shortly.',
         'Order Details' => 'Order Details',
         'Date' => 'Date',
-        'dateFormat' => 'n/j/y'
+        'dateFormat' => 'n/j/y',
     ];
