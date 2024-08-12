@@ -1,4 +1,4 @@
-![Foster Checkout Icon](src/icon.svg)
+![Foster Checkout Icon](resources/img/header.png)
 
 # Foster Checkout
 
