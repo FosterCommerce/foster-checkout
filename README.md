@@ -1,3 +1,5 @@
+![Foster Checkout Icon](src/icon.svg)
+
 # Foster Checkout
 
 A companion plugin to the Foster Checkout Commerce templates.
