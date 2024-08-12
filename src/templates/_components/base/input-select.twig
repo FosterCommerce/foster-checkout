@@ -1,0 +1,27 @@
+{% set fieldId = id ? ('field_' ~ id) : ('field_' ~ random()) %}
+
+<div v-scope="{ value: '{{ value|default('') }}', errors: {{ errors|default([])|json_encode }} }">
+	{% if label|default %}
+		<label for="{{ fieldId }}" class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}">
+			{{ label ~ (required|default(false) ? '*' : '') }}
+		</label>
+	{% endif %}
+	<select
+		v-model="value"
+		id="{{ fieldId }}"
+		name="{{ name|default('') }}"
+		class="w-full h-12 px-4 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
+		:class="errors.length ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
+		:aria-invalid="errors.length > 0"
+		aria-errormessage="{{ fieldId }}-error"
+	>
+		{% if placeholder|default %}
+		<option value="" disabled>{{ placeholder }}</option>
+		{% endif %}
+		{% for option in options|default([]) %}
+			<option value="{{ option.value }}">{{ option.label }}</option>
+		{% endfor %}
+	</select>
+	<p v-cloak v-if="errors.length" id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500">${errors.join(' ')}</p>
+</div>
+

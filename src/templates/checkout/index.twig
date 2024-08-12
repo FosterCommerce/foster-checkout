@@ -1,0 +1,5 @@
+{% if currentUser %}
+	{% redirect craft.checkout.paths.checkout ~ '/address' %}
+{% else %}
+	{% redirect craft.checkout.paths.checkout ~ '/email' %}
+{% endif %}

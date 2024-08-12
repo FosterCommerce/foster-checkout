@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+		{% block head %}
+			<title>Foster Checkout</title>
+		{% endblock %}
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family={{ craft.checkout.branding.font|split(' ')|join('+') }}:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+
+		<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+		{# TODO: Move these Tailwind configs to the build chain instead when we get that running #}
+		<script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              gray: {
+                100: '#F8F8F8',
+                200: '#F3F3F3',
+	              250: '#E5E5E5',
+                300: '#C7C8CD',
+	              400: '#999999',
+                500: '#6B7280',
+	              600: '#585858',
+	              700: '#4F5155',
+                800: '#1F2937'
+              }
+            },
+          }
+        }
+      }
+		</script>
+		<style>
+	    [v-cloak] {
+	      opacity: 0;
+	    }
+		</style>
+		<style type="text/tailwindcss">
+	    @layer utilities {
+		    body {
+					font-family: '{{ craft.checkout.branding.font ?? 'Rubik' }}';
+		    }
+	      /* Place any additional custom CSS classes here */
+		    .radio label::before {
+			    content: '';
+			    @apply inline-block w-5 h-5 flex-shrink-0 border-2 border-gray-500 rounded-full;
+		    }
+        .radio input[type="radio"]:focus-visible + label::before {
+          @apply ring ring-offset-1;
+        }
+        .radio input[type="radio"]:checked + label::before {
+          background: radial-gradient(
+	          10px circle at center,
+            var(--brandColor) 50%,
+            white 51%
+          );
+          @apply border-[var(--brandColor)];
+        }
+	    }
+		</style>
+	</head>
+
+	<body style="--brandColor: {{ craft.checkout.branding.color ?? '#1F2937' }};">
+
+		{% if cart is not defined %}
+			{% set cart = craft.commerce.carts.cart %}
+		{% endif %}
+
+		<div v-scope="App" @vue:mounted="App.init">
+
+			{# Main header #}
+			{% include 'foster-checkout/_components/app/header' %}
+
+			<div class="max-w-[1328px] mx-auto px-4 text-gray-800 bg-white sm:px-6">
+				{# Main body block #}
+				{% block body %}
+				{% endblock %}
+			</div>
+
+			<div class="fixed inset-x-0 z-50 bottom-0 lg:hidden">
+				{# Mobile footer (fixed) #}
+				{% block mobileFooter %}
+				{% endblock %}
+			</div>
+
+		</div>
+
+		{# Get the Craft CSRF Token into javascript #}
+		<script type="text/javascript">
+		  window.csrfTokenName = "{{ craft.app.config.general.csrfTokenName|e('js') }}";
+		  window.csrfTokenValue = "{{ craft.app.request.csrfToken|e('js') }}";
+		</script>
+
+		{# Inject the javascript bundle #}
+		<script src="{{ craft.checkout.jsBundle }}" type="module"></script>
+	</body>
+</html>

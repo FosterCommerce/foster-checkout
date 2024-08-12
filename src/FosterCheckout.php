@@ -5,22 +5,14 @@ namespace fostercommerce\craftfostercheckout;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
+use craft\events\RegisterTemplateRootsEvent;
 use craft\web\twig\variables\CraftVariable;
 use yii\base\Event;
 use craft\events\RegisterUrlRulesEvent;
 use craft\web\UrlManager;
 use fostercommerce\craftfostercheckout\models\Settings;
 use fostercommerce\craftfostercheckout\services\Checkout;
-use fostercommerce\craftfostercheckout\services\Users;
-
-use craft\commerce\events\CustomizeVariantSnapshotDataEvent;
-use craft\commerce\events\CustomizeProductSnapshotDataEvent;
-use craft\commerce\events\CustomizeVariantSnapshotFieldsEvent;
-use craft\commerce\elements\Variant;
-
-use craft\commerce\events\LineItemEvent;
-use craft\commerce\services\LineItems;
-use craft\commerce\models\LineItem;
+use craft\web\View;
 
 /**
  * Foster Checkout plugin
@@ -31,7 +23,6 @@ use craft\commerce\models\LineItem;
  * @copyright Foster Commerce
  * @license MIT
  * @property-read Checkout $checkout
- * @property-read Users $users
  */
 class FosterCheckout extends Plugin
 {
@@ -41,6 +32,8 @@ class FosterCheckout extends Plugin
     public function init()
     {
         parent::init();
+
+        Craft::setAlias('@fostercheckout', __DIR__);
 
         // Defer most setup tasks until Craft is fully initialized
         Craft::$app->onInit(function() {
@@ -56,7 +49,7 @@ class FosterCheckout extends Plugin
 
     protected function settingsHtml(): ?string
     {
-        return Craft::$app->view->renderTemplate('foster-checkout/_settings.twig', [
+        return Craft::$app->view->renderTemplate('foster-checkout/_plugin/settings.twig', [
             'plugin' => $this,
             'settings' => $this->getSettings(),
         ]);
@@ -65,8 +58,7 @@ class FosterCheckout extends Plugin
     private function registerComponents(): void
     {
         $this->setComponents([
-            'checkout' => Checkout::class,
-            'users' => Users::class
+            'checkout' => Checkout::class
         ]);
     }
 
@@ -84,18 +76,39 @@ class FosterCheckout extends Plugin
             }
         );
 
+        /* Register our plugins templates directory so Craft knows to look there  */
+        Event::on(
+            View::class,
+            View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
+            function (RegisterTemplateRootsEvent $event) {
+                $event->roots['foster-checkout'] = __DIR__ . '/templates';
+            }
+        );
+
+        /* Register our site URL rules based on the plugins 'paths' setting */
         Event::on(
             UrlManager::class,
             UrlManager::EVENT_REGISTER_SITE_URL_RULES,
             function(RegisterUrlRulesEvent $event) {
+                // Get the paths from the settings
                 $paths = $this->checkout->paths();
                 $checkoutPath = $paths['checkout'] ?? 'checkout';
                 $cartPath = $paths['cart'] ?? 'cart';
-                $event->rules[$checkoutPath] = ['template' => 'foster-checkout/checkout'];
+
+                // Define the site URL rules to route to our plugins templates
+                $event->rules[$checkoutPath] = ['template' => 'foster-checkout/checkout/index'];
+                $event->rules[$checkoutPath . '/email'] = ['template' => 'foster-checkout/checkout/email'];
+                $event->rules[$checkoutPath . '/address'] = ['template' => 'foster-checkout/checkout/address'];
+                $event->rules[$checkoutPath . '/shipping'] = ['template' => 'foster-checkout/checkout/shipping'];
+                $event->rules[$checkoutPath . '/payment'] = ['template' => 'foster-checkout/checkout/payment'];
                 $event->rules[$checkoutPath . '/order'] = ['template' => 'foster-checkout/checkout/order'];
-                $event->rules[$cartPath] = ['template' => 'foster-checkout/cart'];
+                $event->rules[$checkoutPath . '/login'] = ['template' => 'foster-checkout/account/login'];
+                $event->rules[$checkoutPath . '/register'] = ['template' => 'foster-checkout/account/register'];
+                $event->rules[$cartPath] = ['template' => 'foster-checkout/cart/index'];
+
+                // TODO : Just a page to test components in isolation (remove later)
+                $event->rules[$checkoutPath . '/components'] = ['template' => 'foster-checkout/_component-test'];
             }
         );
-
     }
 }

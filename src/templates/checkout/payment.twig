@@ -1,0 +1,219 @@
+{% extends 'foster-checkout/_layouts/default' %}
+
+{% block body %}
+	<div class="mt-10 pb-28 lg:mt-20 lg:pb-32">
+
+		<h1 class="mb-12 font-medium text-3xl">{{ 'Checkout'|t('foster-checkout') }}</h1>
+
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+
+			<main v-scope="{ gatewayId: 1, shippingSameAsBilling: 1 }" class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
+
+				<div class="grid grid-cols-1 gap-6 lg:gap-8">
+
+					{% include 'foster-checkout/_components/app/steps-completed' with {
+						step: 'payment'
+					} %}
+
+					<form action="">
+
+						<div class="border border-gray-250 rounded-lg overflow-hidden">
+
+							<h2 class="p-4 font-semibold bg-gray-200 xl:px-6">
+								{{ '3. Payment'|t('foster-checkout') }}
+							</h2>
+
+							<div class="grid grid-cols-1 gap-6 xl:gap-8 xl:p-6">
+
+								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+
+									<div class="p-4" :class="{ 'bg-gray-100': parseInt(gatewayId) === 1 }">
+										<div class="flex justify-between items-center gap-4 radio">
+											<input
+												v-model="gatewayId"
+												id="gateway_1"
+												name="gatewayId"
+												type="radio"
+												class="sr-only"
+												value="1"
+											/>
+											<label
+												for="gateway_1"
+												class="inline-flex justify-start items-center gap-4 cursor-pointer"
+											>
+												<span class="block" :class="{ 'font-semibold text-black': parseInt(gatewayId) === 1 }">Credit Card</span>
+											</label>
+										</div>
+										<div v-cloak v-if="parseInt(gatewayId) === 1" class="pt-8">
+											<p>Credit Card Gateway Form Here</p>
+										</div>
+									</div>
+
+									<div class="p-4 border-t border-gray-250" :class="{ 'bg-gray-100': parseInt(gatewayId) === 2 }">
+										<div class="flex justify-between items-center gap-4 radio">
+											<input
+												v-model="gatewayId"
+												id="gateway_2"
+												name="gatewayId"
+												type="radio"
+												class="sr-only"
+												value="2"
+											/>
+											<label
+												for="gateway_2"
+												class="inline-flex justify-start items-center gap-4 cursor-pointer"
+											>
+												<span class="block" :class="{ 'font-semibold text-black': parseInt(gatewayId) === 2 }">PayPal</span>
+											</label>
+										</div>
+										<div v-cloak v-if="parseInt(gatewayId) === 2" class="pt-8">
+											<p>PayPal Gateway Form Here</p>
+										</div>
+									</div>
+
+								</div>
+
+								<div>
+
+									<h3 class="px-4 mb-4 font-semibold xl:px-0">
+										{{ 'Billing address'|t('foster-checkout') }}
+									</h3>
+
+									<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+
+										<input type="hidden" name="shippingSameAsBilling" value="1" :disabled="parseInt(shippingSameAsBilling) === 0" />
+
+										<div class="p-4" :class="{ 'bg-gray-100': parseInt(shippingSameAsBilling) === 1 }">
+											<div class="radio">
+												<input
+													v-model="shippingSameAsBilling"
+													id="shippingSameAsBilling_1"
+													name="shippingSameAsBillingToggle"
+													type="radio"
+													class="sr-only"
+													value="1"
+												/>
+												<label
+													for="shippingSameAsBilling_1"
+													class="flex justify-start items-center gap-4 cursor-pointer"
+												>
+													<span class="block">
+														<span class="block" :class="{ 'font-medium text-black': parseInt(shippingSameAsBilling) === 1 }">Same as shipping address</span>
+														<span class="block mt-2 text-gray-500"><strong class="font-medium">John Doe</strong> / Ohio, OH 43021 / United States, Columbus / St. 480 E Broad</span>
+													</span>
+												</label>
+											</div>
+										</div>
+
+										<div class="border-t border-gray-250" :class="{ 'bg-gray-100': parseInt(shippingSameAsBilling) === 0 }">
+											<div class="p-4 radio">
+												<input
+													v-model="shippingSameAsBilling"
+													id="shippingSameAsBilling_0"
+													name="shippingSameAsBillingToggle"
+													type="radio"
+													class="sr-only"
+													value="0"
+												/>
+												<label
+													for="shippingSameAsBilling_0"
+													class="inline-flex justify-start items-center gap-4 cursor-pointer"
+													:class="{ 'font-medium text-black': parseInt(shippingSameAsBilling) === 0 }"
+												>
+													{{ 'Use a different billing address'|t('foster-checkout') }}
+												</label>
+											</div>
+											<div v-cloak v-if="parseInt(shippingSameAsBilling) === 0" class="p-4">
+												{% include 'foster-checkout/_components/app/address-fields' with {
+													context: 'billing'
+												} %}
+											</div>
+										</div>
+
+									</div>
+
+								</div>
+
+							</div>
+
+						</div>
+
+						{% set note = craft.checkout.note('payment') %}
+						{% if note %}
+							<div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6">
+								{{ note|raw }}
+							</div>
+						{% endif %}
+
+					</form>
+
+				</div>
+
+			</main>
+
+			<aside>
+
+				<div class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]">
+
+					<div class="grid grid-cols-1 gap-6">
+
+						<div class="flex justify-between items-center gap-4">
+							<h2 class="text-xl font-bold text-gray-800 leading-snug">
+								{{ 'Item(s)'|t('foster-checkout') }}
+							</h2>
+							<a href="#" class="inline-block text-[var(--brandColor)] underline">
+								{{ 'Edit'|t('foster-checkout') }}
+							</a>
+						</div>
+
+						<ul class="grid grid-cols-1 gap-4">
+							{% for lineItem in cart.lineItems %}
+								<li>
+									{% include 'foster-checkout/_components/app/line-item-checkout' with {
+										lineItem: lineItem
+									} %}
+								</li>
+							{% endfor %}
+						</ul>
+
+					</div>
+
+					{% include 'foster-checkout/_components/app/summary-cart' with {
+						postalCode: '90210',
+						couponCode: '121212',
+						step: 'payment'
+					} %}
+
+					<button
+						type="submit"
+						class="hidden justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:flex"
+					>
+						<span class="inline-block">{{ 'Place Order'|t('foster-checkout') }}</span>
+						<span class="inline-block">$165.15</span>
+					</button>
+
+				</div>
+
+			</aside>
+
+		</div>
+
+	</div>
+
+{% endblock %}
+
+{% block mobileFooter %}
+
+	{% if cart.lineItems|length > 0 %}
+		<div class="p-4 bg-gray-200 sm:p-6">
+			<button
+				type="submit"
+				class="flex justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+			>
+				<span class="inline-block">{{ 'Place Order'|t('foster-checkout') }}</span>
+				<span class="inline-block">$165.15</span>
+			</button>
+		</div>
+	{% endif %}
+
+{% endblock %}

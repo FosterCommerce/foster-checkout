@@ -2,8 +2,6 @@
 
 namespace fostercommerce\craftfostercheckout\controllers;
 
-use Craft;
-use craft\helpers\Json;
 use craft\web\Controller;
 use fostercommerce\craftfostercheckout\FosterCheckout;
 use yii\web\Response;
@@ -14,7 +12,7 @@ use yii\web\Response;
 class CheckoutController extends Controller
 {
 
-    protected array|int|bool $allowAnonymous = ['get-critical-data', 'get-discounts'];
+    protected array|int|bool $allowAnonymous = ['get-critical-data', 'get-payment-form', 'get-discounts'];
 
     public function actionGetCriticalData(): Response
     {
@@ -22,7 +20,14 @@ class CheckoutController extends Controller
             'countries' => FosterCheckout::getInstance()->checkout->getCountries(),
             'regions' => FosterCheckout::getInstance()->checkout->getRegions(),
             'paths' => FosterCheckout::getInstance()->getSettings()->paths,
-            'productFields' => FosterCheckout::getInstance()->checkout->productFields()
+            'gateways' => FosterCheckout::getInstance()->checkout->getGateways()
+        ]);
+    }
+
+    public function actionGetPaymentForm(): Response
+    {
+        return $this->asJson([
+            'paymentForm' => FosterCheckout::getInstance()->checkout->getPaymentForm()
         ]);
     }
 
@@ -31,17 +36,6 @@ class CheckoutController extends Controller
         return $this->asJson([
             'discounts' => FosterCheckout::getInstance()->checkout->getDiscounts(),
         ]);
-    }
-
-    public function actionGetVariants(): Response
-    {
-
-        $ids = $this->request->getParam('ids');
-
-        return $this->asJson(
-            FosterCheckout::getInstance()->checkout->getVariants($ids)
-        );
-
     }
 
 }
