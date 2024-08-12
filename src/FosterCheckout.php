@@ -6,13 +6,13 @@ use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\events\RegisterTemplateRootsEvent;
-use craft\events\RegisterUrlRulesEvent;
 use craft\web\twig\variables\CraftVariable;
+use yii\base\Event;
+use craft\events\RegisterUrlRulesEvent;
 use craft\web\UrlManager;
-use craft\web\View;
 use fostercommerce\craftfostercheckout\models\Settings;
 use fostercommerce\craftfostercheckout\services\Checkout;
-use yii\base\Event;
+use craft\web\View;
 
 /**
  * Foster Checkout plugin
@@ -58,7 +58,7 @@ class FosterCheckout extends Plugin
     private function registerComponents(): void
     {
         $this->setComponents([
-            'checkout' => Checkout::class,
+            'checkout' => Checkout::class
         ]);
     }
 
@@ -80,7 +80,7 @@ class FosterCheckout extends Plugin
         Event::on(
             View::class,
             View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
-            function(RegisterTemplateRootsEvent $event) {
+            function (RegisterTemplateRootsEvent $event) {
                 $event->roots['foster-checkout'] = __DIR__ . '/templates';
             }
         );
