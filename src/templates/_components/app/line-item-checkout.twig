@@ -1,0 +1,35 @@
+{% set imageUrl = null %}
+{% set previewImage = craft.checkout.lineItemImage(lineItem) %}
+{% if previewImage|default %}
+	{% set preview = {
+		mode: 'crop',
+		width: 70,
+		height: 70,
+		quality: 90,
+		position: 'center-center'
+	} %}
+	{% set imageUrl = previewImage.getUrl(preview) %}
+{% endif %}
+
+<article class="flex justify-start items-stretch gap-4 p-4 bg-gray-200 rounded-xl">
+
+	<div class="w-[70px] min-w-[70px]">
+		<figure class="rounded-lg overflow-hidden">
+			<img
+				src="{{ imageUrl ?? 'https://placehold.co/70x70?text=No+Image' }}"
+				width="70"
+				height="70"
+				alt="{{ 'Image of'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
+			/>
+		</figure>
+	</div>
+
+	<div class="flex justify-between items-stretch gap-4 flex-grow">
+		<div class="flex flex-col justify-between items-start gap-1">
+			<h3 class="font-semibold leading-snug">{{ lineItem.description }}</h3>
+			<p class="text-sm uppercase text-gray-500">{{ 'Qty'|t('foster-checkout') }}: {{ lineItem.qty }}</p>
+		</div>
+		<h4 class="font-semibold text-right leading-snug">{{ lineItem.totalAsCurrency() }}</h4>
+	</div>
+
+</article>

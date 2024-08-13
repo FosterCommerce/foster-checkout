@@ -23,76 +23,84 @@
  */
 
 return [
-
     // Branding Settings
     'branding' => [
-
-        // The brand primary custom color and shades in HEX color
-        // (use https://www.tailwindshades.com/) to get tint values
-        'color' => [
-            '100' => '',
-            '200' => '',
-            '300' => '',
-            '400' => '',
-            '500' => '',
-            '600' => '',
-            '700' => '',
-            '800' => '',
-            '900' => '',
-        ],
-
-        // The sites background color in HEX (usually the sites header or footer color)
-        // (ex. '#000000') - If left blank the background will be white
-        'background' => '',
+        // The brand primary custom color in HEX color
+        'color' => '#333333',
 
         // The Google web font (https://fonts.google.com/) family name you want to use
         // (ex. 'Roboto Slab')
-        'font' => '',
+        'font' => 'Roboto Slab',
 
         // The relative path from the web root of the logo file
         // (ex. '/assets/images/logo.svg')
         'logo' => '',
-
-        // The relative path from your templates folder of your sites custom header partial
-        // (ex. '/components/global/header')
-        'header' => '',
-
-        // The relative path from your templates folder of your sites custom footer partial
-        // (ex. '/components/global/footer')
-        'footer' => '',
-
-        // The relative path from your web root of your sites CSS (to support your custom header and footer)
-        // (ex. '/asset/css/style.css')
-        'css' => '',
-
-        // The relative path from your web root of your sites Javascript (to support your custom header and footer)
-        // (ex. '/asset/js/script.js')
-        'js' => '',
     ],
 
     // Path Settings
     'paths' => [
+        // The site relative path to where the cart should be accessible
+        // (ex. 'cart')
+        'cart' => '',
 
         // The site relative path to where the checkout should be accessible
         // (ex. 'checkout')
         'checkout' => '',
 
-        // The site relative path to where the cart should be accessible
-        // (ex. 'cart')
-        'cart' => '',
-
         // The path the user should be taken to if they cancel the checkout process
         // (ex. '/')
-        'cancel' => ''
+        'cancel' => '',
     ],
 
     // Product Settings
     'products' => [
         /*
-        // Add for each product type using their handle, to define the field handle used for its preview image
+        // Add for each product type using the product type handle, to define the field handles used for the
+        // product and/or variant preview image to display in the cart view
         'shirts' => [
-            'previewImageField' => 'assetFieldHandleHere'
+            'image' => [
+                'product' => 'productPreviewImage',
+                'variant' => 'variantPreviewImage',
+            ],
         ],
         */
-    ]
+    ],
+
+    // Notes that will appear in the cart, login, and checkout steps. Include the element handle (global or single)
+    // and the field handle in that entry that contains the content you want to display. Fields can be either plain
+    // text of rich text fields like Redactor
+    'notes' => [
+        'cart' => [
+            'elementHandle' => '',
+            'fieldHandle' => '',
+        ],
+        'emptyCart' => [
+            'elementHandle' => '',
+            'fieldHandle' => '',
+        ],
+        'login' => [
+            'elementHandle' => '',
+            'fieldHandle' => '',
+        ],
+        'email' => [
+            'elementHandle' => '',
+            'fieldHandle' => '',
+        ],
+        'address' => [
+            'elementHandle' => '',
+            'fieldHandle' => '',
+        ],
+        'shipping' => [
+            'elementHandle' => '',
+            'fieldHandle' => '',
+        ],
+        'payment' => [
+            'elementHandle' => '',
+            'fieldHandle' => '',
+        ],
+        'order' => [
+            'elementHandle' => '',
+            'fieldHandle' => '',
+        ],
+    ],
 ];

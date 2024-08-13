@@ -1,0 +1,110 @@
+{% extends 'foster-checkout/_layouts/default' %}
+
+{% block body %}
+
+	<main class="my-4 lg:my-16">
+
+		<nav class="mb-14 max-w-[460px] mx-auto lg:max-w-full lg:mb-2">
+			<a href="#" class="inline-flex justify-start items-center gap-4 font-medium text-[var(--brandColor)]">
+				<svg xmlns="http://www.w3.org/2000/svg" width="9" height="14" viewBox="0 0 9 14" class="fill-current">
+					<path d="M0.301388 6.99931L6.64054 0.660156L8.05469 2.07431L3.10469 6.99931L8.02969 11.9243L6.61554 13.3385L0.301388 6.99931Z" />
+				</svg>
+				<span class="inline">{{ 'Back to checkout'|t('foster-checkout') }}</span>
+			</a>
+		</nav>
+
+		<div class="max-w-[460px] mx-auto">
+
+			<h1 class="font-medium text-3xl text-center">{{ 'Sign In'|t('foster-checkout') }}</h1>
+
+			<form class="mt-11" method="post" accept-charset="UTF-8">
+
+				{{ csrfInput() }}
+				{{ actionInput('users/login') }}
+
+				<fieldset class="grid grid-cols-1 gap-6">
+
+					{% set useEmail = craft.app.config.general.useEmailAsUsername %}
+
+					<div>
+						<label for="loginName" class="block mb-2 font-medium text-gray-500">
+							{{ useEmail ? 'Email'|t('foster-checkout') : 'Username'|t('foster-checkout') }}*
+						</label>
+						<input
+							type="{{ useEmail ? 'email' : 'text' }}"
+							id="loginName"
+							name="loginName"
+							autocomplete="{{ useEmail ? 'email' : 'username' }}"
+							class="w-full h-12 px-4 bg-white rounded-xl border-gray-500 focus:border-black focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
+							value="{{ craft.app.user.rememberedUsername }}"
+							placeholder="{{ useEmail ? 'Enter your email'|t('foster-checkout') : 'Enter your username'|t('foster-checkout') }}"
+							required
+						/>
+					</div>
+
+					<div>
+						<label for="loginPassword" class="block mb-2 font-medium text-gray-500">
+							{{ 'Password'|t('foster-checkout') }}*
+						</label>
+						<div v-scope="{ showPassword: false }" class="relative">
+							<input
+								id="loginPassword"
+								:type="showPassword ? 'text' : 'password'"
+								name="password"
+								autocomplete="current-password"
+								class="w-full h-12 px-4 bg-white rounded-xl border-gray-500 focus:border-black focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
+								required
+							/>
+							<button
+								type="button"
+								class="absolute right-1 top-0 inline-flex justify-center items-center w-12 h-12"
+								@click="showPassword = !showPassword"
+							>
+								<span class="sr-only">${showPassword ? '{{ 'Hide password'|t('foster-checkout') }}' : '{{ 'Show password'|t('foster-checkout') }}'}</span>
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
+								     class="w-5 h-5 text-gray-900 stroke-current">
+									<path v-if="!showPassword" stroke-linecap="round" stroke-linejoin="round"
+									      d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/>
+									<path v-if="showPassword" stroke-linecap="round" stroke-linejoin="round"
+									      d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+									<path v-if="showPassword" stroke-linecap="round" stroke-linejoin="round"
+									      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+								</svg>
+							</button>
+						</div>
+					</div>
+
+				</fieldset>
+
+				{% set note = craft.checkout.note('login') %}
+				{% if note %}
+					<div class="mt-4 text-gray-500 prose prose-a:text-black prose-a:font-normal">
+						{{ note|raw }}
+					</div>
+				{% endif %}
+
+				<div class="mt-12 grid grid-cols-1 gap-4">
+					{% if errorMessage is defined %}
+						<p class="text-sm text-red-500">{{ errorMessage }}</p>
+					{% endif %}
+					<button
+						type="submit"
+						class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+					>
+						{{ 'Sign In'|t('foster-checkout') }}
+					</button>
+					<a
+						href="#"
+						class="block w-full px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
+					>
+						{{ 'Create an account'|t('foster-checkout') }}
+					</a>
+				</div>
+
+			</form>
+
+		</div>
+
+	</main>
+
+{% endblock %}

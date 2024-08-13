@@ -1,0 +1,118 @@
+{% extends 'foster-checkout/_layouts/default' %}
+
+{% block body %}
+
+	{% if cart.lineItems|length > 0 %}
+
+		<div class="grid grid-cols-1 gap-16 mt-10 pb-32 lg:grid-cols-[1fr_380px] lg:gap-6 lg:mt-20 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+
+			<main class="flex flex-col justify-start items-stretch gap-6 lg:justify-between">
+
+				<div class="flex flex-col justify-start items-stretch gap-6">
+
+					<header class="flex justify-between items-center gap-4 lg:items-end">
+						<div class="inline-flex justify-start items-center gap-2">
+							<h1 class="font-semibold text-3xl">{{ 'Cart'|t('foster-checkout') }}</h1>
+							<p
+								class="text-gray-500"
+								title="{{ 'There are {qty} items in your cart'|t('foster-checkout', params = { qty: cart.totalQty }) }}"
+							>
+								({{ cart.totalQty }})
+							</p>
+						</div>
+						<button class="font-medium text-[var(--brandColor)]">{{ 'Clear the cart'|t('foster-checkout') }}</button>
+					</header>
+
+					<ul class="grid grid-cols-1 gap-4 lg:gap-6">
+						{% for lineItem in cart.lineItems %}
+							<li>
+								{% include 'foster-checkout/_components/app/line-item-cart' with {
+									lineItem: lineItem
+								} %}
+							</li>
+						{% endfor %}
+					</ul>
+
+				</div>
+
+				{% set note = craft.checkout.note('cart') %}
+				{% if note %}
+					<div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6">
+						{{ note|raw }}
+					</div>
+				{% endif %}
+
+			</main>
+
+			<aside>
+				<div class="lg:p-6 lg:bg-white lg:rounded-xl lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]">
+					{% include 'foster-checkout/_components/app/summary-cart' with {
+						postalCode: '90210',
+						couponCode: '121212'
+					} %}
+					<button
+						type="submit"
+						class="hidden w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
+					>
+						{{ 'Checkout'|t('foster-checkout') }}
+					</button>
+				</div>
+			</aside>
+
+		</div>
+
+	{% else %}
+
+		<div class="mt-10 pb-32 lg:mt-20">
+
+			<header class="inline-flex justify-start items-center gap-2 mb-24 lg:mb-16">
+				<h1 class="font-semibold text-3xl">{{ 'Cart'|t('foster-checkout') }}</h1>
+				<p
+					class="text-gray-500"
+					title="{{ 'There are {qty} items in your cart'|t('foster-checkout', params = { qty: 0 }) }}"
+				>
+					(0)
+				</p>
+			</header>
+
+			<div class="text-center">
+				<h2 class="font-semibold text-xl text-black">{{ 'Your cart is currently empty'|t('foster-checkout') }}</h2>
+				<div class="mt-3 mx-auto text-gray-500 prose prose-a:text-black">
+					{% set note = craft.checkout.note('emptyCart') %}
+					{% if note %}
+						{{ note|raw }}
+					{% else %}
+						<p>
+							<a href="#">{{ 'Sign In'|t('foster-checkout') }}</a>
+							{{ 'to see items you might have added previously.'|t('foster-checkout') }}
+						</p>
+					{% endif %}
+				</div>
+				<a
+					href="#"
+					class="inline-block max-w-[260px] mt-10 mx-auto px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
+				>
+					{{ 'Continue Shopping'|t('foster-checkout') }}
+				</a>
+			</div>
+
+		</div>
+
+	{% endif %}
+
+{% endblock %}
+
+{% block mobileFooter %}
+
+	{% if cart.lineItems|length > 0 %}
+		<div class="p-4 bg-gray-200 sm:p-6">
+			<button
+				type="submit"
+				class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+			>
+				{{ 'Checkout'|t('foster-checkout') }}
+			</button>
+		</div>
+	{% endif %}
+
+{% endblock %}
