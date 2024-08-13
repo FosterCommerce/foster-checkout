@@ -23,10 +23,8 @@
  */
 
 return [
-
     // Branding Settings
     'branding' => [
-
         // The brand primary custom color in HEX color
         'color' => '#333333',
 
@@ -41,7 +39,6 @@ return [
 
     // Path Settings
     'paths' => [
-
         // The site relative path to where the cart should be accessible
         // (ex. 'cart')
         'cart' => '',
@@ -52,7 +49,7 @@ return [
 
         // The path the user should be taken to if they cancel the checkout process
         // (ex. '/')
-        'cancel' => ''
+        'cancel' => '',
     ],
 
     // Product Settings
@@ -75,35 +72,35 @@ return [
     'notes' => [
         'cart' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'emptyCart' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'login' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'email' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'address' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'shipping' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'payment' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
+            'fieldHandle' => '',
         ],
         'order' => [
             'elementHandle' => '',
-            'fieldHandle' => ''
-        ]
-    ]
+            'fieldHandle' => '',
+        ],
+    ],
 ];
