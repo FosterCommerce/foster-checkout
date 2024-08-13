@@ -1,12 +1,10 @@
-![Foster Checkout Icon](resources/img/header.png)
-
 # Foster Checkout
 
 A companion plugin to the Foster Checkout Commerce templates.
 
 ## Requirements
 
-This plugin requires Craft CMS 5.0.0 or later, and PHP 8.0.2 or later.
+This plugin requires Craft CMS 4.4.6 or later, and PHP 8.0.2 or later.
 
 ## Installation
 

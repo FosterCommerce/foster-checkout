@@ -2,6 +2,7 @@
 
 namespace fostercommerce\craftfostercheckout\models;
 
+use Craft;
 use craft\base\Model;
 
 /**
@@ -10,51 +11,29 @@ use craft\base\Model;
 class Settings extends Model
 {
     public array $branding = [
-        'color' => '#1F2937',
-        'font' => 'Rubik',
+        'color' => [
+            '100' => '',
+            '200' => '',
+            '300' => '',
+            '400' => '',
+            '500' => '',
+            '600' => '',
+            '700' => '',
+            '800' => '',
+            '900' => '',
+        ],
         'logo' => '',
+        'header' => '',
+        'footer' => '',
+        'css' => '',
+        'js' => '',
     ];
 
     public array $paths = [
-        'cart' => '/cart',
-        'checkout' => '/checkout',
-        'cancel' => '/',
+        'checkout' => '',
+        'cart' => '',
+        'cancel' => ''
     ];
 
-    public array $products = [];
-
-    public array $notes = [
-        'cart' => [
-            'elementHandle' => '',
-            'fieldHandle' => '',
-        ],
-        'emptyCart' => [
-            'elementHandle' => '',
-            'fieldHandle' => '',
-        ],
-        'login' => [
-            'elementHandle' => '',
-            'fieldHandle' => '',
-        ],
-        'email' => [
-            'elementHandle' => '',
-            'fieldHandle' => '',
-        ],
-        'address' => [
-            'elementHandle' => '',
-            'fieldHandle' => '',
-        ],
-        'shipping' => [
-            'elementHandle' => '',
-            'fieldHandle' => '',
-        ],
-        'payment' => [
-            'elementHandle' => '',
-            'fieldHandle' => '',
-        ],
-        'order' => [
-            'elementHandle' => '',
-            'fieldHandle' => '',
-        ],
-    ];
+    public array $products =[];
 }
