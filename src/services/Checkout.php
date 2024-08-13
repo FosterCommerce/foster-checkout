@@ -2,25 +2,16 @@
 
 namespace fostercommerce\craftfostercheckout\services;
 
-use craft\commerce\elements\Variant;
-use craft\commerce\models\LineItem;
+use Craft;
+
 use craft\commerce\Plugin;
-use craft\elements\Asset;
-use craft\elements\Entry;
-use craft\elements\GlobalSet;
-use craft\errors\InvalidFieldException;
 use fostercommerce\craftfostercheckout\FosterCheckout;
 use yii\base\Component;
-use yii\base\InvalidConfigException;
+
+use craft\commerce\elements\Variant;
 
 /**
  * Checkout service
- *
- * @property-read array $gateways
- * @property-read array $regions
- * @property-read string $paymentForm
- * @property-read array $discounts
- * @property-read array $countries
  */
 class Checkout extends Component
 {
@@ -43,175 +34,58 @@ class Checkout extends Component
     }
 
     /*
-     * Gets the 'dist' javascript asset bundle from the plugin
-     * Note: We are getting it this way as running view.registerAssetBundle() in the template does not output the
-     * script tag with type="module" attribute
-    */
-    public function jsBundle(): string
-    {
-        return \Craft::$app->assetManager->getPublishedUrl('@fostercheckout/web/assets/checkout/dist/js/app.js', true);
-    }
-
-    /*
-     * Gets the custom note data based on the template page we are on
-    */
-    public function note($page): ?string
-    {
-        // Get the data in the settings
-        $settings = FosterCheckout::getInstance()->getSettings();
-        $notesArr = $settings->notes;
-        $elementHandle = $notesArr[$page]['elementHandle'] ?? null;
-        $fieldHandle = $notesArr[$page]['fieldHandle'] ?? null;
-
-        $note = null;
-
-        if ($elementHandle and $fieldHandle) {
-            $global = GlobalSet::find()->handle($elementHandle)->one() ?? null;
-            $entry = Entry::find()->section($elementHandle)->one() ?? null;
-            $element = $global ?? $entry;
-
-            // Get the content field data and parse it if necessary (for rich text fields like Redactor)
-            if ($element) {
-                try {
-                    $content = $element->getFieldValue($fieldHandle);
-                    if ($content) {
-                        $note = method_exists($content, 'getParsedValue') ? $content->getParsedValue() : $content;
-                    } else {
-                        $note = null;
-                    }
-                } catch (InvalidFieldException $e) {
-                    $note = null;
-                }
-            }
-        }
-
-        return $note;
-    }
-
-    /*
-     * Gets the line items image field based on the products settings
+     * Gets a product type setting based on the type handle
      */
-    public function lineItemImageField($productType): ?array
+    public function productFields($handle = null): ?array
     {
+        
         $settings = FosterCheckout::getInstance()->getSettings();
-        $products = $settings->products;
-        $fieldData = null;
 
-        if (is_string($productType)) {
-            if (! empty($products[$productType]['image']['product'])) {
-                $fieldData = [
-                    'handle' => $products[$productType]['image']['product'],
-                    'level' => 'product',
-                ];
-            }
+        if ($handle) {
 
-            if (! empty($products[$productType]['image']['variant'])) {
-                $fieldData = [
-                    'handle' => $products[$productType]['image']['variant'],
-                    'level' => 'variant',
-                ];
-            }
-        }
+            return $settings->products[$handle] ?? null;
 
-        return $fieldData;
-    }
-
-    /*
-     * Gets a line items image asset based on the config settings for the product type
-     */
-    public function lineItemImage(LineItem $lineItem): ?Asset
-    {
-        $image = null;
-        $sku = $lineItem->getSku();
-        $variant = Variant::find()->sku($sku)->one();
-        $product = $variant->getOwner();
-        $fieldInfo = $this->lineItemImageField($product->type->handle);
-
-        if ($fieldInfo['level'] === 'variant') {
-            try {
-                $image = $variant->getFieldValue($fieldInfo['handle'])->one();
-            } catch (InvalidFieldException $e) {
-                $image = null;
-            }
         } else {
-            try {
-                $image = $product->getFieldValue($fieldInfo['handle'])->one();
-            } catch (InvalidFieldException $e) {
-                $image = null;
-            }
+
+            return $settings->products;
+
         }
 
-        return $image;
     }
 
-    /*
-     * Gets the available countries from Commerce
-     */
+    public function getVariants($ids): array {
+
+        $variants = [];
+        $fields = $this->productFields('general');
+
+        $results = Variant::find()
+            ->id($ids)
+            ->with([
+                $fields['variantImageField'],
+                "product." . $fields['previewImageField']
+            ])
+            ->all(); 
+
+        foreach ($results as $variant) $variants[$variant['id']] = $variant;
+
+        // May need to test whether anything returned is a query.
+
+        return $variants;
+
+    }
+
     public function getCountries(): array
     {
-        try {
-            return Plugin::getInstance()->getStore()->getStore()->getCountriesList();
-        } catch (InvalidConfigException $e) {
-            return [];
-        }
+        return Plugin::getInstance()->getStore()->getStore()->getCountriesList();
     }
 
-    /*
-     * Gets the available regions (administrative areas) from Commerce
-     */
     public function getRegions(): array
     {
-        try {
-            return Plugin::getInstance()->getStore()->getStore()->getAdministrativeAreasListByCountryCode();
-        } catch (InvalidConfigException $e) {
-            return [];
-        }
+        return Plugin::getInstance()->getStore()->getStore()->getAdministrativeAreasListByCountryCode();
     }
 
-    /*
-     * Gets any discounts that are configured in Commerce
-     */
     public function getDiscounts(): array
     {
-        try {
-            return Plugin::getInstance()->getDiscounts()->allDiscounts;
-        } catch (InvalidConfigException $e) {
-            return [];
-        }
-    }
-
-    /*
-     * Gets the available gateways configured in Commerce
-     */
-    public function getGateways(): array
-    {
-        try {
-            $gateways = Plugin::getInstance()->gateways->getAllCustomerEnabledGateways();
-        } catch (InvalidConfigException $e) {
-            $gateways = [];
-        }
-        $gatewaysArr = [];
-        foreach ($gateways as $gateway) {
-            $gatewaysArr[] = [
-                'id' => $gateway->id,
-                'handle' => $gateway->handle,
-                'name' => $gateway->name,
-                'type' => $gateway->paymentType,
-            ];
-        }
-
-        return $gatewaysArr;
-    }
-
-    /*
-     * Outputs a gateways payment form HTML
-     */
-    public function getPaymentForm(): string
-    {
-        $cart = Plugin::getInstance()->getCarts()->getCart();
-
-        return $cart->gateway->getPaymentFormHtml([
-            'currency' => $cart->paymentCurrency,
-        ]);
+        return Plugin::getInstance()->getDiscounts()->allDiscounts;
     }
 }
