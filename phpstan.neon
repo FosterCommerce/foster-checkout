@@ -2,6 +2,11 @@ includes:
     - vendor/craftcms/phpstan/phpstan.neon
 
 parameters:
-    level: 0
+    ignoreErrors:
+        # Craft compiled classes isn't super great, there's instances where types just don't
+        # work correctly and we have to ignore the errors, because the errors are invalid.
+        - '#Cannot call method getParsedContent\(\) on string\.#'
+        - '#Call to an undefined method craft\\behaviors\\CustomFieldBehavior::.*#'
     paths:
         - src
+    level: 5
