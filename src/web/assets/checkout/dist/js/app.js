@@ -41,30 +41,48 @@ const LineItem = (props) => {
     qty: props.qty,
     min: props.min,
     max: props.max,
+    stock: props.stock,
+    unlimitedStock: props.unlimitedStock,
+    showErrorMaxMessage: props.showErrorMaxMessage,
+    showErrorMinMessage: props.showErrorMinMessage,
+    showErrorStockMessage: props.showErrorStockMessage,
     input() {
       this.qty = this.qty.replace(/\D/g,'');
       this.updateQty();
     },
     increment() {
+      this.removeMessages()
       this.qty++;
       this.updateQty();
     },
     decrement() {
-      this.qty = this.qty > 0 ? (this.qty - 1) : 0;
+      this.removeMessages()
+      this.qty = this.qty > 1 ? (this.qty - 1) : 1;
       this.updateQty();
     },
     remove() {
-      this.qty = 0;
-      this.updateQty();
+      RemoveLineItem();
     },
     blur() {
       this.qty = this.qty === '' ? 0 : this.qty;
     },
+    removeMessages() {
+      this.showErrorMaxMessage = false;
+      this.showErrorMinMessage = false;
+      this.showErrorStockMessage = false;
+    },
     updateQty() {
-      props.qty = this.qty;
-      if(props.qty == 0) {
-        RemoveLineItem(props);
+      if(this.unlimitedStock === 0 && this.qty > this.stock) {
+        this.qty = this.stock;
+        this.showErrorStockMessage = true;
+      } else if(this.qty < this.min && this.min !== 0) {
+        this.qty = this.min;
+        this.showErrorMinMessage = true;
+      } else if(this.unlimitedStock && this.qty > this.max) {
+        this.qty = this.max;
+        this.showErrorMaxMessage = true;
       } else {
+        props.qty = this.qty;
         UpdateQty(props);
       }
     }
@@ -83,9 +101,9 @@ const RemoveLineItem = (props) => {
   const formData = new FormData(form)
   formData.set(`lineItems[${props.id}][remove]`, true);
   UpdateCart(formData);
-  // we need to only do this if the ajax operation was successful
-  //  const container = form.closest('article');
-  //  container.remove();
+  // we should only do this if the ajax operation was successful
+   const container = form.closest('article');
+   container.remove();
 }
 
 
@@ -103,6 +121,9 @@ const UpdateCart = async (formData) => {
         throw new Error('Network response was not ok');
       }
       return response.json();
+    })
+    .then(data => {
+      console.log(data)
     })
     .catch(error => {
       console.error('Error:', error);
