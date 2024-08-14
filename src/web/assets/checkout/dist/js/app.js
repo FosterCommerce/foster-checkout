@@ -43,31 +43,53 @@ const LineItem = (props) => {
     max: props.max,
     input() {
       this.qty = this.qty.replace(/\D/g,'');
-      this.update();
+      this.updateQty();
     },
     increment() {
       this.qty++;
-      UpdateCart(props);
+      this.updateQty();
     },
     decrement() {
       this.qty = this.qty > 0 ? (this.qty - 1) : 0;
-      UpdateCart(props);
+      this.updateQty();
     },
     remove() {
       this.qty = 0;
-      this.update();
+      this.updateQty();
     },
     blur() {
       this.qty = this.qty === '' ? 0 : this.qty;
+    },
+    updateQty() {
+      props.qty = this.qty;
+      if(props.qty == 0) {
+        RemoveLineItem(props);
+      } else {
+        UpdateQty(props);
+      }
     }
   }
 };
 
-
-const UpdateCart = async (props) => {
+const UpdateQty =  (props) => {
   const form = document.querySelector(`#lineItemQty-${props.id}`);
   const formData = new FormData(form)
+  formData.set(`lineItems[${props.id}][qty]`, props.qty);
+  UpdateCart(formData);
+}
 
+const RemoveLineItem = (props) => {
+  const form = document.querySelector(`#lineItemQty-${props.id}`);
+  const formData = new FormData(form)
+  formData.set(`lineItems[${props.id}][remove]`, true);
+  UpdateCart(formData);
+  // we need to only do this if the ajax operation was successful
+  //  const container = form.closest('article');
+  //  container.remove();
+}
+
+
+const UpdateCart = async (formData) => {
   await fetch('/actions/commerce/cart/update-cart', {
     method: 'POST',
     headers: {
@@ -81,11 +103,6 @@ const UpdateCart = async (props) => {
         throw new Error('Network response was not ok');
       }
       return response.json();
-    })
-    .then(response => {
-      // show a confirmation message?
-      alert('Cart updated')
-      console.debug(response);
     })
     .catch(error => {
       console.error('Error:', error);
