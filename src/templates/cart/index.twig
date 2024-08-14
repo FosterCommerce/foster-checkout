@@ -23,15 +23,15 @@
 						<button class="font-medium text-[var(--brandColor)]">{{ 'Clear the cart'|t('foster-checkout') }}</button>
 					</header>
 
-					<ul class="grid grid-cols-1 gap-4 lg:gap-6">
-						{% for lineItem in cart.lineItems %}
-							<li>
-								{% include 'foster-checkout/_components/app/line-item-cart' with {
-									lineItem: lineItem
-								} %}
-							</li>
-						{% endfor %}
-					</ul>
+            <ul class="grid grid-cols-1 gap-4 lg:gap-6">
+              {% for lineItem in cart.lineItems %}
+                <li>
+                  {% include 'foster-checkout/_components/app/line-item-cart' with {
+                    lineItem: lineItem
+                  } %}
+                </li>
+              {% endfor %}
+            </ul>
 
 				</div>
 

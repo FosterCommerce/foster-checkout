@@ -5,6 +5,7 @@ const App = reactive({
 
   init() {
     this.loaded = true;
+    Hide();
   }
 });
 
@@ -36,26 +37,60 @@ const ClearableInput = (props) => {
 
 const LineItem = (props) => {
   return {
+    id: props.lineItemId,
     qty: props.qty,
     min: props.min,
     max: props.max,
     input() {
       this.qty = this.qty.replace(/\D/g,'');
+      this.update();
     },
     increment() {
       this.qty++;
+      UpdateCart(props);
     },
     decrement() {
       this.qty = this.qty > 0 ? (this.qty - 1) : 0;
+      UpdateCart(props);
     },
     remove() {
       this.qty = 0;
+      this.update();
     },
     blur() {
       this.qty = this.qty === '' ? 0 : this.qty;
     }
   }
 };
+
+
+const UpdateCart = async (props) => {
+  const form = document.querySelector(`#lineItemQty-${props.id}`);
+  const formData = new FormData(form)
+
+  await fetch('/actions/commerce/cart/update-cart', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: formData,
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(response => {
+      // show a confirmation message?
+      alert('Cart updated')
+      console.debug(response);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
 
 const FocusModal = (props) => {
   return {
@@ -90,6 +125,12 @@ const FocusModal = (props) => {
   }
 };
 
+// Hide any elements that we only show if JS doesn't load
+const Hide = () => {
+    const els = document.querySelectorAll('.js-hide')
+    els.forEach((el) => el.classList.add('hidden'));
+}
+
 // Initialize Petite Vue and mount
 createApp({
   // Set delimiters in Petite Vue so they do not interfere with Twig delimiters
@@ -99,5 +140,6 @@ createApp({
   App,
   ClearableInput,
   FocusModal,
-  LineItem
+  LineItem,
+  Hide
 }).mount();
