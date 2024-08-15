@@ -19,7 +19,10 @@
 		aria-describedby="couponCodeDesc"
 		class="pb-6"
 	>
-		<form class="grid grid-cols-[1fr,_90px] gap-4">
+		<form class="grid grid-cols-[1fr,_90px] gap-4" method="post">
+      {{ csrfInput() }}
+      {{ actionInput('commerce/cart/update-cart') }}
+      {{ hiddenInput('successMessage', 'Coupon code added' | t('Foster Checkout') | hash) }}
 			<p id="couponCodeDesc" class="sr-only">
 				{{
 					cart.couponCode|default ?

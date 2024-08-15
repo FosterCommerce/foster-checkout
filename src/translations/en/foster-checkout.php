@@ -1,7 +1,7 @@
 <?php
 
 return [
-'Cart' => 'Cart',
+    'Cart' => 'Cart',
     'Checkout' => 'Checkout',
     'Email' => 'Email',
     'Address' => 'Address',
@@ -19,9 +19,14 @@ return [
     'Increment quantity' => 'Increment quantity',
     'Only {qty} in stock' => 'Only {qty} in stock',
     'Decrement quantity' => 'Decrement quantity',
+    'Item updated' => 'Item updated',
+    'Item removed' => 'Item removed',
+    'You may only purchase {qty} of this item' => 'You may only purchase {qty} of this item',
+    'You must purchase at least {qty} of this item' => 'You must purchase at least {qty} of this item',
     'Save for later' => 'Save for later',
     'Clear this field' => 'Clear this field',
     'Coupon Code' => 'Coupon Code',
+    'Coupon added' => 'Coupon added',
     'Submit a coupon code to get a discount on your order.' => 'Submit a coupon code to get a discount on your order.',
     'Enter your Coupon Code' => 'Enter your Coupon Code',
     'Submit' => 'Submit',

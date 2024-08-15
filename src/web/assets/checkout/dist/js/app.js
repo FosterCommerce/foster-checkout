@@ -5,6 +5,7 @@ const App = reactive({
 
   init() {
     this.loaded = true;
+    Hide();
   }
 });
 
@@ -36,26 +37,98 @@ const ClearableInput = (props) => {
 
 const LineItem = (props) => {
   return {
+    id: props.lineItemId,
     qty: props.qty,
     min: props.min,
     max: props.max,
+    stock: props.stock,
+    unlimitedStock: props.unlimitedStock,
+    showErrorMaxMessage: props.showErrorMaxMessage,
+    showErrorMinMessage: props.showErrorMinMessage,
+    showErrorStockMessage: props.showErrorStockMessage,
     input() {
       this.qty = this.qty.replace(/\D/g,'');
+      this.updateQty();
     },
     increment() {
+      this.removeMessages()
       this.qty++;
+      this.updateQty();
     },
     decrement() {
-      this.qty = this.qty > 0 ? (this.qty - 1) : 0;
+      this.removeMessages()
+      this.qty = this.qty > 1 ? (this.qty - 1) : 1;
+      this.updateQty();
     },
     remove() {
-      this.qty = 0;
+      RemoveLineItem();
     },
     blur() {
       this.qty = this.qty === '' ? 0 : this.qty;
+    },
+    removeMessages() {
+      this.showErrorMaxMessage = false;
+      this.showErrorMinMessage = false;
+      this.showErrorStockMessage = false;
+    },
+    updateQty() {
+      if(this.unlimitedStock === 0 && this.qty > this.stock) {
+        this.qty = this.stock;
+        this.showErrorStockMessage = true;
+      } else if(this.qty < this.min && this.min !== 0) {
+        this.qty = this.min;
+        this.showErrorMinMessage = true;
+      } else if(this.unlimitedStock && this.qty > this.max) {
+        this.qty = this.max;
+        this.showErrorMaxMessage = true;
+      } else {
+        props.qty = this.qty;
+        UpdateQty(props);
+      }
     }
   }
 };
+
+const UpdateQty =  (props) => {
+  const form = document.querySelector(`#lineItemQty-${props.id}`);
+  const formData = new FormData(form)
+  formData.set(`lineItems[${props.id}][qty]`, props.qty);
+  UpdateCart(formData);
+}
+
+const RemoveLineItem = (props) => {
+  const form = document.querySelector(`#lineItemQty-${props.id}`);
+  const formData = new FormData(form)
+  formData.set(`lineItems[${props.id}][remove]`, true);
+  UpdateCart(formData);
+  // we should only do this if the ajax operation was successful
+   const container = form.closest('article');
+   container.remove();
+}
+
+
+const UpdateCart = async (formData) => {
+  await fetch('/actions/commerce/cart/update-cart', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: formData,
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(data)
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
 
 const FocusModal = (props) => {
   return {
@@ -90,6 +163,12 @@ const FocusModal = (props) => {
   }
 };
 
+// Hide any elements that we only show if JS doesn't load
+const Hide = () => {
+    const els = document.querySelectorAll('.js-hide')
+    els.forEach((el) => el.classList.add('hidden'));
+}
+
 // Initialize Petite Vue and mount
 createApp({
   // Set delimiters in Petite Vue so they do not interfere with Twig delimiters
@@ -99,5 +178,6 @@ createApp({
   App,
   ClearableInput,
   FocusModal,
-  LineItem
+  LineItem,
+  Hide
 }).mount();
