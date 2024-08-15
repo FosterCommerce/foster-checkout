@@ -12,7 +12,9 @@ use craft\web\UrlManager;
 use craft\web\View;
 use fostercommerce\craftfostercheckout\models\Settings;
 use fostercommerce\craftfostercheckout\services\Checkout;
+use fostercommerce\craftfostercheckout\variables\Variables;
 use yii\base\Event;
+
 
 /**
  * Foster Checkout plugin
@@ -40,7 +42,10 @@ class FosterCheckout extends Plugin
         Craft::$app->onInit(function () {
             $this->registerComponents();
             $this->attachEventHandlers();
+            $this->registerCustomVariables();
         });
+
+
     }
 
     protected function createSettingsModel(): ?Model
@@ -61,6 +66,19 @@ class FosterCheckout extends Plugin
         $this->setComponents([
             'checkout' => Checkout::class,
         ]);
+    }
+
+    private function registerCustomVariables(): void
+    {
+        // Register the variables
+        Event::on(
+            CraftVariable::class,
+            CraftVariable::EVENT_INIT,
+            static function (Event $event): void {
+                $variable = $event->sender;
+                $variable->set('fostercheckout', Variables::class);
+            }
+        );
     }
 
     private function attachEventHandlers(): void

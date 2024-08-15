@@ -112,7 +112,7 @@
         </form>
 
 				<div class="mt-3 md:mt-0">
-					<h4 class="font-semibold">{{ lineItem.subtotalAsCurrency() }}</h4>
+					<h4 class="font-semibold">{{ lineItem.totalAsCurrency() }}</h4>
 					{% if lineItem.onSale or lineItem.discount or lineItem.purchasable.onPromotion %}
 						<h5 class="mt-1 text-sm text-gray-600 line-through">{{ lineItem.subtotalAsCurrency() }}</h5>
 					{% endif %}

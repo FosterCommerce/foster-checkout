@@ -26,6 +26,7 @@ return [
     'Save for later' => 'Save for later',
     'Clear this field' => 'Clear this field',
     'Coupon Code' => 'Coupon Code',
+    'Coupon added' => 'Coupon added',
     'Submit a coupon code to get a discount on your order.' => 'Submit a coupon code to get a discount on your order.',
     'Enter your Coupon Code' => 'Enter your Coupon Code',
     'Submit' => 'Submit',
