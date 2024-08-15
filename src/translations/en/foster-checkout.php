@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'Cart' => 'Cart',
+'Cart' => 'Cart',
     'Checkout' => 'Checkout',
     'Email' => 'Email',
     'Address' => 'Address',

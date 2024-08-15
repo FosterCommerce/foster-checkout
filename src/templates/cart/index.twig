@@ -20,7 +20,12 @@
 								({{ cart.totalQty }})
 							</p>
 						</div>
-						<button class="font-medium text-[var(--brandColor)]">{{ 'Clear the cart'|t('foster-checkout') }}</button>
+            <form method="post">
+              {{ csrfInput() }}
+              {{ actionInput('commerce/cart/forget-cart') }}
+              {{ redirectInput( craft.fostercheckout.getPath('cart')) }}
+						  <button type="submit" class="font-medium text-[var(--brandColor)]">{{ 'Clear the cart'|t('foster-checkout') }}</button>
+            </form>
 					</header>
 
             <ul class="grid grid-cols-1 gap-4 lg:gap-6">
@@ -50,12 +55,11 @@
 						postalCode: '90210',
 						couponCode: '121212'
 					} %}
-					<button
-						type="submit"
+					<a href="{{ craft.fostercheckout.getPath('checkout') }}"
 						class="hidden w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
 					>
 						{{ 'Checkout'|t('foster-checkout') }}
-					</button>
+					</a>
 				</div>
 			</aside>
 
@@ -83,7 +87,7 @@
 						{{ note|raw }}
 					{% else %}
 						<p>
-							<a href="#">{{ 'Sign In'|t('foster-checkout') }}</a>
+							<a href="{{ loginUrl }}">{{ 'Sign In'|t('foster-checkout') }}</a>
 							{{ 'to see items you might have added previously.'|t('foster-checkout') }}
 						</p>
 					{% endif %}
@@ -106,12 +110,11 @@
 
 	{% if cart.lineItems|length > 0 %}
 		<div class="p-4 bg-gray-200 sm:p-6">
-			<button
-				type="submit"
+			<a href="{{ craft.fostercheckout.getPath('checkout') }}"
 				class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 			>
 				{{ 'Checkout'|t('foster-checkout') }}
-			</button>
+			</a>
 		</div>
 	{% endif %}
 
