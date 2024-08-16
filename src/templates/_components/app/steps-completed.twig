@@ -13,8 +13,8 @@
 					</a>
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
-					<span class="text-black">email@gmail.com</span>
-					<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]" href="#">
+					<span class="text-black">{{ cart.email }}</span>
+					<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]" href="{{ craft.fostercheckout.getPath('checkout') ~ '/email' }}">
 						{{ 'Edit'|t('foster-checkout') }}
 					</a>
 				</dd>
