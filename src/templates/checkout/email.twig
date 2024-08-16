@@ -13,7 +13,8 @@
 		<form class="mt-6" method="post" accept-charset="UTF-8">
 
 			{{ csrfInput() }}
-			{{ actionInput('cart/update-cart') }}
+			{{ actionInput('commerce/cart/update-cart') }}
+      {{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/address') }}
 
 			<fieldset class="grid grid-cols-1 gap-6">
 
@@ -43,7 +44,7 @@
 
 			<div class="mt-12 grid grid-cols-1 gap-4 md:flex md:justify-end md:items-center md:gap-6 md:mt-16">
 				<a
-					href="#"
+					href="{{ craft.fostercheckout.getPath('cancel') }}"
 					class="block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
 				>
 					{{ 'Continue Shopping'|t('foster-checkout') }}
