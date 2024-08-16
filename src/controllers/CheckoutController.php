@@ -12,7 +12,7 @@ use yii\web\Request;
  */
 class CheckoutController extends Controller
 {
-    protected array|int|bool $allowAnonymous = ['get-critical-data', 'get-payment-form', 'get-discounts', 'check-email'];
+    protected array|int|bool $allowAnonymous = ['get-critical-data', 'get-payment-form', 'get-discounts'];
 
     public function actionGetCriticalData(): Response
     {
