@@ -42,6 +42,7 @@ const LineItem = (props) => {
     min: props.min,
     max: props.max,
     stock: props.stock,
+    lineSubtotal: props.lineSubtotal,
     unlimitedStock: props.unlimitedStock,
     showErrorMaxMessage: props.showErrorMaxMessage,
     showErrorMinMessage: props.showErrorMinMessage,
@@ -71,7 +72,7 @@ const LineItem = (props) => {
       this.showErrorMinMessage = false;
       this.showErrorStockMessage = false;
     },
-    updateQty() {
+    async updateQty() {
       if(this.unlimitedStock === 0 && this.qty > this.stock) {
         this.qty = this.stock;
         this.showErrorStockMessage = true;
@@ -83,18 +84,46 @@ const LineItem = (props) => {
         this.showErrorMaxMessage = true;
       } else {
         props.qty = this.qty;
-        UpdateQty(props);
+        // UpdateQty(props);
+
+        const form = document.querySelector(`#lineItemQty-${props.id}`);
+        const formData = new FormData(form)
+        formData.set(`lineItems[${props.id}][qty]`, props.qty);
+
+        await fetch('/actions/commerce/cart/update-cart', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: formData,
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            let item = data.cart.lineItems.filter((lineItem) => lineItem.id === props.id)
+            console.log(item);
+            this.lineSubtotal = item[0].subtotalAsCurrency;
+            this.line
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
       }
     }
   }
 };
 
-const UpdateQty =  (props) => {
-  const form = document.querySelector(`#lineItemQty-${props.id}`);
-  const formData = new FormData(form)
-  formData.set(`lineItems[${props.id}][qty]`, props.qty);
-  UpdateCart(formData);
-}
+// const UpdateQty =  (props) => {
+//   const form = document.querySelector(`#lineItemQty-${props.id}`);
+//   const formData = new FormData(form)
+//   formData.set(`lineItems[${props.id}][qty]`, props.qty);
+//   UpdateCart(formData);
+// }
 
 const RemoveLineItem = (props) => {
   const form = document.querySelector(`#lineItemQty-${props.id}`);
@@ -106,29 +135,6 @@ const RemoveLineItem = (props) => {
    container.remove();
 }
 
-
-const UpdateCart = async (formData) => {
-  await fetch('/actions/commerce/cart/update-cart', {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: formData,
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log(data)
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-}
 
 const FocusModal = (props) => {
   return {

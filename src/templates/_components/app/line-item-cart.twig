@@ -2,6 +2,7 @@
 {% set maxQty = lineItem.purchasable.maxQty %}
 {% set stock = lineItem.purchasable.stock %}
 {% set unlimitedStock = lineItem.purchasable.hasUnlimitedStock ? 1 : 0 %}
+{% set lineSubtotal = lineItem.subtotalAsCurrency() %}
 
 
 {% set imageUrl = null %}
@@ -20,7 +21,7 @@
 {% endif %}
 
 <article
-	v-scope="LineItem({ id: {{ lineItem.id }}, qty: {{ lineItem.qty }}, min: {{ minQty ?? 0 }}, max: {{ maxQty ?? 0 }}, stock: {{ stock }}, unlimitedStock: {{ unlimitedStock }}, showErrorMaxMessage: false, showErrorMinMessage: false, showErrorStockMessage: false })"
+	v-scope="LineItem({ id: {{ lineItem.id }}, qty: {{ lineItem.qty }}, min: {{ minQty ?? 0 }}, max: {{ maxQty ?? 0 }}, stock: {{ stock }}, unlimitedStock: {{ unlimitedStock }}, lineSubtotal: '{{ lineSubtotal }}', showErrorMaxMessage: false, showErrorMinMessage: false, showErrorStockMessage: false })"
 	class="flex justify-start items-stretch gap-5 p-5 bg-gray-200 rounded-xl"
 >
 
@@ -103,20 +104,20 @@
           <button type="submit" class="js-hide text-sm underline text-gray-500 hover:no-underline hover:text-gray-700">Update</button>
 
           <div class="relative w-full w-full">
-            <p class="text-red-700 text-sm text-right absolute top-[100%] w-full" v-if="showErrorMinMessage">{{ 'You must purchase at least {qty} of this item' | t('foster-checkout', params = { qty: minQty }) }}</p>
+            <p class="text-red-700 text-sm text-right absolute top-[100%] w-full" v-if="showErrorMinMessage" v-cloak>{{ 'You must purchase at least {qty} of this item' | t('foster-checkout', params = { qty: minQty }) }}</p>
 
-            <p class="text-red-700 text-sm text-right absolute top-[100%] w-full" v-if="showErrorMaxMessage">{{ 'You may only purchase {qty} of this item' | t('foster-checkout', params = { qty: maxQty}) }}</p>
+            <p class="text-red-700 text-sm text-right absolute top-[100%] w-full" v-if="showErrorMaxMessage" v-cloak>{{ 'You may only purchase {qty} of this item' | t('foster-checkout', params = { qty: maxQty}) }}</p>
 
-            <p class="text-red-700 text-sm text-right absolute top-[100%] w-full" v-if="showErrorStockMessage">{{ 'Only {qty} in stock' | t('foster-checkout', params = { qty: stock }) }}</p>
+            <p class="text-red-700 text-sm text-right absolute top-[100%] w-full" v-if="showErrorStockMessage" v-cloak>{{ 'Only {qty} in stock' | t('foster-checkout', params = { qty: stock }) }}</p>
           </div>
         </form>
 
 				<div class="mt-3 md:mt-0">
 					{% if lineItem.onSale or lineItem.discount or lineItem.purchasable.onPromotion %}
             <h4 class="font-semibold">{{ (lineItem.purchasable.promotionalPrice * lineItem.qty)|commerceCurrency(cart.paymentCurrency) }}</h4>
-						<h5 class="mt-1 text-sm text-gray-600 line-through">{{ lineItem.subtotalAsCurrency() }}</h5>
+						<h5 class="mt-1 text-sm text-gray-600 line-through"><span v-text="lineSubtotal">{{ lineItem.subtotalAsCurrency() }}</span></h5>
           {% else %}
-            <h4 class="font-semibold">{{ lineItem.totalAsCurrency() }}</h4>
+            <h4 class="font-semibold"><span v-text="lineSubtotal">{{ lineItem.subtotalAsCurrency() }}</span></h4>
 					{% endif %}
 				</div>
 
