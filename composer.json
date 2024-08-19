@@ -12,14 +12,6 @@
     "craftcms/cms": "^5.0.0",
     "craftcms/commerce": "^5.0.15"
   },
-  "require-dev": {
-    "craftcms/generator": "^2.1",
-    "fostercommerce/rector": "dev-main",
-    "fostercommerce/ecs": "dev-main",
-    "craftcms/phpstan": "dev-main",
-    "phpstan/phpstan": "^1.11",
-    "craftcms/rector": "dev-main"
-  },
   "autoload": {
     "psr-4": {
       "fostercommerce\\craftfostercheckout\\": "src/"
@@ -34,17 +26,31 @@
   },
   "config": {
     "sort-packages": true,
+    "platform": {
+      "php": "8.2"
+    },
     "allow-plugins": {
       "yiisoft/yii2-composer": true,
       "craftcms/plugin-installer": true
     }
   },
-  "scripts": {
-    "phpstan": "phpstan --memory-limit=1G",
-    "ecs-check": "ecs check --ansi --memory-limit=1G",
-    "ecs-fix": "ecs check --ansi --fix --memory-limit=1G",
-    "rector": "rector process --config rector.php",
-    "rector-dry-run": "rector process --dry-run --config rector.php"
-  }
+  "require-dev": {
+        "craftcms/generator": "^2.1",
+        "fostercommerce/rector": "dev-main",
+        "fostercommerce/ecs": "dev-main",
+        "craftcms/phpstan": "dev-main",
+        "phpstan/phpstan": "^1.11",
+        "craftcms/rector": "dev-main"
+    },
+    "scripts": {
+        "phpstan": [
+          "@php \"scripts/craft_stubs.php\"",
+          "phpstan --memory-limit=1G"
+        ],
+        "ecs-check": "ecs check --ansi --memory-limit=1G",
+        "ecs-fix": "ecs check --ansi --fix --memory-limit=1G",
+        "rector": "rector process --config rector.php",
+        "rector-dry-run": "rector process --dry-run --config rector.php"
+    }
 }
 

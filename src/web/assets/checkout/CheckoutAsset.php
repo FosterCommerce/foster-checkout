@@ -9,7 +9,7 @@ use craft\web\AssetBundle;
  */
 class CheckoutAsset extends AssetBundle
 {
-    public function init(): void
+    public function init()
     {
         $this->sourcePath = __DIR__ . '/dist';
         $this->js = ['js/app.js'];

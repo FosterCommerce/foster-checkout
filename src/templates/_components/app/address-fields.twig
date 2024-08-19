@@ -92,6 +92,19 @@
 			value: address ? address.addressLine2 : '',
 			errors: errors.addressLine2 ?? []
 		} %}
+
+    {% include 'foster-checkout/_components/base/input-text-clearable' with {
+			context: context,
+			label: 'Line 3',
+			hideLabel: true,
+			id: 'addressLine3',
+			name: 'addressLine3',
+			type: 'text',
+			autocomplete: 'address-line3',
+			placeholder: '',
+			value: address ? address.addressLine2 : '',
+			errors: errors.addressLine2 ?? []
+		} %}
 	</div>
 
 	<div class="sm:col-span-1">
@@ -127,10 +140,12 @@
 				required
 			>
 				<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
-				<option v-cloak v-for="(region, key) in regions[countryCode]" :value="key" :selected="key === administrativeArea">
+				<option v-cloak v-for="(region, key) in regions[countryCode]" :value="key" :selected="key === administrativeArea" {{ address.administrativeArea == '${key}' ? ' selected' : ''}}>
 					${region}
 				</option>
 			</select>
+
+
 		</div>
 
 		<div v-cloak v-else>

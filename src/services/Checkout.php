@@ -65,7 +65,7 @@ class Checkout extends Component
 
         $note = null;
 
-        if ($elementHandle && $fieldHandle) {
+        if ($elementHandle and $fieldHandle) {
             $global = GlobalSet::find()->handle($elementHandle)->one() ?? null;
             $entry = Entry::find()->section($elementHandle)->one() ?? null;
             $element = $global ?? $entry;
@@ -79,7 +79,7 @@ class Checkout extends Component
                     } else {
                         $note = null;
                     }
-                } catch (InvalidFieldException) {
+                } catch (InvalidFieldException $e) {
                     $note = null;
                 }
             }
@@ -130,13 +130,13 @@ class Checkout extends Component
         if ($fieldInfo['level'] === 'variant') {
             try {
                 $image = $variant->getFieldValue($fieldInfo['handle'])->one();
-            } catch (InvalidFieldException) {
+            } catch (InvalidFieldException $e) {
                 $image = null;
             }
         } else {
             try {
                 $image = $product->getFieldValue($fieldInfo['handle'])->one();
-            } catch (InvalidFieldException) {
+            } catch (InvalidFieldException $e) {
                 $image = null;
             }
         }
@@ -151,7 +151,7 @@ class Checkout extends Component
     {
         try {
             return Plugin::getInstance()->getStore()->getStore()->getCountriesList();
-        } catch (InvalidConfigException) {
+        } catch (InvalidConfigException $e) {
             return [];
         }
     }
@@ -163,7 +163,7 @@ class Checkout extends Component
     {
         try {
             return Plugin::getInstance()->getStore()->getStore()->getAdministrativeAreasListByCountryCode();
-        } catch (InvalidConfigException) {
+        } catch (InvalidConfigException $e) {
             return [];
         }
     }
@@ -175,7 +175,7 @@ class Checkout extends Component
     {
         try {
             return Plugin::getInstance()->getDiscounts()->allDiscounts;
-        } catch (InvalidConfigException) {
+        } catch (InvalidConfigException $e) {
             return [];
         }
     }
@@ -187,10 +187,9 @@ class Checkout extends Component
     {
         try {
             $gateways = Plugin::getInstance()->gateways->getAllCustomerEnabledGateways();
-        } catch (InvalidConfigException) {
+        } catch (InvalidConfigException $e) {
             $gateways = [];
         }
-
         $gatewaysArr = [];
         foreach ($gateways as $gateway) {
             $gatewaysArr[] = [
