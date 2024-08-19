@@ -2,8 +2,6 @@ includes:
     - vendor/craftcms/phpstan/phpstan.neon
 
 parameters:
-    scanFiles:
-        - phpstan_stubs.php
     paths:
         - src
     level: 5
