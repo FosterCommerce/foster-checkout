@@ -2,13 +2,27 @@
 
 {% block body %}
 {% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? null %}
+{% set onlyMethod = null %}
+{% if cart is defined %}
+  {# If there's only 1 shipping method available then set it on the cart #}
+  {% if cart.availableShippingMethodOptions|length == 1 %}
+    {% for handle, option in cart.availableShippingMethodOptions %}
+      {% set onlyMethod = handle %}
+      {# Can't figure out how to set the shipping method using 'do' #}
+    {% endfor %}
+  {% elseif cart.availableShippingMethodOptions|length == 1 %}
+      {# If there are no available shipping methods, then just redirect to the payment page #}
+      {% redirect(craft.fostercheckout.getPath('checkout') ~ '/payment') %}
+  {% endif %}
+{% endif %}
+
 
 	<div class="mt-10 pb-48 lg:mt-20 lg:pb-32">
 
 		<h1 class="mb-12 font-medium text-3xl">{{ 'Checkout'|t('foster-checkout') }}</h1>
 
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
-			<main v-scope="{ shippingMethodHandle: '{{ cart.shippingMethod.handle ?? null }}' }" class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
+			<main v-scope="{ shippingMethodHandle: '{{ cart.shippingMethod.handle ?? onlyMethod }}' }" class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 				<div class="grid grid-cols-1 gap-6 lg:gap-8">
 
 					{% include 'foster-checkout/_components/app/steps-completed' with {
@@ -43,7 +57,6 @@
                           type="radio"
                           class="sr-only"
                           value="{{ handle }}"
-
                         />
                         <label
                           for="method_{{ handle }}"
