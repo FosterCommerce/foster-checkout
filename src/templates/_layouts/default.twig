@@ -65,6 +65,26 @@
           );
           @apply border-[var(--brandColor)];
         }
+
+        .checkbox {
+          @apply relative;
+        }
+        .checkbox label::before {
+			    content: '';
+			    @apply relative inline-block w-5 h-5 flex-shrink-0 border-2 border-gray-500 rounded-sm;
+		    }
+        .checkbox input[type="checkbox"]:focus-visible + label::before {
+          @apply ring ring-offset-1;
+        }
+        .checkbox input[type="checkbox"]:checked + label::before {
+          background: var(--brandColor) 10%;
+          transform: scale(0.5);
+          @apply border-[var(--brandColor)];
+        }
+        .checkbox input[type="checkbox"]:checked + label::after {
+          content: '';
+          @apply absolute left-0 w-5 h-5 border-2 border-[var(--brandColor)] rounded-sm;
+        }
 	    }
 		</style>
 	</head>

@@ -8,15 +8,19 @@
 					<span class="inline-block font-semibold text-black">
 						{{ 'User'|t('foster-checkout') }}
 					</span>
+          {% if not currentUser %}
 					<a href="#" class="inline-block underline text-[var(--brandColor)] sm:hidden">
 						{{ 'Edit'|t('foster-checkout') }}
 					</a>
+          {% endif %}
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
 					<span class="text-black">{{ cart.email }}</span>
+          {% if not currentUser %}
 					<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]" href="{{ craft.fostercheckout.getPath('checkout') ~ '/email' }}">
 						{{ 'Edit'|t('foster-checkout') }}
 					</a>
+          {% endif %}
 				</dd>
 			</div>
 		{% endif %}
@@ -33,9 +37,9 @@
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
 					<p class="text-black">
-						John Doe / Ohio, OH 43021 / United States, Columbus / St. 480 E Broad
+             {% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.shippingAddress}  %}
 					</p>
-					<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]" href="#">
+					<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]" href="{{ craft.fostercheckout.getPath('checkout') ~ '/address' }}">
 						{{ 'Edit'|t('foster-checkout') }}
 					</a>
 				</dd>

@@ -15,6 +15,7 @@ use fostercommerce\craftfostercheckout\services\Checkout;
 use fostercommerce\craftfostercheckout\variables\Variables;
 use yii\base\Event;
 
+
 /**
  * Foster Checkout plugin
  *
@@ -31,18 +32,20 @@ class FosterCheckout extends Plugin
 
     public bool $hasCpSettings = false;
 
-    public function init(): void
+    public function init()
     {
         parent::init();
 
         Craft::setAlias('@fostercheckout', __DIR__);
 
         // Defer most setup tasks until Craft is fully initialized
-        Craft::$app->onInit(function (): void {
+        Craft::$app->onInit(function () {
             $this->registerComponents();
             $this->attachEventHandlers();
             $this->registerCustomVariables();
         });
+
+
     }
 
     protected function createSettingsModel(): ?Model
@@ -83,7 +86,7 @@ class FosterCheckout extends Plugin
         Event::on(
             CraftVariable::class,
             CraftVariable::EVENT_INIT,
-            function (Event $e): void {
+            function (Event $e) {
                 /** @var CraftVariable $variable */
                 $variable = $e->sender;
 
@@ -96,7 +99,7 @@ class FosterCheckout extends Plugin
         Event::on(
             View::class,
             View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
-            function (RegisterTemplateRootsEvent $event): void {
+            function (RegisterTemplateRootsEvent $event) {
                 $event->roots['foster-checkout'] = __DIR__ . '/templates';
             }
         );
@@ -105,7 +108,7 @@ class FosterCheckout extends Plugin
         Event::on(
             UrlManager::class,
             UrlManager::EVENT_REGISTER_SITE_URL_RULES,
-            function (RegisterUrlRulesEvent $event): void {
+            function (RegisterUrlRulesEvent $event) {
                 // Get the paths from the settings
                 $paths = $this->checkout->paths();
                 $checkoutPath = $paths['checkout'] ?? 'checkout';

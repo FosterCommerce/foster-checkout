@@ -1,4 +1,6 @@
 {% extends 'foster-checkout/_layouts/default' %}
+{% set addresses =  currentUser ? (currentUser.addresses.all() ?? null) : null %}
+{% set newAddress = false %}
 
 {% block body %}
 	<div class="mt-10 pb-48 lg:mt-20 lg:pb-32">
@@ -7,7 +9,7 @@
 
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 
-			<main v-scope="{ shippingAddressId: 1, editAddress: 0 }" class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
+			<main v-scope="{ shippingAddressId: {{ cart.sourceShippingAddressId ?? 0 }}, editAddress: 0 }" class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 
 				<div class="grid grid-cols-1 gap-6 lg:gap-8">
 
@@ -15,7 +17,10 @@
 						step: 'address'
 					} %}
 
-					<form action="">
+					<form method="post">
+            {{ csrfInput() }}
+            {{ actionInput('commerce/cart/update-cart') }}
+            {{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/shipping') }}
 
 						<div class="border border-gray-250 rounded-lg overflow-hidden">
 
@@ -26,107 +31,66 @@
 							<div class="xl:p-6">
 
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
-
-									<div class="p-4" :class="{ 'bg-gray-100': parseInt(shippingAddressId) === 1 }">
-										<div class="flex justify-between items-center gap-4 radio">
-											<input
-												v-model="shippingAddressId"
-												id="address_1"
-												name="shippingAddressId"
-												type="radio"
-												class="sr-only"
-												value="1"
-												@change="editAddress = 0"
-											/>
-											<label
-												for="address_1"
-												class="inline-flex justify-start items-center gap-4 cursor-pointer"
-												:class="{ 'font-medium text-black': parseInt(shippingAddressId) === 1 }"
-											>
-												John Doe / Ohio, OH 43021 / United States, Columbus / St. 480 E Broad
-											</label>
-											<button
-												v-cloak
-												type="button"
-												class="text-[var(--brandColor)] underline"
-												@click="editAddress =  parseInt(editAddress) === 1 ? 0 : 1; shippingAddressId = 1;"
-											>
-												${ parseInt(editAddress) === 1 ? '{{ 'Cancel'|t('foster-checkout') }}' : '{{ 'Edit'|t('foster-checkout') }}' }
-											</button>
-										</div>
-										<div v-cloak v-if="parseInt(editAddress) === 1" class="pt-8">
-											{% include 'foster-checkout/_components/app/address-fields' %}
-											<div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
-												<button
-													type="submit"
-													class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
-												>
-													{{ 'Save'|t('foster-checkout') }}
-												</button>
-												<button
-													type="button"
-													class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
-													@click="editAddress = 0"
-												>
-													{{ 'Cancel'|t('foster-checkout') }}
-												</button>
-											</div>
-										</div>
-									</div>
-
-									<div class="p-4 border-t border-gray-250" :class="{ 'bg-gray-100': parseInt(shippingAddressId) === 2 }">
-										<div class="flex justify-between items-center gap-4 radio">
-											<input
-												v-model="shippingAddressId"
-												id="address_2"
-												name="shippingAddressId"
-												type="radio"
-												class="sr-only"
-												value="2"
-												@change="editAddress = 0"
-											/>
-											<label
-												for="address_2"
-												class="inline-flex justify-start items-center gap-4 cursor-pointer"
-												:class="{ 'font-medium text-black': parseInt(shippingAddressId) === 2 }"
-											>
-												Marry Jane / Ohio, OH 42567 / United States, Columbus / St. 371 A Broad
-											</label>
-											<button
-												v-cloak
-												type="button"
-												class="text-[var(--brandColor)] underline"
-												@click="editAddress = parseInt(editAddress) === 2 ? 0 : 2; shippingAddressId = 2;"
-											>
-												${ parseInt(editAddress) === 2 ? '{{ 'Cancel'|t('foster-checkout') }}' : '{{ 'Edit'|t('foster-checkout') }}' }
-											</button>
-										</div>
-										<div v-cloak v-if="parseInt(editAddress) === 2" class="pt-8">
-											{% include 'foster-checkout/_components/app/address-fields' %}
-											<div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
-												<button
-													type="submit"
-													class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
-												>
-													{{ 'Save'|t('foster-checkout') }}
-												</button>
-												<button
-													type="button"
-													class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
-													@click="editAddress = 0"
-												>
-													{{ 'Cancel'|t('foster-checkout') }}
-												</button>
-											</div>
-										</div>
-									</div>
+                  {% if currentUser and addresses|length %}
+                    {% for address in addresses %}
+                      {% set newAddress = cart.sourceShippingAddressId == address.id %}
+                      <div class="p-4 border-t" :class="{ 'bg-gray-100': parseInt(shippingAddressId) === {{ address.id }} }"
+                      {{ cart.sourceShippingAddressId  == address.id ? ' selected' : ''}}>
+                        <div class="flex justify-between items-center gap-4 radio">
+                          <input
+                            v-model="shippingAddressId"
+                            id="address_{{ address.id }}"
+                            name="shippingAddressId"
+                            type="radio"
+                            class="sr-only"
+                            value="{{ address.id }}"
+                            @change="editAddress = 0"
+                          />
+                          <label
+                            for="address_{{ address.id }}"
+                            class="inline-flex justify-start items-center gap-4 cursor-pointer"
+                            :class="{ 'font-medium text-black': parseInt(shippingAddressId) === 1 }"
+                          >
+                              {% include'foster-checkout/_components/app/formatted-address' with { 'address': address}  %}
+                          </label>
+                          <button
+                            v-cloak
+                            type="button"
+                            class="text-[var(--brandColor)] underline"
+                            @click="editAddress =  parseInt(editAddress) === {{ address.id }} ? 0 : {{ address.id }};"
+                          >
+                            ${ parseInt(editAddress) === {{ address.id }} ? '{{ 'Cancel'|t('foster-checkout') }}' : '{{ 'Edit'|t('foster-checkout') }}' }
+                          </button>
+                        </div>
+                        <div v-cloak v-if="parseInt(editAddress) === {{ address.id }}" class="pt-8">
+                          {% include 'foster-checkout/_components/app/address-fields' %}
+                          <div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
+                            <button
+                              type="submit"
+                              class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
+                            >
+                              {{ 'Save'|t('foster-checkout') }}
+                            </button>
+                            <button
+                              type="button"
+                              class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
+                              @click="editAddress = 0"
+                            >
+                              {{ 'Cancel'|t('foster-checkout') }}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+									{# end address list #}
 
 									<div class="border-t border-gray-250" :class="{ 'bg-gray-100': parseInt(shippingAddressId) === 0 }">
 										<div class="p-4 radio">
 											<input
 												v-model="shippingAddressId"
 												id="address_0"
-												name="shippingAddressId"
+												name="newAddress"
 												type="radio"
 												class="sr-only"
 												value="0"
@@ -140,11 +104,20 @@
 												{{ 'Use a different shipping address'|t('foster-checkout') }}
 											</label>
 										</div>
+
 										<div v-cloak v-if="parseInt(shippingAddressId) === 0" class="p-4">
 											{% include 'foster-checkout/_components/app/address-fields' with {
-												context: 'shipping'
+												context: 'shippingAddress',
+                        address: newAddress ? null : craft.addresses().id(cart.shippingAddressId).one()
 											} %}
+
+                      <div class="mt-4 p4 checkbox">
+                        <input type="checkbox" class="sr-only" id="saveShippingAddressOnOrderComplete" name="saveShippingAddressOnOrderComplete" value="1" />
+                        <label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveShippingAddressOnOrderComplete">Save this address</label>
+                      </div>
 										</div>
+
+
 									</div>
 
 								</div>
@@ -162,7 +135,7 @@
 
 						<div class="hidden lg:flex lg:justify-end lg:items-center lg:gap-6 lg:mt-10">
 							<a
-								href="#"
+								href="{{ craft.fostercheckout.getPath('cancel') }}"
 								class="block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
 							>
 								{{ 'Continue Shopping'|t('foster-checkout') }}
