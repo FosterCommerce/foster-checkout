@@ -15,7 +15,6 @@ use fostercommerce\craftfostercheckout\services\Checkout;
 use fostercommerce\craftfostercheckout\variables\Variables;
 use yii\base\Event;
 
-
 /**
  * Foster Checkout plugin
  *
@@ -44,8 +43,6 @@ class FosterCheckout extends Plugin
             $this->attachEventHandlers();
             $this->registerCustomVariables();
         });
-
-
     }
 
     protected function createSettingsModel(): ?Model
