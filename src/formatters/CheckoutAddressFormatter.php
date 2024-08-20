@@ -30,6 +30,6 @@ class CheckoutAddressFormatter extends \CommerceGuys\Addressing\Formatter\Defaul
         $addressLines[] = $address->postalCode;
         $addressLines[] = $address->getCountry()->getName();
 
-        return ($address->fullName ? $address->fullName . '<br />' : '') . implode(' / ', array_filter($addressLines));
+        return implode(' / ', array_filter($addressLines));
     }
 }

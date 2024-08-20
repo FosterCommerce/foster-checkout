@@ -140,7 +140,7 @@
 				required
 			>
 				<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
-				<option v-cloak v-for="(region, key) in regions[countryCode]" :value="key" :selected="key === administrativeArea" {{ address.administrativeArea == '${key}' ? ' selected' : ''}}>
+				<option v-cloak v-for="(region, key) in regions[countryCode]" :value="key" :selected="key === administrativeArea">
 					${region}
 				</option>
 			</select>
