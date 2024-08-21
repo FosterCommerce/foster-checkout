@@ -14,6 +14,7 @@ class CheckoutAddressFormatter extends \CommerceGuys\Addressing\Formatter\Defaul
         if (property_exists($address, 'firstName')) {
             $address->firstName = null;
         }
+
         if (property_exists($address, 'lastName')) {
             $address->lastName = null;
         }
