@@ -9,32 +9,32 @@
 			<dd class="font-semibold text-right text-black">{{ cart.itemTotalAsCurrency }}</dd>
 		</div>
 
-    {% if cart.totalDiscount != 0 %}
-      <div class="flex justify-between items-center gap-4">
-        <dt class="text-gray-500">{{ 'Discount'|t('foster-checkout') }}</dt>
-        <dd class="text-right text-red-500">{{ cart.totalDiscountAsCurrency }}</dd>
-      </div>
+		{% if cart.totalDiscount != 0 %}
+			<div class="flex justify-between items-center gap-4">
+				<dt class="text-gray-500">{{ 'Discount'|t('foster-checkout') }}</dt>
+				<dd class="text-right text-red-500">{{ cart.totalDiscountAsCurrency }}</dd>
+			</div>
 
-      <div class="flex justify-between items-center gap-4">
-        <dt class="font-semibold text-black">{{ 'Subtotal After Discount'|t('foster-checkout') }}</dt>
-        <dd class="font-semibold text-right text-black">{{ cart.totalAsCurrency }}</dd>
-      </div>
-    {% endif %}
+			<div class="flex justify-between items-center gap-4">
+				<dt class="font-semibold text-black">{{ 'Subtotal After Discount'|t('foster-checkout') }}</dt>
+				<dd class="font-semibold text-right text-black">{{ cart.totalAsCurrency }}</dd>
+			</div>
+		{% endif %}
 
-    {% if not cart.shippingAddressId %}
-      {% include 'foster-checkout/_components/app/estimated-shipping' %}
+		{% if not cart.shippingAddressId %}
+			{% include 'foster-checkout/_components/app/estimated-shipping' %}
 
-      <p class="max-w-[210px] -mt-[8px] text-sm text-gray-500">
-        {{ 'Add'|t('foster-checkout') }}
-        <strong class="font-semibold text-black">$24.15</strong>
-        {{ 'for FREE shipping, or choose FREE Ship to Store.'|t('foster-checkout') }}
-      </p>
-    {% else %}
-      <div class="flex justify-between items-center gap-4">
-			  <dt class="text-gray-500">{{ 'Shipping'|t('foster-checkout') }}</dt>
-			  <dd class="font-semibold text-right text-black">{{ cart.totalShippingCostAsCurrency }}</dd>
-		  </div>
-    {% endif %}
+			<p class="max-w-[210px] -mt-[8px] text-sm text-gray-500">
+				{{ 'Add'|t('foster-checkout') }}
+				<strong class="font-semibold text-black">$24.15</strong>
+				{{ 'for FREE shipping, or choose FREE Ship to Store.'|t('foster-checkout') }}
+			</p>
+		{% else %}
+			<div class="flex justify-between items-center gap-4">
+				<dt class="text-gray-500">{{ 'Shipping'|t('foster-checkout') }}</dt>
+				<dd class="font-semibold text-right text-black">{{ cart.totalShippingCostAsCurrency }}</dd>
+			</div>
+		{% endif %}
 
 
 		<div class="flex justify-between items-center gap-4">
@@ -49,8 +49,8 @@
 				<dt class="font-semibold text-black">{{ 'Estimated Total'|t('foster-checkout') }}:</dt>
 				<dd class="font-semibold text-right text-black">{{ cart.totalPriceAsCurrency }}</dd>
 			</div>
-    {% else %}
-      <div class="flex justify-between items-center gap-4">
+		{% else %}
+			<div class="flex justify-between items-center gap-4">
 				<dt class="font-semibold text-black">{{ 'Total'|t('foster-checkout') }}:</dt>
 				<dd class="font-semibold text-right text-black">{{ cart.totalPriceAsCurrency }}</dd>
 			</div>

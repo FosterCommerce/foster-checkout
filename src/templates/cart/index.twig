@@ -4,7 +4,8 @@
 
 	{% if cart.lineItems|length > 0 %}
 
-		<div class="grid grid-cols-1 gap-16 mt-10 pb-32 lg:grid-cols-[1fr_380px] lg:gap-6 lg:mt-20 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+		<div
+			class="grid grid-cols-1 gap-16 mt-10 pb-32 lg:grid-cols-[1fr_380px] lg:gap-6 lg:mt-20 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 
 			<main class="flex flex-col justify-start items-stretch gap-6 lg:justify-between">
 
@@ -20,23 +21,24 @@
 								({{ cart.totalQty }})
 							</p>
 						</div>
-            <form method="post">
-              {{ csrfInput() }}
-              {{ actionInput('commerce/cart/forget-cart') }}
-              {{ redirectInput( craft.fostercheckout.getPath('cart')) }}
-						  <button type="submit" class="font-medium text-[var(--brandColor)]">{{ 'Clear the cart'|t('foster-checkout') }}</button>
-            </form>
+						<form method="post">
+							{{ csrfInput() }}
+							{{ actionInput('commerce/cart/forget-cart') }}
+							{{ redirectInput( craft.fostercheckout.getPath('cart')) }}
+							<button type="submit"
+									class="font-medium text-[var(--brandColor)]">{{ 'Clear the cart'|t('foster-checkout') }}</button>
+						</form>
 					</header>
 
-            <ul class="grid grid-cols-1 gap-4 lg:gap-6">
-              {% for lineItem in cart.lineItems %}
-                <li>
-                  {% include 'foster-checkout/_components/app/line-item-cart' with {
-                    lineItem: lineItem
-                  } %}
-                </li>
-              {% endfor %}
-            </ul>
+					<ul class="grid grid-cols-1 gap-4 lg:gap-6">
+						{% for lineItem in cart.lineItems %}
+							<li>
+								{% include 'foster-checkout/_components/app/line-item-cart' with {
+									lineItem: lineItem
+								} %}
+							</li>
+						{% endfor %}
+					</ul>
 
 				</div>
 
@@ -56,7 +58,7 @@
 						couponCode: '121212'
 					} %}
 					<a href="{{ craft.fostercheckout.getPath('checkout') }}"
-						class="hidden w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
+					   class="hidden w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
 					>
 						{{ 'Checkout'|t('foster-checkout') }}
 					</a>
@@ -111,7 +113,7 @@
 	{% if cart.lineItems|length > 0 %}
 		<div class="p-4 bg-gray-200 sm:p-6">
 			<a href="{{ craft.fostercheckout.getPath('checkout') }}"
-				class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+			   class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 			>
 				{{ 'Checkout'|t('foster-checkout') }}
 			</a>

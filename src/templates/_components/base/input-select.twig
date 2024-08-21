@@ -16,7 +16,7 @@
 		aria-errormessage="{{ fieldId }}-error"
 	>
 		{% if placeholder|default %}
-		<option value="" disabled>{{ placeholder }}</option>
+			<option value="" disabled>{{ placeholder }}</option>
 		{% endif %}
 		{% for option in options|default([]) %}
 			<option value="{{ option.value }}">{{ option.label }}</option>
