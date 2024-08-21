@@ -4,9 +4,12 @@
 		<span id="couponCodeLabel" class="font-medium text-gray-500">
 			{{ 'Coupon Code'|t('foster-checkout') }}{% if cart.couponCode|default %} ({{ cart.couponCode }}){% endif %}
 		</span>
-		<svg v-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current" aria-hidden="true">
-			<path v-if="isOpen" d="M6.99972 0.301388L13.3389 6.64054L11.9247 8.05469L6.99972 3.10469L2.07472 8.02969L0.660568 6.61554L6.99972 0.301388Z" />
-			<path v-else d="M7.00028 8.70057L0.661133 2.36142L2.07528 0.947266L7.00028 5.89727L11.9253 0.972268L13.3394 2.38642L7.00028 8.70057Z" />
+		<svg v-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current"
+			 aria-hidden="true">
+			<path v-if="isOpen"
+				  d="M6.99972 0.301388L13.3389 6.64054L11.9247 8.05469L6.99972 3.10469L2.07472 8.02969L0.660568 6.61554L6.99972 0.301388Z"/>
+			<path v-else
+				  d="M7.00028 8.70057L0.661133 2.36142L2.07528 0.947266L7.00028 5.89727L11.9253 0.972268L13.3394 2.38642L7.00028 8.70057Z"/>
 		</svg>
 	</button>
 
@@ -20,15 +23,13 @@
 		class="pb-6"
 	>
 		<form class="grid grid-cols-[1fr,_90px] gap-4" method="post">
-      {{ csrfInput() }}
-      {{ actionInput('commerce/cart/update-cart') }}
-      {{ hiddenInput('successMessage', 'Coupon code added' | t('Foster Checkout') | hash) }}
+			{{ csrfInput() }}
+			{{ actionInput('commerce/cart/update-cart') }}
+			{{ hiddenInput('successMessage', 'Coupon code added' | t('Foster Checkout') | hash) }}
 			<p id="couponCodeDesc" class="sr-only">
-				{{
-					cart.couponCode|default ?
-					('Coupon Code'|t('foster-checkout') ~ ': ' ~ cart.couponCode) :
-					'Submit a coupon code to get a discount on your order.'|t('foster-checkout')
-				}}
+				{{ cart.couponCode|default ?
+				('Coupon Code'|t('foster-checkout') ~ ': ' ~ cart.couponCode) :
+				'Submit a coupon code to get a discount on your order.'|t('foster-checkout') }}
 			</p>
 			{% include 'foster-checkout/_components/base/input-text-clearable' with {
 				label: 'Coupon Code'|t('foster-checkout'),
@@ -41,7 +42,8 @@
 				value: cart.couponCode,
 				action: 'if (isOpen) $el.focus()'
 			} %}
-			<button type="submit" class="text-white bg-[var(--brandColor)] rounded-xl">{{ 'Submit'|t('foster-checkout') }}</button>
+			<button type="submit"
+					class="text-white bg-[var(--brandColor)] rounded-xl">{{ 'Submit'|t('foster-checkout') }}</button>
 		</form>
 	</div>
 

@@ -4,7 +4,8 @@
 	{% set gateways = craft.commerce.gateways.getAllCustomerEnabledGateways %}
 	{% set addresses =  currentUser ? (currentUser.addresses.all() ?? null) : null %}
 
-	<div class="mt-10 pb-28 lg:mt-20 lg:pb-32" v-scope="{ gatewayId: {{ cart.gatewayId ? cart.gatewayId : 1 }}, billingSameAsShipping: {{ cart.hasMatchingAddresses() ? 1 : 0 }}, addressBookBillingAddress: 0, newBillingAddress: {{ cart.hasMatchingAddresses() ? 0 : 1 }}, billingAddressId: {{ cart.billingAddressId ? cart.billingAddressId : cart.shippingAddressId }} }">
+	<div class="mt-10 pb-28 lg:mt-20 lg:pb-32"
+		 v-scope="{ gatewayId: {{ cart.gatewayId ? cart.gatewayId : 1 }}, billingSameAsShipping: {{ cart.hasMatchingAddresses() ? 1 : 0 }}, addressBookBillingAddress: 0, newBillingAddress: {{ cart.hasMatchingAddresses() ? 0 : 1 }}, billingAddressId: {{ cart.billingAddressId ? cart.billingAddressId : cart.shippingAddressId }} }">
 
 
 		<h1 class="mb-12 font-medium text-3xl">{{ 'Checkout'|t('foster-checkout') }}</h1>
@@ -15,8 +16,8 @@
 
 				<div class="grid grid-cols-1 gap-6 lg:gap-8">
 					{% include 'foster-checkout/_components/app/steps-completed' with {
-              step: 'payment'
-            } %}
+						step: 'payment'
+					} %}
 
 					<div class="border border-gray-250 rounded-lg overflow-hidden">
 
@@ -33,15 +34,22 @@
 
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
 
-									<input type="hidden" name="billingAddressSameAsShipping" value="1" :disabled="parseInt(billingSameAsShipping) === 0"/>
+									<input type="hidden" name="billingAddressSameAsShipping" value="1"
+										   :disabled="parseInt(billingSameAsShipping) === 0"/>
 
 									<div class="p-4" :class="{ 'bg-gray-100': parseInt(billingSameAsShipping) === 1 }">
 										<div class="radio">
-											<input v-model="billingSameAsShipping" id="billingSameAsShipping_1" name="billingAddressSameAsShipping" type="radio" class="sr-only" value="1" @change="newBillingAddress=0;addressBookBillingAddress=0;"/>
-											<label for="billingSameAsShipping_1" class="flex justify-start items-center gap-4 cursor-pointer">
+											<input v-model="billingSameAsShipping" id="billingSameAsShipping_1"
+												   name="billingAddressSameAsShipping" type="radio" class="sr-only"
+												   value="1"
+												   @change="newBillingAddress=0;addressBookBillingAddress=0;"/>
+											<label for="billingSameAsShipping_1"
+												   class="flex justify-start items-center gap-4 cursor-pointer">
 												<span class="block">
-													<span class="block" :class="{ 'font-medium text-black': parseInt(billingSameAsShipping) === 1 }">{{ 'Same as shipping address'|t('foster-checkout') }}</span>
-													<span class="block mt-2 text-gray-500">{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.shippingAddress}  %}</span>
+													<span class="block"
+														  :class="{ 'font-medium text-black': parseInt(billingSameAsShipping) === 1 }">{{ 'Same as shipping address'|t('foster-checkout') }}</span>
+													<span
+														class="block mt-2 text-gray-500">{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.shippingAddress} %}</span>
 												</span>
 											</label>
 										</div>
@@ -108,9 +116,15 @@
 
 
 									{# New billing address #}
-										<div class="border-t border-gray-250" :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }"> <div class="p-4 radio">
-											<input v-model="newBillingAddress" id="newBillingAddress" name="billingAddress" type="radio" class="sr-only" value="1" @change="billingSameAsShipping=0;addressBookBillingAddress=0;"/>
-											<label for="newBillingAddress" class="inline-flex justify-start items-center gap-4 cursor-pointer" :class="{ 'font-medium text-black': parseInt(newBillingAddress) === 1 }">
+									<div class="border-t border-gray-250"
+										 :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }">
+										<div class="p-4 radio">
+											<input v-model="newBillingAddress" id="newBillingAddress"
+												   name="billingAddress" type="radio" class="sr-only" value="1"
+												   @change="billingSameAsShipping=0;addressBookBillingAddress=0;"/>
+											<label for="newBillingAddress"
+												   class="inline-flex justify-start items-center gap-4 cursor-pointer"
+												   :class="{ 'font-medium text-black': parseInt(newBillingAddress) === 1 }">
 												{{ 'Use a different billing address'|t('foster-checkout') }}
 											</label>
 										</div>
@@ -120,136 +134,151 @@
 												{{ actionInput('commerce/cart/update-cart') }}
 
 												{% include 'foster-checkout/_components/app/address-fields' with {
-                              context: 'billingAddress',
-                              address: cart.billingAddress ?? null,
-                            } %}
+													context: 'billingAddress',
+													address: cart.billingAddress ?? null,
+												} %}
 
 												<div class="mt-4 p4 checkbox">
-													<input type="checkbox" class="sr-only" id="saveBillingAddressOnOrderComplete" name="saveBillingAddressOnOrderComplete" value="1"/>
-													<label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveBillingAddressOnOrderComplete">{{ 'Save to address book'|t('foster-checkout') }}</label>
+													<input type="checkbox" class="sr-only"
+														   id="saveBillingAddressOnOrderComplete"
+														   name="saveBillingAddressOnOrderComplete" value="1"/>
+													<label
+														class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
+														for="saveBillingAddressOnOrderComplete">{{ 'Save to address book'|t('foster-checkout') }}</label>
 												</div>
 
-												<div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
-													<button type="submit" class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]">
+												<div
+													class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
+													<button type="submit"
+															class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]">
 														{% if cart.billingAddressId and cart.hasMatchingAddresses == false %}
 															{{ 'Update'|t('foster-checkout') }}
 														{% else %}
 															{{ 'Save'|t('foster-checkout') }}
 														{% endif %}
 													</button>
-													<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]" @click="editAddress = 0">
+													<button type="button"
+															class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
+															@click="editAddress = 0">
 														{{ 'Cancel'|t('foster-checkout') }}
 													</button>
-												</form>
-											</div>
+											</form>
 										</div>
 									</div>
 								</div>
+							</div>
 
-								<div class="xl:border xl:border-b-0 xl:border-gray-250 xl:mt-8 xl:rounded-lg xl:overflow-hidden">
-									{% for gateway in gateways %}
-										<div class="p-4 border-b border-gray-250" :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
-											<div class="flex justify-between items-center gap-4 radio">
-												<input id="gateway_{{ gateway.id }}" name="gatewayId" type="radio" class="sr-only" value="{{ gateway.id }}" checked @change="gatewayId = {{ gateway.id }}"/>
-												<label for="gateway_{{ gateway.id }}" class="inline-flex justify-start items-center gap-4 cursor-pointer">
-													<span class="block">{{ gateway.name }}</span>
-												</label>
-											</div>
-											<div class="pt-8">
-												<form method="POST" id="paymentForm">
-													{{ csrfInput() }}
-													{{ actionInput('commerce/payments/pay') }}
-													{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/order') }}
-													{{ redirectInput(siteUrl(craft.fostercheckout.getPath('checkout') ~ '/order', {
-                              number: cart.uid,
-                              success: 'true'
-                            })) }}
-													{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.getPath('checkout') ~ '/payment')|hash) }}
-													{{ hiddenInput('orderEmail', cart.email) }}
-
-													<input type="hidden" v-model="gatewayId"/>
-
-													{% set params = {} %}
-
-													{# Special params for Paypal checkout #}
-													{% if className(gateway) == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
-														{% set params = { currency: cart.paymentCurrency } %}
-													{% endif %}
-
-													{% if className(gateway) == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
-														{% set buttonText = 'Pay'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
-														{% set params = {
-                                order: cart,
-                                paymentFormType: 'elements',
-                                appearance: {
-                                  theme: 'stripe',
-                                  labels: 'floating',
-                                  variables: {
-                                    colorPrimary: 'var(--brandColor)'
-                                  }
-                                },
-                                submitButtonText: buttonText,
-                                submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block'
-                              } %}
-													{% endif %}
-
-
-													{% namespace gateway.handle|commercePaymentFormNamespace %}
-													{{ gateway.getPaymentFormHtml(params)|raw }}
-													{% endnamespace %}
-
-												</form>
-											</div>
+							<div
+								class="xl:border xl:border-b-0 xl:border-gray-250 xl:mt-8 xl:rounded-lg xl:overflow-hidden">
+								{% for gateway in gateways %}
+									<div class="p-4 border-b border-gray-250"
+										 :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
+										<div class="flex justify-between items-center gap-4 radio">
+											<input id="gateway_{{ gateway.id }}" name="gatewayId" type="radio"
+												   class="sr-only" value="{{ gateway.id }}" checked
+												   @change="gatewayId = {{ gateway.id }}"/>
+											<label for="gateway_{{ gateway.id }}"
+												   class="inline-flex justify-start items-center gap-4 cursor-pointer">
+												<span class="block">{{ gateway.name }}</span>
+											</label>
 										</div>
-									{% endfor %}
-								</div>
+										<div class="pt-8">
+											<form method="POST" id="paymentForm">
+												{{ csrfInput() }}
+												{{ actionInput('commerce/payments/pay') }}
+												{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/order') }}
+												{{ redirectInput(siteUrl(craft.fostercheckout.getPath('checkout') ~ '/order', {
+													number: cart.uid,
+													success: 'true'
+												})) }}
+												{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.getPath('checkout') ~ '/payment')|hash) }}
+												{{ hiddenInput('orderEmail', cart.email) }}
+
+												<input type="hidden" v-model="gatewayId"/>
+
+												{% set params = {} %}
+
+												{# Special params for Paypal checkout #}
+												{% if className(gateway) == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
+													{% set params = { currency: cart.paymentCurrency } %}
+												{% endif %}
+
+												{% if className(gateway) == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+													{% set buttonText = 'Pay'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
+													{% set params = {
+														order: cart,
+														paymentFormType: 'elements',
+														appearance: {
+															theme: 'stripe',
+															labels: 'floating',
+															variables: {
+																colorPrimary: 'var(--brandColor)'
+															}
+														},
+														submitButtonText: buttonText,
+														submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block'
+													} %}
+												{% endif %}
+
+
+												{% namespace gateway.handle|commercePaymentFormNamespace %}
+													{{ gateway.getPaymentFormHtml(params)|raw }}
+												{% endnamespace %}
+
+											</form>
+										</div>
+									</div>
+								{% endfor %}
 							</div>
-
-
 						</div>
+
+
 					</div>
-					{% set note = craft.checkout.note('payment') %}
-					{% if note %}
-						<div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6">
-							{{ note|raw }}
+				</div>
+				{% set note = craft.checkout.note('payment') %}
+				{% if note %}
+					<div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6">
+						{{ note|raw }}
+					</div>
+				{% endif %}
+			</main>
+
+			<aside>
+
+				<div
+					class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]">
+
+					<div class="grid grid-cols-1 gap-6">
+
+						<div class="flex justify-between items-center gap-4">
+							<h2 class="text-xl font-bold text-gray-800 leading-snug">
+								{{ 'Item(s)'|t('foster-checkout') }}
+							</h2>
+							<a href="{{ craft.fostercheckout.getPath('cart') }}"
+							   class="inline-block text-[var(--brandColor)] underline">
+								{{ 'Edit'|t('foster-checkout') }}
+							</a>
 						</div>
-					{% endif %}
-				</main>
 
-				<aside>
-
-					<div class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]">
-
-						<div class="grid grid-cols-1 gap-6">
-
-							<div class="flex justify-between items-center gap-4">
-								<h2 class="text-xl font-bold text-gray-800 leading-snug">
-									{{ 'Item(s)'|t('foster-checkout') }}
-								</h2>
-								<a href="{{ craft.fostercheckout.getPath('cart') }}" class="inline-block text-[var(--brandColor)] underline">
-									{{ 'Edit'|t('foster-checkout') }}
-								</a>
-							</div>
-
-							<ul class="grid grid-cols-1 gap-4">
-								{% for lineItem in cart.lineItems %}
-									<li>
-										{% include 'foster-checkout/_components/app/line-item-checkout' with {
+						<ul class="grid grid-cols-1 gap-4">
+							{% for lineItem in cart.lineItems %}
+								<li>
+									{% include 'foster-checkout/_components/app/line-item-checkout' with {
 										lineItem: lineItem
 									} %}
-									</li>
-								{% endfor %}
-							</ul>
+								</li>
+							{% endfor %}
+						</ul>
 
-						</div>
+					</div>
 
-						{% include 'foster-checkout/_components/app/summary-cart' with {
+					{% include 'foster-checkout/_components/app/summary-cart' with {
 						postalCode: '90210',
 						couponCode: '121212',
 						step: 'payment'
 					} %}
 
-						{# <button
+					{# <button
 																										type="submit"
 																				            form="paymentForm"
 																										class="hidden justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:flex"
@@ -259,15 +288,15 @@
 																									</button> #}
 
 
-					</div>
+				</div>
 
-				</aside>
-
-			</div>
+			</aside>
 
 		</div>
 
-	{% endblock %}
+	</div>
+
+{% endblock %}
 
 	{% block mobileFooter %}
 
@@ -284,20 +313,20 @@
 									{% endif %} #}
 
 		{% js %}
-		var $paymentForms = document.querySelectorAll('.paymentForm');
-								    if ($paymentForms.length) {
-								      $paymentForms.forEach(($paymentForm) => {
-								        // Only allow the payment form submit to be triggered once.
-								        $paymentForm.addEventListener('submit', function(ev) {
-								          if ($paymentForm.dataset.processing) {
-								            ev.preventDefault();
-								            return false;
-								          }
+			var $paymentForms = document.querySelectorAll('.paymentForm');
+			if ($paymentForms.length) {
+			$paymentForms.forEach(($paymentForm) => {
+			// Only allow the payment form submit to be triggered once.
+			$paymentForm.addEventListener('submit', function(ev) {
+			if ($paymentForm.dataset.processing) {
+			ev.preventDefault();
+			return false;
+			}
 
-								          $paymentForm.dataset.processing = true;
-								        });
-								      });
-								    }
+			$paymentForm.dataset.processing = true;
+			});
+			});
+			}
 		{% endjs %}
 
 	{% endblock %}

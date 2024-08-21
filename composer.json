@@ -1,56 +1,51 @@
 {
-  "name": "fostercommerce/craft-foster-checkout",
-  "description": "A drop-in best practice checkout process for Craft Commerce",
-  "type": "craft-plugin",
-  "license": "mit",
-  "version": "1.1.0",
-  "support": {
-    "email": "support@fostercommerce.com"
-  },
-  "require": {
-    "php": "^8.2",
-    "craftcms/cms": "^5.0.0",
-    "craftcms/commerce": "^5.0.15"
-  },
-  "autoload": {
-    "psr-4": {
-      "fostercommerce\\craftfostercheckout\\": "src/"
-    }
-  },
-  "extra": {
-    "handle": "foster-checkout",
-    "name": "Foster Checkout",
-    "developer": "Foster Commerce",
-    "documentationUrl": "",
-    "class": "fostercommerce\\craftfostercheckout\\FosterCheckout"
-  },
-  "config": {
-    "sort-packages": true,
-    "platform": {
-      "php": "8.2"
-    },
-    "allow-plugins": {
-      "yiisoft/yii2-composer": true,
-      "craftcms/plugin-installer": true
-    }
-  },
-  "require-dev": {
-        "craftcms/generator": "^2.1",
-        "fostercommerce/rector": "dev-main",
-        "fostercommerce/ecs": "dev-main",
-        "craftcms/phpstan": "dev-main",
-        "phpstan/phpstan": "^1.11",
-        "craftcms/rector": "dev-main"
-    },
-    "scripts": {
-        "phpstan": [
-          "@php \"scripts/craft_stubs.php\"",
-          "phpstan --memory-limit=1G"
-        ],
-        "ecs-check": "ecs check --ansi --memory-limit=1G",
-        "ecs-fix": "ecs check --ansi --fix --memory-limit=1G",
-        "rector": "rector process --config rector.php",
-        "rector-dry-run": "rector process --dry-run --config rector.php"
-    }
+	"name": "fostercommerce/craft-foster-checkout",
+	"description": "A drop-in best practice checkout process for Craft Commerce",
+	"type": "craft-plugin",
+	"license": "mit",
+	"version": "1.1.0",
+	"support": {
+		"email": "support@fostercommerce.com"
+	},
+	"require": {
+		"php": "^8.2",
+		"craftcms/cms": "^5.0.0",
+		"craftcms/commerce": "^5.0.15"
+	},
+	"autoload": {
+		"psr-4": {
+			"fostercommerce\\craftfostercheckout\\": "src/"
+		}
+	},
+	"extra": {
+		"handle": "foster-checkout",
+		"name": "Foster Checkout",
+		"developer": "Foster Commerce",
+		"documentationUrl": "",
+		"class": "fostercommerce\\craftfostercheckout\\FosterCheckout"
+	},
+	"config": {
+		"sort-packages": true,
+		"allow-plugins": {
+			"yiisoft/yii2-composer": true,
+			"craftcms/plugin-installer": true
+		}
+	},
+	"require-dev": {
+		"roave/security-advisories": "dev-latest",
+		"craftcms/generator": "^2.1",
+		"fostercommerce/rector": "dev-main",
+		"fostercommerce/ecs": "dev-main",
+		"craftcms/phpstan": "dev-main",
+		"phpstan/phpstan": "^1.11",
+		"craftcms/rector": "dev-main"
+	},
+	"scripts": {
+		"phpstan": "phpstan --memory-limit=1G",
+		"ecs-check": "ecs check --ansi --memory-limit=1G",
+		"ecs-fix": "ecs check --ansi --fix --memory-limit=1G",
+		"rector": "rector process --config rector.php",
+		"rector-dry-run": "rector process --dry-run --config rector.php"
+	}
 }
 

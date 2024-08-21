@@ -1,12 +1,13 @@
 {% extends 'foster-checkout/_layouts/default' %}
 {% set order = craft.orders.uid(craft.app.request.getParam('number')).one() ?? null %}
 {% if not order %}
-  {% exit 404 %}
+	{% exit 404 %}
 {% endif %}
 
 {% block body %}
 
-	<div class="grid grid-cols-1 gap-16 mt-10 pb-10 lg:grid-cols-[1fr_380px] lg:gap-6 lg:mt-20 lg:pb-20 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+	<div
+		class="grid grid-cols-1 gap-16 mt-10 pb-10 lg:grid-cols-[1fr_380px] lg:gap-6 lg:mt-20 lg:pb-20 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 
 		<main class="grid grid-cols-1 gap-8 lg:gap-12">
 
@@ -19,14 +20,14 @@
 						{{ 'Your Order Number is'|t('foster-checkout') }}
 						<strong>{{ order.reference }}</strong>
 					</p>
-          {# Only show email confirmation message if order confirmation email is configured and enabled #}
-          {% set orderStatus = order.orderStatus %}
-          {% if orderStatus.default == true %}
-            {% set emails = orderStatus.getEmails() %}
-            {% for email in emails|filter(email => email.enabled == true and email.recipientType == "customer" and email.getScenario() == "default") %}
-                <p>{{ 'You will receive an order confirmation email shortly.'|t('foster-checkout') }}</p>
-            {% endfor %}
-          {% endif %}
+					{# Only show email confirmation message if order confirmation email is configured and enabled #}
+					{% set orderStatus = order.orderStatus %}
+					{% if orderStatus.default == true %}
+						{% set emails = orderStatus.getEmails() %}
+						{% for email in emails|filter(email => email.enabled == true and email.recipientType == "customer" and email.getScenario() == "default") %}
+							<p>{{ 'You will receive an order confirmation email shortly.'|t('foster-checkout') }}</p>
+						{% endfor %}
+					{% endif %}
 				</div>
 			</header>
 
@@ -47,8 +48,8 @@
 					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
 						<dt class="font-semibold">{{ 'Ship to'|t('foster-checkout') }}</dt>
 						<dd>
-              {% include'foster-checkout/_components/app/formatted-address' with { 'address': order.shippingAddress}  %}
-            </dd>
+							{% include'foster-checkout/_components/app/formatted-address' with { 'address': order.shippingAddress} %}
+						</dd>
 					</div>
 					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
 						<dt class="font-semibold">{{ 'Method'|t('foster-checkout') }}</dt>
@@ -72,12 +73,12 @@
 					</a>
 				</div>
 
-        {% set note = craft.checkout.note('order') %}
-        {% if note %}
-          <div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6">
-            {{ note|raw }}
-          </div>
-        {% endif %}
+				{% set note = craft.checkout.note('order') %}
+				{% if note %}
+					<div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6">
+						{{ note|raw }}
+					</div>
+				{% endif %}
 
 			</div>
 
@@ -85,31 +86,34 @@
 				<h3 class="font-semibold text-2xl">Made a mistake?</h3>
 				<div class="mt-6 space-y-2 text-gray-500">
 					<p>
-						If you have placed an order for the wrong item or something similar, you can cancel your order by clicking
-						“Review or Cancel Your Order”. Orders are processed quickly, so please cancel your order as soon as possible
+						If you have placed an order for the wrong item or something similar, you can cancel your order
+						by clicking
+						“Review or Cancel Your Order”. Orders are processed quickly, so please cancel your order as soon
+						as possible
 						after placement. Most orders can be canceled within one hour of placement.
 					</p>
 				</div>
 
 				<div class="flex justify-start items-start gap-6 mt-8">
-          <form method="post">
-            {{ csrfInput() }}
-            {{ actionInput('fostercheckout/cancel-order') }}
-            {{ hiddenInput('uid', order.uid) }}
-            <button
-              type="submit"
-              class="inline-block min-w-[180px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
-            >
-						  Review or Cancel Your Order
-					  </button>
-          </form>
+					<form method="post">
+						{{ csrfInput() }}
+						{{ actionInput('fostercheckout/cancel-order') }}
+						{{ hiddenInput('uid', order.uid) }}
+						<button
+							type="submit"
+							class="inline-block min-w-[180px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
+						>
+							Review or Cancel Your Order
+						</button>
+					</form>
 				</div>
 			</div>
 
 		</main>
 
 		<aside>
-			<div class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]">
+			<div
+				class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]">
 
 				<div class="grid grid-cols-1 gap-6">
 
@@ -138,24 +142,26 @@
 					<h3 class="font-semibold text-2xl">Made a mistake?</h3>
 					<div class="mt-6 space-y-2 text-gray-500">
 						<p>
-							If you have placed an order for the wrong item or something similar, you can cancel your order by clicking
-							“Review or Cancel Your Order”. Orders are processed quickly, so please cancel your order as soon as possible
+							If you have placed an order for the wrong item or something similar, you can cancel your
+							order by clicking
+							“Review or Cancel Your Order”. Orders are processed quickly, so please cancel your order as
+							soon as possible
 							after placement. Most orders can be canceled within one hour of placement.
 						</p>
 					</div>
 
 					<div class="flex justify-start items-start gap-6 mt-8">
-						  <form method="post">
-                {{ csrfInput() }}
-                {{ actionInput('fostercheckout/cancel-order') }}
-                {{ hiddenInput('uid', order.uid) }}
-                <button
-                  type="submit"
-                  class="inline-block min-w-[180px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
-                >
-                  Review or Cancel Your Order
-                </button>
-              </form>
+						<form method="post">
+							{{ csrfInput() }}
+							{{ actionInput('fostercheckout/cancel-order') }}
+							{{ hiddenInput('uid', order.uid) }}
+							<button
+								type="submit"
+								class="inline-block min-w-[180px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
+							>
+								Review or Cancel Your Order
+							</button>
+						</form>
 					</div>
 				</div>
 
