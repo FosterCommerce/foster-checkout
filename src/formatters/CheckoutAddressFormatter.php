@@ -1,10 +1,9 @@
 <?php
 
 namespace fostercommerce\craftfostercheckout\formatters;
-;
 
-use Craft;
 use CommerceGuys\Addressing\AddressInterface;
+use Craft;
 use craft\elements\Address;
 
 class CheckoutAddressFormatter extends \CommerceGuys\Addressing\Formatter\DefaultFormatter

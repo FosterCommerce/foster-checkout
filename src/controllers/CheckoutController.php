@@ -5,7 +5,6 @@ namespace fostercommerce\craftfostercheckout\controllers;
 use craft\web\Controller;
 use fostercommerce\craftfostercheckout\FosterCheckout;
 use yii\web\Response;
-use yii\web\Request;
 
 /**
  * Checkout controller
@@ -37,5 +36,4 @@ class CheckoutController extends Controller
             'discounts' => FosterCheckout::getInstance()->checkout->getDiscounts(),
         ]);
     }
-
 }
