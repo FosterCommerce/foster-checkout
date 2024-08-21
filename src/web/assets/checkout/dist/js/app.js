@@ -58,8 +58,12 @@ const LineItem = (props) => {
     },
     decrement() {
       this.removeMessages()
-      this.qty = this.qty > 1 ? (this.qty - 1) : 1;
-      this.updateQty();
+      if(this.qty === 1) {
+        this.remove();
+      } else {
+        this.qty = this.qty > 1 ? (this.qty - 1) : 1;
+        this.updateQty();
+      }
     },
     async remove() {
       const form = document.querySelector(`#lineItemQty-${props.id}`);
@@ -100,12 +104,15 @@ const LineItem = (props) => {
     },
     async updateQty() {
       if(this.unlimitedStock === 0 && this.qty > this.stock) {
+        console.log('not unlimited stock')
         this.qty = this.stock;
         this.showErrorStockMessage = true;
       } else if(this.qty < this.min && this.min != 0) {
+        console.log('min qty')
         this.qty = this.min;
         this.showErrorMinMessage = true;
       } else if(this.unlimitedStock && this.max && this.qty > this.max) {
+        console.log('max qty')
         this.qty = this.max;
         this.showErrorMaxMessage = true;
       } else {
@@ -132,6 +139,7 @@ const LineItem = (props) => {
         })
         .then(data => {
           let item = data.cart.lineItems.filter((lineItem) => lineItem.id === props.id)
+          console.log(item);
           this.lineSubtotal = item[0].subtotalAsCurrency;
         })
         .catch(error => {
@@ -141,6 +149,19 @@ const LineItem = (props) => {
     }
   }
 };
+
+
+
+const RemoveLineItem = (props) => {
+  console.log(props)
+  const form = document.querySelector(`#lineItemQty-${props.id}`);
+  const formData = new FormData(form)
+  formData.set(`lineItems[${props.id}][remove]`, true);
+  UpdateCart(formData);
+  // we should only do this if the ajax operation was successful
+   const container = form.closest('article');
+   container.remove();
+}
 
 
 const FocusModal = (props) => {
