@@ -1,5 +1,6 @@
 {% extends 'foster-checkout/_layouts/default' %}
 {% set addresses =  currentUser ? (currentUser.addresses.all() ?? null) : null %}
+{% set primaryShippingAddressId =  currentUser ? (currentUser.getPrimaryShippingAddressId() ?? -1) : -1 %}
 {% set newAddress = false %}
 
 {% block body %}
@@ -9,7 +10,7 @@
 
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 
-			<main v-scope="{ shippingAddressId: {{ cart.sourceShippingAddressId ?? 0 }}, editAddress: 0 }" class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
+			<main v-scope="{ shippingAddressId: {{ primaryShippingAddressId }}, editAddress: {{ primaryShippingAddressId == -1 ? 1 : 0 }} }" class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 
 				<div class="grid grid-cols-1 gap-6 lg:gap-8">
 
@@ -21,6 +22,8 @@
             {{ csrfInput() }}
             {{ actionInput('commerce/cart/update-cart') }}
             {{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/shipping') }}
+
+            {{ hiddenInput('billingAddressSameAsShipping', 1) }}
 
 						<div class="border border-gray-250 rounded-lg overflow-hidden">
 
@@ -35,7 +38,7 @@
                     {% for address in addresses %}
                       {% set newAddress = cart.sourceShippingAddressId == address.id %}
                       <div class="p-4 border-t" :class="{ 'bg-gray-100': parseInt(shippingAddressId) === {{ address.id }} }"
-                      {{ cart.sourceShippingAddressId  == address.id ? ' selected' : ''}}>
+                      {{ cart.sourceShippingAddressId == address.id ? ' checked' : ''}}>
                         <div class="flex justify-between items-center gap-4 radio">
                           <input
                             v-model="shippingAddressId"
@@ -51,7 +54,7 @@
                             class="inline-flex justify-start items-center gap-4 cursor-pointer"
                             :class="{ 'font-medium text-black': parseInt(shippingAddressId) === 1 }"
                           >
-                              {% include'foster-checkout/_components/app/formatted-address' with { 'address': address}  %}
+                              {% include'foster-checkout/_components/app/formatted-address' with { 'address': address }  %}
                           </label>
                           <button
                             v-cloak
@@ -90,30 +93,35 @@
 											<input
 												v-model="shippingAddressId"
 												id="address_0"
-												name="newAddress"
+												name="editAddress"
 												type="radio"
 												class="sr-only"
 												value="0"
-												@change="editAddress = 0"
+												@change="editAddress = 1"
 											/>
 											<label
 												for="address_0"
 												class="inline-flex justify-start items-center gap-4 cursor-pointer"
 												:class="{ 'font-medium text-black': parseInt(shippingAddressId) === 0 }"
 											>
+                        {% if addresses|length > 1 %}
 												{{ 'Use a different shipping address'|t('foster-checkout') }}
+                        {% else %}
+                        {{ 'Shipping address'|t('foster-checkout') }}
+                        {% endif %}
 											</label>
 										</div>
 
-										<div v-cloak v-if="parseInt(shippingAddressId) === 0" class="p-4">
+										<div v-cloak v-if="parseInt(editAddress) === 1" class="p-4">
 											{% include 'foster-checkout/_components/app/address-fields' with {
 												context: 'shippingAddress',
-                        address: newAddress ? null : craft.addresses().id(cart.shippingAddressId).one()
+                        address: newAddress ? null : (currentUser ? craft.addresses().owner(currentUser).id(cart.shippingAddressId).one() : null)
 											} %}
+
 
                       <div class="mt-4 p4 checkbox">
                         <input type="checkbox" class="sr-only" id="saveShippingAddressOnOrderComplete" name="saveShippingAddressOnOrderComplete" value="1" />
-                        <label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveShippingAddressOnOrderComplete">Save this address</label>
+                        <label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveShippingAddressOnOrderComplete">{{ 'Save to address book'|t('foster-checkout') }}</label>
                       </div>
 										</div>
 

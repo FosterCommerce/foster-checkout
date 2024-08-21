@@ -14,6 +14,7 @@ class CheckoutAddressFormatter extends \CommerceGuys\Addressing\Formatter\Defaul
         if (property_exists($address, 'firstName')) {
             $address->firstName = null;
         }
+
         if (property_exists($address, 'lastName')) {
             $address->lastName = null;
         }
@@ -30,6 +31,6 @@ class CheckoutAddressFormatter extends \CommerceGuys\Addressing\Formatter\Defaul
         $addressLines[] = $address->postalCode;
         $addressLines[] = $address->getCountry()->getName();
 
-        return implode(' / ', array_filter($addressLines));
+        return implode(', ', array_filter($addressLines));
     }
 }

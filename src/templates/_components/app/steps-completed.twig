@@ -50,15 +50,15 @@
 					<span class="inline-block font-semibold text-black">
 						{{ 'Method'|t('foster-checkout') }}
 					</span>
-					<a href="#" class="inline-block underline text-[var(--brandColor)] sm:hidden">
+					<a href="{{ craft.fostercheckout.getPath('checkout') ~ '/shipping' }}" class="inline-block underline text-[var(--brandColor)] sm:hidden">
 						{{ 'Edit'|t('foster-checkout') }}
 					</a>
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
 					<p class="text-black">
-						FedEx Expedited: $15.00
+						{{ cart.shippingMethodName }} {{ cart.totalShippingCostAsCurrency }}
 					</p>
-					<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]" href="#">
+					<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]" href="{{ craft.fostercheckout.getPath('checkout') ~ '/shipping' }}">
 						{{ 'Edit'|t('foster-checkout') }}
 					</a>
 				</dd>

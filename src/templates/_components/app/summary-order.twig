@@ -6,32 +6,34 @@
 
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">{{ 'Subtotal'|t('foster-checkout') }}</dt>
-			<dd class="font-semibold text-right text-black">{{ cart.itemTotalAsCurrency }}</dd>
+			<dd class="font-semibold text-right text-black">{{ order.itemTotalAsCurrency }}</dd>
 		</div>
 
-		<div class="flex justify-between items-center gap-4">
-			<dt class="text-gray-500">{{ 'Discount'|t('foster-checkout') }}</dt>
-			<dd class="text-right text-red-500">- {{ cart.totalDiscountAsCurrency }}</dd>
-		</div>
+    {% if cart.totalDiscount != 0 %}
+      <div class="flex justify-between items-center gap-4">
+        <dt class="text-gray-500">{{ 'Discount'|t('foster-checkout') }}</dt>
+        <dd class="text-right text-red-500">{{ order.totalDiscountAsCurrency }}</dd>
+      </div>
 
-		<div class="flex justify-between items-center gap-4">
-			<dt class="font-semibold text-black">{{ 'Subtotal After Discount'|t('foster-checkout') }}</dt>
-			<dd class="font-semibold text-right text-black">$145.00</dd>
-		</div>
+      <div class="flex justify-between items-center gap-4">
+        <dt class="font-semibold text-black">{{ 'Subtotal After Discount'|t('foster-checkout') }}</dt>
+        <dd class="font-semibold text-right text-black">{{ order.subTotalAsCurrency }}</dd>
+      </div>
+    {% endif %}
 
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">Shipping</dt>
-			<dd class="text-right text-black">$24.00</dd>
+			<dd class="text-right text-black">{{ order.totalShippingCostAsCurrency }}</dd>
 		</div>
 
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">Tax</dt>
-			<dd class="text-right text-black">{{ cart.totalTaxAsCurrency }}</dd>
+			<dd class="text-right text-black">{{ order.totalTaxAsCurrency }}</dd>
 		</div>
 
 		<div class="flex justify-between items-center gap-4 mt-4">
 			<dt class="font-semibold text-black">Total:</dt>
-			<dd class="font-semibold text-right text-black">{{ cart.totalPriceAsCurrency }}</dd>
+			<dd class="font-semibold text-right text-black">{{ order.totalPriceAsCurrency }}</dd>
 		</div>
 
 	</dl>
