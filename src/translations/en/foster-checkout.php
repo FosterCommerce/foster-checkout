@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'Cart' => 'Cart',
+'Cart' => 'Cart',
     'Checkout' => 'Checkout',
     'Email' => 'Email',
     'Address' => 'Address',
@@ -79,6 +79,7 @@ return [
     'Edit' => 'Edit',
     'Cancel' => 'Cancel',
     'Save' => 'Save',
+    'Save to address book' => 'Save to your address book',
     'Ship to' => 'Ship to',
     'Method' => 'Method',
     'Item(s)' => 'Item(s)',
@@ -95,4 +96,6 @@ return [
     'Order Details' => 'Order Details',
     'Date' => 'Date',
     'dateFormat' => 'n/j/y',
+    'Same as shipping address' => 'Same as shipping address',
+    'Use an address from your address book' => 'Use an address from your address book',
 ];

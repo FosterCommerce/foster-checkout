@@ -1,4 +1,8 @@
 {% extends 'foster-checkout/_layouts/default' %}
+{% set order = craft.orders.uid(craft.app.request.getParam('number')).one() ?? null %}
+{% if not order %}
+  {% exit 404 %}
+{% endif %}
 
 {% block body %}
 
@@ -13,9 +17,16 @@
 				<div class="space-y-2">
 					<p>
 						{{ 'Your Order Number is'|t('foster-checkout') }}
-						<strong>bh53783987</strong>
+						<strong>{{ order.reference }}</strong>
 					</p>
-					<p>{{ 'You will receive an order confirmation email shortly.'|t('foster-checkout') }}</p>
+          {# Only show email confirmation message if order confirmation email is configured and enabled #}
+          {% set orderStatus = order.orderStatus %}
+          {% if orderStatus.default == true %}
+            {% set emails = orderStatus.getEmails() %}
+            {% for email in emails|filter(email => email.enabled == true and email.recipientType == "customer" and email.getScenario() == "default") %}
+                <p>{{ 'You will receive an order confirmation email shortly.'|t('foster-checkout') }}</p>
+            {% endfor %}
+          {% endif %}
 				</div>
 			</header>
 
@@ -27,37 +38,46 @@
 					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
 						<dt class="font-semibold">{{ 'Date'|t('foster-checkout') }}</dt>
 						{# TODO: Use the order date here, this was just for the markup and translation testing #}
-						<dd>{{ now|date('dateFormat'|t('foster-checkout')) }}</dd>
+						<dd>{{ order.dateOrdered|date('dateFormat'|t('foster-checkout')) }}</dd>
 					</div>
 					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
 						<dt class="font-semibold">{{ 'User'|t('foster-checkout') }}</dt>
-						<dd>email@gmail.com</dd>
+						<dd>{{ order.email }}</dd>
 					</div>
 					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
 						<dt class="font-semibold">{{ 'Ship to'|t('foster-checkout') }}</dt>
-						<dd><strong>John Doe</strong> / Ohio, OH 43021 / United States, Columbus / St. 480 E Broad  </dd>
+						<dd>
+              {% include'foster-checkout/_components/app/formatted-address' with { 'address': order.shippingAddress}  %}
+            </dd>
 					</div>
 					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
 						<dt class="font-semibold">{{ 'Method'|t('foster-checkout') }}</dt>
 						<dd>
-							<p>Expedited (Faster) $15.00</p>
-							<p>Ships within 1 business day, arrives in 2-3 days</p>
+							<p>{{ order.shippingMethod.name }} {{ order.totalShippingCostAsCurrency }}</p>
+							<p>{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, order.shippingMethod).getDescription() }}</p>
 						</dd>
 					</div>
 					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
 						<dt class="font-semibold">{{ 'Payment'|t('foster-checkout') }}</dt>
-						<dd>Credit Card</dd>
+						<dd>{{ order.gateway.name }}</dd>
 					</div>
 				</dl>
 
 				<div class="flex justify-end items-center gap-6 mt-9 lg:mt-12">
 					<a
-						href="#"
+						href="{{ siteUrl(craft.fostercheckout.getPath('cancel')) }}"
 						class="inline-block min-w-[180px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 					>
 						{{ 'Continue Shopping'|t('foster-checkout') }}
 					</a>
 				</div>
+
+        {% set note = craft.checkout.note('order') %}
+        {% if note %}
+          <div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6">
+            {{ note|raw }}
+          </div>
+        {% endif %}
 
 			</div>
 
@@ -72,12 +92,17 @@
 				</div>
 
 				<div class="flex justify-start items-start gap-6 mt-8">
-					<a
-						href="#"
-						class="inline-block min-w-[180px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
-					>
-						Review or Cancel Your Order
-					</a>
+          <form method="post">
+            {{ csrfInput() }}
+            {{ actionInput('fostercheckout/cancel-order') }}
+            {{ hiddenInput('uid', order.uid) }}
+            <button
+              type="submit"
+              class="inline-block min-w-[180px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
+            >
+						  Review or Cancel Your Order
+					  </button>
+          </form>
 				</div>
 			</div>
 
@@ -93,7 +118,7 @@
 					</h2>
 
 					<ul class="grid grid-cols-1 gap-4">
-						{% for lineItem in cart.lineItems %}
+						{% for lineItem in order.lineItems %}
 							<li>
 								{% include 'foster-checkout/_components/app/line-item-checkout' with {
 									lineItem: lineItem
@@ -120,12 +145,17 @@
 					</div>
 
 					<div class="flex justify-start items-start gap-6 mt-8">
-						<a
-							href="#"
-							class="inline-block min-w-[180px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
-						>
-							Review or Cancel Your Order
-						</a>
+						  <form method="post">
+                {{ csrfInput() }}
+                {{ actionInput('fostercheckout/cancel-order') }}
+                {{ hiddenInput('uid', order.uid) }}
+                <button
+                  type="submit"
+                  class="inline-block min-w-[180px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
+                >
+                  Review or Cancel Your Order
+                </button>
+              </form>
 					</div>
 				</div>
 
