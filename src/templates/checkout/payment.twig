@@ -4,7 +4,8 @@
 {% set gateways = craft.commerce.gateways.getAllCustomerEnabledGateways %}
 {% set addresses =  currentUser ? (currentUser.addresses.all() ?? null) : null %}
 
-	<div class="mt-10 pb-28 lg:mt-20 lg:pb-32" v-scope="{ gatewayId: {{ cart.gatewayId ? cart.gatewayId : 1 }}, billingSameAsShipping: {{ cart.hasMatchingAddresses() ? 1 : 0 }}, addressBookBillingAddress: 0, newBillingAddress: 0, billingAddressId: {{ cart.billingAddressId ? cart.billingAddressId : cart.shippingAddressId }} }">
+	<div class="mt-10 pb-28 lg:mt-20 lg:pb-32" v-scope="{ gatewayId: {{ cart.gatewayId ? cart.gatewayId : 1 }}, billingSameAsShipping: {{ cart.hasMatchingAddresses() ? 1 : 0 }}, addressBookBillingAddress: 0, newBillingAddress: {{ cart.hasMatchingAddresses() ? 0 : 1 }}, billingAddressId: {{ cart.billingAddressId ? cart.billingAddressId : cart.shippingAddressId }} }">
+
 
     <h1 class="mb-12 font-medium text-3xl">{{ 'Checkout'|t('foster-checkout') }}</h1>
 
@@ -33,7 +34,7 @@
 
                     <div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
 
-                      {# <input type="hidden" name="billingSameAsShipping" value="1" :disabled="parseInt(billingSameAsShipping) === 0" /> #}
+                      <input type="hidden" name="billingAddressSameAsShipping" value="1" :disabled="parseInt(billingSameAsShipping) === 0" />
 
                       <div class="p-4" :class="{ 'bg-gray-100': parseInt(billingSameAsShipping) === 1 }">
                         <div class="radio">
@@ -139,6 +140,9 @@
                           </label>
                         </div>
                         <div v-cloak v-if="parseInt(newBillingAddress) === 1" class="p-4">
+                          <form method="post">
+                            {{ csrfInput() }}
+                            {{ actionInput('commerce/cart/update-cart') }}
 
                             {% include 'foster-checkout/_components/app/address-fields' with {
                               context: 'billingAddress',
@@ -149,6 +153,27 @@
                               <input type="checkbox" class="sr-only" id="saveBillingAddressOnOrderComplete" name="saveBillingAddressOnOrderComplete" value="1" />
                               <label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveBillingAddressOnOrderComplete">{{ 'Save to address book'|t('foster-checkout') }}</label>
                             </div>
+
+                            <div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
+                            <button
+                              type="submit"
+                              class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
+                            >
+                            {% if cart.billingAddressId and cart.hasMatchingAddresses == false %}
+                                {{ 'Update'|t('foster-checkout') }}
+                            {% else %}
+                              {{ 'Save'|t('foster-checkout') }}
+                            {% endif %}
+                            </button>
+                            <button
+                              type="button"
+                              class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
+                              @click="editAddress = 0"
+                            >
+                              {{ 'Cancel'|t('foster-checkout') }}
+                            </button>
+
+                          </form>
 
                         </div>
                       </div>

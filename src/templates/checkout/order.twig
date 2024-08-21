@@ -41,7 +41,7 @@
 						<dd>{{ order.dateOrdered|date('dateFormat'|t('foster-checkout')) }}</dd>
 					</div>
 					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
-						<dt class="font-semibold">{{ 'User'|t('foster-checkout') }}</dt>
+						<dt class="font-semibold">{{ 'Email'|t('foster-checkout') }}</dt>
 						<dd>{{ order.email }}</dd>
 					</div>
 					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
@@ -54,7 +54,7 @@
 						<dt class="font-semibold">{{ 'Method'|t('foster-checkout') }}</dt>
 						<dd>
 							<p>{{ order.shippingMethod.name }} {{ order.totalShippingCostAsCurrency }}</p>
-							<p>{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, order.shippingMethod).getDescription() }}</p>
+							<p>{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, order.shippingMethod).getDescription() ?? '' }}</p>
 						</dd>
 					</div>
 					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">

@@ -115,8 +115,9 @@
 										<div v-cloak v-if="parseInt(editAddress) === 1" class="p-4">
 											{% include 'foster-checkout/_components/app/address-fields' with {
 												context: 'shippingAddress',
-                        address: newAddress ? null : (currentUser ? craft.addresses().id(cart.shippingAddressId).one() : null)
+                        address: newAddress ? null : (currentUser ? craft.addresses().owner(currentUser).id(cart.shippingAddressId).one() : null)
 											} %}
+
 
                       <div class="mt-4 p4 checkbox">
                         <input type="checkbox" class="sr-only" id="saveShippingAddressOnOrderComplete" name="saveShippingAddressOnOrderComplete" value="1" />
