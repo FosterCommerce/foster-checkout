@@ -61,8 +61,34 @@ const LineItem = (props) => {
       this.qty = this.qty > 1 ? (this.qty - 1) : 1;
       this.updateQty();
     },
-    remove() {
-      RemoveLineItem();
+    async remove() {
+      const form = document.querySelector(`#lineItemQty-${props.id}`);
+      const formData = new FormData(form)
+      formData.set(`lineItems[${props.id}][remove]`, true);
+
+      await fetch('/actions/commerce/cart/update-cart', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData,
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // we should only do this if the ajax operation was successful
+        const container = form.closest('article');
+        container.remove();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+
     },
     blur() {
       this.qty = this.qty === '' ? 0 : this.qty;
@@ -76,10 +102,10 @@ const LineItem = (props) => {
       if(this.unlimitedStock === 0 && this.qty > this.stock) {
         this.qty = this.stock;
         this.showErrorStockMessage = true;
-      } else if(this.qty < this.min && this.min !== 0) {
+      } else if(this.qty < this.min && this.min != 0) {
         this.qty = this.min;
         this.showErrorMinMessage = true;
-      } else if(this.unlimitedStock && this.qty > this.max) {
+      } else if(this.unlimitedStock && this.max && this.qty > this.max) {
         this.qty = this.max;
         this.showErrorMaxMessage = true;
       } else {
@@ -98,42 +124,23 @@ const LineItem = (props) => {
           },
           body: formData,
         })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.json();
-          })
-          .then(data => {
-            let item = data.cart.lineItems.filter((lineItem) => lineItem.id === props.id)
-            console.log(item);
-            this.lineSubtotal = item[0].subtotalAsCurrency;
-            this.line
-          })
-          .catch(error => {
-            console.error('Error:', error);
-          });
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          let item = data.cart.lineItems.filter((lineItem) => lineItem.id === props.id)
+          this.lineSubtotal = item[0].subtotalAsCurrency;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
       }
     }
   }
 };
-
-// const UpdateQty =  (props) => {
-//   const form = document.querySelector(`#lineItemQty-${props.id}`);
-//   const formData = new FormData(form)
-//   formData.set(`lineItems[${props.id}][qty]`, props.qty);
-//   UpdateCart(formData);
-// }
-
-const RemoveLineItem = (props) => {
-  const form = document.querySelector(`#lineItemQty-${props.id}`);
-  const formData = new FormData(form)
-  formData.set(`lineItems[${props.id}][remove]`, true);
-  UpdateCart(formData);
-  // we should only do this if the ajax operation was successful
-   const container = form.closest('article');
-   container.remove();
-}
 
 
 const FocusModal = (props) => {

@@ -61,7 +61,7 @@
 
             <button type="button"
               class="flex justify-center items-center w-[38px] h-[38px] text-[var(--brandColor)]"
-              @click="decrement"
+              @click="remove"
             >
               <span v-cloak v-if="qty <= 1">
                 <span class="sr-only">{{ 'Remove from cart'|t('foster-checkout') }}</span>
