@@ -1,23 +1,23 @@
 {% extends 'foster-checkout/_layouts/default' %}
 
 {% block body %}
-{% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? null %}
-{% set onlyMethod = null %}
-{% if cart is defined %}
-  {# If there's only 1 shipping method available then set it on the cart #}
-  {% if cart.availableShippingMethodOptions|length == 1 %}
-    {% for handle, option in cart.availableShippingMethodOptions %}
-      {% if option.price == 0 %}
-          {% redirect(craft.fostercheckout.getPath('checkout') ~ '/payment') %}
-      {% else %}
-        {% set onlyMethod = handle %}
-      {% endif %}
-    {% endfor %}
-  {% elseif cart.availableShippingMethodOptions|length == 1 %}
-      {# If there are no available shipping methods, then just redirect to the payment page #}
-      {% redirect(craft.fostercheckout.getPath('checkout') ~ '/payment') %}
-  {% endif %}
-{% endif %}
+	{% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? null %}
+	{% set onlyMethod = null %}
+	{% if cart is defined %}
+		{# If there's only 1 shipping method available then set it on the cart #}
+		{% if cart.availableShippingMethodOptions|length == 1 %}
+			{% for handle, option in cart.availableShippingMethodOptions %}
+				{% if option.price == 0 %}
+					{% redirect(craft.fostercheckout.getPath('checkout') ~ '/payment') %}
+				{% else %}
+					{% set onlyMethod = handle %}
+				{% endif %}
+			{% endfor %}
+		{% elseif cart.availableShippingMethodOptions|length == 1 %}
+			{# If there are no available shipping methods, then just redirect to the payment page #}
+			{% redirect(craft.fostercheckout.getPath('checkout') ~ '/payment') %}
+		{% endif %}
+	{% endif %}
 
 
 	<div class="mt-10 pb-48 lg:mt-20 lg:pb-32">
@@ -25,7 +25,8 @@
 		<h1 class="mb-12 font-medium text-3xl">{{ 'Checkout'|t('foster-checkout') }}</h1>
 
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
-			<main v-scope="{ shippingMethodHandle: '{{ cart.shippingMethod.handle ?? onlyMethod }}' }" class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
+			<main v-scope="{ shippingMethodHandle: '{{ cart.shippingMethod.handle ?? onlyMethod }}' }"
+				  class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 				<div class="grid grid-cols-1 gap-6 lg:gap-8">
 
 					{% include 'foster-checkout/_components/app/steps-completed' with {
@@ -34,9 +35,9 @@
 
 					<form method="post">
 
-            {{ csrfInput() }}
-            {{ actionInput('commerce/cart/update-cart') }}
-            {{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/payment') }}
+						{{ csrfInput() }}
+						{{ actionInput('commerce/cart/update-cart') }}
+						{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/payment') }}
 
 						<div class="border border-gray-250 rounded-lg overflow-hidden">
 
@@ -46,35 +47,39 @@
 
 							<div class="xl:p-6">
 
-								<div class="xl:border xl:border-b-0 xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
-                  {% if availableShippingMethodOptions|length %}
-                   {% for handle, method in availableShippingMethodOptions %}
-                    <div class="p-4 border-b border-gray-250" :class="{ 'bg-gray-100': shippingMethodHandle === '{{ method.handle }}' }">
+								<div
+									class="xl:border xl:border-b-0 xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+									{% if availableShippingMethodOptions|length %}
+										{% for handle, method in availableShippingMethodOptions %}
+											<div class="p-4 border-b border-gray-250"
+												 :class="{ 'bg-gray-100': shippingMethodHandle === '{{ method.handle }}' }">
 
-                      <div class="flex justify-between items-center gap-4 radio">
+												<div class="flex justify-between items-center gap-4 radio">
 
-                        <input
-                          v-model="shippingMethodHandle"
-                          id="method_{{ handle }}"
-                          name="shippingMethodHandle"
-                          type="radio"
-                          class="sr-only"
-                          value="{{ handle }}"
-                        />
-                        <label
-                          for="method_{{ handle }}"
-                          class="inline-flex justify-start items-center gap-4 cursor-pointer"
-                        >
+													<input
+														v-model="shippingMethodHandle"
+														id="method_{{ handle }}"
+														name="shippingMethodHandle"
+														type="radio"
+														class="sr-only"
+														value="{{ handle }}"
+													/>
+													<label
+														for="method_{{ handle }}"
+														class="inline-flex justify-start items-center gap-4 cursor-pointer"
+													>
                           <span class="block">
                             <span class="block">{{ method.name }}</span>
-                            <span class="block mt-1 text-sm text-gray-500">{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, method).getDescription() }}</span>
+                            <span
+								class="block mt-1 text-sm text-gray-500">{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, method).getDescription() }}</span>
                           </span>
-                        </label>
-                        <span class="block font-semibold">{{ method.getPrice()|commerceCurrency(cart.currency) }}</span>
-                      </div>
-                    </div>
-                  {% endfor %}
-                {% endif %}
+													</label>
+													<span
+														class="block font-semibold">{{ method.getPrice()|commerceCurrency(cart.currency) }}</span>
+												</div>
+											</div>
+										{% endfor %}
+									{% endif %}
 
 								</div>
 
@@ -116,7 +121,8 @@
 
 			<aside>
 
-				<div class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]">
+				<div
+					class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]">
 
 					<div class="grid grid-cols-1 gap-6">
 
@@ -124,7 +130,8 @@
 							<h2 class="text-xl font-bold text-gray-800 leading-snug">
 								{{ 'Item(s)'|t('foster-checkout') }}
 							</h2>
-							<a href="{{ craft.fostercheckout.getPath('cart') }}" class="inline-block text-[var(--brandColor)] underline">
+							<a href="{{ craft.fostercheckout.getPath('cart') }}"
+							   class="inline-block text-[var(--brandColor)] underline">
 								{{ 'Edit'|t('foster-checkout') }}
 							</a>
 						</div>
