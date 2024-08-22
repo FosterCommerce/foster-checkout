@@ -58,8 +58,12 @@ const LineItem = (props) => {
     },
     decrement() {
       this.removeMessages()
-      this.qty = this.qty > 1 ? (this.qty - 1) : 1;
-      this.updateQty();
+      if(this.qty === 1) {
+        this.remove();
+      } else {
+        this.qty = this.qty > 1 ? (this.qty - 1) : 1;
+        this.updateQty();
+      }
     },
     async remove() {
       const form = document.querySelector(`#lineItemQty-${props.id}`);
