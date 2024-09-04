@@ -47,7 +47,7 @@
 	<style type="text/tailwindcss">
 		@layer utilities {
 			body {
-				font-family: '{{ craft.checkout.branding.font ?? 'Rubik' }}';
+				font-family: {{ craft.checkout.branding.font ?? 'Rubik' | raw }};
 			}
 
 			/* Place any additional custom CSS classes here */
