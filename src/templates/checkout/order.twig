@@ -51,6 +51,7 @@
 							{% include'foster-checkout/_components/app/formatted-address' with { 'address': order.shippingAddress} %}
 						</dd>
 					</div>
+					{% if order.shippingMethod %}
 					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
 						<dt class="font-semibold">{{ 'Method'|t('foster-checkout') }}</dt>
 						<dd>
@@ -58,6 +59,7 @@
 							<p>{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, order.shippingMethod).getDescription() ?? '' }}</p>
 						</dd>
 					</div>
+					{% endif %}
 					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
 						<dt class="font-semibold">{{ 'Payment'|t('foster-checkout') }}</dt>
 						<dd>{{ order.gateway.name }}</dd>
