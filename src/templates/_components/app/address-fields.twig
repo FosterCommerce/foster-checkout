@@ -13,8 +13,8 @@
 		address: {{ address|json_encode }},
 		countryCode: '{{ address ? address.countryCode : '' }}',
 		administrativeArea: '{{ address ? address.administrativeArea : '' }}',
-		countries: {{ craft.commerce.store.store.getCountriesList()|json_encode }},
-		regions: {{ craft.commerce.store.getStore().getAdministrativeAreasListByCountryCode()|json_encode }},
+		countries: {{ craft.commerce.stores.currentStore.settings.getCountriesList()|json_encode }},
+		regions: {{ craft.commerce.stores.currentStore.settings.getAdministrativeAreasListByCountryCode()|json_encode }},
 		errors: {{ errors|json_encode }}
 	}"
 	class="grid grid-cols-1 gap-y-8 gap-x-6 sm:grid-cols-3"
