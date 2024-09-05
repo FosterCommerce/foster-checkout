@@ -6,7 +6,7 @@
 
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">{{ 'Subtotal'|t('foster-checkout') }}</dt>
-			<dd class="font-semibold text-right text-black">{{ cart.itemTotalAsCurrency }}</dd>
+			<dd class="font-semibold text-right text-black">{{ cart.itemSubtotalAsCurrency }}</dd>
 		</div>
 
 		{% if cart.totalDiscount != 0 %}
