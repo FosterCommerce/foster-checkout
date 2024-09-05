@@ -1,3 +1,4 @@
+{% if cart.shippingMethod != null and cart.shippingMethod.handle != 'freeShipping' %}
 {% set postalCode = cart.estimatedShippingAddress.postalCode|default('') %}
 
 <div v-scope="FocusModal({ isOpen: false })" class="relative" @vue:mounted="mounted">
@@ -66,3 +67,4 @@
 	</div>
 
 </div>
+{% endif %}
