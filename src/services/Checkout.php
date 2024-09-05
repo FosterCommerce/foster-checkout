@@ -2,6 +2,7 @@
 
 namespace fostercommerce\craftfostercheckout\services;
 
+use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
 use craft\commerce\models\LineItem;
 use craft\commerce\Plugin;
@@ -88,7 +89,7 @@ class Checkout extends Component
 		return $note;
 	}
 
-	/*
+	/**
 	 * Gets the line items image field based on the products settings
 	 */
 	public function lineItemImageField($productType): ?array
@@ -116,28 +117,30 @@ class Checkout extends Component
 		return $fieldData;
 	}
 
-	/*
+	/**
 	 * Gets a line items image asset based on the config settings for the product type
+	 *
+	 * @throws InvalidConfigException
 	 */
 	public function lineItemImage(LineItem $lineItem): ?Asset
 	{
 		$image = null;
 		$sku = $lineItem->getSku();
 		$variant = Variant::find()->sku($sku)->one();
+		/** @var Product $product */
 		$product = $variant->getOwner();
+
 		$fieldInfo = $this->lineItemImageField($product->type->handle);
 
-		if ($fieldInfo['level'] === 'variant') {
+		if ($fieldInfo !== null) {
 			try {
-				$image = $variant->getFieldValue($fieldInfo['handle'])->one();
+				if ($fieldInfo['level'] === 'variant') {
+					$image = $variant->getFieldValue($fieldInfo['handle'])->one();
+				} else {
+					$image = $product->getFieldValue($fieldInfo['handle'])->one();
+				}
 			} catch (InvalidFieldException) {
-				$image = null;
-			}
-		} else {
-			try {
-				$image = $product->getFieldValue($fieldInfo['handle'])->one();
-			} catch (InvalidFieldException) {
-				$image = null;
+				// Do nothing
 			}
 		}
 
