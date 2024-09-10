@@ -2,6 +2,12 @@
 {# Get preview images for lineItems #}
 
 {#
+===============================================================================================================================
+Commented out temporarily (It's currently difficult to tinker around i.e passing the lineItem variable from javascript to twig )
+I can't think of anyother way we can be able to guarantee reactivity of all items in the cart without ensuring all items in the 
+Cart are controlled from Petite Vue
+===============================================================================================================================
+
 {% set imageUrl = null %}
 {% set imageSrcSet = null %}
 {% set previewImage = craft.checkout.lineItemImage(lineItem) %}
@@ -144,6 +150,9 @@
 			</div>
 
 			{#
+			======================================================================
+			Commented out temporarily (Most properties are only available in twig )
+			======================================================================
 			<footer class="flex flex-col justify-between items-start gap-3">
 				{% if not lineItem.purchasable.hasUnlimitedStock %}
 					<p class="text-sm font-medium text-gray-500">
