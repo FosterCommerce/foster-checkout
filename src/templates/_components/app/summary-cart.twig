@@ -1,4 +1,4 @@
-<article>
+<article v-scope>
 
 	<h2 class="mb-6 text-xl font-bold text-gray-800 leading-snug">{{ 'Order Summary'|t('foster-checkout') }}</h2>
 
@@ -6,18 +6,18 @@
 
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">{{ 'Subtotal'|t('foster-checkout') }}</dt>
-			<dd class="font-semibold text-right text-black">{{ cart.itemSubtotalAsCurrency }}</dd>
+			<dd v-text="App.cart.itemSubtotalAsCurrency" class="font-semibold text-right text-black"></dd>
 		</div>
 
 		{% if cart.totalDiscount != 0 %}
 			<div class="flex justify-between items-center gap-4">
 				<dt class="text-gray-500">{{ 'Discount'|t('foster-checkout') }}</dt>
-				<dd class="text-right text-red-500">{{ cart.totalDiscountAsCurrency }}</dd>
+				<dd v-text="App.cart.totalDiscountAsCurrency" class="text-right text-red-500"></dd>
 			</div>
 
 			<div class="flex justify-between items-center gap-4">
 				<dt class="font-semibold text-black">{{ 'Subtotal After Discount'|t('foster-checkout') }}</dt>
-				<dd class="font-semibold text-right text-black">{{ cart.totalAsCurrency }}</dd>
+				<dd v-text="App.cart.totalAsCurrency" class="font-semibold text-right text-black"></dd>
 			</div>
 		{% endif %}
 
@@ -34,14 +34,14 @@
 		{% else %}
 			<div class="flex justify-between items-center gap-4">
 				<dt class="text-gray-500">{{ 'Shipping'|t('foster-checkout') }}</dt>
-				<dd class="font-semibold text-right text-black">{{ cart.totalShippingCostAsCurrency }}</dd>
+				<dd v-text="App.cart.totalShippingCostAsCurrency" class="font-semibold text-right text-black"></dd>
 			</div>
 		{% endif %}
 
 
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">{{ 'Estimated Tax'|t('foster-checkout') }}</dt>
-			<dd class="text-right text-black">{{ cart.totalTaxAsCurrency }}</dd>
+			<dd v-text="App.cart.totalTaxAsCurrency" class="text-right text-black"></dd>
 		</div>
 
 		{% include 'foster-checkout/_components/app/coupon-code' %}
@@ -49,12 +49,12 @@
 		{% if step|default('') != 'payment' %}
 			<div class="flex justify-between items-center gap-4">
 				<dt class="font-semibold text-black">{{ 'Estimated Total'|t('foster-checkout') }}:</dt>
-				<dd class="font-semibold text-right text-black">{{ cart.totalPriceAsCurrency }}</dd>
+				<dd v-text="App.cart.totalPriceAsCurrency" class="font-semibold text-right text-black"></dd>
 			</div>
 		{% else %}
 			<div class="flex justify-between items-center gap-4">
 				<dt class="font-semibold text-black">{{ 'Total'|t('foster-checkout') }}:</dt>
-				<dd class="font-semibold text-right text-black">{{ cart.totalPriceAsCurrency }}</dd>
+				<dd v-text="App.cart.totalPriceAsCurrency" class="font-semibold text-right text-black"></dd>
 			</div>
 		{% endif %}
 
