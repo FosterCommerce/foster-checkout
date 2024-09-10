@@ -129,6 +129,7 @@ const LineItem = (props) => {
 				// UpdateQty(props);
 
 				const form = document.querySelector(`#lineItemQty-${props.id}`);
+
 				const formData = new FormData(form);
 				formData.set(`lineItems[${props.id}][qty]`, props.qty);
 
@@ -147,6 +148,8 @@ const LineItem = (props) => {
 						return response.json();
 					})
 					.then((data) => {
+						// Assign cart response to reactive state
+						App.cart = data.cart;
 						let item = data.cart.lineItems.filter(
 							(lineItem) => lineItem.id === props.id,
 						);

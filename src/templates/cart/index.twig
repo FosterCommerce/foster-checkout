@@ -3,8 +3,8 @@
 {% block body %}
 
 	{% if cart.lineItems|length > 0 %}
-
 		<div
+			v-effect="App.cart = {{ cart|json_encode }}"
 			class="grid grid-cols-1 gap-16 mt-10 pb-32 lg:grid-cols-[1fr_380px] lg:gap-6 lg:mt-20 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 
 			<main class="flex flex-col justify-start items-stretch gap-6 lg:justify-between">
@@ -18,7 +18,7 @@
 								class="text-gray-500"
 								title="{{ 'There are {qty} items in your cart'|t('foster-checkout', params = { qty: cart.totalQty }) }}"
 							>
-								({{ cart.totalQty }})
+								(${App.cartTotalQty})
 							</p>
 						</div>
 						<form method="post">
@@ -31,13 +31,7 @@
 					</header>
 
 					<ul class="grid grid-cols-1 gap-4 lg:gap-6">
-						{% for lineItem in cart.lineItems %}
-							<li>
-								{% include 'foster-checkout/_components/app/line-item-cart' with {
-									lineItem: lineItem
-								} %}
-							</li>
-						{% endfor %}
+						{% include 'foster-checkout/_components/app/line-item-cart' %}
 					</ul>
 
 				</div>
