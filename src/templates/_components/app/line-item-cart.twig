@@ -127,7 +127,7 @@
 
 				<div class="mt-3 md:mt-0">
 					{% if lineItem.onPromotion or lineItem.discount or lineItem.purchasable.onPromotion %}
-						<h4 class="font-semibold">{{ (lineItem.purchasable.promotionalPrice * lineItem.qty)|commerceCurrency(cart.paymentCurrency) }}</h4>
+						<h4 class="font-semibold">{{ (lineItem.subtotal + lineItem.adjustmentsTotal)|commerceCurrency(cart.paymentCurrency) }}</h4>
 						<h5 class="mt-1 text-sm text-gray-600 line-through"><span
 								v-text="lineSubtotal">{{ lineItem.subtotalAsCurrency() }}</span></h5>
 					{% else %}
