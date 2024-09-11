@@ -23,6 +23,10 @@
  */
 
 return [
+	// Plugin options
+	'options' => [
+		'enableSaveForLater' => false, // true|false
+	],
 	// Branding Settings
 	'branding' => [
 		// The brand primary custom color in HEX color

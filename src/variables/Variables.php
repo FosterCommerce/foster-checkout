@@ -15,4 +15,9 @@ class Variables
 		$paths = FosterCheckout::getInstance()->checkout->paths();
 		return array_key_exists($path, $paths) ? Craft::$app->getSites()->getCurrentSite()->getBaseUrl() . $paths[$path] : null;
 	}
+
+	public function getSetting(string $setting): string|bool
+	{
+		return FosterCheckout::getInstance()->getSettings()->$setting;
+	}
 }
