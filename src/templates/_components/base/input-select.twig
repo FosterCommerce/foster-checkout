@@ -1,6 +1,10 @@
 {% set fieldId = id ? ('field_' ~ id) : ('field_' ~ random()) %}
 
-<div v-scope="{ value: '{{ value|default('') }}', errors: {{ errors|default([])|json_encode }} }">
+<div v-scope="{
+	value: '{{ value|default('') }}',
+	errors: {{ errors|default([])|json_encode }},
+	success: {{ success|default([])|json_encode }}
+}">
 	{% if label|default %}
 		<label for="{{ fieldId }}" class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}">
 			{{ label ~ (required|default(false) ? '*' : '') }}
@@ -11,7 +15,11 @@
 		id="{{ fieldId }}"
 		name="{{ name|default('') }}"
 		class="w-full h-12 px-4 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
-		:class="errors.length ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
+		:class="{
+			'border-red-500 focus:border-red-500': errors.length,
+			'border-green-500 focus:border-green-500': success.length,
+			'border-gray-500 focus:border-black': !errors.length && !success.length
+		}"
 		:aria-invalid="errors.length > 0"
 		aria-errormessage="{{ fieldId }}-error"
 	>
@@ -22,6 +30,11 @@
 			<option value="{{ option.value }}">{{ option.label }}</option>
 		{% endfor %}
 	</select>
-	<p v-cloak v-if="errors.length" id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500">${errors.join(' ')}</p>
+	<p v-cloak v-if="errors.length" id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500">
+		${ errors.join(' ') }
+	</p>
+	<p v-cloak v-if="success.length" class="mt-1 text-sm text-green-500">
+		${ success.join(' ') }
+	</p>
 </div>
 
