@@ -7,7 +7,12 @@
 {% endif %}
 
 <div
-	v-scope="ClearableInput({ name: '{{ name|default('') }}', value: '{{ value|default('') }}', errors: {{ errors|default([])|json_encode }} })">
+	v-scope="ClearableInput({
+		name: '{{ name|default('') }}',
+		value: '{{ value|default('') }}',
+		errors: {{ errors|default([])|json_encode }},
+		success: {{ success|default([])|json_encode }}
+	})">
 
 	{% if label|default %}
 		<label for="{{ fieldId }}" class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}">
@@ -23,7 +28,11 @@
 			type="{{ type ?? 'text' }}"
 			autocomplete="{{ autocomplete|default('') }}"
 			class="w-full h-12 pl-4 pr-12 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300 js-clearable"
-			:class="errors.length ? 'text-red-500 border-red-500 focus:border-red-500' : 'text-gray-800 border-gray-500 focus:border-black'"
+			:class="{
+				'text-red-500 border-red-500 focus:border-red-500': errors.length,
+				'text-gray-800 border-green-500 focus:border-green-500': success.length,
+				'text-gray-800 border-gray-500 focus:border-black': !errors.length && !success.length
+			}"
 			placeholder="{{ placeholder|default('') }}"
 			:aria-invalid="errors.length ? true : false"
 			aria-errormessage="{{ fieldId }}-error"
@@ -56,6 +65,10 @@
 
 	<p v-cloak v-if="errors.length" id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500">
 		${ errors.join(' ') }
+	</p>
+
+	<p v-cloak v-if="success.length" class="mt-1 text-sm text-green-500">
+		${ success.join(' ') }
 	</p>
 
 </div>

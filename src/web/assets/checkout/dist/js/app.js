@@ -14,6 +14,7 @@ const ClearableInput = (props) => {
     name: props.name,
     value: props.value,
     errors: props.errors,
+		success: props.success,
     showButton: false,
     input() {
       this.showButton = this.value !== '';
