@@ -25,8 +25,16 @@
 return [
     // Plugin options
     'options' => [
+		// Whether or not to show the "save for later" button
         'enableSaveForLater' => true, // true|false
+
+		// Whether or not to show the shipping estimator
+        'enableEstimatedShipping' => true, // true|false
+
+		// Whether or not to show the free shipping message
+        'enableFreeShippingMessage' => true, // true|false
     ],
+
     // Branding Settings
     'branding' => [
         // The brand primary custom color in HEX color
