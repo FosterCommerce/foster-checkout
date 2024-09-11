@@ -25,26 +25,27 @@
 	class="flex justify-start items-stretch gap-5 p-5 bg-gray-200 rounded-xl"
 >
 
-	<div class="w-[80px] min-w-[80px] md:w-[200px]">
-		<figure class="rounded-lg overflow-hidden">
+	<div class="w-[80px] min-w-[80px] md:w-[200px] md:min-w-[200px] flex-grow">
+		<figure class="rounded-lg overflow-hidden min-w-full">
 			<img
 				src="{{ imageUrl ?? 'https://placehold.co/200x200?text=No+Image' }}"
 				srcset="{{ imageUrl ? imageSrcSet : '' }}"
 				sizes="(min-width: 768px) 200px, 80px"
 				width="200"
 				height="200"
+				class="min-w-full"
 				alt="{{ 'Image of'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
 			/>
 		</figure>
 	</div>
 
-	<div class="flex flex-col justify-between items-stretch gap-10 flex-grow">
+	<div class="flex flex-col justify-between items-stretch gap-10">
 
 		<div class="md:flex md:justify-between md:items-start">
 
 			<div>
 				<h3 class="font-semibold">{{ lineItem.description }}</h3>
-				<p class="mt-3 text-sm uppercase text-gray-500">{{ 'SKU'|t('foster-checkout') }}: {{ lineItem.sku }}</p>
+				<p class="mt-3 text-sm uppercase text-gray-500 break-all">{{ 'SKU'|t('foster-checkout') }}: {{ lineItem.sku }}</p>
 				{% if lineItem.purchasable.onPromotion %}
 					<p class="mt-3 text-sm uppercase text-gray-500">
 						<del
