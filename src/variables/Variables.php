@@ -7,17 +7,17 @@ use fostercommerce\craftfostercheckout\FosterCheckout;
 
 class Variables
 {
-    /**
-     * getPath
-     */
-    public function getPath(string $path): ?string
-    {
-        $paths = FosterCheckout::getInstance()->checkout->paths();
-        return array_key_exists($path, $paths) ? Craft::$app->getSites()->getCurrentSite()->getBaseUrl() . $paths[$path] : null;
-    }
+	/**
+	 * getPath
+	 */
+	public function getPath(string $path): ?string
+	{
+		$paths = FosterCheckout::getInstance()->checkout->paths();
+		return array_key_exists($path, $paths) ? Craft::$app->getSites()->getCurrentSite()->getBaseUrl() . $paths[$path] : null;
+	}
 
-    public function getOption(string $option): string|bool|null
-    {
-        return FosterCheckout::getInstance()->checkout->option($option);
-    }
+	public function getOption(string $option): string|bool|null
+	{
+		return FosterCheckout::getInstance()->checkout->option($option);
+	}
 }
