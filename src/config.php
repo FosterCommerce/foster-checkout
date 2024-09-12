@@ -23,6 +23,20 @@
  */
 
 return [
+	// Plugin options
+	'options' => [
+		// Whether or not to show the "save for later" button
+		'enableSaveForLater' => false, // true|false
+
+		// Whether or not to show the shipping estimator
+		'enableEstimatedShipping' => false, // true|false
+
+		// Whether or not to show the free shipping message
+		'enableFreeShippingMessage' => false, // true|false
+
+		// Whether or not to show the "No Image" placeholder images
+		'enablePlaceholderImages' => false,
+	],
 	// Branding Settings
 	'branding' => [
 		// The brand primary custom color in HEX color

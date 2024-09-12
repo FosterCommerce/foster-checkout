@@ -98,4 +98,5 @@ return [
 	'dateFormat' => 'n/j/y',
 	'Same as shipping address' => 'Same as shipping address',
 	'Use an address from your address book' => 'Use an address from your address book',
+	'No Image' => 'No Image',
 ];
