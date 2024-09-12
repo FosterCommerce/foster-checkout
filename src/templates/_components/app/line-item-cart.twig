@@ -29,7 +29,7 @@
 		<div class="w-[80px] min-w-[80px] max-w-[80px] md:w-[200px] md:min-w-[200px] md:max-w-[200px] flex-grow">
 			<figure class="rounded-lg overflow-hidden min-w-full">
 				<img
-					src="{{ imageUrl ?? ('https://placehold.co/200x200?text=' ~ 'No Image'|t('foster-checkout')|replace({ ' ': '+' })) }}"
+					src="{{ imageUrl ?? ('https://placehold.co/200x200?text=' ~ 'No Image'|t('foster-checkout')|split(' ')|join('+')) }}"
 					srcset="{{ imageUrl ? imageSrcSet : '' }}"
 					sizes="(min-width: 768px) 200px, 80px"
 					width="200"

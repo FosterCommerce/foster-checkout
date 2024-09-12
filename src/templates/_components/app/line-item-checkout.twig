@@ -17,7 +17,7 @@
 		<div class="w-[70px] min-w-[70px]">
 			<figure class="rounded-lg overflow-hidden">
 				<img
-					src="{{ imageUrl ?? ('https://placehold.co/70x70?text=' ~ 'No Image'|t('foster-checkout')|replace({ ' ': '+' })) }}"
+					src="{{ imageUrl ?? ('https://placehold.co/70x70?text=' ~ 'No Image'|t('foster-checkout')|split(' ')|join('+')) }}"
 					width="70"
 					height="70"
 					alt="{{ 'Image of'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
