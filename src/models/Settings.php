@@ -9,6 +9,13 @@ use craft\base\Model;
  */
 class Settings extends Model
 {
+	public array $options = [
+		'enableSaveForLater' => false,
+		'enableEstimatedShipping' => false,
+		'enableFreeShippingMessage' => false,
+		'enablePlaceholderImages' => false,
+	];
+
 	public array $branding = [
 		'color' => '#1F2937',
 		'font' => 'Rubik',
