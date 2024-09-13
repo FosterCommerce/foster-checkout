@@ -22,15 +22,18 @@
 		{% endif %}
 
 		{% if not cart.shippingAddressId %}
-			{% include 'foster-checkout/_components/app/estimated-shipping' %}
+			{% if craft.fostercheckout.getOption('enableEstimatedShipping') %}
+				{% include 'foster-checkout/_components/app/estimated-shipping' %}
+			{% endif %}
 
-			{#
-			<p class="max-w-[210px] -mt-[8px] text-sm text-gray-500">
-				{{ 'Add'|t('foster-checkout') }}
-				<strong class="font-semibold text-black">$24.15</strong>
-				{{ 'for FREE shipping, or choose FREE Ship to Store.'|t('foster-checkout') }}
-			</p>
-			#}
+			{% if craft.fostercheckout.getOption('enableFreeShippingMessage') %}
+				<p class="max-w-[210px] -mt-[8px] text-sm text-gray-500">
+					{{ 'Add'|t('foster-checkout') }}
+					<strong class="font-semibold text-black">$24.15</strong>
+					{{ 'for FREE shipping, or choose FREE Ship to Store.'|t('foster-checkout') }}
+				</p>
+			{% endif %}
+
 		{% else %}
 			<div class="flex justify-between items-center gap-4">
 				<dt class="text-gray-500">{{ 'Shipping'|t('foster-checkout') }}</dt>

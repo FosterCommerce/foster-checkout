@@ -34,6 +34,15 @@ class Checkout extends Component
 		return $settings->options;
 	}
 
+	/**
+	 * Gets the value of a single option from the settings
+	 */
+	public function option(string $option): string|bool|null
+	{
+		$settings = FosterCheckout::getInstance()->getSettings();
+		return $settings->options[$option] ?? null;
+	}
+
 	/*
 	 * Gets the branding settings array
 	 */
