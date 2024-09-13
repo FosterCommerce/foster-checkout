@@ -28,7 +28,7 @@ return [
 	'Coupon Code' => 'Coupon Code',
 	'Coupon added' => 'Coupon added',
 	'Submit a coupon code to get a discount on your order.' => 'Submit a coupon code to get a discount on your order.',
-	'Enter your Coupon Code' => 'Enter your Coupon Code',
+	'Enter Coupon Code' => 'Enter Coupon Code',
 	'Submit' => 'Submit',
 	'Estimated shipping to' => 'Estimated shipping to',
 	'Get estimated shipping' => 'Get estimated shipping',
@@ -98,4 +98,5 @@ return [
 	'dateFormat' => 'n/j/y',
 	'Same as shipping address' => 'Same as shipping address',
 	'Use an address from your address book' => 'Use an address from your address book',
+	'No Image' => 'No Image',
 ];

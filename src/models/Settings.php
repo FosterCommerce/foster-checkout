@@ -10,7 +10,10 @@ use craft\base\Model;
 class Settings extends Model
 {
 	public array $options = [
-		'enableSaveForLater' => true,
+		'enableSaveForLater' => false,
+		'enableEstimatedShipping' => false,
+		'enableFreeShippingMessage' => false,
+		'enablePlaceholderImages' => false,
 	];
 
 	public array $branding = [

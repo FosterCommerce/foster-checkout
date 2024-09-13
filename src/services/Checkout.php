@@ -26,6 +26,15 @@ use yii\base\InvalidConfigException;
 class Checkout extends Component
 {
 	/*
+	 * Gets the options settings array
+	 */
+	public function options(): array
+	{
+		$settings = FosterCheckout::getInstance()->getSettings();
+		return $settings->options;
+	}
+
+	/*
 	 * Gets the branding settings array
 	 */
 	public function branding(): array
