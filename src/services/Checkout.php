@@ -43,7 +43,6 @@ class Checkout extends Component
 		return $settings->options[$option] ?? null;
 	}
 
-
 	/*
 	 * Gets the branding settings array
 	 */
