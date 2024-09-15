@@ -35,6 +35,8 @@ return [
 	'Postal Code' => 'Postal Code',
 	'Delivery Postal Code' => 'Delivery Postal Code',
 	'Update' => 'Update',
+	'Updating' => 'Updating',
+	'Removing' => 'Removing',
 	'Close' => 'Close',
 	'Your postal code helps us provide the most accurate delivery information.' => 'Your postal code helps us provide the most accurate delivery information.',
 	'Order Summary' => 'Order Summary',
