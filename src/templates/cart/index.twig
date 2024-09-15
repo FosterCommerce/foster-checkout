@@ -56,7 +56,7 @@
 			</main>
 
 			<aside>
-				<div class="lg:p-6 lg:bg-white lg:rounded-xl lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]">
+				<div class="lg:p-6 lg:bg-white lg:rounded-xl {{ craft.checkout.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 					{% include 'foster-checkout/_components/app/summary-cart' with {
 						postalCode: '90210',
 						couponCode: '121212'

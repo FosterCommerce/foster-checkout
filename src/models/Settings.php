@@ -14,11 +14,13 @@ class Settings extends Model
 		'enableEstimatedShipping' => false,
 		'enableFreeShippingMessage' => false,
 		'enablePlaceholderImages' => false,
+		'enablePageTransitions' => false,
 	];
 
 	public array $branding = [
 		'color' => '#1F2937',
 		'font' => 'Rubik',
+		'style' => 'rounded',
 		'logo' => '',
 		'title' => '',
 	];

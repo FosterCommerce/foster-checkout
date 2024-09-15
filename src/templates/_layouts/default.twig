@@ -38,6 +38,17 @@
 							800: '#1F2937'
 						}
 					},
+					{% if craft.checkout.branding.style|default('rounded') == 'flat' %}
+						borderRadius: {
+							'xs' : 0,
+							'sm' : 0,
+							DEFAULT: '0',
+							'md': 0,
+							'lg': 0,
+							'xl': 0,
+							'2xl': 0
+						}
+					{% endif %}
 				}
 			}
 		}
@@ -46,6 +57,14 @@
 		[v-cloak] {
 			opacity: 0;
 		}
+		{% if craft.checkout.options.enablePageTransitions|default %}
+			@view-transition {
+				navigation: auto;
+			}
+			::view-transition-group(root) {
+				animation-duration: 0.5s;
+			}
+		{% endif %}
 	</style>
 	<style type="text/tailwindcss">
 		@layer utilities {
