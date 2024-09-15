@@ -36,6 +36,10 @@ return [
 
 		// Whether or not to show the "No Image" placeholder images
 		'enablePlaceholderImages' => false,
+
+		// Whether or not to enable CSS page transitions
+		//(see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#browser_compatibility for browser compatibility)
+		'enablePageTransitions' => false,
 	],
 	// Branding Settings
 	'branding' => [
@@ -49,6 +53,9 @@ return [
 		// The relative path from the web root of the logo file
 		// (ex. '/assets/images/logo.svg')
 		'logo' => '',
+
+		// The general component styles. Either 'rounded' (default) or 'flat'
+		'style' => 'rounded',
 
 		// The first part of the text in the title meta tag.
 		// Leave blank to use the Craft's siteName
