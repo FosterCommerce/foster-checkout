@@ -20,6 +20,7 @@ class Settings extends Model
 		'color' => '#1F2937',
 		'font' => 'Rubik',
 		'logo' => '',
+		'title' => '',
 	];
 
 	public array $paths = [

@@ -1,5 +1,13 @@
 {% extends 'foster-checkout/_layouts/default' %}
 
+{% block head %}
+	<title>
+		{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }} |
+		{{ 'Checkout'|t('foster-checkout') }} |
+		{{ 'Shipping'|t('foster-checkout') }}
+	</title>
+{% endblock %}
+
 {% block body %}
 	{% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? null %}
 	{% set onlyMethod = null %}

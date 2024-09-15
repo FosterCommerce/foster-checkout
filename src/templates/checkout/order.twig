@@ -4,6 +4,14 @@
 	{% exit 404 %}
 {% endif %}
 
+{% block head %}
+	<title>
+		{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }} |
+		{{ 'Checkout'|t('foster-checkout') }} |
+		{{ 'Order'|t('foster-checkout') }}
+	</title>
+{% endblock %}
+
 {% block body %}
 
 	<div

@@ -1,5 +1,13 @@
 {% extends 'foster-checkout/_layouts/default' %}
 
+{% block head %}
+	<title>
+		{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }} |
+		{{ 'Checkout'|t('foster-checkout') }} |
+		{{ 'Payment'|t('foster-checkout') }}
+	</title>
+{% endblock %}
+
 {% block body %}
 	{% set gateways = craft.commerce.gateways.getAllCustomerEnabledGateways %}
 	{% set addresses =  currentUser ? (currentUser.addresses.all() ?? null) : null %}

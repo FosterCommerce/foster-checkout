@@ -1,5 +1,13 @@
 {% extends 'foster-checkout/_layouts/default' %}
 
+{% block head %}
+	<title>
+		{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }} |
+		{{ 'Checkout'|t('foster-checkout') }} |
+		{{ 'Email'|t('foster-checkout') }}
+	</title>
+{% endblock %}
+
 {% block body %}
 
 	<div class="max-w-[740px] mx-auto my-10 md:my-20">

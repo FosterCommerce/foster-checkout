@@ -1,5 +1,9 @@
 {% extends 'foster-checkout/_layouts/default' %}
 
+{% block head %}
+	<title>{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }} | {{ 'Cart'|t('foster-checkout') }}</title>
+{% endblock %}
+
 {% block body %}
 
 	{% if cart.lineItems|length > 0 %}
