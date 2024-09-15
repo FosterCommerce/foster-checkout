@@ -223,10 +223,14 @@
 															order: cart,
 															paymentFormType: 'elements',
 															appearance: {
-																theme: 'stripe',
+																theme: craft.checkout.branding.style|default('rounded') == 'flat' ? 'flat' : 'stripe',
 																labels: 'floating',
 																variables: {
-																	colorPrimary: 'var(--brandColor)'
+																	colorPrimary: craft.checkout.branding.color ?? '#1F2937',
+																	borderRadius: craft.checkout.branding.style|default('rounded') == 'flat' ? '0px' : '6px',
+																	gridColumnSpacing: '24px',
+																	gridRowSpacing: '24px',
+																	tabSpacing: '12px',
 																}
 															},
 															submitButtonText: buttonText,
@@ -270,7 +274,7 @@
 			<aside>
 
 				<div
-					class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]">
+					class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl {{ craft.checkout.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 
 					<div class="grid grid-cols-1 gap-6">
 
