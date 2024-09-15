@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+	<meta	name="robots" content="noindex, nofollow" />
 
 	{% block head %}
-		<title>Foster Checkout</title>
+		<title>
+			{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }}
+		</title>
 	{% endblock %}
 
 	<link rel="preconnect" href="https://fonts.googleapis.com"/>

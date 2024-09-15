@@ -3,6 +3,14 @@
 {% set primaryShippingAddressId =  currentUser ? (currentUser.getPrimaryShippingAddressId() ?? -1) : -1 %}
 {% set newAddress = false %}
 
+{% block head %}
+	<title>
+		{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }} |
+		{{ 'Checkout'|t('foster-checkout') }} |
+		{{ 'Address'|t('foster-checkout') }}
+	</title>
+{% endblock %}
+
 {% block body %}
 	<div class="mt-10 pb-48 lg:mt-20 lg:pb-32">
 
