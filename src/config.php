@@ -49,6 +49,10 @@ return [
 		// The relative path from the web root of the logo file
 		// (ex. '/assets/images/logo.svg')
 		'logo' => '',
+
+		// The first part of the text in the title meta tag.
+		// Leave blank to use the Craft's siteName
+		'title' => '',
 	],
 
 	// Path Settings
