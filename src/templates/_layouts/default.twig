@@ -6,6 +6,11 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 	<meta	name="robots" content="noindex, nofollow" />
 
+	{% if seomatic|default %}
+		{# {% do seomatic.meta.setAttributes({ robots: 'noindex, nofollow' }) %} #}
+		{% do seomatic.config.renderEnabled(false) %}
+	{% endif %}
+
 	{% block head %}
 		<title>
 			{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }}
