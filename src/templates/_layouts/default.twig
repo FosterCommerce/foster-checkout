@@ -7,7 +7,6 @@
 	<meta	name="robots" content="noindex, nofollow" />
 
 	{% if seomatic|default %}
-		{# {% do seomatic.meta.setAttributes({ robots: 'noindex, nofollow' }) %} #}
 		{% do seomatic.config.renderEnabled(false) %}
 	{% endif %}
 
