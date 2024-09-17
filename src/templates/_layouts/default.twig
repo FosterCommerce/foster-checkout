@@ -6,6 +6,15 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 	<meta	name="robots" content="noindex, nofollow" />
 
+	{% if cart is not defined %}
+		{% set cart = craft.commerce.carts.cart %}
+	{% endif %}
+
+	{% if craft.app.request.getSegment(1) != craft.fostercheckout.getPath('cart')
+		and cart.lineItems|length == 0 %}
+		{% redirect craft.fostercheckout.getPath('cart') %}
+	{% endif %}
+
 	{% if seomatic|default %}
 		{% do seomatic.config.renderEnabled(false) %}
 	{% endif %}
@@ -123,10 +132,6 @@
 </head>
 
 <body style="--brandColor: {{ craft.checkout.branding.color ?? '#1F2937' }};">
-
-{% if cart is not defined %}
-	{% set cart = craft.commerce.carts.cart %}
-{% endif %}
 
 <div v-scope="App" @vue:mounted="App.init">
 
