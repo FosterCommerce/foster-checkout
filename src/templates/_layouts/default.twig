@@ -10,8 +10,10 @@
 		{% set cart = craft.commerce.carts.cart %}
 	{% endif %}
 
-	{% if craft.app.request.getSegment(1) != craft.fostercheckout.getPath('cart')
-		and cart.lineItems|length == 0 %}
+	{% if
+		(craft.app.request.getSegment(1) != craft.checkout.paths.cart and craft.app.request.getSegment(-1) != 'order' and cart.lineItems|length == 0)
+		or (craft.app.request.getSegment(-1) == 'order' and craft.app.request.getParam('number') == null)
+	%}
 		{% redirect craft.fostercheckout.getPath('cart') %}
 	{% endif %}
 
