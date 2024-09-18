@@ -2,11 +2,16 @@
 
 namespace fostercommerce\craftfostercheckout;
 
+use CommerceGuys\Addressing\AddressFormat\AddressField;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
+use craft\events\DefineAddressFieldLabelEvent;
+use craft\events\DefineAddressFieldsEvent;
+use craft\events\DefineAddressSubdivisionsEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\services\Addresses;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use craft\web\View;
@@ -144,6 +149,165 @@ class FosterCheckout extends Plugin
 				$event->rules[$checkoutPath . '/components'] = [
 					'template' => 'foster-checkout/_component-test',
 				];
+			}
+		);
+
+		// Although a county is not actually required for UK addresses (the postal service ignores it)
+		// it is normal in the UK to write addresses with a county
+		// with that said, UK counties are a minefield so we should not make the field required
+		// but simply provide it as an option with a reasonable list of county names
+
+		// Adds the Administrative area to UK addresses
+		Event::on(
+			Addresses::class,
+			Addresses::EVENT_DEFINE_USED_FIELDS,
+			function (DefineAddressFieldsEvent $event): void {
+				if ($event->countryCode === 'GB') {
+					$event->fields[] = AddressField::ADMINISTRATIVE_AREA;
+				}
+			}
+		);
+
+		// Changes the label of the Administrative area field to "County" for UK addresses
+		Event::on(
+			Addresses::class,
+			Addresses::EVENT_DEFINE_FIELD_LABEL,
+			function (DefineAddressFieldLabelEvent $event): void {
+				if (
+					$event->countryCode === 'GB' &&
+					$event->field === AddressField::ADMINISTRATIVE_AREA
+				) {
+					$event->label = 'County';
+				}
+			}
+		);
+
+		// A 'reasonable' list of UK county names
+		Event::on(
+			Addresses::class,
+			Addresses::EVENT_DEFINE_ADDRESS_SUBDIVISIONS,
+			function (DefineAddressSubdivisionsEvent $event): void {
+				if (count($event->parents) === 1 && $event->parents[0] === 'GB') {
+					$event->subdivisions = [
+							'' => 'N/A',
+							'Aberdeenshire' => 'Aberdeenshire',
+							'Angus' => 'Angus',
+							'Argyll' => 'Argyll',
+							'Avon' => 'Avon',
+							'Ayrshire' => 'Ayrshire',
+							'Banffshire' => 'Banffshire',
+							'Bedfordshire' => 'Bedfordshire',
+							'Berkshire' => 'Berkshire',
+							'Berwickshire' => 'Berwickshire',
+							'Buckinghamshire' => 'Buckinghamshire',
+							'Caithness' => 'Caithness',
+							'Cambridgeshire' => 'Cambridgeshire',
+							'Cheshire' => 'Cheshire',
+							'Clackmannanshire' => 'Clackmannanshire',
+							'Cleveland' => 'Cleveland',
+							'Clwyd' => 'Clwyd',
+							'Cornwall' => 'Cornwall',
+							'County Antrim' => 'County Antrim',
+							'County Armagh' => 'County Armagh',
+							'County Down' => 'County Down',
+							'County Durham' => 'County Durham',
+							'County Fermanagh' => 'County Fermanagh',
+							'County Londonderry' => 'County Londonderry',
+							'County Tyrone' => 'County Tyrone',
+							'Cumbria' => 'Cumbria',
+							'Derbyshire' => 'Derbyshire',
+							'Devon' => 'Devon',
+							'Dorset' => 'Dorset',
+							'Dumfriesshire' => 'Dumfriesshire',
+							'Dunbartonshire' => 'Dunbartonshire',
+							'Dyfed' => 'Dyfed',
+							'East Lothian' => 'East Lothian',
+							'East Sussex' => 'East Sussex',
+							'Essex' => 'Essex',
+							'Fife' => 'Fife',
+							'Gloucestershire' => 'Gloucestershire',
+							'Gwent' => 'Gwent',
+							'Gwynedd' => 'Gwynedd',
+							'Hampshire' => 'Hampshire',
+							'Herefordshire' => 'Herefordshire',
+							'Hertfordshire' => 'Hertfordshire',
+							'Inverness-shire' => 'Inverness-shire',
+							'Isle of Arran' => 'Isle of Arran',
+							'Isle of Barra' => 'Isle of Barra',
+							'Isle of Benbecula' => 'Isle of Benbecula',
+							'Isle of Bute' => 'Isle of Bute',
+							'Isle of Canna' => 'Isle of Canna',
+							'Isle of Coll' => 'Isle of Coll',
+							'Isle of Colonsay' => 'Isle of Colonsay',
+							'Isle of Cumbrae' => 'Isle of Cumbrae',
+							'Isle of Eigg' => 'Isle of Eigg',
+							'Isle of Gigha' => 'Isle of Gigha',
+							'Isle of Harris' => 'Isle of Harris',
+							'Isle of Iona' => 'Isle of Iona',
+							'Isle of Islay' => 'Isle of Islay',
+							'Isle of Jura' => 'Isle of Jura',
+							'Isle of Lewis' => 'Isle of Lewis',
+							'Isle of Mull' => 'Isle of Mull',
+							'Isle of North Uist' => 'Isle of North Uist',
+							'Isle of Rhum' => 'Isle of Rhum',
+							'Isle of Scalpay' => 'Isle of Scalpay',
+							'Isle of Skye' => 'Isle of Skye',
+							'Isle of South Uist' => 'Isle of South Uist',
+							'Isle of Tiree' => 'Isle of Tiree',
+							'Isle of Wight' => 'Isle of Wight',
+							'Kent' => 'Kent',
+							'Kincardineshire' => 'Kincardineshire',
+							'Kinross-shire' => 'Kinross-shire',
+							'Kirkcudbrightshire' => 'Kirkcudbrightshire',
+							'Lanarkshire' => 'Lanarkshire',
+							'Lancashire' => 'Lancashire',
+							'Leicestershire' => 'Leicestershire',
+							'Lincolnshire' => 'Lincolnshire',
+							'London' => 'London',
+							'Merseyside' => 'Merseyside',
+							'Mid Glamorgan' => 'Mid Glamorgan',
+							'Middlesex' => 'Middlesex',
+							'Midlothian' => 'Midlothian',
+							'Morayshire' => 'Morayshire',
+							'Nairnshire' => 'Nairnshire',
+							'Norfolk' => 'Norfolk',
+							'North Humberside' => 'North Humberside',
+							'North Yorkshire' => 'North Yorkshire',
+							'Northamptonshire' => 'Northamptonshire',
+							'Northumberland' => 'Northumberland',
+							'Nottinghamshire' => 'Nottinghamshire',
+							'Orkney' => 'Orkney',
+							'Oxfordshire' => 'Oxfordshire',
+							'Peeblesshire' => 'Peeblesshire',
+							'Perthshire' => 'Perthshire',
+							'Powys' => 'Powys',
+							'Renfrewshire' => 'Renfrewshire',
+							'Ross-shire' => 'Ross-shire',
+							'Roxburghshire' => 'Roxburghshire',
+							'Selkirkshire' => 'Selkirkshire',
+							'Shetland' => 'Shetland',
+							'Shropshire' => 'Shropshire',
+							'Somerset' => 'Somerset',
+							'South Glamorgan' => 'South Glamorgan',
+							'South Humberside' => 'South Humberside',
+							'South Yorkshire' => 'South Yorkshire',
+							'Staffordshire' => 'Staffordshire',
+							'Stirlingshire' => 'Stirlingshire',
+							'Suffolk' => 'Suffolk',
+							'Surrey' => 'Surrey',
+							'Sutherland' => 'Sutherland',
+							'Tyne and Wear' => 'Tyne and Wear',
+							'Warwickshire' => 'Warwickshire',
+							'West Glamorgan' => 'West Glamorgan',
+							'West Lothian' => 'West Lothian',
+							'West Midlands' => 'West Midlands',
+							'West Sussex' => 'West Sussex',
+							'West Yorkshire' => 'West Yorkshire',
+							'Wigtownshire' => 'Wigtownshire',
+							'Wiltshire' => 'Wiltshire',
+							'Worcestershire' => 'Worcestershire',
+						];
+				}
 			}
 		);
 	}
