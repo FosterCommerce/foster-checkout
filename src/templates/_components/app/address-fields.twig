@@ -229,7 +229,7 @@
 					type: 'text',
 					placeholder: customField.placeholder,
 					value: address ? address[customField.handle] : '',
-					required: customField.required,
+					required: customField.layoutElement.required,
 					errors: errors[customField.handle] ?? []
 				} %}
 
