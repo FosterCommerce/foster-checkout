@@ -30,15 +30,16 @@
 						{{ csrfInput() }}
 						<div v-if="editAddress <= 1">
 							{{ actionInput('commerce/cart/update-cart') }}
+							{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/shipping') }}
 						</div>
 						<div v-else>
-							{{ actionInput('users/save-user') }}
+							{{ actionInput('users/save-address') }}
 						</div>
-						{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/shipping') }}
 
 						<div v-if="editAddress <= 1">
 						{{ hiddenInput('billingAddressSameAsShipping', 1) }}
 						</div>
+
 
 						<div class="border border-gray-250 rounded-lg overflow-hidden">
 

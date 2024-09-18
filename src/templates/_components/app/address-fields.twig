@@ -227,7 +227,7 @@
 					name: 'fields[' ~ customField.handle ~ ']',
 					type: 'text',
 					placeholder: customField.placeholder,
-					value: address ? address[customField.handle] : '',
+					value: address ? address[customField.handle]|escape : '',
 					required: customField.layoutElement.required,
 					errors: errors[customField.handle] ?? []
 				} %}
