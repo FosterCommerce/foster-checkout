@@ -26,13 +26,19 @@
 					{% include 'foster-checkout/_components/app/steps-completed' with {
 						step: 'address'
 					} %}
-
-					<form method="post">
+					<form method="post" >
 						{{ csrfInput() }}
-						{{ actionInput('commerce/cart/update-cart') }}
+						<div v-if="editAddress <= 1">
+							{{ actionInput('commerce/cart/update-cart') }}
+						</div>
+						<div v-else>
+							{{ actionInput('users/save-user') }}
+						</div>
 						{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/shipping') }}
 
+						<div v-if="editAddress <= 1">
 						{{ hiddenInput('billingAddressSameAsShipping', 1) }}
+						</div>
 
 						<div class="border border-gray-250 rounded-lg overflow-hidden">
 
@@ -53,7 +59,7 @@
 													<input
 														v-model="shippingAddressId"
 														id="address_{{ address.id }}"
-														name="shippingAddressId"
+														:name="editAddress > 1 ? 'addressId' : 'shippingAddressId'"
 														type="radio"
 														class="sr-only"
 														value="{{ address.id }}"
