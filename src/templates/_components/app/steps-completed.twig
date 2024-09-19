@@ -33,14 +33,14 @@
 						{{ 'Shipping address'|t('foster-checkout') }}
 					</span>
 					<a href="{{ craft.fostercheckout.getPath('checkout') ~ '/address' }}" class="inline-block underline text-[var(--brandColor)] sm:hidden">
-						{{ 'Edit'|t('foster-checkout') }}
+						{{ 'Choose another'|t('foster-checkout') }}
 					</a>
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
 					{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.shippingAddress} %}
 					<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]"
 					   href="{{ craft.fostercheckout.getPath('checkout') ~ '/address' }}">
-						{{ 'Edit'|t('foster-checkout') }}
+						{{ 'Choose another'|t('foster-checkout') }}
 					</a>
 				</dd>
 			</div>
