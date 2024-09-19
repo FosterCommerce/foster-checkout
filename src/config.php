@@ -40,6 +40,10 @@ return [
 		// Whether or not to enable CSS page transitions
 		//(see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#browser_compatibility for browser compatibility)
 		'enablePageTransitions' => false,
+
+		// Whether or not to show the "Made a mistake" function on the order completed page
+		// If disabled then the heading and text will not be displayed
+		'enableMadeAMistake' => false,
 	],
 	// Branding Settings
 	'branding' => [
@@ -124,6 +128,14 @@ return [
 			'fieldHandle' => '',
 		],
 		'order' => [
+			'elementHandle' => '',
+			'fieldHandle' => '',
+		],
+		'mistakeHeading' => [
+			'elementHandle' => '',
+			'fieldHandle' => '',
+		],
+		'mistakeText' => [
 			'elementHandle' => '',
 			'fieldHandle' => '',
 		],
