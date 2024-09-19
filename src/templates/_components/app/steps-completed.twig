@@ -3,13 +3,13 @@
 	<dl class="grid grid-cols-1 gap-6 p-4 bg-gray-200 rounded-lg xl:px-6">
 
 		{% if step == 'address' or step == 'shipping' or step == 'payment' %}
-			<div class="sm:grid sm:grid-cols-[65px_1fr] sm:gap-6">
+			<div class="sm:grid sm:grid-cols-[125px_1fr] sm:gap-6">
 				<dt class="flex justify-between items-start gap-4">
 					<span class="inline-block font-semibold text-black">
-						{{ 'User'|t('foster-checkout') }}
+						{{ 'Customer'|t('foster-checkout') }}
 					</span>
 					{% if not currentUser %}
-						<a href="#" class="inline-block underline text-[var(--brandColor)] sm:hidden">
+						<a href="{{ craft.fostercheckout.getPath('checkout') ~ '/email' }}" class="inline-block underline text-[var(--brandColor)] sm:hidden">
 							{{ 'Edit'|t('foster-checkout') }}
 						</a>
 					{% endif %}
@@ -27,12 +27,12 @@
 		{% endif %}
 
 		{% if step == 'shipping' or step == 'payment' %}
-			<div class="sm:grid sm:grid-cols-[65px_1fr] sm:gap-6">
+			<div class="sm:grid sm:grid-cols-[125px_1fr] sm:gap-6">
 				<dt class="flex justify-between items-start gap-4">
 					<span class="inline-block font-semibold text-black">
-						{{ 'Ship to'|t('foster-checkout') }}
+						{{ 'Shipping address'|t('foster-checkout') }}
 					</span>
-					<a href="#" class="inline-block underline text-[var(--brandColor)] sm:hidden">
+					<a href="{{ craft.fostercheckout.getPath('checkout') ~ '/address' }}" class="inline-block underline text-[var(--brandColor)] sm:hidden">
 						{{ 'Edit'|t('foster-checkout') }}
 					</a>
 				</dt>
@@ -47,10 +47,10 @@
 		{% endif %}
 
 		{% if step == 'payment' %}
-			<div class="sm:grid sm:grid-cols-[65px_1fr] sm:gap-6">
+			<div class="sm:grid sm:grid-cols-[125px_1fr] sm:gap-6">
 				<dt class="flex justify-between items-start gap-4">
 					<span class="inline-block font-semibold text-black">
-						{{ 'Method'|t('foster-checkout') }}
+						{{ 'Shipping method'|t('foster-checkout') }}
 					</span>
 					<a href="{{ craft.fostercheckout.getPath('checkout') ~ '/shipping' }}"
 					   class="inline-block underline text-[var(--brandColor)] sm:hidden">
@@ -59,7 +59,7 @@
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
 					<p class="text-black">
-						{{ cart.shippingMethodName }} {{ cart.totalShippingCostAsCurrency }}
+						{{ cart.shippingMethodName }}
 					</p>
 					<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]"
 					   href="{{ craft.fostercheckout.getPath('checkout') ~ '/shipping' }}">
