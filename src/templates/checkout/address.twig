@@ -18,7 +18,7 @@
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 
 			<main
-				v-scope="{ shippingAddressId: {{ primaryShippingAddressId }}, editAddress: {{ primaryShippingAddressId == -1 ? 1 : 0 }} }"
+				v-scope="{ shippingAddressId: {{ cart.sourceShippingAddressId }}, editAddress: {{ primaryShippingAddressId == -1 ? 1 : 0 }} }"
 				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 
 				<div class="grid grid-cols-1 gap-6 lg:gap-8">
@@ -34,10 +34,14 @@
 						</div>
 						<div v-else>
 							{{ actionInput('users/save-address') }}
+							{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/address') }}
 						</div>
 
 						<div v-if="editAddress <= 1">
 						{{ hiddenInput('billingAddressSameAsShipping', 1) }}
+						</div>
+						<div v-else>
+						 <input type="hidden" name="addressId" :value="editAddress" />
 						</div>
 
 
@@ -60,10 +64,11 @@
 													<input
 														v-model="shippingAddressId"
 														id="address_{{ address.id }}"
-														:name="editAddress > 1 ? 'addressId' : 'shippingAddressId'"
+														name="shippingAddressId"
 														type="radio"
 														class="sr-only"
 														value="{{ address.id }}"
+														:checked = "{{ cart.sourceShippingAddressId }} == {{ address.id }}"
 														@change="editAddress = 0"
 													/>
 													<label
