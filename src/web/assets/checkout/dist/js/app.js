@@ -14,6 +14,7 @@ const ClearableInput = (props) => {
     name: props.name,
     value: props.value,
     errors: props.errors,
+		success: props.success,
     showButton: false,
     input() {
       this.showButton = this.value !== '';
@@ -47,12 +48,14 @@ const LineItem = (props) => {
     showErrorMaxMessage: props.showErrorMaxMessage,
     showErrorMinMessage: props.showErrorMinMessage,
     showErrorStockMessage: props.showErrorStockMessage,
+		action: '',
+		sending: false,
     input() {
       this.qty = this.qty.replace(/\D/g,'');
       this.updateQty();
     },
     increment() {
-      this.removeMessages()
+      this.removeMessages();
       this.qty++;
       this.updateQty();
     },
@@ -69,6 +72,8 @@ const LineItem = (props) => {
       const form = document.querySelector(`#lineItemQty-${props.id}`);
       const formData = new FormData(form)
       formData.set(`lineItems[${props.id}][remove]`, true);
+			this.action = 'remove';
+			this.sending = true;
 
       await fetch('/actions/commerce/cart/update-cart', {
         method: 'POST',
@@ -85,9 +90,13 @@ const LineItem = (props) => {
         return response.json();
       })
       .then(data => {
+				// TEMP: Reloading here to refresh the cart page instead of updating the data via ajax
+				location.reload();
+				/*
         // we should only do this if the ajax operation was successful
         const container = form.closest('article');
         container.remove();
+				*/
       })
       .catch(error => {
         console.error('Error:', error);
@@ -119,6 +128,8 @@ const LineItem = (props) => {
         const form = document.querySelector(`#lineItemQty-${props.id}`);
         const formData = new FormData(form)
         formData.set(`lineItems[${props.id}][qty]`, props.qty);
+				this.action = 'update';
+				this.sending = true;
 
         await fetch('/actions/commerce/cart/update-cart', {
           method: 'POST',
@@ -135,8 +146,12 @@ const LineItem = (props) => {
           return response.json();
         })
         .then(data => {
+					// TEMP: Reloading here to refresh the cart page instead of updating the data via ajax
+					location.reload();
+					 /*
           let item = data.cart.lineItems.filter((lineItem) => lineItem.id === props.id)
           this.lineSubtotal = item[0].subtotalAsCurrency;
+					*/
         })
         .catch(error => {
           console.error('Error:', error);

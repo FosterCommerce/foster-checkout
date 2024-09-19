@@ -9,10 +9,20 @@ use craft\base\Model;
  */
 class Settings extends Model
 {
+	public array $options = [
+		'enableSaveForLater' => false,
+		'enableEstimatedShipping' => false,
+		'enableFreeShippingMessage' => false,
+		'enablePlaceholderImages' => false,
+		'enablePageTransitions' => false,
+	];
+
 	public array $branding = [
 		'color' => '#1F2937',
 		'font' => 'Rubik',
+		'style' => 'rounded',
 		'logo' => '',
+		'title' => '',
 	];
 
 	public array $paths = [

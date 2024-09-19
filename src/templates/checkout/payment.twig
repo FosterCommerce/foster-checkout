@@ -1,11 +1,18 @@
 {% extends 'foster-checkout/_layouts/default' %}
 
+{% block head %}
+	<title>
+		{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }} |
+		{{ 'Checkout'|t('foster-checkout') }} : {{ 'Payment'|t('foster-checkout') }}
+	</title>
+{% endblock %}
+
 {% block body %}
 	{% set gateways = craft.commerce.gateways.getAllCustomerEnabledGateways %}
 	{% set addresses =  currentUser ? (currentUser.addresses.all() ?? null) : null %}
 
 	<div class="mt-10 pb-28 lg:mt-20 lg:pb-32"
-		 v-scope="{ gatewayId: {{ cart.gatewayId ? cart.gatewayId : 1 }}, billingSameAsShipping: {{ cart.hasMatchingAddresses() ? 1 : 0 }}, addressBookBillingAddress: 0, newBillingAddress: {{ cart.hasMatchingAddresses() ? 0 : 1 }}, billingAddressId: {{ cart.billingAddressId ? cart.billingAddressId : cart.shippingAddressId }} }">
+		 v-scope="{ gatewayId: {{ cart.gatewayId ? cart.gatewayId : 1 }}, billingSameAsShipping: {{ cart.hasMatchingAddresses() ? 1 : 0 }}, addressBookBillingAddress: 0, newBillingAddress: {{ cart.hasMatchingAddresses() ? 0 : 1 }}, billingAddressId: {{ cart.billingAddressId ?? cart.shippingAddressId ?? 'null'}} }">
 
 
 		<h1 class="mb-12 font-medium text-3xl">{{ 'Checkout'|t('foster-checkout') }}</h1>
@@ -35,7 +42,7 @@
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
 
 									<input type="hidden" name="billingAddressSameAsShipping" value="1"
-										   :disabled="parseInt(billingSameAsShipping) === 0"/>
+												:disabled="parseInt(billingSameAsShipping) === 0"/>
 
 									<div class="p-4" :class="{ 'bg-gray-100': parseInt(billingSameAsShipping) === 1 }">
 										<div class="radio">
@@ -171,63 +178,83 @@
 							<div
 								class="xl:border xl:border-b-0 xl:border-gray-250 xl:mt-8 xl:rounded-lg xl:overflow-hidden">
 								{% for gateway in gateways %}
-									<div class="p-4 border-b border-gray-250"
-										 :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
-										<div class="flex justify-between items-center gap-4 radio">
-											<input id="gateway_{{ gateway.id }}" name="gatewayId" type="radio"
-												   class="sr-only" value="{{ gateway.id }}" checked
-												   @change="gatewayId = {{ gateway.id }}"/>
-											<label for="gateway_{{ gateway.id }}"
-												   class="inline-flex justify-start items-center gap-4 cursor-pointer">
-												<span class="block">{{ gateway.name }}</span>
-											</label>
-										</div>
-										<div class="pt-8">
-											<form method="POST" id="paymentForm">
-												{{ csrfInput() }}
-												{{ actionInput('commerce/payments/pay') }}
-												{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/order') }}
-												{{ redirectInput(siteUrl(craft.fostercheckout.getPath('checkout') ~ '/order', {
-													number: cart.uid,
-													success: 'true'
-												})) }}
-												{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.getPath('checkout') ~ '/payment')|hash) }}
-												{{ hiddenInput('orderEmail', cart.email) }}
+									{% set gatewayClass = className(gateway) %}
+									{%
+										set shouldRender = cart.total == 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual'
+											or cart.total > 0 and gatewayClass != 'craft\\commerce\\gateways\\Manual'
+									%}
+									{% if shouldRender %}
+										<div class="p-4 border-b border-gray-250"
+											 :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
+											<div class="flex justify-between items-center gap-4 radio">
+												<input id="gateway_{{ gateway.id }}" name="gatewayId" type="radio"
+														 class="sr-only" value="{{ gateway.id }}" checked
+														 @change="gatewayId = {{ gateway.id }}"/>
+												<label for="gateway_{{ gateway.id }}"
+														 class="inline-flex justify-start items-center gap-4 cursor-pointer">
+													<span class="block">{{ gateway.name }}</span>
+												</label>
+											</div>
+											<div class="pt-8">
+												<form method="POST" id="paymentForm">
+													{{ csrfInput() }}
+													{{ actionInput('commerce/payments/pay') }}
+													{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/order') }}
+													{{ redirectInput(siteUrl(craft.fostercheckout.getPath('checkout') ~ '/order', {
+														number: cart.uid,
+														success: 'true'
+													})) }}
+													{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.getPath('checkout') ~ '/payment')|hash) }}
+													{{ hiddenInput('orderEmail', cart.email) }}
 
-												<input type="hidden" v-model="gatewayId"/>
+													<input type="hidden" v-model="gatewayId"/>
 
-												{% set params = {} %}
+													{% set params = {} %}
 
-												{# Special params for Paypal checkout #}
-												{% if className(gateway) == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
-													{% set params = { currency: cart.paymentCurrency } %}
-												{% endif %}
+													{# Special params for Paypal checkout #}
+													{% if gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
+														{% set params = { currency: cart.paymentCurrency } %}
+													{% endif %}
 
-												{% if className(gateway) == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
 													{% set buttonText = 'Pay'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
-													{% set params = {
-														order: cart,
-														paymentFormType: 'elements',
-														appearance: {
-															theme: 'stripe',
-															labels: 'floating',
-															variables: {
-																colorPrimary: 'var(--brandColor)'
-															}
-														},
-														submitButtonText: buttonText,
-														submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block'
-													} %}
-												{% endif %}
+													{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+														{% set params = {
+															order: cart,
+															paymentFormType: 'elements',
+															appearance: {
+																theme: craft.checkout.branding.style|default('rounded') == 'flat' ? 'flat' : 'stripe',
+																labels: 'floating',
+																variables: {
+																	colorPrimary: craft.checkout.branding.color ?? '#1F2937',
+																	borderRadius: craft.checkout.branding.style|default('rounded') == 'flat' ? '0px' : '6px',
+																	gridColumnSpacing: '24px',
+																	gridRowSpacing: '24px',
+																	tabSpacing: '12px',
+																}
+															},
+															submitButtonText: buttonText,
+															submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block'
+														} %}
+													{% endif %}
 
 
-												{% namespace gateway.handle|commercePaymentFormNamespace %}
-													{{ gateway.getPaymentFormHtml(params)|raw }}
-												{% endnamespace %}
+													{% namespace gateway.handle|commercePaymentFormNamespace %}
+														{{ gateway.getPaymentFormHtml(params)|raw }}
+													{% endnamespace %}
 
-											</form>
+													{% if gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
+														<button
+															type="submit"
+															class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+														>
+															{{ buttonText }}
+														</button>
+													{% endif %}
+
+												</form>
+											</div>
 										</div>
-									</div>
+									{% endif %}
 								{% endfor %}
 							</div>
 						</div>
@@ -246,7 +273,7 @@
 			<aside>
 
 				<div
-					class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]">
+					class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl {{ craft.checkout.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 
 					<div class="grid grid-cols-1 gap-6">
 
@@ -315,17 +342,17 @@
 		{% js %}
 			var $paymentForms = document.querySelectorAll('.paymentForm');
 			if ($paymentForms.length) {
-			$paymentForms.forEach(($paymentForm) => {
-			// Only allow the payment form submit to be triggered once.
-			$paymentForm.addEventListener('submit', function(ev) {
-			if ($paymentForm.dataset.processing) {
-			ev.preventDefault();
-			return false;
-			}
+				$paymentForms.forEach(($paymentForm) => {
+					// Only allow the payment form submit to be triggered once.
+					$paymentForm.addEventListener('submit', function(ev) {
+						if ($paymentForm.dataset.processing) {
+							ev.preventDefault();
+							return false;
+						}
 
-			$paymentForm.dataset.processing = true;
-			});
-			});
+						$paymentForm.dataset.processing = true;
+					});
+				});
 			}
 		{% endjs %}
 

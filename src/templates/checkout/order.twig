@@ -4,6 +4,13 @@
 	{% exit 404 %}
 {% endif %}
 
+{% block head %}
+	<title>
+		{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }} |
+		{{ 'Checkout'|t('foster-checkout') }} : {{ 'Order'|t('foster-checkout') }}
+	</title>
+{% endblock %}
+
 {% block body %}
 
 	<div
@@ -115,7 +122,7 @@
 
 		<aside>
 			<div
-				class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]">
+				class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl {{ craft.checkout.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 
 				<div class="grid grid-cols-1 gap-6">
 

@@ -220,7 +220,6 @@
 				</div>
 
 			{% else %}
-
 				{% include 'foster-checkout/_components/base/input-text-clearable' with {
 					context: context,
 					label: customField.name,
@@ -228,8 +227,8 @@
 					name: 'fields[' ~ customField.handle ~ ']',
 					type: 'text',
 					placeholder: customField.placeholder,
-					value: address ? address[customField.handle] : '',
-					required: customField.required,
+					value: address ? address[customField.handle]|escape : '',
+					required: customField.layoutElement.required,
 					errors: errors[customField.handle] ?? []
 				} %}
 
