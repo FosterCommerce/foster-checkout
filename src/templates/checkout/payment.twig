@@ -201,7 +201,7 @@
 													{{ actionInput('commerce/payments/pay') }}
 													{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/order') }}
 													{{ redirectInput(siteUrl(craft.fostercheckout.getPath('checkout') ~ '/order', {
-														number: cart.uid,
+														number: cart.number,
 														success: 'true'
 													})) }}
 													{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.getPath('checkout') ~ '/payment')|hash) }}
