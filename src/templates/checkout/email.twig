@@ -1,5 +1,12 @@
 {% extends 'foster-checkout/_layouts/default' %}
 
+{% block head %}
+	<title>
+		{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }} |
+		{{ 'Checkout'|t('foster-checkout') }} : {{ 'Email'|t('foster-checkout') }}
+	</title>
+{% endblock %}
+
 {% block body %}
 
 	<div class="max-w-[740px] mx-auto my-10 md:my-20">
@@ -7,7 +14,7 @@
 		<h1 class="font-medium text-2xl md:text-3xl">{{ 'Where should we send your receipt?'|t('foster-checkout') }}</h1>
 		<p class="mt-2 text-sm text-gray-500">
 			{{ 'Already have an account?'|t('foster-checkout') }}
-			<a href="#" class="text-[var(--brandColor)] underline">{{ 'Sign In'|t('foster-checkout') }}</a>.
+			<a href="{{ loginUrl }}" class="text-[var(--brandColor)] underline">{{ 'Sign In'|t('foster-checkout') }}</a>.
 		</p>
 
 		<form class="mt-6" method="post" accept-charset="UTF-8">
