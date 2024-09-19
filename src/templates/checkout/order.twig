@@ -103,7 +103,7 @@
 
 				</div>
 
-				<div class="flex justify-start items-start gap-6 mt-8">
+				{# <div class="flex justify-start items-start gap-6 mt-8">
 					<form method="post">
 						{{ csrfInput() }}
 						{{ actionInput('fostercheckout/cancel-order') }}
@@ -115,7 +115,7 @@
 							Review or Cancel Your Order
 						</button>
 					</form>
-				</div>
+				</div> #}
 			</div>
 			{% endif %}
 		</main>
@@ -147,19 +147,18 @@
 					couponCode: '121212'
 				} %}
 
+				{% if craft.fostercheckout.getOption('enableMadeAMistake') %}
 				<div class="pt-8 border-t border-gray-250 lg:hidden">
-					<h3 class="font-semibold text-2xl">Made a mistake?</h3>
+					<h3 class="font-semibold text-2xl">{{ craft.checkout.note('madeAMistakeHeading') | default('Made a mistake?') }}</h3>
 					<div class="mt-6 space-y-2 text-gray-500">
-						<p>
-							If you have placed an order for the wrong item or something similar, you can cancel your
-							order by clicking
-							“Review or Cancel Your Order”. Orders are processed quickly, so please cancel your order as
-							soon as possible
-							after placement. Most orders can be canceled within one hour of placement.
-						</p>
+						{{ craft.checkout.note('madeAMistakeMessage') | default('<p>
+						If you have placed an order for the wrong item or something similar, you can cancel your order
+						by clicking “Review or Cancel Your Order”. Orders are processed quickly, so please cancel your order as soon
+						as possible after placement. Most orders can be canceled within one hour of placement.
+					</p>') | raw }}
 					</div>
 
-					<div class="flex justify-start items-start gap-6 mt-8">
+					{# <div class="flex justify-start items-start gap-6 mt-8">
 						<form method="post">
 							{{ csrfInput() }}
 							{{ actionInput('fostercheckout/cancel-order') }}
@@ -171,9 +170,9 @@
 								Review or Cancel Your Order
 							</button>
 						</form>
-					</div>
+					</div> #}
 				</div>
-
+				{% endif %}
 			</div>
 		</aside>
 
