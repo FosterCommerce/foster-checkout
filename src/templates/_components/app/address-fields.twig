@@ -60,7 +60,7 @@
 			type: 'text',
 			autocomplete: 'name',
 			placeholder: 'Enter your name'|t('foster-checkout'),
-			value: address ? address.fullName : '',
+			value: address ? address.fullName|e('js') : '',
 			required: true,
 			errors: errors.fullName ?? []
 		} %}
@@ -75,7 +75,7 @@
 			type: 'text',
 			autocomplete: 'address-line1',
 			placeholder: 'Street address'|t('foster-checkout'),
-			value: address ? address.addressLine1 : '',
+			value: address ? address.addressLine1|e('js') : '',
 			required: true,
 			errors: errors.addressLine1 ?? []
 		} %}
@@ -89,7 +89,7 @@
 			type: 'text',
 			autocomplete: 'address-line2',
 			placeholder: 'Apt. number, suite'|t('foster-checkout'),
-			value: address ? address.addressLine2 : '',
+			value: address ? address.addressLine2|e('js') : '',
 			errors: errors.addressLine2 ?? []
 		} %}
 
@@ -102,7 +102,7 @@
 			type: 'text',
 			autocomplete: 'address-line3',
 			placeholder: '',
-			value: address ? address.addressLine2 : '',
+			value: address ? address.addressLine2|e('js') : '',
 			errors: errors.addressLine2 ?? []
 		} %}
 	</div>
@@ -116,7 +116,7 @@
 			type: 'text',
 			autocomplete: 'address-level2',
 			placeholder: 'Your city'|t('foster-checkout'),
-			value: address ? address.locality : '',
+			value: address ? address.locality|e('js') : '',
 			errors: errors.locality ?? []
 		} %}
 	</div>
@@ -159,7 +159,7 @@
 				type: 'text',
 				autocomplete: 'address-level1',
 				placeholder: 'Your state or province'|t('foster-checkout'),
-				value: address ? address.locality : '',
+				value: address ? address.locality|e('js') : '',
 				required: true,
 				errors: errors.locality ?? []
 			} %}
@@ -175,7 +175,7 @@
 			type: 'text',
 			autocomplete: 'postal-code',
 			placeholder: 'postalCodeFormat'|t('foster-checkout'),
-			value: address ? address.postalCode : '',
+			value: address ? address.postalCode|e('js') : '',
 			required: true,
 			errors: errors.postalCode ?? []
 		} %}
@@ -208,7 +208,7 @@
 					{% if customField.required %}
 						required
 					{% endif %}
-				>{{ address ? address[customField.handle] : '' }}</textarea>
+				>{{ address ? address[customField.handle]|e('js') : '' }}</textarea>
 
 				<div
 					v-cloak
@@ -227,7 +227,7 @@
 					name: 'fields[' ~ customField.handle ~ ']',
 					type: 'text',
 					placeholder: customField.placeholder,
-					value: address ? address[customField.handle]|escape : '',
+					value: address ? address[customField.handle]|e('js') : '',
 					required: customField.layoutElement.required,
 					errors: errors[customField.handle] ?? []
 				} %}
