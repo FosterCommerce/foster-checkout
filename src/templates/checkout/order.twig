@@ -90,15 +90,17 @@
 				{% endif %}
 
 			</div>
-
+			
 			{% if craft.fostercheckout.getOption('enableMadeAMistake') %}
+			{% set mistakeHeading = craft.checkout.note('mistakeHeading') %}
+			{% set mistakeText = craft.checkout.note('mistakeText') %}
 			<div class="hidden lg:block">
-				{% if craft.checkout.note('madeAMistakeHeading') %}
-				<h3 class="font-semibold text-2xl">{{ craft.checkout.note('madeAMistakeHeading') }}</h3>
+				{% if mistakeHeading %}
+				<h3 class="font-semibold text-2xl">{{ mistakeHeading }}</h3>
 				{% endif %}
-				{% if craft.checkout.note('madeAMistakeMessage') %}
+				{% if mistakeText %}
 				<div class="mt-6 space-y-2 text-gray-500">
-					{{ craft.checkout.note('madeAMistakeMessage') | raw }}
+					{{ mistakeText | raw }}
 				</div>
 				{% endif %}
 			</div>
