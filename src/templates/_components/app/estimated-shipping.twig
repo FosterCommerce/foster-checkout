@@ -9,8 +9,8 @@
 		isOpen: false,
 		countries: {{countries}},
 		regions: {{regions}},
-		countryCode: '{{ storeAddress.countryCode}}',
-		administrativeArea: '{{ storeAddress.administrativeArea }}',
+		countryCode: '{{ cart.estimatedShippingAddress.country ?? storeAddress.countryCode }}',
+		administrativeArea: '{{ cart.estimatedShippingAddress.locality ?? storeAddress.administrativeArea }}',
 		showAddressSelector: false,
 		shippingMethodHandle: '{{ cart.shippingMethodHandle ?? '' }}'
 	})"
@@ -19,9 +19,14 @@
 
 	<div class="flex justify-between items-center gap-4">
 		<dt class="text-gray-500">
-			{% if postalCode %}{{ 'Estimated shipping to'|t('foster-checkout') }}{% endif %}
+			{% if cart.estimatedShippingAddressId %}
+				<p>{{ 'Estimated shipping to'|t('foster-checkout') }}<br />
+				{% set administrativeArea = craft.app.getAddresses().subdivisionRepository.get(cart.estimatedShippingAddress.administrativeArea, [cart.estimatedShippingAddress.country]) %}
+				{{ administrativeArea.name }}, {{ cart.estimatedShippingAddress.country.name }}
+				</p>
+			{% endif %}
 			<button id="estimatedShippingLabel" class="text-[var(--brandColor)] underline" @click="toggleModal">
-				{{ postalCode ? postalCode : 'Get estimated shipping'|t('foster-checkout') }}
+				{{ cart.estimatedShippingAddress ?: 'Get estimated shipping'|t('foster-checkout') }}
 			</button>
 		</dt>
 		<dd class="text-right text-black">{{ cart.totalShippingCostAsCurrency }}</dd>
@@ -39,7 +44,9 @@
 	>
 
 		<header class="flex justify-between items-center gap-4 -mt-[8px]">
-			<h4 class="font-semibold text-black">{{ 'Delivery Address'|t('foster-checkout') }}</h4>
+			<h4 v-cloak v-if="showAddressSelector" class="font-semibold text-black">{{ 'Delivery address'|t('foster-checkout') }}</h4>
+			<h4 v-cloak v-if="!showAddressSelector" class="font-semibold text-black">{{ 'Shipping method'|t('foster-checkout') }}</h4>
+
 			<button class="w-[48px] h-[48px] -mt-[6px] -mr-[17px] flex justify-center items-center"
 					@click="toggleModal">
 				<span class="sr-only">{{ 'Close'|t('foster-checkout') }}</span>
