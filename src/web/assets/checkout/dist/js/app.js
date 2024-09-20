@@ -195,6 +195,45 @@ const FocusModal = (props) => {
   }
 };
 
+const ShippingEstimator = (props) => {
+  return {
+    isOpen: props.isOpen,
+		countries: props.countries,
+		regions: props.regions,
+		countryCode: props.countryCode ?? 'US',
+		administrativeArea: props.administrativeArea ?? 'OH',
+		errors: props.errors ?? [],
+    toggleModal() {
+      this.isOpen = !this.isOpen;
+    },
+    mounted() {
+      const modal = this.$refs.modal;
+      const focusableEls = modal.querySelectorAll('a[href]:not([disabled]), button:not([disabled]), textarea:not([disabled]), input[type="text"]:not([disabled]), input[type="radio"]:not([disabled]), input[type="checkbox"]:not([disabled]), select:not([disabled])');
+      const firstFocusableEl = focusableEls[0];
+      const lastFocusableEl = focusableEls[focusableEls.length - 1];
+      const KEYCODE_TAB = 9;
+
+      modal.addEventListener('keydown', (evt) => {
+        const isTab = (evt.key === 'Tab' || evt.keyCode === KEYCODE_TAB);
+        if (isTab) {
+          if (evt.shiftKey) {
+            if (document.activeElement === firstFocusableEl) {
+              lastFocusableEl.focus();
+              evt.preventDefault();
+            }
+          } else {
+            if (document.activeElement === lastFocusableEl) {
+              firstFocusableEl.focus();
+              evt.preventDefault();
+            }
+          }
+        }
+      });
+
+    }
+  }
+};
+
 // Hide any elements that we only show if JS doesn't load
 const Hide = () => {
     const els = document.querySelectorAll('.js-hide')
@@ -210,6 +249,7 @@ createApp({
   App,
   ClearableInput,
   FocusModal,
+	ShippingEstimator,
   LineItem,
   Hide
 }).mount();

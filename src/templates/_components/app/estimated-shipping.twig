@@ -1,7 +1,11 @@
-{% if cart.shippingMethod != null and cart.shippingMethod.handle != 'freeShipping' %}
+{# {% if cart.shippingMethod != null and cart.shippingMethod.handle != 'freeShipping' %} #}
 {% set postalCode = cart.estimatedShippingAddress.postalCode|default('') %}
+{% set countries = craft.commerce.stores.currentStore.settings.getCountriesList()|json_encode %}
+{% set regions = craft.commerce.stores.currentStore.settings.getAdministrativeAreasListByCountryCode()|json_encode %}
+{% set context = 'shippingAddress' %}
+{% set storeAddress = craft.commerce.stores.currentStore.settings.locationAddress %}
 
-<div v-scope="FocusModal({ isOpen: false })" class="relative" @vue:mounted="mounted">
+<div v-scope="ShippingEstimator({ isOpen: false, countries: {{countries}}, regions: {{regions}}, countryCode: '{{ storeAddress.countryCode}}', administrativeArea: '{{ storeAddress.administrativeArea }}' })" class="relative" @vue:mounted="mounted">
 
 	<div class="flex justify-between items-center gap-4">
 		<dt class="text-gray-500">
@@ -25,7 +29,7 @@
 	>
 
 		<header class="flex justify-between items-center gap-4 -mt-[8px]">
-			<h4 class="font-semibold text-black">{{ 'Delivery Postal Code'|t('foster-checkout') }}</h4>
+			<h4 class="font-semibold text-black">{{ 'Delivery Address'|t('foster-checkout') }}</h4>
 			<button class="w-[48px] h-[48px] -mt-[6px] -mr-[17px] flex justify-center items-center"
 					@click="toggleModal">
 				<span class="sr-only">{{ 'Close'|t('foster-checkout') }}</span>
@@ -37,8 +41,8 @@
 
 		<div class="mt-4">
 
-			<form class="grid grid-cols-[1fr,_90px] gap-4">
-				{% include 'foster-checkout/_components/base/input-text-clearable' with {
+			<form class="grid grid-rows-[1fr,1fr,_40px] gap-4">
+				{# {% include 'foster-checkout/_components/base/input-text-clearable' with {
 					label: 'Postal Code'|t('foster-checkout'),
 					hideLabel: true,
 					id: 'postalCode',
@@ -48,7 +52,73 @@
 					placeholder: 'postalCodeFormat'|t('foster-checkout'),
 					value: postalCode,
 					action: 'if (isOpen) $el.focus()'
-				} %}
+				} %} #}
+
+				<div>
+					<label for="{{ 'countryCode'|namespaceInputId(context) }}" class="block mb-2 font-medium text-gray-500">
+						{{ 'Country'|t('foster-checkout') }}*
+					</label>
+					<select
+						v-model="countryCode"
+						id="{{ 'countryCode'|namespaceInputId(context) }}"
+						name="{{ context ? 'countryCode'|namespaceInputName(context) : 'countryCode' }}"
+						autocomplete="country-name"
+						class="w-full h-12 px-4 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
+						:class="'countryCode' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
+						:aria-invalid="'countryCode' in errors"
+						aria-errormessage="{{ 'countryCode'|namespaceInputId(context) }}-error"
+						@change="administrativeArea = ''; if ($el.value) delete errors.countryCode"
+						required
+					>
+						<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
+						<option v-cloak v-for="(country, key) in countries" :value="key">
+							${country}
+						</option>
+					</select>
+				</div>
+
+				<div v-if="regions[countryCode] && !Array.isArray(regions[countryCode])">
+					<label for="{{ 'administrativeArea'|namespaceInputId(context) }}"
+						class="block mb-2 font-medium text-gray-500">
+						{{ 'State / Province'|t('foster-checkout') }}*
+					</label>
+					<select
+						v-model="administrativeArea"
+						id="{{ 'administrativeArea'|namespaceInputId(context) }}"
+						name="{{ context ? 'administrativeArea'|namespaceInputName(context) : 'administrativeArea' }}"
+						autocomplete="address-level1"
+						class="w-full h-12 px-4 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
+						:class="'administrativeArea' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
+						:aria-invalid="'administrativeArea' in errors"
+						aria-errormessage="{{ 'administrativeArea'|namespaceInputId(context) }}-error"
+						@change="if ($el.value) delete errors.administrativeArea"
+						required
+					>
+						<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
+						<option v-cloak v-for="(region, key) in regions[countryCode]" :value="key"
+								:selected="key === administrativeArea">
+							${region}
+						</option>
+					</select>
+
+
+				</div>
+
+				<div v-cloak v-else>
+					{% include 'foster-checkout/_components/base/input-text-clearable' with {
+						context: context,
+						label: 'State / Province'|t('foster-checkout'),
+						id: 'administrativeArea',
+						name: 'administrativeArea',
+						type: 'text',
+						autocomplete: 'address-level1',
+						placeholder: 'Your state or province'|t('foster-checkout'),
+						value: '',
+						required: true,
+						errors: errors.locality ?? []
+					} %}
+				</div>
+
 				<button type="submit"
 						class="text-white bg-[var(--brandColor)] rounded-xl">{{ 'Update'|t('foster-checkout') }}</button>
 			</form>
@@ -59,7 +129,7 @@
 					<path
 						d="M5 16C4.16667 16 3.45833 15.7083 2.875 15.125C2.29167 14.5417 2 13.8333 2 13H0V2C0 1.45 0.195833 0.979167 0.5875 0.5875C0.979167 0.195833 1.45 0 2 0H16V4H19L22 8V13H20C20 13.8333 19.7083 14.5417 19.125 15.125C18.5417 15.7083 17.8333 16 17 16C16.1667 16 15.4583 15.7083 14.875 15.125C14.2917 14.5417 14 13.8333 14 13H8C8 13.8333 7.70833 14.5417 7.125 15.125C6.54167 15.7083 5.83333 16 5 16ZM5 14C5.28333 14 5.52083 13.9042 5.7125 13.7125C5.90417 13.5208 6 13.2833 6 13C6 12.7167 5.90417 12.4792 5.7125 12.2875C5.52083 12.0958 5.28333 12 5 12C4.71667 12 4.47917 12.0958 4.2875 12.2875C4.09583 12.4792 4 12.7167 4 13C4 13.2833 4.09583 13.5208 4.2875 13.7125C4.47917 13.9042 4.71667 14 5 14ZM17 14C17.2833 14 17.5208 13.9042 17.7125 13.7125C17.9042 13.5208 18 13.2833 18 13C18 12.7167 17.9042 12.4792 17.7125 12.2875C17.5208 12.0958 17.2833 12 17 12C16.7167 12 16.4792 12.0958 16.2875 12.2875C16.0958 12.4792 16 12.7167 16 13C16 13.2833 16.0958 13.5208 16.2875 13.7125C16.4792 13.9042 16.7167 14 17 14ZM16 9H20.25L18 6H16V9Z"/>
 				</svg>
-				<p id="estimatedShippingDesc">{{ 'Your postal code helps us provide the most accurate delivery information.'|t('foster-checkout') }}</p>
+				<p id="estimatedShippingDesc">{{ 'Your delivery details helps us provide the most accurate delivery information.'|t('foster-checkout') }}</p>
 			</div>
 
 		</div>
@@ -67,4 +137,4 @@
 	</div>
 
 </div>
-{% endif %}
+{# {% endif %} #}
