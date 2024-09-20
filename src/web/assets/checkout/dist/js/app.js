@@ -232,6 +232,15 @@ const ShippingEstimator = (props) => {
         }
       });
 
+			const form = document.querySelector(`#fc-shipping-estimator`);
+      const formData = new FormData(form)
+
+			form.addEventListener('submit', (evt) => {
+				evt.preventDefault();
+				// this.showAddressSelector = false;
+
+
+			});
     }
   }
 };

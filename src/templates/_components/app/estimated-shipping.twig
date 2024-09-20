@@ -58,7 +58,7 @@
 
 		<div class="mt-4">
 
-			<form method="post">
+			<form method="post" id="fc-shipping-estimator">
 				{{ csrfInput() }}
 				{{ actionInput('commerce/cart/update-cart') }}
 
@@ -123,7 +123,7 @@
 							placeholder: 'Your state or province'|t('foster-checkout'),
 							value: '',
 							required: true,
-							errors: errors.locality ?? []
+							errors: errors.administrativeArea ?? []
 						} %}
 					</div>
 					<button type="submit" class="text-white bg-[var(--brandColor)] rounded-xl">{{ 'Update'|t('foster-checkout') }}</button>
