@@ -202,6 +202,8 @@ const ShippingEstimator = (props) => {
 		regions: props.regions,
 		countryCode: props.countryCode ?? 'US',
 		administrativeArea: props.administrativeArea ?? 'OH',
+		showAddressSelector: props.showAddressSelector ?? true,
+		shippingMethodHandle: props.shippingMethodHandle,
 		errors: props.errors ?? [],
     toggleModal() {
       this.isOpen = !this.isOpen;

@@ -5,7 +5,17 @@
 {% set context = 'shippingAddress' %}
 {% set storeAddress = craft.commerce.stores.currentStore.settings.locationAddress %}
 
-<div v-scope="ShippingEstimator({ isOpen: false, countries: {{countries}}, regions: {{regions}}, countryCode: '{{ storeAddress.countryCode}}', administrativeArea: '{{ storeAddress.administrativeArea }}' })" class="relative" @vue:mounted="mounted">
+<div v-scope="ShippingEstimator({
+		isOpen: false,
+		countries: {{countries}},
+		regions: {{regions}},
+		countryCode: '{{ storeAddress.countryCode}}',
+		administrativeArea: '{{ storeAddress.administrativeArea }}',
+		showAddressSelector: false,
+		shippingMethodHandle: '{{ cart.shippingMethodHandle ?? '' }}'
+	})"
+	class="relative"
+	@vue:mounted="mounted">
 
 	<div class="flex justify-between items-center gap-4">
 		<dt class="text-gray-500">
@@ -41,86 +51,109 @@
 
 		<div class="mt-4">
 
-			<form class="grid grid-rows-[1fr,1fr,_40px] gap-4">
-				{# {% include 'foster-checkout/_components/base/input-text-clearable' with {
-					label: 'Postal Code'|t('foster-checkout'),
-					hideLabel: true,
-					id: 'postalCode',
-					name: 'postalCode',
-					type: 'text',
-					autocomplete: 'postal-code',
-					placeholder: 'postalCodeFormat'|t('foster-checkout'),
-					value: postalCode,
-					action: 'if (isOpen) $el.focus()'
-				} %} #}
+			<form method="post">
+				{{ csrfInput() }}
+				{{ actionInput('commerce/cart/update-cart') }}
 
-				<div>
-					<label for="{{ 'countryCode'|namespaceInputId(context) }}" class="block mb-2 font-medium text-gray-500">
-						{{ 'Country'|t('foster-checkout') }}*
-					</label>
-					<select
-						v-model="countryCode"
-						id="{{ 'countryCode'|namespaceInputId(context) }}"
-						name="{{ context ? 'countryCode'|namespaceInputName(context) : 'countryCode' }}"
-						autocomplete="country-name"
-						class="w-full h-12 px-4 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
-						:class="'countryCode' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
-						:aria-invalid="'countryCode' in errors"
-						aria-errormessage="{{ 'countryCode'|namespaceInputId(context) }}-error"
-						@change="administrativeArea = ''; if ($el.value) delete errors.countryCode"
-						required
-					>
-						<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
-						<option v-cloak v-for="(country, key) in countries" :value="key">
-							${country}
-						</option>
-					</select>
+				{# shipping address selector #}
+				<div v-cloak v-if="showAddressSelector" class="grid grid-rows-[1fr,1fr,_40px] gap-4">
+					<div>
+						<label for="{{ 'countryCode'|namespaceInputId(context) }}" class="block mb-2 font-medium text-gray-500">
+							{{ 'Country'|t('foster-checkout') }}*
+						</label>
+						<select
+							v-model="countryCode"
+							id="{{ 'countryCode'|namespaceInputId(context) }}"
+							name="estimatedShippingAddress[countryCode]"
+							autocomplete="country-name"
+							class="w-full h-12 px-4 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
+							:class="'countryCode' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
+							:aria-invalid="'countryCode' in errors"
+							aria-errormessage="{{ 'countryCode'|namespaceInputId(context) }}-error"
+							@change="administrativeArea = ''; if ($el.value) delete errors.countryCode"
+							required
+						>
+							<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
+							<option v-cloak v-for="(country, key) in countries" :value="key">
+								${country}
+							</option>
+						</select>
+					</div>
+
+					<div v-if="regions[countryCode] && !Array.isArray(regions[countryCode])">
+						<label for="{{ 'administrativeArea'|namespaceInputId(context) }}"
+							class="block mb-2 font-medium text-gray-500">
+							{{ 'State / Province'|t('foster-checkout') }}*
+						</label>
+						<select
+							v-model="administrativeArea"
+							id="{{ 'administrativeArea'|namespaceInputId(context) }}"
+							name="estimatedShippingAddress[administrativeArea]"
+							autocomplete="address-level1"
+							class="w-full h-12 px-4 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
+							:class="'administrativeArea' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
+							:aria-invalid="'administrativeArea' in errors"
+							aria-errormessage="{{ 'administrativeArea'|namespaceInputId(context) }}-error"
+							@change="if ($el.value) delete errors.administrativeArea"
+							required
+						>
+							<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
+							<option v-cloak v-for="(region, key) in regions[countryCode]" :value="key"
+									:selected="key === administrativeArea">
+								${region}
+							</option>
+						</select>
+					</div>
+
+					<div v-cloak v-else>
+						{% include 'foster-checkout/_components/base/input-text-clearable' with {
+							context: context,
+							label: 'State / Province'|t('foster-checkout'),
+							id: 'administrativeArea',
+							name: 'administrativeArea',
+							type: 'text',
+							autocomplete: 'address-level1',
+							placeholder: 'Your state or province'|t('foster-checkout'),
+							value: '',
+							required: true,
+							errors: errors.locality ?? []
+						} %}
+					</div>
+					<button type="submit" class="text-white bg-[var(--brandColor)] rounded-xl">{{ 'Update'|t('foster-checkout') }}</button>
 				</div>
+				{# end of address selector #}
 
-				<div v-if="regions[countryCode] && !Array.isArray(regions[countryCode])">
-					<label for="{{ 'administrativeArea'|namespaceInputId(context) }}"
-						class="block mb-2 font-medium text-gray-500">
-						{{ 'State / Province'|t('foster-checkout') }}*
-					</label>
-					<select
-						v-model="administrativeArea"
-						id="{{ 'administrativeArea'|namespaceInputId(context) }}"
-						name="{{ context ? 'administrativeArea'|namespaceInputName(context) : 'administrativeArea' }}"
-						autocomplete="address-level1"
-						class="w-full h-12 px-4 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
-						:class="'administrativeArea' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
-						:aria-invalid="'administrativeArea' in errors"
-						aria-errormessage="{{ 'administrativeArea'|namespaceInputId(context) }}-error"
-						@change="if ($el.value) delete errors.administrativeArea"
-						required
-					>
-						<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
-						<option v-cloak v-for="(region, key) in regions[countryCode]" :value="key"
-								:selected="key === administrativeArea">
-							${region}
-						</option>
-					</select>
+				{# shipping option selector #}
+				<div v-cloak v-if="!showAddressSelector">
+					{% if cart.estimatedShippingAddressId %}
+						{% if cart.availableShippingMethodOptions|length and cart.estimatedShippingAddressId %}
+						<div class="grid grid-rows-[1fr,_40px] gap-4">
+							<div class="xl:border xl:border-b-0 xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+								{% for handle, method in cart.availableShippingMethodOptions %}
+									<div class="p-4 border-b border-gray-250" :class="{ 'bg-gray-200': shippingMethodHandle == '{{ handle }}' }">
+										<div class="flex justify-between items-center gap-4 radio">
+											<input v-model="shippingMethodHandle" id="method_{{ handle }}" name="shippingMethodHandle" type="radio" class="sr-only" value="{{ handle }}" {{ handle == cart.shippingMethodHandle ? 'checked' : '' }} />
+											<label for="method_{{ handle }}" class="inline-flex justify-start items-center gap-4 cursor-pointer">
+												<span class="block">
+													<span class="block">{{ method.name }}</span>
+												</span>
+											</label>
+											<span class="block font-semibold">{{ method.priceForOrder(cart)|commerceCurrency(cart.currency) }}</span>
+										</div>
+									</div>
+								{% endfor %}
+							</div>
+							<div class="grid grid-cols-2 gap-8">
+								<button @click.prevent="showAddressSelector = true" name="estimatedShippingAddressId" value="999999999">{{ 'Change address'|t('foster-checkout') }}</button>
+								<button type="submit" class="text-white bg-[var(--brandColor)] rounded-xl">{{ 'Select option'|t('foster-checkout') }}</button>
+							</div>
+						</div>
+						{% else %}
+							<p>{{ 'No shipping options available'|t('foster-checkout') }}</p>
+						{% endif %}
 
-
+					{% endif %}
 				</div>
-
-				<div v-cloak v-else>
-					{% include 'foster-checkout/_components/base/input-text-clearable' with {
-						context: context,
-						label: 'State / Province'|t('foster-checkout'),
-						id: 'administrativeArea',
-						name: 'administrativeArea',
-						type: 'text',
-						autocomplete: 'address-level1',
-						placeholder: 'Your state or province'|t('foster-checkout'),
-						value: '',
-						required: true,
-						errors: errors.locality ?? []
-					} %}
-				</div>
-
-				<button type="submit"
-						class="text-white bg-[var(--brandColor)] rounded-xl">{{ 'Update'|t('foster-checkout') }}</button>
 			</form>
 
 			<div class="flex justify-start items-start gap-4 mt-4 pt-4 text-gray-500 border-t border-gray-300">

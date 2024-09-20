@@ -21,26 +21,25 @@
 			</div>
 		{% endif %}
 
-		{% if not cart.shippingAddressId %}
+		{% if step|default('') == '' %}
 			{% if craft.fostercheckout.getOption('enableEstimatedShipping') %}
 				{% include 'foster-checkout/_components/app/estimated-shipping' %}
 			{% endif %}
 
-			{% if craft.fostercheckout.getOption('enableFreeShippingMessage') %}
-				<p class="max-w-[210px] -mt-[8px] text-sm text-gray-500">
-					{{ 'Add'|t('foster-checkout') }}
-					<strong class="font-semibold text-black">$24.15</strong>
-					{{ 'for FREE shipping, or choose FREE Ship to Store.'|t('foster-checkout') }}
-				</p>
-			{% endif %}
+		{% endif %}
 
-		{% else %}
+
+
 			<div class="flex justify-between items-center gap-4">
 				<dt class="text-gray-500">{{ 'Shipping'|t('foster-checkout') }}</dt>
 				<dd class="font-semibold text-right text-black">{{ cart.totalShippingCostAsCurrency }}</dd>
 			</div>
-		{% endif %}
 
+
+		{% if craft.fostercheckout.getOption('enableFreeShippingMessage') %}
+			<p class="max-w-[210px] -mt-[8px] text-sm text-gray-500"> {{ 'Add'|t('foster-checkout') }} <strong class="font-semibold text-black">$24.15</strong> {{ 'for FREE shipping, or choose FREE Ship to Store.'|t('foster-checkout') }}
+			</p>
+		{% endif %}
 
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">{{ 'Estimated Tax'|t('foster-checkout') }}</dt>
@@ -60,7 +59,5 @@
 				<dd class="font-semibold text-right text-black">{{ cart.totalPriceAsCurrency }}</dd>
 			</div>
 		{% endif %}
-
 	</dl>
-
 </article>
