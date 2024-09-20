@@ -71,7 +71,7 @@
 
 			<div class="mt-3 md:flex md:flex-col-reverse md:justify-start md:items-end md:gap-3 md:mt-0">
 
-				<form id="lineItemQty-{{ lineItem.id }}" class="flex flex-col items-end gap-2" method="post">
+				<form id="lineItemQty-{{ lineItem.id }}" class="flex flex-col items-start md:items-end gap-2" method="post">
 					{{ csrfInput() }}
 					{{ actionInput('commerce/cart/update-cart') }}
 					<div class="inline-flex bg-white border border-gray-300 rounded-lg overflow-hidden">
