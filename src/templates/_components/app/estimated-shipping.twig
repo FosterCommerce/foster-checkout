@@ -11,7 +11,7 @@
 		regions: {{regions}},
 		countryCode: '{{ cart.estimatedShippingAddress.country ?? storeAddress.countryCode }}',
 		administrativeArea: '{{ cart.estimatedShippingAddress.locality ?? storeAddress.administrativeArea }}',
-		showAddressSelector: false,
+		showAddressSelector: true,
 		shippingMethodHandle: '{{ cart.shippingMethodHandle ?? '' }}'
 	})"
 	class="relative"

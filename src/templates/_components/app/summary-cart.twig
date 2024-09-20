@@ -21,16 +21,16 @@
 			</div>
 		{% endif %}
 
-		{% if not cart.estimatedShippingAddressId %}
-			<div class="flex justify-between items-center gap-4">
-				<dt class="text-gray-500">{{ 'Shipping'|t('foster-checkout') }}</dt>
-				<dd class="font-semibold text-right text-black">{{ cart.totalShippingCostAsCurrency }}</dd>
-			</div>
-		{% elseif step|default('') == '' and craft.fostercheckout.getOption('enableEstimatedShipping') %}
-			{% include 'foster-checkout/_components/app/estimated-shipping' %}
+		{% if cart.shippingAddressId %}
+		<div class="flex justify-between items-center gap-4">
+			<dt class="text-gray-500">{{ 'Shipping'|t('foster-checkout') }}</dt>
+			<dd class="font-semibold text-right text-black">{{ cart.totalShippingCostAsCurrency }}</dd>
+		</div>
 		{% endif %}
 
-
+		{% if (not cart.shippingAddressId) and craft.fostercheckout.getOption('enableEstimatedShipping') %}
+			{% include 'foster-checkout/_components/app/estimated-shipping' %}
+		{% endif %}
 
 
 		{% if craft.fostercheckout.getOption('enableFreeShippingMessage') %}
@@ -57,4 +57,5 @@
 			</div>
 		{% endif %}
 	</dl>
+
 </article>
