@@ -12,8 +12,7 @@
 	{% set addresses =  currentUser ? (currentUser.addresses.all() ?? null) : null %}
 
 	<div class="mt-10 pb-28 lg:mt-20 lg:pb-32"
-		 v-scope="{ gatewayId: {{ cart.gatewayId ? cart.gatewayId : 1 }}, billingSameAsShipping: {{ cart.hasMatchingAddresses() ? 1 : 0 }}, addressBookBillingAddress: 0, newBillingAddress: {{ cart.hasMatchingAddresses() ? 0 : 1 }}, billingAddressId: {{ cart.billingAddressId ?? cart.shippingAddressId ?? 'null'}} }">
-
+		 v-scope="Payment({ gatewayId: {{ cart.gatewayId ? cart.gatewayId : 1 }}, billingSameAsShipping: {{ cart.hasMatchingAddresses() ? 1 : 0 }}, addressBookBillingAddress: 0, newBillingAddress: {{ (cart.hasMatchingAddresses() or cart.sourceBillingAddressId is not null) ? 0 : 1 }}, billingAddressId: {{ cart.hasMatchingAddresses() ? 'null' : (cart.sourceBillingAddressId ?? cart.shippingAddressId ?? 'null')}}, editAddress: {{ (cart.sourceBillingAddressId == null and cart.billingAddressId != null) or currentUser == null ? 1 : 0 }} })">
 
 		<h1 class="mb-12 font-medium text-3xl">{{ 'Checkout'|t('foster-checkout') }}</h1>
 
@@ -41,94 +40,104 @@
 
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
 
-									<input type="hidden" name="billingAddressSameAsShipping" value="1"
-												:disabled="parseInt(billingSameAsShipping) === 0"/>
-
-									<div class="p-4" :class="{ 'bg-gray-100': parseInt(billingSameAsShipping) === 1 }">
-										<div class="radio">
-											<input v-model="billingSameAsShipping" id="billingSameAsShipping_1"
-												   name="billingAddressSameAsShipping" type="radio" class="sr-only"
-												   value="1"
-												   @change="newBillingAddress=0;addressBookBillingAddress=0;"/>
-											<label for="billingSameAsShipping_1"
-												   class="flex justify-start items-center gap-4 cursor-pointer">
-												<span class="block">
-													<span class="block"
-														  :class="{ 'font-medium text-black': parseInt(billingSameAsShipping) === 1 }">{{ 'Same as shipping address'|t('foster-checkout') }}</span>
-													<span
-														class="block mt-2 text-gray-500">{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.shippingAddress} %}</span>
-												</span>
-											</label>
+									<form method="post" id="sameAsShippingForm">
+										{{ csrfInput() }}
+										{{ actionInput('commerce/cart/update-cart') }}
+										<div class="p-4" :class="{ 'bg-gray-100': parseInt(billingSameAsShipping) === 1 }">
+											<div class="radio">
+												<input v-model="billingSameAsShipping" id="billingSameAsShipping_1"
+														 name="billingAddressSameAsShipping" type="radio" class="sr-only"
+														 value="1"
+														 @change="selectSameAsShipping()"/>
+												<label for="billingSameAsShipping_1"
+														 class="flex justify-start items-center gap-4 cursor-pointer">
+													<span class="block">
+														<span class="block"
+																:class="{ 'font-medium text-black': parseInt(billingSameAsShipping) === 1 }">{{ 'Same as shipping address'|t('foster-checkout') }}</span>
+														<span
+															class="block mt-2 text-gray-500">{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.shippingAddress} %}</span>
+													</span>
+												</label>
+											</div>
 										</div>
-									</div>
-
+									</form>
 
 									{# Address book #}
-									{# {% if currentUser and addresses|length %}
-									                      <div class="p-4 border-t" :class="{ 'bg-gray-100': parseInt(addressBookBillingAddress) === 1 }">
-									                        <div class="radio">
-									                          <input
-									                            v-model="addressBookBillingAddress"
-									                            id="addressBookBillingAddress"
-									                            name="billingAddress"
-									                            type="radio"
-									                            class="sr-only"
-									                            value="1"
-									                            @change="newBillingAddress=0;billingSameAsShipping=0;"
-									                          />
-									                          <label
-									                            for="addressBookBillingAddress"
-									                            class="flex justify-start items-center gap-4 cursor-pointer"
-									                          >
-									                            <span class="block">
-									                              <span class="block" :class="{ 'font-medium text-black': parseInt(addressBookBillingAddress) === 1 }">{{ 'Use an address from your address book'|t('foster-checkout') }}</span>
-									                            </span>
-									                          </label>
-									                        </div>
-									                        <div v-cloak v-if="parseInt(addressBookBillingAddress) === 1" class="p-4">
-									                          <div class=" xl:rounded-lg xl:overflow-hidden">
-
-									                              {% for address in addresses %}
-									                                {% set newAddress = cart.sourceBillingAddressId == address.id %}
-									                                <div class="p-4 border-t bg-white" :class="{ 'bg-gray-100': parseInt(billingAddressId) === {{ address.id }} }"
-									                                  {{ cart.sourceBillingAddressId  == address.id ? ' selected' : ''}}>
-									                                  <div class="flex justify-between items-center gap-4 radio">
-									                                    <input
-									                                      v-model="billingAddressId"
-									                                      id="address_{{ address.id }}"
-									                                      name="billingAddressId"
-									                                      type="radio"
-									                                      class="sr-only"
-									                                      value="{{ address.id }}"
-									                                    />
-									                                    <label
-									                                      for="address_{{ address.id }}"
-									                                      class="inline-flex justify-start items-center gap-4 cursor-pointer"
-									                                      :class="{ 'font-medium text-black': parseInt(billingAddressId) === 1 }"
-									                                    >
-									                                        {% include'foster-checkout/_components/app/formatted-address' with { 'address': address}  %}
-									                                    </label>
-
-									                                  </div>
-
-									                                </div>
-									                              {% endfor %}
-
-
-									                          </div>
-									                        </div>
-									                      </div>
-									                    {% endif %} #}
+									<form method="post" id="addressBookForm">
+										{{ csrfInput() }}
+										{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/shipping') }}
+										<div v-if="editAddress <= 1">
+											{{ actionInput('commerce/cart/update-cart') }}
+										</div>
+										<div v-else>
+											{{ actionInput('users/save-address') }}
+											<input type="hidden" name="addressId" :value="editAddress" />
+										</div>
+										{% for address in addresses %}
+											{% if address.id != cart.sourceShippingAddressId|default %}
+												<div class="p-4 border-t"
+														 :class="{ 'bg-gray-100': parseInt(billingAddressId) === {{ address.id }} }">
+													<div class="flex justify-between items-center gap-4 radio">
+														<input
+															v-model="billingAddressId"
+															id="address_{{ address.id }}"
+															name="billingAddressId"
+															type="radio"
+															class="sr-only"
+															value="{{ address.id }}"
+															@change="selectAddress()"
+														/>
+														<label
+															for="address_{{ address.id }}"
+															class="inline-flex justify-start items-center gap-4 cursor-pointer"
+															:class="{ 'font-medium text-black': parseInt(billingAddressId) === 1 }"
+														>
+															{% include'foster-checkout/_components/app/formatted-address' with { 'address': address } %}
+														</label>
+														<button
+															v-cloak
+															type="button"
+															class="text-[var(--brandColor)] underline"
+															@click="editAddress = parseInt(editAddress) === {{ address.id }} ? 0 : {{ address.id }};"
+														>
+															${ parseInt(editAddress) === {{ address.id }} ?
+															'{{ 'Cancel'|t('foster-checkout') }}' :
+															'{{ 'Edit'|t('foster-checkout') }}' }
+														</button>
+													</div>
+													<div v-cloak v-if="parseInt(editAddress) === {{ address.id }}"
+															 class="pt-8">
+														{% include 'foster-checkout/_components/app/address-fields' %}
+														<div
+															class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
+															<button
+																type="submit"
+																class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
+															>
+																{{ 'Save'|t('foster-checkout') }}
+															</button>
+															<button
+																type="button"
+																class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
+																@click="editAddress = 0"
+															>
+																{{ 'Cancel'|t('foster-checkout') }}
+															</button>
+														</div>
+													</div>
+												</div>
+											{% endif %}
+										{% endfor %}
+									</form>
 									{# end address book #}
-
 
 									{# New billing address #}
 									<div class="border-t border-gray-250"
 										 :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }">
 										<div class="p-4 radio">
 											<input v-model="newBillingAddress" id="newBillingAddress"
-												   name="billingAddress" type="radio" class="sr-only" value="1"
-												   @change="billingSameAsShipping=0;addressBookBillingAddress=0;"/>
+												   type="radio" class="sr-only" value="1"
+												   @change="billingSameAsShipping = 0;addressBookBillingAddress = 0; billingAddressId = null;" />
 											<label for="newBillingAddress"
 												   class="inline-flex justify-start items-center gap-4 cursor-pointer"
 												   :class="{ 'font-medium text-black': parseInt(newBillingAddress) === 1 }">
@@ -304,17 +313,6 @@
 						couponCode: '121212',
 						step: 'payment'
 					} %}
-
-					{# <button
-																										type="submit"
-																				            form="paymentForm"
-																										class="hidden justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:flex"
-																									>
-																										<span class="inline-block">{{ 'Place Order'|t('foster-checkout') }}</span>
-																										<span class="inline-block">{{ cart.totalAsCurrency }}</span>
-																									</button> #}
-
-
 				</div>
 
 			</aside>
@@ -326,19 +324,6 @@
 {% endblock %}
 
 	{% block mobileFooter %}
-
-		{# {% if cart.lineItems|length > 0 %}
-										<div class="p-4 bg-gray-200 sm:p-6">
-											<button
-												type="submit"
-												class="flex justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
-											>
-												<span class="inline-block">{{ 'Place Order'|t('foster-checkout') }}</span>
-												<span class="inline-block">$165.15</span>
-											</button>
-										</div>
-									{% endif %} #}
-
 		{% js %}
 			var $paymentForms = document.querySelectorAll('.paymentForm');
 			if ($paymentForms.length) {
