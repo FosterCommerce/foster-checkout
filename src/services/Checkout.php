@@ -171,7 +171,11 @@ class Checkout extends Component
 	public function getCountries(): array
 	{
 		try {
-			return Plugin::getInstance()->getStore()->getStore()->getCountriesList();
+			return Plugin::getInstance()
+				->getStores()
+				->getCurrentStore()
+				->getSettings()
+				->getCountriesList();
 		} catch (InvalidConfigException) {
 			return [];
 		}
@@ -183,7 +187,11 @@ class Checkout extends Component
 	public function getRegions(): array
 	{
 		try {
-			return Plugin::getInstance()->getStore()->getStore()->getAdministrativeAreasListByCountryCode();
+			return Plugin::getInstance()
+				->getStores()
+				->getCurrentStore()
+				->getSettings()
+				->getAdministrativeAreasListByCountryCode();
 		} catch (InvalidConfigException) {
 			return [];
 		}
