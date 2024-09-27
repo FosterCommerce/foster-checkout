@@ -1,14 +1,5 @@
 <?php
 /**
- * Foster Checkout
- *
- * A companion plugin to the Foster Checkout Commerce templates.
- *
- * @link      https://fostercommerce.com
- * @copyright Copyright (c) 2023 Foster Commerce
- */
-
-/**
  * Foster Checkout config.php
  *
  * This file exists only as a template for the Foster Checkout settings.
@@ -84,14 +75,12 @@ return [
 	// Product Settings
 	'products' => [
 		/*
-		// Add for each product type using the product type handle, to define the field handles used for the
-		// product and/or variant preview image to display in the cart view
+		 * Add for each product type using the product type handle, to define the field handles used for the
+		 * product and/or variant preview image to display in the cart view
 		'shirts' => [
-			'image' => [
-				'product' => 'productPreviewImage',
-				'variant' => 'variantPreviewImage',
-			],
-		],
+			productImageHandle => 'productPreviewImage',
+			variantImageHandle => 'variantPreviewImage',
+		]
 		*/
 	],
 

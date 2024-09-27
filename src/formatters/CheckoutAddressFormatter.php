@@ -1,13 +1,17 @@
 <?php
 
-namespace fostercommerce\craftfostercheckout\formatters;
+namespace fostercommerce\fostercheckout\formatters;
 
 use CommerceGuys\Addressing\AddressInterface;
+use CommerceGuys\Addressing\Formatter\DefaultFormatter;
 use Craft;
 use craft\elements\Address;
 
-class CheckoutAddressFormatter extends \CommerceGuys\Addressing\Formatter\DefaultFormatter
+class CheckoutAddressFormatter extends DefaultFormatter
 {
+	/**
+	 * @param array<mixed, mixed> $options
+	 */
 	public function format(AddressInterface $address, array $options = []): string
 	{
 		/** @var Address $address */

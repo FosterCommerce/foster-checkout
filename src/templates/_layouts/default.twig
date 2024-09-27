@@ -11,10 +11,10 @@
 	{% endif %}
 
 	{% if
-		(craft.app.request.getSegment(1) != craft.checkout.paths.cart and craft.app.request.getSegment(-1) != 'order' and cart.lineItems|length == 0)
+		(craft.app.request.getSegment(1) != craft.fostercheckout.settings.paths.cart and craft.app.request.getSegment(-1) != 'order' and cart.lineItems|length == 0)
 		or (craft.app.request.getSegment(-1) == 'order' and craft.app.request.getParam('number') == null)
 	%}
-		{% redirect craft.fostercheckout.getPath('cart') %}
+		{% redirect siteUrl(craft.fostercheckout.settings.paths.cart) %}
 	{% endif %}
 
 	{% if seomatic|default %}
@@ -23,14 +23,14 @@
 
 	{% block head %}
 		<title>
-			{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }}
+			{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }}
 		</title>
 	{% endblock %}
 
 	<link rel="preconnect" href="https://fonts.googleapis.com"/>
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 	<link
-		href="https://fonts.googleapis.com/css2?family={{ craft.checkout.branding.font|split(' ')|join('+') }}:wght@300;400;500;600;700&display=swap"
+		href="https://fonts.googleapis.com/css2?family={{ craft.fostercheckout.settings.branding.font|split(' ')|join('+') }}:wght@300;400;500;600;700&display=swap"
 		rel="stylesheet"
 	/>
 
@@ -53,7 +53,7 @@
 							800: '#1F2937'
 						}
 					},
-					{% if craft.checkout.branding.style|default('rounded') == 'flat' %}
+					{% if craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 						borderRadius: {
 							'xs' : 0,
 							'sm' : 0,
@@ -72,7 +72,7 @@
 		[v-cloak] {
 			opacity: 0;
 		}
-		{% if craft.checkout.options.enablePageTransitions|default %}
+		{% if craft.fostercheckout.settings.options.enablePageTransitions %}
 			@view-transition {
 				navigation: auto;
 			}
@@ -84,7 +84,7 @@
 	<style type="text/tailwindcss">
 		@layer utilities {
 			body {
-				font-family: {{ craft.checkout.branding.font ?? 'Rubik' | raw }};
+				font-family: {{ craft.fostercheckout.settings.branding.font ?? 'Rubik' | raw }};
 			}
 
 			/* Place any additional custom CSS classes here */
@@ -133,7 +133,7 @@
 	</style>
 </head>
 
-<body style="--brandColor: {{ craft.checkout.branding.color ?? '#1F2937' }};">
+<body style="--brandColor: {{ craft.fostercheckout.settings.branding.color ?? '#1F2937' }};">
 
 <div v-scope="App" @vue:mounted="App.init">
 
@@ -161,6 +161,6 @@
 </script>
 
 {# Inject the javascript bundle #}
-<script src="{{ craft.checkout.jsBundle }}" type="module"></script>
+<script src="{{ craft.fostercheckout.jsBundle }}" type="module"></script>
 </body>
 </html>

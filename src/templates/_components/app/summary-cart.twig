@@ -22,11 +22,11 @@
 		{% endif %}
 
 		{% if not cart.shippingAddressId %}
-			{% if craft.fostercheckout.getOption('enableEstimatedShipping') %}
+			{% if craft.fostercheckout.settings.options.enableEstimatedShipping %}
 				{% include 'foster-checkout/_components/app/estimated-shipping' %}
 			{% endif %}
 
-			{% if craft.fostercheckout.getOption('enableFreeShippingMessage') %}
+			{% if craft.fostercheckout.settings.options.enableFreeShippingMessage %}
 				<p class="max-w-[210px] -mt-[8px] text-sm text-gray-500">
 					{{ 'Add'|t('foster-checkout') }}
 					<strong class="font-semibold text-black">$24.15</strong>

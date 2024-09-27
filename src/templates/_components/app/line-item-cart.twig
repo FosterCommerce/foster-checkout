@@ -7,7 +7,7 @@
 
 {% set imageUrl = null %}
 {% set imageSrcSet = null %}
-{% set previewImage = craft.checkout.lineItemImage(lineItem) %}
+{% set previewImage = craft.fostercheckout.lineItemImage(lineItem) %}
 {% if previewImage|default %}
 	{% set preview = {
 		mode: 'crop',
@@ -36,7 +36,7 @@
 	class="flex justify-between items-stretch gap-5 p-5 bg-gray-200 rounded-xl"
 >
 
-	{% if imageUrl or craft.checkout.options.enablePlaceholderImages %}
+	{% if imageUrl or craft.fostercheckout.settings.options.enablePlaceholderImages %}
 		<div class="w-[80px] min-w-[80px] max-w-[80px] md:w-[200px] md:min-w-[200px] md:max-w-[200px] flex-grow">
 			<figure class="rounded-lg overflow-hidden min-w-full">
 				<img
@@ -187,7 +187,7 @@
 			<div
 				class="flex flex-col justify-between items-start gap-2 sm:flex-row sm:justify-start sm:items-center sm:gap-8">
 
-				{% if craft.fostercheckout.getOption('enableSaveForLater') %}
+				{% if craft.fostercheckout.settings.options.enableSaveForLater %}
 				<button
 					class="inline-flex justify-start items-center gap-2 text-sm underline text-gray-500 hover:no-underline hover:text-gray-700">
 					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"
