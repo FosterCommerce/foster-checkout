@@ -5,19 +5,14 @@
 	<dl class="grid grid-cols-1 gap-4">
 
 		<div class="flex justify-between items-center gap-4">
-			<dt class="text-gray-500">{{ 'Subtotal'|t('foster-checkout') }}</dt>
-			<dd class="font-semibold text-right text-black">{{ cart.itemSubtotalAsCurrency }}</dd>
+			<dt class="text-gray-500">{{ 'Items'|t('foster-checkout') }}</dt>
+			<dd class="text-right text-black">{{ cart.itemSubtotalAsCurrency }}</dd>
 		</div>
 
 		{% if cart.totalDiscount != 0 %}
 			<div class="flex justify-between items-center gap-4">
 				<dt class="text-gray-500">{{ 'Discount'|t('foster-checkout') }}</dt>
 				<dd class="text-right text-red-500">{{ cart.totalDiscountAsCurrency }}</dd>
-			</div>
-
-			<div class="flex justify-between items-center gap-4">
-				<dt class="font-semibold text-black">{{ 'Subtotal After Discount'|t('foster-checkout') }}</dt>
-				<dd class="font-semibold text-right text-black">{{ cart.totalAsCurrency }}</dd>
 			</div>
 		{% endif %}
 
@@ -29,21 +24,21 @@
 			{% if craft.fostercheckout.getOption('enableFreeShippingMessage') %}
 				<p class="max-w-[210px] -mt-[8px] text-sm text-gray-500">
 					{{ 'Add'|t('foster-checkout') }}
-					<strong class="font-semibold text-black">$24.15</strong>
+					<strong class="text-black">$24.15</strong>
 					{{ 'for FREE shipping, or choose FREE Ship to Store.'|t('foster-checkout') }}
 				</p>
 			{% endif %}
 
 		{% else %}
 			<div class="flex justify-between items-center gap-4">
-				<dt class="text-gray-500">{{ 'Shipping'|t('foster-checkout') }}</dt>
-				<dd class="font-semibold text-right text-black">{{ cart.totalShippingCostAsCurrency }}</dd>
+				<dt class="text-gray-500">{{ 'Shipping & handling'|t('foster-checkout') }}</dt>
+				<dd class="text-right text-black">{{ cart.totalShippingCostAsCurrency }}</dd>
 			</div>
 		{% endif %}
 
 
 		<div class="flex justify-between items-center gap-4">
-			<dt class="text-gray-500">{{ 'Estimated Tax'|t('foster-checkout') }}</dt>
+			<dt class="text-gray-500">{{ 'Estimated tax'|t('foster-checkout') }}</dt>
 			<dd class="text-right text-black">{{ cart.totalTaxAsCurrency }}</dd>
 		</div>
 
@@ -51,12 +46,12 @@
 
 		{% if step|default('') != 'payment' %}
 			<div class="flex justify-between items-center gap-4">
-				<dt class="font-semibold text-black">{{ 'Estimated Total'|t('foster-checkout') }}:</dt>
+				<dt class="font-semibold text-black">{{ 'Estimated total'|t('foster-checkout') }}</dt>
 				<dd class="font-semibold text-right text-black">{{ cart.totalPriceAsCurrency }}</dd>
 			</div>
 		{% else %}
 			<div class="flex justify-between items-center gap-4">
-				<dt class="font-semibold text-black">{{ 'Total'|t('foster-checkout') }}:</dt>
+				<dt class="font-semibold text-black">{{ 'Total'|t('foster-checkout') }}</dt>
 				<dd class="font-semibold text-right text-black">{{ cart.totalPriceAsCurrency }}</dd>
 			</div>
 		{% endif %}
