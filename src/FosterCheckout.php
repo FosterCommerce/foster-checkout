@@ -1,6 +1,6 @@
 <?php
 
-namespace fostercommerce\craftfostercheckout;
+namespace fostercommerce\fostercheckout;
 
 use CommerceGuys\Addressing\AddressFormat\AddressField;
 use Craft;
@@ -15,27 +15,15 @@ use craft\services\Addresses;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use craft\web\View;
-use fostercommerce\craftfostercheckout\models\Settings;
-use fostercommerce\craftfostercheckout\services\Checkout;
-use fostercommerce\craftfostercheckout\variables\Variables;
+use fostercommerce\fostercheckout\models\Settings;
+use fostercommerce\fostercheckout\services\Checkout;
 use yii\base\Event;
 
 /**
- * Foster Checkout plugin
- *
- * @method static FosterCheckout getInstance()
- * @method Settings getSettings()
- * @author Foster Commerce <support@fostercommerce.com>
- * @copyright Foster Commerce
- * @license MIT
  * @property-read Checkout $checkout
  */
 class FosterCheckout extends Plugin
 {
-	public string $schemaVersion = '1.0.0';
-
-	public bool $hasCpSettings = false;
-
 	public function init(): void
 	{
 		parent::init();
@@ -46,13 +34,12 @@ class FosterCheckout extends Plugin
 		Craft::$app->onInit(function (): void {
 			$this->registerComponents();
 			$this->attachEventHandlers();
-			$this->registerCustomVariables();
 		});
 	}
 
 	protected function createSettingsModel(): ?Model
 	{
-		return Craft::createObject(Settings::class);
+		return new Settings();
 	}
 
 	protected function settingsHtml(): ?string
@@ -70,19 +57,6 @@ class FosterCheckout extends Plugin
 		]);
 	}
 
-	private function registerCustomVariables(): void
-	{
-		// Register the variables
-		Event::on(
-			CraftVariable::class,
-			CraftVariable::EVENT_INIT,
-			static function (Event $event): void {
-				$variable = $event->sender;
-				$variable->set('fostercheckout', Variables::class);
-			}
-		);
-	}
-
 	private function attachEventHandlers(): void
 	{
 		Event::on(
@@ -93,7 +67,7 @@ class FosterCheckout extends Plugin
 				$variable = $e->sender;
 
 				// Attach a service:
-				$variable->set('checkout', Checkout::class);
+				$variable->set('fostercheckout', Checkout::class);
 			}
 		);
 
@@ -101,7 +75,7 @@ class FosterCheckout extends Plugin
 		Event::on(
 			View::class,
 			View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
-			function (RegisterTemplateRootsEvent $event): void {
+			static function (RegisterTemplateRootsEvent $event): void {
 				$event->roots['foster-checkout'] = __DIR__ . '/templates';
 			}
 		);
@@ -112,9 +86,9 @@ class FosterCheckout extends Plugin
 			UrlManager::EVENT_REGISTER_SITE_URL_RULES,
 			function (RegisterUrlRulesEvent $event): void {
 				// Get the paths from the settings
-				$paths = $this->checkout->paths();
-				$checkoutPath = $paths['checkout'] ?? 'checkout';
-				$cartPath = $paths['cart'] ?? 'cart';
+				$paths = $this->checkout->settings()->paths;
+				$checkoutPath = $paths->checkout;
+				$cartPath = $paths->cart;
 
 				// Define the site URL rules to route to our plugins templates
 				$event->rules[$checkoutPath] = [
@@ -144,11 +118,6 @@ class FosterCheckout extends Plugin
 				$event->rules[$cartPath] = [
 					'template' => 'foster-checkout/cart/index',
 				];
-
-				// TODO : Just a page to test components in isolation (remove later)
-				$event->rules[$checkoutPath . '/components'] = [
-					'template' => 'foster-checkout/_component-test',
-				];
 			}
 		);
 
@@ -161,7 +130,7 @@ class FosterCheckout extends Plugin
 		Event::on(
 			Addresses::class,
 			Addresses::EVENT_DEFINE_USED_FIELDS,
-			function (DefineAddressFieldsEvent $event): void {
+			static function (DefineAddressFieldsEvent $event): void {
 				if ($event->countryCode === 'GB') {
 					$event->fields[] = AddressField::ADMINISTRATIVE_AREA;
 				}
@@ -172,7 +141,7 @@ class FosterCheckout extends Plugin
 		Event::on(
 			Addresses::class,
 			Addresses::EVENT_DEFINE_FIELD_LABEL,
-			function (DefineAddressFieldLabelEvent $event): void {
+			static function (DefineAddressFieldLabelEvent $event): void {
 				if (
 					$event->countryCode === 'GB' &&
 					$event->field === AddressField::ADMINISTRATIVE_AREA
@@ -186,7 +155,7 @@ class FosterCheckout extends Plugin
 		Event::on(
 			Addresses::class,
 			Addresses::EVENT_DEFINE_ADDRESS_SUBDIVISIONS,
-			function (DefineAddressSubdivisionsEvent $event): void {
+			static function (DefineAddressSubdivisionsEvent $event): void {
 				if (count($event->parents) === 1 && $event->parents[0] === 'GB') {
 					$event->subdivisions = [
 						'' => 'N/A',

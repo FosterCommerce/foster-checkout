@@ -1,7 +1,7 @@
 {% extends 'foster-checkout/_layouts/default' %}
 
 {% block head %}
-	<title>{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }} | {{ 'Cart'|t('foster-checkout') }}</title>
+	<title>{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }} | {{ 'Cart'|t('foster-checkout') }}</title>
 {% endblock %}
 
 {% block body %}
@@ -28,7 +28,7 @@
 						<form method="post">
 							{{ csrfInput() }}
 							{{ actionInput('commerce/cart/forget-cart') }}
-							{{ redirectInput( craft.fostercheckout.getPath('cart')) }}
+							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.cart)) }}
 							<button type="submit"
 									class="font-medium text-[var(--brandColor)]">{{ 'Clear the cart'|t('foster-checkout') }}</button>
 						</form>
@@ -46,7 +46,7 @@
 
 				</div>
 
-				{% set note = craft.checkout.note('cart') %}
+				{% set note = craft.fostercheckout.note('cart') %}
 				{% if note %}
 					<div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6">
 						{{ note|raw }}
@@ -56,12 +56,12 @@
 			</main>
 
 			<aside>
-				<div class="lg:p-6 lg:bg-white lg:rounded-xl {{ craft.checkout.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+				<div class="lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 					{% include 'foster-checkout/_components/app/summary-cart' with {
 						postalCode: '90210',
 						couponCode: '121212'
 					} %}
-					<a href="{{ craft.fostercheckout.getPath('checkout') }}"
+					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}"
 					   class="hidden w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
 					>
 						{{ 'Checkout'|t('foster-checkout') }}
@@ -88,7 +88,7 @@
 			<div class="text-center">
 				<h2 class="font-semibold text-xl text-black">{{ 'Your cart is currently empty'|t('foster-checkout') }}</h2>
 				<div class="mt-3 mx-auto text-gray-500 prose prose-a:text-black">
-					{% set note = craft.checkout.note('emptyCart') %}
+					{% set note = craft.fostercheckout.note('emptyCart') %}
 					{% if note %}
 						{{ note|raw }}
 					{% else %}
@@ -99,7 +99,7 @@
 					{% endif %}
 				</div>
 				<a
-					href="{{ siteUrl(craft.fostercheckout.getPath('cancel')) }}"
+					href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
 					class="inline-block max-w-[260px] mt-10 mx-auto px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
 				>
 					{{ 'Continue Shopping'|t('foster-checkout') }}
@@ -116,7 +116,7 @@
 
 	{% if cart.lineItems|length > 0 %}
 		<div class="p-4 bg-gray-200 sm:p-6">
-			<a href="{{ craft.fostercheckout.getPath('checkout') }}"
+			<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}"
 			   class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 			>
 				{{ 'Checkout'|t('foster-checkout') }}

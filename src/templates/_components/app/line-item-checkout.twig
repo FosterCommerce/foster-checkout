@@ -1,5 +1,5 @@
 {% set imageUrl = null %}
-{% set previewImage = craft.checkout.lineItemImage(lineItem) %}
+{% set previewImage = craft.fostercheckout.lineItemImage(lineItem) %}
 {% if previewImage|default %}
 	{% set preview = {
 		mode: 'crop',
@@ -13,7 +13,7 @@
 
 <article class="flex justify-between items-stretch gap-4 p-4 bg-gray-200 rounded-xl">
 
-	{% if imageUrl or craft.checkout.options.enablePlaceholderImages %}
+	{% if imageUrl or craft.fostercheckout.settings.options.enablePlaceholderImages %}
 		<div class="w-[70px] min-w-[70px]">
 			<figure class="rounded-lg overflow-hidden">
 				<img

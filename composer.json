@@ -14,7 +14,7 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"fostercommerce\\craftfostercheckout\\": "src/"
+			"fostercommerce\\fostercheckout\\": "src/"
 		}
 	},
 	"extra": {
@@ -22,7 +22,7 @@
 		"name": "Foster Checkout",
 		"developer": "Foster Commerce",
 		"documentationUrl": "",
-		"class": "fostercommerce\\craftfostercheckout\\FosterCheckout"
+		"class": "fostercommerce\\fostercheckout\\FosterCheckout"
 	},
 	"config": {
 		"sort-packages": true,

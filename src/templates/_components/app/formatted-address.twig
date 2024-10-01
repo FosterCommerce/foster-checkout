@@ -2,7 +2,7 @@
 {% if address %}
 	{% set addressService = craft.app.getAddresses() %}
 	{% set customFormatter = create(
-		'fostercommerce\\craftfostercheckout\\formatters\\CheckoutAddressFormatter',
+		'fostercommerce\\fostercheckout\\formatters\\CheckoutAddressFormatter',
 		[
 			addressService.getAddressFormatRepository(),
 			addressService.getCountryRepository(),
