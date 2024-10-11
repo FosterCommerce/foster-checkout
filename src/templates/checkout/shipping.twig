@@ -13,7 +13,7 @@
 	{% if cart is defined %}
 		{% if currentStore.requireShippingMethodSelectionAtCheckout == false %}
 			{# If there's 1 or more shipping method available then set it on the cart #}
-			{% if cart.availableShippingMethodOptions|length == 1 or cart.availableShippingMethodOptions|length > 1  %}
+			{% if cart.availableShippingMethodOptions|length >= 1  %}
 				{% for handle, option in cart.availableShippingMethodOptions %}
 					{% set onlyMethod = handle %}
 				{% endfor %}
@@ -23,7 +23,7 @@
 			{% endif %}
 		{% else %}
 			{# If there's 1 or more shipping method available then set it on the cart #}
-			{% if cart.availableShippingMethodOptions|length == 1 or cart.availableShippingMethodOptions|length > 1  %}
+			{% if cart.availableShippingMethodOptions|length >= 1  %}
 				{% for handle, option in cart.availableShippingMethodOptions %}
 					{% set onlyMethod = handle %}
 				{% endfor %}
