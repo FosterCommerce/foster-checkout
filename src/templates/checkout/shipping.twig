@@ -11,18 +11,23 @@
 	{% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? null %}
 	{% set onlyMethod = null %}
 	{% if cart is defined %}
-		{# If there's only 1 shipping method available then set it on the cart #}
-		{% if cart.availableShippingMethodOptions|length == 1 %}
-			{% for handle, option in cart.availableShippingMethodOptions %}
-				{% if option.price == 0 %}
-					{% redirect(craft.fostercheckout.getPath('checkout') ~ '/payment') %}
-				{% else %}
+		{% if currentStore.requireShippingMethodSelectionAtCheckout == false %}
+			{# If there's 1 or more shipping method available then set it on the cart #}
+			{% if cart.availableShippingMethodOptions|length == 1 or cart.availableShippingMethodOptions|length > 1  %}
+				{% for handle, option in cart.availableShippingMethodOptions %}
 					{% set onlyMethod = handle %}
-				{% endif %}
-			{% endfor %}
-		{% elseif cart.availableShippingMethodOptions|length == 1 %}
-			{# If there are no available shipping methods, then just redirect to the payment page #}
-			{% redirect(craft.fostercheckout.getPath('checkout') ~ '/payment') %}
+				{% endfor %}
+			{% elseif cart.availableShippingMethodOptions|length == 0 %}
+				{# If requireShippingMethodSelectionAtCheckout is false and there are no available shipping methods, then just redirect to the payment page #}
+				{% redirect(craft.fostercheckout.getPath('checkout') ~ '/payment') %}
+			{% endif %}
+		{% else %}
+			{# If there's 1 or more shipping method available then set it on the cart #}
+			{% if cart.availableShippingMethodOptions|length == 1 or cart.availableShippingMethodOptions|length > 1  %}
+				{% for handle, option in cart.availableShippingMethodOptions %}
+					{% set onlyMethod = handle %}
+				{% endfor %}
+			{% endif %}
 		{% endif %}
 	{% endif %}
 
@@ -44,7 +49,12 @@
 
 						{{ csrfInput() }}
 						{{ actionInput('commerce/cart/update-cart') }}
-						{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/payment') }}
+						
+						{% if cart.availableShippingMethodOptions|length >= 1 %}
+							{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/payment') }}
+						{% else %}
+							{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/shipping') }}
+						{% endif %}
 
 						<div class="border border-gray-250 rounded-lg overflow-hidden">
 
