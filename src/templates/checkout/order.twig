@@ -67,10 +67,21 @@
 						</dd>
 					</div>
 					{% endif %}
+
 					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
 						<dt class="font-semibold">{{ 'Payment'|t('foster-checkout') }}</dt>
 						<dd>{{ order.gateway.name }}</dd>
 					</div>
+
+					{% if craft.giftVoucher is defined %}
+						{# Check for applied / redeemed gift card vouchers in orders #}
+
+						{% if order.orderAdjustments|length >= 1 %}
+							<div style="width: fit-content" class="p-5 border text-green-900 bg-green-100 border-green-100 inline-block">
+								<span>Gift Voucher Applied</span>
+							</div>
+						{% endif %}
+					{% endif %}
 				</dl>
 
 				<div class="flex justify-end items-center gap-6 mt-9 lg:mt-12">
