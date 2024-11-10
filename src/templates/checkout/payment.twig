@@ -186,7 +186,6 @@
 
 							{% if craft.giftVoucher is defined %}
 
-
 								<div class="my-6" v-scope="{ sending: false }">
 
 									<h3 class="px-4 mb-4 font-semibold xl:px-0">
@@ -245,6 +244,25 @@
 											</button>
 										</form>
 									</div>
+
+
+
+									{# Check for applied / redeemed gift card vouchers in orders #}
+
+									{% set voucherCodes = craft.giftVoucher.getVoucherCodes() %}
+
+									{% if voucherCodes|length >= 1 %}
+										<div class="border-gray-400 border-b flex flex-col space-y-2 py-4">
+
+											{% for code in voucherCodes %}
+
+												<div class="flex justify-between items-center">
+													<p class="text-gray-500">{{ 'Gift cards currently applied to your order'|t('foster-checkout') }}: {{ code }} ({{ craft.giftVoucher.codes().codeKey(code).one().currentAmount | currency }})</p>
+												</div>
+
+											{% endfor %}
+										</div>
+									{% endif %}
 								</div>
 							{% endif %}
 
