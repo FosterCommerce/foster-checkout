@@ -184,45 +184,32 @@
 								</div>
 							</div>
 
-							{# Gift Vouchers #}
 							{% if craft.giftVoucher is defined %}
-								<div class="my-6" v-scope="{ isOpen: false, sending: false }">
-									<button class="flex justify-between items-start w-full py-4" @click="isOpen = !isOpen">
-										<span class="px-4 font-semibold xl:px-0">
-											{{ 'Redeem your gift vouchers'|t('foster-checkout') }}
-										</span>
-										<svg v-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current"
-											aria-hidden="true">
-											<path v-if="isOpen"
-												d="M6.99972 0.301388L13.3389 6.64054L11.9247 8.05469L6.99972 3.10469L2.07472 8.02969L0.660568 6.61554L6.99972 0.301388Z"/>
-											<path v-else
-												d="M7.00028 8.70057L0.661133 2.36142L2.07528 0.947266L7.00028 5.89727L11.9253 0.972268L13.3394 2.38642L7.00028 8.70057Z"/>
-										</svg>
-									</button>
 
-									{% set voucherCodeError = cart.getFirstNotice(null, 'voucherCode') ?? null  %}
-									{% set voucherCodeSuccess = craft.app.session.getFlash('success') ?? null %}
+
+								<div class="my-6" v-scope="{ sending: false }">
+
+									<h3 class="px-4 mb-4 font-semibold xl:px-0">
+										{{ 'Apply gift card'|t('foster-checkout') }}
+									</h3>
+
+									{% set voucherCodeError = cart.getFirstError('voucherCode') ?? null  %}
+
+									{# If there are no gift voucher code errors #}
+									{% set voucherCodeSuccess =  craft.app.session.getFlash('success') ?? null %} {# Not working for now #}
 
 									{% if voucherCodeError %}
-										{% set voucherMessage = voucherCodeError.message %}
+										{% set voucherMessage = voucherCodeError %}
 									{% else %}
-										{% if voucherCodeSuccess
-											and voucherCodeSuccess == 'Gift voucher added' | t('Foster Checkout')
-										%}
-											{% set voucherMessage = voucherCodeSuccess %}
+										{% if voucherCodeSuccess %}
+											{% set voucherMessage = 'Gift voucher added' | t('Foster Checkout') %}
 										{% else %}
 											{% set voucherMessage = null %}
 										{% endif %}
 									{% endif %}
 
-									<div
-										v-cloak
-										v-show="isOpen"
-										role="dialog"
-										:aria-hidden="!isOpen"
-										aria-labelledby="couponCodeLabel"
-										aria-describedby="couponCodeDesc"
-										class="pb-6"
+
+									<div class="px-4 xl:px-0"
 									>
 										<form
 											class="grid grid-cols-[1fr,_120px] items-start gap-4"
@@ -231,14 +218,8 @@
 											@submit="sending = true"
 										>
 											{{ csrfInput() }}
-											{{ actionInput('commerce/cart/update-cart') }}
-											{{ hiddenInput('successMessage', 'Gift voucher added' | t('Foster Checkout') | hash) }}
-											{{ hiddenInput('clearNotices', 'Yes, please!') }}
-											{#<p id="couponCodeDesc" class="sr-only">
-												{{ cart.couponCode|default ?
-												('Coupon code'|t('foster-checkout') ~ ': ' ~ cart.couponCode) :
-												'Submit a coupon code to get a discount on your order.'|t('foster-checkout') }}
-											</p>#}
+											{{ actionInput('gift-voucher/cart/add-code') }}
+											{{ hiddenInput('successMessage', 'Gift card applied' | t('Foster Checkout') | hash) }}
 											{% include 'foster-checkout/_components/base/input-text-clearable' with {
 												label: 'Voucher code'|t('foster-checkout'),
 												hideLabel: true,
@@ -246,11 +227,10 @@
 												name: 'voucherCode',
 												type: 'text',
 												autocomplete: 'off',
-												placeholder: 'Enter gift voucher code'|t('foster-checkout'),
+												placeholder: 'Enter gift card code'|t('foster-checkout'),
 												errors: voucherCodeError ? [voucherMessage] : [],
-												success: true and voucherMessage ? [voucherMessage] : [],
+												success: false and voucherMessage ? [voucherMessage] : [],
 												value: '',
-												action: 'if (isOpen) $el.focus()'
 											} %}
 											<button
 												type="submit"
@@ -267,8 +247,6 @@
 									</div>
 								</div>
 							{% endif %}
-
-							{# End Gift Vouchers #}
 
 							<div
 								class="xl:border xl:border-b-0 xl:border-gray-250 xl:mt-8 xl:rounded-lg xl:overflow-hidden">
