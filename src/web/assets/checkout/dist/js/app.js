@@ -97,7 +97,9 @@ const LineItem = (props) => {
 		sending: false,
 		input() {
 			this.qty = this.qty.replace(/\D/g, '');
-			this.updateQty();
+			if(this.qty) {
+				this.updateQty();
+			}
 		},
 		increment() {
 			this.removeMessages();
