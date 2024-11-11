@@ -53,8 +53,12 @@
 			{% if voucherCodes|length >= 1 %}
 				<div class="border-gray-400 border-b flex flex-col space-y-2 pb-4">
 					<h3 class="font-semibold text-gray-800">{{ 'Gift cards applied'|t('foster-checkout') }}</h3>
-
+					{% set voucherAmountApplied = 0 %}
+					{% set totalVoucherAmountApplied = 0 %}
+					{% set appliedAmount = 0 %}
 					{% for code in voucherCodes %}
+						{# #}
+						{% set voucherCurrentAmount = craft.giftVoucher.codes().codeKey(code).one().currentAmount %}
 
 						<div class="flex justify-between items-center">
 							<dt class="text-gray-500">{{ code }}</dt>
@@ -77,7 +81,14 @@
 									</button>
 								</form>
 							</dd>
-							<dd class="text-right text-red-500">- {{ craft.giftVoucher.codes().codeKey(code).one().currentAmount | currency }}</dd>
+							{% if cart.storedItemTotal - voucherCurrentAmount > 0 %}
+								{% set voucherAmountApplied = voucherAmountApplied + voucherCurrentAmount %}
+								{% set appliedAmount = (cart.storedItemTotal - voucherAmountApplied) <= 0 ? voucherAmountApplied - cart.storedItemTotal : voucherCurrentAmount %}
+								{% set totalVoucherAmountApplied = voucherAmountApplied %}
+							{% else %}
+								{% set appliedAmount = (totalVoucherAmountApplied - cart.storedItemTotal)|abs %}
+							{% endif %}
+							<dd class="text-right text-red-500">- {{ appliedAmount | currency }}</dd>
 						</div>
 
 					{% endfor %}
