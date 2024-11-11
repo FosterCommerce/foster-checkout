@@ -254,7 +254,7 @@
 									<div class="border-gray-400 border-b flex flex-col space-y-2 py-4 px-4 xl:px-0">
 										{% if voucherCodes|length == 1 %}
 											{% set currentAmount = craft.giftVoucher.codes().codeKey(voucherCodes[0]).one().currentAmount %}
-											{% set appliedAmount = (cart.storedItemTotal - currentAmount) <= 0 ? currentAmount - cart.storedItemTotal : currentAmount %}
+											{% set appliedAmount = cart.storedItemTotal < currentAmount ? cart.storedItemTotal : currentAmount %}
 											<div class="flex justify-between items-center">
 												<p class="text-gray-500">{{ 'Gift cards currently applied to your order'|t('foster-checkout') }}: {{ voucherCodes[0] }} ({{ appliedAmount | currency }})</p>
 											</div>
