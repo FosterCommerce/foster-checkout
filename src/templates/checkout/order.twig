@@ -68,20 +68,37 @@
 					</div>
 					{% endif %}
 
-					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
-						<dt class="font-semibold">{{ 'Payment'|t('foster-checkout') }}</dt>
-						<dd>{{ order.gateway.name }}</dd>
-					</div>
-
 					{% if craft.giftVoucher is defined %}
 						{# Check for applied / redeemed gift card vouchers in orders #}
 
 						{% if order.orderAdjustments|length >= 1 %}
-							<div style="width: fit-content" class="p-5 border text-green-900 bg-green-100 border-green-100 inline-block">
-								<span>Gift Voucher Applied</span>
+							{# 
+								We currently only have access to the redeemed gift card vouchers code using order.orderAdjustments[0].description
+								which appears in the form "Gift Voucher discount using code MTLYZKVDAQ"
+								In order to get the code, we'll have to split the description string using 'code ' as its delimeter
+							#}
+							
+							<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
+								<dt class="font-semibold">{{ 'Gift card applied'|t('foster-checkout') }}</dt>
+								<dd>
+									{% for voucher in order.orderAdjustments %}
+										{# Get redeemed voucher code from description #}
+										{% set voucherCode = voucher.description|split('code ')[1] %}
+										{# Get voucher remaining amount #}
+										{% set amountRemaining = craft.giftVoucher.codes().codeKey(voucherCode).one().currentAmount %}
+										{% set appliedVoucherAmount = (order.storedItemTotal - (voucher.amount|abs)) < 0 ? order.storedItemTotal : voucher.amount|abs %}
+										{% set appliedVoucherDescription = voucher.description|split('code ')[1] ~ ' (' ~ appliedVoucherAmount|currency ~ ' applied, ' ~ amountRemaining|currency ~ ' remaining)' %}
+										<p>{{ appliedVoucherDescription }}</p>
+									{% endfor %}
+								</dd>
 							</div>
 						{% endif %}
 					{% endif %}
+
+					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
+						<dt class="font-semibold">{{ 'Payment'|t('foster-checkout') }}</dt>
+						<dd>{{ order.gateway.name }}</dd>
+					</div>
 				</dl>
 
 				<div class="flex justify-end items-center gap-6 mt-9 lg:mt-12">
