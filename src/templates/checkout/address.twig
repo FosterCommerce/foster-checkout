@@ -25,7 +25,7 @@
 					class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 
 				<div class="grid grid-cols-1 gap-6 lg:gap-8">
-					
+
 					{% include 'foster-checkout/_components/app/steps-completed' with {
 						step: 'address'
 					} %}
@@ -73,7 +73,7 @@
 															class="inline-flex justify-start items-center gap-4 cursor-pointer"
 															:class="{ 'font-medium text-black': parseInt(shippingAddressId) === 1 }"
 													>
-														({{ address.id }}) {% include'foster-checkout/_components/app/formatted-address' with { 'address': address } %}
+														{% include'foster-checkout/_components/app/formatted-address' with { 'address': address } %}
 													</label>
 													<button
 															v-cloak
