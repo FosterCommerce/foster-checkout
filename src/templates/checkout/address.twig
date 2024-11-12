@@ -25,10 +25,7 @@
 					class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 
 				<div class="grid grid-cols-1 gap-6 lg:gap-8">
-
-					shippingAddressId: {{ cart.sourceShippingAddressId ?? cart.shippingAddressId ?? 0 }}<br>
-					useNewAddress: {{ (cart.sourceShippingAddressId == null) or (currentUser and not (cart.sourceShippingAddressId ?? cart.shippingAddressId)) ? 1 : 0 }}<br>
-
+					
 					{% include 'foster-checkout/_components/app/steps-completed' with {
 						step: 'address'
 					} %}
