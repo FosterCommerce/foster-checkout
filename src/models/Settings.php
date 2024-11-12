@@ -29,6 +29,7 @@ class Settings extends Model
 		'cart' => '/cart',
 		'checkout' => '/checkout',
 		'cancel' => '/',
+		'logo' => '/',
 	];
 
 	public array $products = [];
