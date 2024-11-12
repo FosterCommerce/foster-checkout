@@ -50,6 +50,7 @@ return [
 	'Item(s)' => 'Item(s)',
 	'Items' => 'Items',
 	'Method' => 'Method',
+	'New shipping address' => 'New shipping address',
 	'Next Step' => 'Next Step',
 	'No Image' => 'No Image',
 	'Only {qty} in stock' => 'Only {qty} in stock',
