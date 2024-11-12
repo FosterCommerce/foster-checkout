@@ -254,7 +254,8 @@
 									<div class="border-gray-400 border-b flex flex-col space-y-2 py-4 px-4 xl:px-0">
 										{% if voucherCodes|length == 1 %}
 											{% set currentAmount = craft.giftVoucher.codes().codeKey(voucherCodes[0]).one().currentAmount %}
-											{% set appliedAmount = cart.storedItemTotal < currentAmount ? cart.storedItemTotal : currentAmount %}
+											{% set estimatedTotal = cart.storedItemTotal + cart.storedTotalShippingCost + cart.totalTax %}
+											{% set appliedAmount = estimatedTotal < currentAmount ? estimatedTotal : currentAmount %}
 											<div class="flex justify-between items-center">
 												<p class="text-gray-500">{{ 'Gift cards currently applied to your order'|t('foster-checkout') }}: {{ voucherCodes[0] }} ({{ appliedAmount | currency }})</p>
 											</div>
@@ -269,12 +270,13 @@
 											<ul class="text-gray-500 m-0 list-disc">
 												{% for code in voucherCodes %}
 													{% set voucherCurrentAmount = craft.giftVoucher.codes().codeKey(code).one().currentAmount %}
-													{% if cart.storedItemTotal - voucherCurrentAmount > 0 %}
+													{% set estimatedTotal =  cart.storedItemTotal + cart.storedTotalShippingCost + cart.totalTax %}
+													{% if estimatedTotal - voucherCurrentAmount > 0 %}
 														{% set voucherAmountApplied = voucherAmountApplied + voucherCurrentAmount %}
 														{% set appliedAmount = (cart.storedItemTotal - voucherAmountApplied) <= 0 ? voucherAmountApplied - cart.storedItemTotal : voucherCurrentAmount %}
 														{% set totalVoucherAmountApplied = voucherAmountApplied %}
 													{% else %}
-														{% set appliedAmount = (totalVoucherAmountApplied - cart.storedItemTotal)|abs %}
+														{% set appliedAmount = (totalVoucherAmountApplied - estimatedTotal)|abs %}
 													{% endif %}
 													<li class="ml-5">{{ code }} ({{ appliedAmount | currency }})</li>
 												{% endfor %}	
