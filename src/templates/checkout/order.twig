@@ -83,12 +83,14 @@
 								<dd>
 									{% for voucher in order.orderAdjustments %}
 										{# Get redeemed voucher code from description #}
-										{% set voucherCode = voucher.description|split('code ')[1] %}
+										{% set voucherCode = voucher.description|split('code ')[1] is defined ? voucher.description|split('code ')[1] : false %}
 										{# Get voucher remaining amount #}
-										{% set amountRemaining = craft.giftVoucher.codes().codeKey(voucherCode).one().currentAmount %}
-										{% set appliedVoucherAmount = (order.storedItemTotal - (voucher.amount|abs)) < 0 ? order.storedItemTotal : voucher.amount|abs %}
-										{% set appliedVoucherDescription = voucher.description|split('code ')[1] ~ ' (' ~ appliedVoucherAmount|currency ~ ' applied, ' ~ amountRemaining|currency ~ ' remaining)' %}
-										<p>{{ appliedVoucherDescription }}</p>
+										{% if voucherCode %}
+											{% set amountRemaining = craft.giftVoucher.codes().codeKey(voucherCode).one().currentAmount %}
+											{% set appliedVoucherAmount = (order.storedItemTotal - (voucher.amount|abs)) < 0 ? order.storedItemTotal : voucher.amount|abs %}
+											{% set appliedVoucherDescription = voucher.description|split('code ')[1] ~ ' (' ~ appliedVoucherAmount|currency ~ ' applied, ' ~ amountRemaining|currency ~ ' remaining)' %}
+											<p>{{ appliedVoucherDescription }}</p>
+										{% endif %}
 									{% endfor %}
 								</dd>
 							</div>
