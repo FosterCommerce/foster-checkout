@@ -81,12 +81,13 @@
 									</button>
 								</form>
 							</dd>
-							{% if cart.storedItemTotal - voucherCurrentAmount > 0 %}
+							{% set estimatedTotal =  cart.storedItemTotal + cart.storedTotalShippingCost + cart.totalTax %}
+							{% if estimatedTotal - voucherCurrentAmount > 0 %}
 								{% set voucherAmountApplied = voucherAmountApplied + voucherCurrentAmount %}
 								{% set appliedAmount = (cart.storedItemTotal - voucherAmountApplied) <= 0 ? voucherAmountApplied - cart.storedItemTotal : voucherCurrentAmount %}
 								{% set totalVoucherAmountApplied = voucherAmountApplied %}
 							{% else %}
-								{% set appliedAmount = (totalVoucherAmountApplied - cart.storedItemTotal)|abs %}
+								{% set appliedAmount = (totalVoucherAmountApplied - estimatedTotal)|abs %}
 							{% endif %}
 							<dd class="text-right text-red-500">- {{ appliedAmount | currency }}</dd>
 						</div>
