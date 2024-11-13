@@ -13,7 +13,7 @@
 	{% if cart is defined %}
 		{% if currentStore.requireShippingMethodSelectionAtCheckout == false %}
 			{# If there's 1 or more shipping method available then set it on the cart #}
-			{% if cart.availableShippingMethodOptions|length >= 1  %}
+			{% if cart.availableShippingMethodOptions|length >= 1 %}
 				{% for handle, option in cart.availableShippingMethodOptions %}
 					{% set onlyMethod = handle %}
 				{% endfor %}
@@ -23,7 +23,7 @@
 			{% endif %}
 		{% else %}
 			{# If there's 1 or more shipping method available then set it on the cart #}
-			{% if cart.availableShippingMethodOptions|length >= 1  %}
+			{% if cart.availableShippingMethodOptions|length >= 1 %}
 				{% for handle, option in cart.availableShippingMethodOptions %}
 					{% set onlyMethod = handle %}
 				{% endfor %}
@@ -38,7 +38,7 @@
 
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 			<main v-scope="{ shippingMethodHandle: '{{ cart.shippingMethod.handle ?? onlyMethod }}' }"
-				  class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
+						class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 				<div class="grid grid-cols-1 gap-6 lg:gap-8">
 
 					{% include 'foster-checkout/_components/app/steps-completed' with {
@@ -49,7 +49,7 @@
 
 						{{ csrfInput() }}
 						{{ actionInput('commerce/cart/update-cart') }}
-						
+
 						{% if cart.availableShippingMethodOptions|length >= 1 %}
 							{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/payment') }}
 						{% else %}
@@ -69,7 +69,7 @@
 									{% if availableShippingMethodOptions|length %}
 										{% for handle, method in availableShippingMethodOptions %}
 											<div class="p-4 border-b border-gray-250"
-												 :class="{ 'bg-gray-100': shippingMethodHandle === '{{ method.handle }}' }">
+													 :class="{ 'bg-gray-100': shippingMethodHandle === '{{ method.handle }}' }">
 
 												<div class="flex justify-between items-center gap-4 radio">
 
@@ -88,7 +88,7 @@
                           <span class="block">
                             <span class="block">{{ method.name }}</span>
                             <span
-								class="block mt-1 text-sm text-gray-500">{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, method).getDescription() }}</span>
+															class="block mt-1 text-sm text-gray-500">{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, method).getDescription() }}</span>
                           </span>
 													</label>
 													<span
@@ -148,7 +148,7 @@
 								{{ 'Item(s)'|t('foster-checkout') }}
 							</h2>
 							<a href="{{ craft.fostercheckout.getPath('cart') }}"
-							   class="inline-block text-[var(--brandColor)] underline">
+								 class="inline-block text-[var(--brandColor)] underline">
 								{{ 'Edit'|t('foster-checkout') }}
 							</a>
 						</div>

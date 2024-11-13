@@ -125,7 +125,7 @@
 
 		<div v-if="regions[countryCode] && !Array.isArray(regions[countryCode])">
 			<label for="{{ 'administrativeArea'|namespaceInputId(context) }}"
-				   class="block mb-2 font-medium text-gray-500">
+						 class="block mb-2 font-medium text-gray-500">
 				{{ 'State / Province'|t('foster-checkout') }}*
 			</label>
 			<select
@@ -142,7 +142,7 @@
 			>
 				<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
 				<option v-cloak v-for="(region, key) in regions[countryCode]" :value="key"
-						:selected="key === administrativeArea">
+								:selected="key === administrativeArea">
 					${region}
 				</option>
 			</select>
@@ -188,7 +188,7 @@
 			{% if customField.multiline %}
 
 				<label for="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}"
-					   class="block text-sm font-medium text-gray-700">
+							 class="block text-sm font-medium text-gray-700">
 					{{ customField.name }}{% if customField.required %}*{% endif %}
 				</label>
 

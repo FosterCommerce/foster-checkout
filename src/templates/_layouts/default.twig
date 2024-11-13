@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
-	<meta name="robots" content="noindex, nofollow" />
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+	<meta name="robots" content="noindex, nofollow"/>
 
 	{% set cart = cart is not defined ? craft.commerce.carts.cart : cart %}
 
 	{% if
 		(craft.app.request.getSegment(1) != craft.checkout.paths.cart and craft.app.request.getSegment(-1) != 'order' and cart.lineItems|length == 0)
-		or (craft.app.request.getSegment(-1) == 'order' and craft.app.request.getParam('number') == null)
-	%}
+		or (craft.app.request.getSegment(-1) == 'order' and craft.app.request.getParam('number') == null) %}
 		{% redirect craft.fostercheckout.getPath('cart') %}
 	{% endif %}
 
@@ -52,15 +51,15 @@
 						}
 					},
 					{% if craft.checkout.branding.style|default('rounded') == 'flat' %}
-						borderRadius: {
-							'xs' : 0,
-							'sm' : 0,
-							DEFAULT: '0',
-							'md': 0,
-							'lg': 0,
-							'xl': 0,
-							'2xl': 0
-						}
+					borderRadius: {
+						'xs': 0,
+						'sm': 0,
+						DEFAULT: '0',
+						'md': 0,
+						'lg': 0,
+						'xl': 0,
+						'2xl': 0
+					}
 					{% endif %}
 				}
 			}
@@ -70,13 +69,15 @@
 		[v-cloak] {
 			opacity: 0;
 		}
+
 		{% if craft.checkout.options.enablePageTransitions|default %}
-			@view-transition {
-				navigation: auto;
-			}
-			::view-transition-group(root) {
-				animation-duration: 0.5s;
-			}
+		@view-transition {
+			navigation: auto;
+		}
+		::view-transition-group(root) {
+			animation-duration: 0.5s;
+		}
+
 		{% endif %}
 	</style>
 	<style type="text/tailwindcss">
