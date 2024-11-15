@@ -81,6 +81,16 @@ const Payment = (props) => {
 	}
 };
 
+function debounce(fn, delay) {
+	let timeout;
+	return function (...args) {
+		clearTimeout(timeout);
+		// We have access to this
+		console.log(this);
+		timeout = setTimeout(() => fn.apply(...args), delay);
+	};
+}
+
 const LineItem = (props) => {
 	return {
 		id: props.lineItemId,
@@ -95,14 +105,15 @@ const LineItem = (props) => {
 		showErrorStockMessage: props.showErrorStockMessage,
 		action: '',
 		sending: false,
-		input() {
+		input: debounce(() => {
+			// this is undefined
 			this.qty = this.qty.replace(/\D/g, '');
-			setTimeout(() => {
-				if(this.qty) {
-					this.updateQty();
-				}
-			}, 700);
-		},
+
+			if(this.qty) {
+				this.updateQty();
+				console.log('update quantity');
+			}
+		}, 700),
 		increment() {
 			this.removeMessages();
 			this.qty++;
