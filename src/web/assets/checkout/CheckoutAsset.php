@@ -1,6 +1,6 @@
 <?php
 
-namespace fostercommerce\craftfostercheckout\web\assets\checkout;
+namespace fostercommerce\fostercheckout\web\assets\checkout;
 
 use craft\web\AssetBundle;
 

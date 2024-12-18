@@ -2,7 +2,7 @@
 
 {% block head %}
 	<title>
-		{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }} |
+		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }} |
 		{{ 'Checkout'|t('foster-checkout') }} : {{ 'Shipping'|t('foster-checkout') }}
 	</title>
 {% endblock %}
@@ -19,7 +19,7 @@
 				{% endfor %}
 			{% elseif cart.availableShippingMethodOptions|length == 0 %}
 				{# If requireShippingMethodSelectionAtCheckout is false and there are no available shipping methods, then just redirect to the payment page #}
-				{% redirect(craft.fostercheckout.getPath('checkout') ~ '/payment') %}
+				{% redirect(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/payment') %}
 			{% endif %}
 		{% else %}
 			{# If there's 1 or more shipping method available then set it on the cart #}
@@ -51,9 +51,9 @@
 						{{ actionInput('commerce/cart/update-cart') }}
 
 						{% if cart.availableShippingMethodOptions|length >= 1 %}
-							{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/payment') }}
+							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/payment') }}
 						{% else %}
-							{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/shipping') }}
+							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/shipping') }}
 						{% endif %}
 
 						<div class="border border-gray-250 rounded-lg overflow-hidden">
@@ -104,7 +104,7 @@
 
 						</div>
 
-						{% set note = craft.checkout.note('shipping') %}
+						{% set note = craft.fostercheckout.note('shipping') %}
 						{% if note %}
 							<div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6">
 								{{ note|raw }}
@@ -139,7 +139,7 @@
 			<aside>
 
 				<div
-					class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl {{ craft.checkout.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+					class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 
 					<div class="grid grid-cols-1 gap-6">
 

@@ -1,5 +1,5 @@
 {% if currentUser %}
-	{% redirect craft.checkout.paths.checkout ~ '/address' %}
+	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address' %}
 {% else %}
-	{% redirect craft.checkout.paths.checkout ~ '/email' %}
+	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/email' %}
 {% endif %}

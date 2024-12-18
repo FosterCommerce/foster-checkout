@@ -1,71 +1,84 @@
 <?php
 
-namespace fostercommerce\craftfostercheckout\models;
+namespace fostercommerce\fostercheckout\models;
 
 use craft\base\Model;
 
-/**
- * Foster Checkout settings
- */
 class Settings extends Model
 {
-	public array $options = [
-		'enableSaveForLater' => false,
-		'enableEstimatedShipping' => false,
-		'enableFreeShippingMessage' => false,
-		'enablePlaceholderImages' => false,
-		'enablePageTransitions' => false,
-	];
+	public OptionConfig $options;
 
-	public array $branding = [
-		'color' => '#1F2937',
-		'font' => 'Rubik',
-		'style' => 'rounded',
-		'logo' => '',
-		'title' => '',
-	];
+	public BrandingConfig $branding;
 
-	public array $paths = [
-		'cart' => '/cart',
-		'checkout' => '/checkout',
-		'cancel' => '/',
-		'logo' => '/',
-	];
+	public PathConfig $paths;
 
+	/**
+	 * Add for each product type using the product type handle, to define the field handles used for the
+	 * product and/or variant preview image to display in the cart view
+	 *
+	 * @var array<string, ProductConfig>
+	 */
 	public array $products = [];
 
-	public array $notes = [
-		'cart' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'emptyCart' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'login' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'email' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'address' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'shipping' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'payment' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'order' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-	];
+	/**
+	 * Notes that will appear in the cart, login, and checkout steps. Include the element handle (global or single)
+	 * and the field handle in that entry that contains the content you want to display. Fields can be either plain
+	 * text of rich text fields like Redactor or CKEditor
+	 */
+	public NotesConfig $notes;
+
+	/**
+	 * @param array<mixed, mixed> $config
+	 */
+	public function __construct(array $config = [])
+	{
+		parent::__construct($config);
+
+		if (! isset($this->options)) {
+			$this->options = new OptionConfig();
+		}
+
+		if (! isset($this->branding)) {
+			$this->branding = new BrandingConfig();
+		}
+
+		if (! isset($this->paths)) {
+			$this->paths = new PathConfig();
+		}
+	}
+
+	/**
+	 * @param array<mixed, mixed> $values
+	 * @param bool $safeOnly
+	 */
+	public function setAttributes($values, $safeOnly = true): void
+	{
+		if (array_key_exists('options', $values)) {
+			$values['options'] = new OptionConfig($values['options']);
+		}
+
+		if (array_key_exists('branding', $values)) {
+			$values['branding'] = new BrandingConfig($values['branding']);
+		}
+
+		if (array_key_exists('paths', $values)) {
+			$values['paths'] = new PathConfig($values['paths']);
+		}
+
+		if (array_key_exists('products', $values)) {
+			foreach ($values['products'] as &$product) {
+				$product = new ProductConfig($product);
+			}
+		}
+
+		if (array_key_exists('notes', $values)) {
+			foreach ($values['notes'] as &$note) {
+				$note = new NoteConfig($note);
+			}
+
+			$values['notes'] = new NotesConfig($values['notes']);
+		}
+
+		parent::setAttributes($values, $safeOnly);
+	}
 }
