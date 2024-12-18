@@ -1,4 +1,4 @@
-{% set couponCodeError = cart.getFirstNotice(null, 'couponCode') ?? null  %}
+{% set couponCodeError = cart.getFirstNotice(null, 'couponCode') ?? null %}
 {% set couponCodeSuccess = craft.app.session.getFlash('success') ?? null %}
 
 {% if couponCodeError %}
@@ -6,8 +6,7 @@
 {% else %}
 	{% if couponCodeSuccess
 		and couponCodeSuccess == 'Coupon code added' | t('Foster Checkout')
-		and cart.couponCode
-	%}
+		and cart.couponCode %}
 		{% set couponMessage = couponCodeSuccess %}
 	{% else %}
 		{% set couponMessage = null %}
@@ -21,14 +20,14 @@
 
 	<button class="flex justify-between items-center w-full py-4" @click="isOpen = !isOpen">
 		<span id="couponCodeLabel" class="font-medium text-gray-500">
-			{{ 'Coupon Code'|t('foster-checkout') }}{% if cart.couponCode|default %} ({{ cart.couponCode }}){% endif %}
+			{{ 'Coupon code'|t('foster-checkout') }}{% if cart.couponCode|default %} ({{ cart.couponCode }}){% endif %}
 		</span>
 		<svg v-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current"
-			 aria-hidden="true">
+				 aria-hidden="true">
 			<path v-if="isOpen"
-				  d="M6.99972 0.301388L13.3389 6.64054L11.9247 8.05469L6.99972 3.10469L2.07472 8.02969L0.660568 6.61554L6.99972 0.301388Z"/>
+						d="M6.99972 0.301388L13.3389 6.64054L11.9247 8.05469L6.99972 3.10469L2.07472 8.02969L0.660568 6.61554L6.99972 0.301388Z"/>
 			<path v-else
-				  d="M7.00028 8.70057L0.661133 2.36142L2.07528 0.947266L7.00028 5.89727L11.9253 0.972268L13.3394 2.38642L7.00028 8.70057Z"/>
+						d="M7.00028 8.70057L0.661133 2.36142L2.07528 0.947266L7.00028 5.89727L11.9253 0.972268L13.3394 2.38642L7.00028 8.70057Z"/>
 		</svg>
 	</button>
 
@@ -53,17 +52,17 @@
 			{{ hiddenInput('clearNotices', 'Yes, please!') }}
 			<p id="couponCodeDesc" class="sr-only">
 				{{ cart.couponCode|default ?
-				('Coupon Code'|t('foster-checkout') ~ ': ' ~ cart.couponCode) :
+				('Coupon code'|t('foster-checkout') ~ ': ' ~ cart.couponCode) :
 				'Submit a coupon code to get a discount on your order.'|t('foster-checkout') }}
 			</p>
 			{% include 'foster-checkout/_components/base/input-text-clearable' with {
-				label: 'Coupon Code'|t('foster-checkout'),
+				label: 'Coupon code'|t('foster-checkout'),
 				hideLabel: true,
 				id: 'couponCode',
 				name: 'couponCode',
 				type: 'text',
 				autocomplete: 'off',
-				placeholder: 'Enter Coupon Code'|t('foster-checkout'),
+				placeholder: 'Enter coupon code'|t('foster-checkout'),
 				errors: couponCodeError ? [couponMessage] : [],
 				success: cart.couponCode and couponMessage ? [couponMessage] : [],
 				value: cart.couponCode,
@@ -74,9 +73,15 @@
 				class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-xl"
 				:disabled="sending"
 			>
-				<svg v-show="sending" aria-hidden="true" role="status" class="inline-block w-4 h-4 me-3 text-gray-200 animate-spin dark:text-gray-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-					<path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-					<path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="#ffffff"/>
+				<svg v-show="sending" aria-hidden="true" role="status"
+						 class="inline-block w-4 h-4 me-3 text-gray-200 animate-spin dark:text-gray-600" viewBox="0 0 100 101"
+						 fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path
+						d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+						fill="currentColor"/>
+					<path
+						d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+						fill="#ffffff"/>
 				</svg>
 				<span class="inline-block">{{ 'Submit'|t('foster-checkout') }}</span>
 			</button>

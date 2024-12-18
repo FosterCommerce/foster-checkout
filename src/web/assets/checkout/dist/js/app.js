@@ -81,6 +81,20 @@ const Payment = (props) => {
 	}
 };
 
+const debounce = (wait, callback) => {
+	let timeoutId = null;
+
+	return function (...args) {
+		window.clearTimeout(timeoutId);
+
+		function execFn() {
+			callback.apply(this, ...args);
+		}
+
+		timeoutId = window.setTimeout(() => execFn.apply(this), wait);
+	};
+};
+
 const LineItem = (props) => {
 	return {
 		id: props.lineItemId,
@@ -95,10 +109,12 @@ const LineItem = (props) => {
 		showErrorStockMessage: props.showErrorStockMessage,
 		action: '',
 		sending: false,
-		input() {
+		input: debounce(700, function () {
 			this.qty = this.qty.replace(/\D/g, '');
-			this.updateQty();
-		},
+			if(this.qty) {
+				this.updateQty();
+			}
+		}),
 		increment() {
 			this.removeMessages();
 			this.qty++;

@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
-	<meta	name="robots" content="noindex, nofollow" />
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+	<meta name="robots" content="noindex, nofollow"/>
 
-	{% if cart is not defined %}
-		{% set cart = craft.commerce.carts.cart %}
-	{% endif %}
+	{% set cart = cart is not defined ? craft.commerce.carts.cart : cart %}
 
 	{% if
 		(craft.app.request.getSegment(1) != craft.fostercheckout.settings.paths.cart and craft.app.request.getSegment(-1) != 'order' and cart.lineItems|length == 0)

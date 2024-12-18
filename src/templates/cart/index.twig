@@ -1,7 +1,8 @@
 {% extends 'foster-checkout/_layouts/default' %}
 
 {% block head %}
-	<title>{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }} | {{ 'Cart'|t('foster-checkout') }}</title>
+	<title>{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }}
+		| {{ 'Cart'|t('foster-checkout') }}</title>
 {% endblock %}
 
 {% block body %}
@@ -30,7 +31,7 @@
 							{{ actionInput('commerce/cart/forget-cart') }}
 							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.cart)) }}
 							<button type="submit"
-									class="font-medium text-[var(--brandColor)]">{{ 'Clear the cart'|t('foster-checkout') }}</button>
+											class="font-medium text-[var(--brandColor)]">{{ 'Clear the cart'|t('foster-checkout') }}</button>
 						</form>
 					</header>
 
@@ -62,7 +63,7 @@
 						couponCode: '121212'
 					} %}
 					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}"
-					   class="hidden w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
+						 class="hidden w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
 					>
 						{{ 'Checkout'|t('foster-checkout') }}
 					</a>
@@ -116,8 +117,13 @@
 
 	{% if cart.lineItems|length > 0 %}
 		<div class="p-4 bg-gray-200 sm:p-6">
+<<<<<<< HEAD
 			<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}"
 			   class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+=======
+			<a href="{{ craft.fostercheckout.getPath('checkout') }}"
+				 class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+>>>>>>> main
 			>
 				{{ 'Checkout'|t('foster-checkout') }}
 			</a>
