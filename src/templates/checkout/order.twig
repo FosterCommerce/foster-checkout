@@ -122,8 +122,8 @@
 			</div>
 
 			{% if craft.fostercheckout.settings.options.enableMadeAMistake %}
-				{% set mistakeHeading = craft.checkout.note('mistakeHeading') %}
-				{% set mistakeText = craft.checkout.note('mistakeText') %}
+				{% set mistakeHeading = craft.fostercheckout.note('mistakeHeading') %}
+				{% set mistakeText = craft.fostercheckout.note('mistakeText') %}
 				<div class="hidden lg:block">
 					{% if mistakeHeading %}
 						<h3 class="font-semibold text-2xl">{{ mistakeHeading }}</h3>
