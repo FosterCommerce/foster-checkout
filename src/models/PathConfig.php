@@ -20,4 +20,10 @@ class PathConfig extends Model
 	 * The path the user should be taken to if they cancel the checkout process
 	 */
 	public string $cancel = '/';
+
+	/**
+	 * The path the user should be taken to if they click the logo
+	 * (ex. '/')
+	 */
+	public string $logo = '/';
 }
