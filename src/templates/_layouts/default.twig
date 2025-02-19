@@ -10,8 +10,7 @@
 
 	{% if
 		(craft.app.request.getSegment(1) != craft.fostercheckout.settings.paths.cart and craft.app.request.getSegment(-1) != 'order' and cart.lineItems|length == 0)
-		or (craft.app.request.getSegment(-1) == 'order' and craft.app.request.getParam('number') == null)
-	%}
+		or (craft.app.request.getSegment(-1) == 'order' and craft.app.request.getParam('number') == null) %}
 		{% redirect siteUrl(craft.fostercheckout.settings.paths.cart) %}
 	{% endif %}
 
@@ -52,15 +51,15 @@
 						}
 					},
 					{% if craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
-						borderRadius: {
-							'xs' : 0,
-							'sm' : 0,
-							DEFAULT: '0',
-							'md': 0,
-							'lg': 0,
-							'xl': 0,
-							'2xl': 0
-						}
+					borderRadius: {
+						'xs': 0,
+						'sm': 0,
+						DEFAULT: '0',
+						'md': 0,
+						'lg': 0,
+						'xl': 0,
+						'2xl': 0
+					}
 					{% endif %}
 				}
 			}
@@ -70,13 +69,15 @@
 		[v-cloak] {
 			opacity: 0;
 		}
+
 		{% if craft.fostercheckout.settings.options.enablePageTransitions %}
-			@view-transition {
-				navigation: auto;
-			}
-			::view-transition-group(root) {
-				animation-duration: 0.5s;
-			}
+		@view-transition {
+			navigation: auto;
+		}
+		::view-transition-group(root) {
+			animation-duration: 0.5s;
+		}
+
 		{% endif %}
 	</style>
 	<style type="text/tailwindcss">

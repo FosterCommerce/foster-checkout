@@ -44,8 +44,7 @@
 
 		{% include 'foster-checkout/_components/app/coupon-code' %}
 
-		{% if craft.giftVoucher is defined %}
-
+		{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
 			{# Check for applied / redeemed gift card vouchers in orders #}
 
 			{% set voucherCodes  = craft.giftVoucher.getVoucherCodes() %}

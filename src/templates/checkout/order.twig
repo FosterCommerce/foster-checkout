@@ -68,7 +68,7 @@
 						</div>
 					{% endif %}
 
-					{% if craft.giftVoucher is defined %}
+					{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
 						{# Check for applied / redeemed gift card vouchers in orders #}
 
 						{% if order.orderAdjustments|length >= 1 %}

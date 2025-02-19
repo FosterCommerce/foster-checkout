@@ -57,7 +57,8 @@
 			</main>
 
 			<aside>
-				<div class="lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+				<div
+					class="lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 					{% include 'foster-checkout/_components/app/summary-cart' with {
 						postalCode: '90210',
 						couponCode: '121212'
@@ -118,7 +119,7 @@
 	{% if cart.lineItems|length > 0 %}
 		<div class="p-4 bg-gray-200 sm:p-6">
 			<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}"
-			   class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+				 class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 			>
 				{{ 'Checkout'|t('foster-checkout') }}
 			</a>
