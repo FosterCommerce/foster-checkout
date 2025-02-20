@@ -57,6 +57,9 @@
 				<h3 class="font-semibold">{{ lineItem.description }}</h3>
 				<p class="mt-3 text-sm uppercase text-gray-500 break-all">{{ 'SKU'|t('foster-checkout') }}
 					: {{ lineItem.sku }}</p>
+				{% for adjustment in lineItem.getAdjustments() %}
+					<p class="mt-3 text-sm uppercase text-gray-500">{{ adjustment.name }}: {{ adjustment.amount|commerceCurrency }} each</p>
+				{% endfor %}
 				{% if lineItem.purchasable.onPromotion %}
 					<p class="mt-3 text-sm uppercase text-gray-500">
 						<del
