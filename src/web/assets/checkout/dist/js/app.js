@@ -102,7 +102,6 @@ const LineItem = (props) => {
 		min: props.min,
 		max: props.max,
 		stock: props.stock,
-		lineSubtotal: props.lineSubtotal,
 		unlimitedStock: props.unlimitedStock,
 		showErrorMaxMessage: props.showErrorMaxMessage,
 		showErrorMinMessage: props.showErrorMinMessage,
@@ -209,10 +208,6 @@ const LineItem = (props) => {
 					.then(data => {
 						// TEMP: Reloading here to refresh the cart page instead of updating the data via ajax
 						location.reload();
-						/*
-					 let item = data.cart.lineItems.filter((lineItem) => lineItem.id === props.id)
-					 this.lineSubtotal = item[0].subtotalAsCurrency;
-					 */
 					})
 					.catch(error => {
 						console.error('Error:', error);
