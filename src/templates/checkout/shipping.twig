@@ -49,7 +49,7 @@
 
 						{{ csrfInput() }}
 						{{ actionInput('commerce/cart/update-cart') }}
-						
+
 						{% if cart.availableShippingMethodOptions|length >= 1 %}
 							{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/payment') }}
 						{% else %}
@@ -126,6 +126,17 @@
 							</button>
 						</div>
 
+						<div class="lg:hidden mt-4 grid grid-cols-1 gap-4 p-4 bg-gray-200 sm:p-6">
+
+							<button
+								type="submit"
+								class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+							>
+								{{ 'Next Step'|t('foster-checkout') }}
+							</button>
+
+						</div>
+
 					</form>
 
 					{% include 'foster-checkout/_components/app/steps-uncompleted' with {
@@ -183,7 +194,7 @@
 {% block mobileFooter %}
 
 	{% if cart.lineItems|length > 0 %}
-		<div class="grid grid-cols-1 gap-4 p-4 bg-gray-200 sm:p-6">
+		<div class="hidden grid grid-cols-1 gap-4 p-4 bg-gray-200 sm:p-6">
 			<a
 				href="#"
 				class="block w-full px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
