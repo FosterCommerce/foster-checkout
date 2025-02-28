@@ -55,8 +55,7 @@
 
 			<div class="md:pr-4">
 				<h3 class="font-semibold">{{ lineItem.description }}</h3>
-				<p class="text-sm uppercase text-gray-500 break-all">{{ 'SKU'|t('foster-checkout') }}: 
-					{{ lineItem.sku }}</p>
+				<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.sku }}</p>
 				{% for adjustment in lineItem.getAdjustments() %}
 					{% set value = adjustment.name ~ ': ' %}
 					{% if adjustment.description|trim|length > 0 %}
