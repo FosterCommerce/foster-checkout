@@ -2,12 +2,10 @@
 {% set maxQty = lineItem.purchasable.maxQty %}
 {% set stock = lineItem.purchasable.stock %}
 {% set unlimitedStock = lineItem.purchasable.hasUnlimitedStock ? 1 : 0 %}
-{% set lineSubtotal = lineItem.subtotalAsCurrency() %}
-
 
 {% set imageUrl = null %}
 {% set imageSrcSet = null %}
-{% set previewImage = craft.checkout.lineItemImage(lineItem) %}
+{% set previewImage = craft.fostercheckout.lineItemImage(lineItem) %}
 {% if previewImage|default %}
 	{% set preview = {
 		mode: 'crop',
@@ -28,7 +26,6 @@
 		max: {{ maxQty ?? 0 }},
 		stock: {{ stock }},
 		unlimitedStock: {{ unlimitedStock }},
-		lineSubtotal: '{{ lineSubtotal }}',
 		showErrorMaxMessage: false,
 		showErrorMinMessage: false,
 		showErrorStockMessage: false
@@ -36,7 +33,7 @@
 	class="flex justify-between items-stretch gap-5 p-5 bg-gray-200 rounded-xl"
 >
 
-	{% if imageUrl or craft.checkout.options.enablePlaceholderImages %}
+	{% if imageUrl or craft.fostercheckout.settings.options.enablePlaceholderImages %}
 		<div class="w-[80px] min-w-[80px] max-w-[80px] md:w-[200px] md:min-w-[200px] md:max-w-[200px] flex-grow">
 			<figure class="rounded-lg overflow-hidden min-w-full">
 				<img
@@ -60,6 +57,15 @@
 				<h3 class="font-semibold">{{ lineItem.description }}</h3>
 				<p class="mt-3 text-sm uppercase text-gray-500 break-all">{{ 'SKU'|t('foster-checkout') }}
 					: {{ lineItem.sku }}</p>
+				{% for adjustment in lineItem.getAdjustments() %}
+					{% set value = adjustment.name ~ ': ' %}
+					{% if adjustment.description|trim|length > 0 %}
+						{% set value = value ~ adjustment.description ~ ' (' ~ adjustment.amount|commerceCurrency ~ ' each)' %}
+					{% else %}
+						{% set value = value ~ adjustment.amount|commerceCurrency ~ ' each' %}
+					{% endif %}
+					<p class="mt-3 text-sm uppercase text-gray-500">{{ value }}</p>
+				{% endfor %}
 				{% if lineItem.purchasable.onPromotion %}
 					<p class="mt-3 text-sm uppercase text-gray-500">
 						<del
@@ -88,7 +94,7 @@
                 <span class="sr-only">{{ 'Remove from cart'|t('foster-checkout') }}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="20" viewBox="0 0 18 20" class="fill-current">
                   <path
-										d="M3.47723 19.1494C3.0156 19.1494 2.61532 18.9806 2.27638 18.6428C1.93745 18.305 1.76798 17.9062 1.76798 17.4462V3.29781H0.641357V1.59454H5.59843V0.736938H12.3957V1.59454H17.3588V3.29781H16.2321V17.4462C16.2321 17.9062 16.0627 18.305 15.7237 18.6428C15.3848 18.9806 14.9845 19.1494 14.5229 19.1494H3.47723ZM6.09733 15.344H7.69898V5.36901H6.09733V15.344ZM10.3011 15.344H11.9088V5.36901H10.3011V15.344Z"/>
+					  d="M3.47723 19.1494C3.0156 19.1494 2.61532 18.9806 2.27638 18.6428C1.93745 18.305 1.76798 17.9062 1.76798 17.4462V3.29781H0.641357V1.59454H5.59843V0.736938H12.3957V1.59454H17.3588V3.29781H16.2321V17.4462C16.2321 17.9062 16.0627 18.305 15.7237 18.6428C15.3848 18.9806 14.9845 19.1494 14.5229 19.1494H3.47723ZM6.09733 15.344H7.69898V5.36901H6.09733V15.344ZM10.3011 15.344H11.9088V5.36901H10.3011V15.344Z"/>
                 </svg>
               </span>
 							<span v-else>
@@ -121,7 +127,7 @@
 						>
 							<span class="sr-only">{{ 'Increment quantity'|t('foster-checkout') }}</span>
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"
-									 class="fill-current">
+								 class="fill-current">
 								<path
 									d="M7.14841 8.85162H0.850586V7.14837H7.14841V0.844543H8.85166V7.14837H15.1555V8.85162H8.85166V15.1494H7.14841V8.85162Z"/>
 							</svg>
@@ -131,7 +137,7 @@
 
 					<p v-cloak v-show="sending" class="inline-flex justify-center items-center gap-1 text-sm text-gray-500">
 						<svg aria-hidden="true" role="status" class="inline-block w-4 h-4 me-3 text-gray-300 animate-spin"
-								 viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+							 viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
 							<path
 								d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
 								fill="currentColor"/>
@@ -156,26 +162,26 @@
 
 					<div class="relative w-full w-full">
 						<p class="text-red-700 text-sm text-right absolute top-[100%] w-full" v-if="showErrorMinMessage"
-							 v-cloak>{{ 'You must purchase at least {qty} of this item' | t('foster-checkout', params = { qty: minQty }) }}</p>
+						   v-cloak>{{ 'You must purchase at least {qty} of this item' | t('foster-checkout', params = { qty: minQty }) }}</p>
 
 						<p class="text-red-700 text-sm text-right absolute top-[100%] w-full" v-if="showErrorMaxMessage"
-							 v-cloak>{{ 'You may only purchase {qty} of this item' | t('foster-checkout', params = { qty: maxQty}) }}</p>
+						   v-cloak>{{ 'You may only purchase {qty} of this item' | t('foster-checkout', params = { qty: maxQty}) }}</p>
 
 						<p class="text-red-700 text-sm text-right absolute top-[100%] w-full"
-							 v-if="showErrorStockMessage"
-							 v-cloak>{{ 'Only {qty} in stock' | t('foster-checkout', params = { qty: stock }) }}</p>
+						   v-if="showErrorStockMessage"
+						   v-cloak>{{ 'Only {qty} in stock' | t('foster-checkout', params = { qty: stock }) }}</p>
 					</div>
 				</form>
 
 				<div class="mt-3 md:mt-0">
-					{% if lineItem.onPromotion or lineItem.discount or lineItem.purchasable.onPromotion %}
-						<p class="mt-1 text-sm text-gray-600 line-through"><span
-								v-text="lineSubtotal">{{ lineItem.subtotalAsCurrency() }}</span></p>
+					{% set priceDifference = lineItem.total - lineItem.subTotal %}
+					{% if priceDifference < 0.0 %}
+						<p class="mt-1 text-sm text-gray-600 line-through"><span>{{ lineItem.subtotalAsCurrency() }}</span></p>
 						<p
-							class="font-semibold">{{ (lineItem.subtotal + lineItem.adjustmentsTotal)|commerceCurrency(cart.paymentCurrency) }}</p>
-
+							class="font-semibold">{{ lineItem.totalAsCurrency() }}</p>
 					{% else %}
-						<p class="font-semibold"><span v-text="lineSubtotal">{{ lineItem.subtotalAsCurrency() }}</span>
+						{# Total is unchanged or its higher than the subtotal #}
+						<p class="font-semibold"><span>{{ lineItem.totalAsCurrency() }}</span>
 						</p>
 					{% endif %}
 				</div>
@@ -196,11 +202,11 @@
 			<div
 				class="flex flex-col justify-between items-start gap-2 sm:flex-row sm:justify-start sm:items-center sm:gap-8">
 
-				{% if craft.fostercheckout.getOption('enableSaveForLater') %}
+				{% if craft.fostercheckout.settings.options.enableSaveForLater %}
 					<button
 						class="inline-flex justify-start items-center gap-2 text-sm underline text-gray-500 hover:no-underline hover:text-gray-700">
 						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"
-								 class="fill-current">
+							 class="fill-current">
 							<path
 								d="M6.99605 13.1188L6.24497 12.4424C5.05921 11.3566 4.08101 10.4194 3.31035 9.63079C2.53971 8.84215 1.92528 8.13683 1.46707 7.51484C1.00885 6.89286 0.68807 6.32855 0.504736 5.82191C0.321403 5.31526 0.229736 4.8024 0.229736 4.28333C0.229736 3.2541 0.575147 2.39341 1.26597 1.70126C1.95679 1.0091 2.81126 0.663025 3.82939 0.663025C4.46006 0.663025 5.04418 0.809042 5.58174 1.10108C6.1193 1.39311 6.59074 1.81714 6.99605 2.37318C7.46803 1.78381 7.9638 1.35144 8.48337 1.07608C9.00294 0.800709 9.56272 0.663025 10.1627 0.663025C11.1835 0.663025 12.0399 1.0091 12.7321 1.70126C13.4243 2.39341 13.7703 3.2541 13.7703 4.28333C13.7703 4.8024 13.6787 5.3146 13.4953 5.81993C13.312 6.32524 12.9912 6.88888 12.533 7.51086C12.0748 8.13284 11.4597 8.83881 10.6877 9.62879C9.91574 10.4188 8.93688 11.3566 7.75112 12.4424L6.99605 13.1188Z"
 								fill="#6B7280"/>
@@ -216,7 +222,7 @@
 					@click="remove"
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" width="12" height="14" viewBox="0 0 12 14"
-							 class="fill-current">
+						 class="fill-current">
 						<path
 							d="M2.31807 13.0996C2.01032 13.0996 1.74346 12.9871 1.51751 12.7619C1.29155 12.5367 1.17857 12.2708 1.17857 11.9641V2.5319H0.42749V1.39638H3.73221V0.824646H8.26372V1.39638H11.5724V2.5319H10.8213V11.9641C10.8213 12.2708 10.7084 12.5367 10.4824 12.7619C10.2565 12.9871 9.9896 13.0996 9.68184 13.0996H2.31807ZM4.06481 10.5627H5.13257V3.9127H4.06481V10.5627ZM6.86734 10.5627H7.93909V3.9127H6.86734V10.5627Z"
 							fill="#6B7280"/>

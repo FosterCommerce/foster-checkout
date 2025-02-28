@@ -6,7 +6,7 @@
 
 {% block head %}
 	<title>
-		{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }} |
+		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }} |
 		{{ 'Checkout'|t('foster-checkout') }} : {{ 'Order'|t('foster-checkout') }}
 	</title>
 {% endblock %}
@@ -68,7 +68,7 @@
 						</div>
 					{% endif %}
 
-					{% if craft.giftVoucher is defined %}
+					{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
 						{# Check for applied / redeemed gift card vouchers in orders #}
 
 						{% if order.orderAdjustments|length >= 1 %}
@@ -105,14 +105,14 @@
 
 				<div class="flex justify-end items-center gap-6 mt-9 lg:mt-12">
 					<a
-						href="{{ siteUrl(craft.fostercheckout.getPath('cancel')) }}"
+						href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
 						class="inline-block min-w-[180px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 					>
 						{{ 'Continue Shopping'|t('foster-checkout') }}
 					</a>
 				</div>
 
-				{% set note = craft.checkout.note('order') %}
+				{% set note = craft.fostercheckout.note('order') %}
 				{% if note %}
 					<div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6">
 						{{ note|raw }}
@@ -121,9 +121,9 @@
 
 			</div>
 
-			{% if craft.fostercheckout.getOption('enableMadeAMistake') %}
-				{% set mistakeHeading = craft.checkout.note('mistakeHeading') %}
-				{% set mistakeText = craft.checkout.note('mistakeText') %}
+			{% if craft.fostercheckout.settings.options.enableMadeAMistake %}
+				{% set mistakeHeading = craft.fostercheckout.note('mistakeHeading') %}
+				{% set mistakeText = craft.fostercheckout.note('mistakeText') %}
 				<div class="hidden lg:block">
 					{% if mistakeHeading %}
 						<h3 class="font-semibold text-2xl">{{ mistakeHeading }}</h3>
@@ -139,7 +139,7 @@
 
 		<aside>
 			<div
-				class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl {{ craft.checkout.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+				class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 
 				<div class="grid grid-cols-1 gap-6">
 

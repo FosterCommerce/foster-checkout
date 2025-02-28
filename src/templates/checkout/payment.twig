@@ -2,14 +2,14 @@
 
 {% block head %}
 	<title>
-		{{ craft.checkout.branding.title ? craft.checkout.branding.title : siteName }} |
+		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }} |
 		{{ 'Checkout'|t('foster-checkout') }} : {{ 'Payment'|t('foster-checkout') }}
 	</title>
 {% endblock %}
 
 {% block body %}
 	{% set gateways = craft.commerce.gateways.getAllCustomerEnabledGateways %}
-	{% set addresses =  currentUser ? (currentUser.addresses.all() ?? null) : null %}
+	{% set addresses = currentUser ? (currentUser.addresses.all() ?? null) : null %}
 
 	<div
 		class="mt-10 pb-28 lg:mt-20 lg:pb-32"
@@ -67,7 +67,7 @@
 									{# Address book #}
 									<form method="post" id="addressBookForm">
 										{{ csrfInput() }}
-										{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/shipping') }}
+										{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/shipping') }}
 										<div v-if="editAddress <= 1">
 											{{ actionInput('commerce/cart/update-cart') }}
 										</div>
@@ -180,14 +180,14 @@
 																	@click="editAddress = 0">
 														{{ 'Cancel'|t('foster-checkout') }}
 													</button>
+												</div>
 											</form>
 										</div>
 									</div>
 								</div>
 							</div>
 
-							{% if craft.giftVoucher is defined %}
-
+							{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
 								<div class="my-6" v-scope="{ sending: false }">
 
 									<h3 class="px-4 mb-4 font-semibold xl:px-0">
@@ -197,7 +197,7 @@
 									{% set voucherCodeError = cart.getFirstError('voucherCode') ?? null %}
 
 									{# If there are no gift voucher code errors #}
-									{% set voucherCodeSuccess =  craft.app.session.getFlash('success') ?? null %} {# Not working for now #}
+									{% set voucherCodeSuccess = craft.app.session.getFlash('success') ?? null %} {# Not working for now #}
 
 									{% if voucherCodeError %}
 										{% set voucherMessage = voucherCodeError %}
@@ -265,7 +265,8 @@
 											{% set appliedAmount = estimatedTotal < currentAmount ? estimatedTotal : currentAmount %}
 											<div class="flex justify-between items-center">
 												<p class="text-gray-500">
-													{{ 'Gift cards currently applied to your order'|t('foster-checkout') }}: {{ voucherCodes[0] }} ({{ appliedAmount | currency }})</p>
+													{{ 'Gift cards currently applied to your order'|t('foster-checkout') }}: {{ voucherCodes[0] }}
+													({{ appliedAmount | currency }})</p>
 											</div>
 										{% endif %}
 
@@ -279,7 +280,7 @@
 										<ul class="text-gray-500 m-0 list-disc">
 											{% for code in voucherCodes %}
 												{% set voucherCurrentAmount = craft.giftVoucher.codes().codeKey(code).one().currentAmount %}
-												{% set estimatedTotal =  cart.storedItemTotal + cart.storedTotalShippingCost + cart.totalTax %}
+												{% set estimatedTotal = cart.storedItemTotal + cart.storedTotalShippingCost + cart.totalTax %}
 												{% if estimatedTotal - voucherCurrentAmount > 0 %}
 													{% set voucherAmountApplied = voucherAmountApplied + voucherCurrentAmount %}
 													{% set appliedAmount = (cart.storedItemTotal - voucherAmountApplied) <= 0 ? voucherAmountApplied - cart.storedItemTotal : voucherCurrentAmount %}
@@ -317,12 +318,12 @@
 												<form method="POST" id="paymentForm">
 													{{ csrfInput() }}
 													{{ actionInput('commerce/payments/pay') }}
-													{{ redirectInput(craft.fostercheckout.getPath('checkout') ~ '/order') }}
-													{{ redirectInput(siteUrl(craft.fostercheckout.getPath('checkout') ~ '/order', {
+													{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order')) }}
+													{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order', {
 														number: cart.number,
 														success: 'true'
 													})) }}
-													{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.getPath('checkout') ~ '/payment')|hash) }}
+													{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
 													{{ hiddenInput('orderEmail', cart.email) }}
 
 													<input type="hidden" v-model="gatewayId"/>
@@ -340,11 +341,11 @@
 															order: cart,
 															paymentFormType: 'elements',
 															appearance: {
-																theme: craft.checkout.branding.style|default('rounded') == 'flat' ? 'flat' : 'stripe',
+																theme: craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'flat' : 'stripe',
 																labels: 'floating',
 																variables: {
-																	colorPrimary: craft.checkout.branding.color ?? '#1F2937',
-																	borderRadius: craft.checkout.branding.style|default('rounded') == 'flat' ? '0px' : '6px',
+																	colorPrimary: craft.fostercheckout.settings.branding.color ?? '#1F2937',
+																	borderRadius: craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? '0px' : '6px',
 																	gridColumnSpacing: '24px',
 																	gridRowSpacing: '24px',
 																	tabSpacing: '12px',
@@ -380,7 +381,7 @@
 
 					</div>
 				</div>
-				{% set note = craft.checkout.note('payment') %}
+				{% set note = craft.fostercheckout.note('payment') %}
 				{% if note %}
 					<div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6">
 						{{ note|raw }}
@@ -391,7 +392,7 @@
 			<aside>
 
 				<div
-					class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl {{ craft.checkout.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+					class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 
 					<div class="grid grid-cols-1 gap-6">
 
@@ -399,7 +400,7 @@
 							<h2 class="text-xl font-bold text-gray-800 leading-snug">
 								{{ 'Item(s)'|t('foster-checkout') }}
 							</h2>
-							<a href="{{ craft.fostercheckout.getPath('cart') }}"
+							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
 								 class="inline-block text-[var(--brandColor)] underline">
 								{{ 'Edit'|t('foster-checkout') }}
 							</a>
