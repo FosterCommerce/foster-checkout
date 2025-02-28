@@ -10,8 +10,7 @@
 		]
 	) %}
 	<p>
-		<span class="font-bold block">{{ address.fullName }}</span>
-		<span class="block">{{ address|address({ }, customFormatter) }}</span>
+		<span class="block">{{ address.fullName }}, {{ address|address({ }, customFormatter) }}</span>
 	</p>
 {% else %}
 	<p>No address to display</p>
