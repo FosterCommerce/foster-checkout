@@ -59,25 +59,25 @@
 						</dd>
 					</div>
 					{% if order.shippingMethod %}
-					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
-						<dt class="font-semibold">{{ 'Method'|t('foster-checkout') }}</dt>
-						<dd>
-							<p>{{ order.shippingMethod.name }} {{ order.totalShippingCostAsCurrency }}</p>
-							<p>{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, order.shippingMethod).getDescription() ?? '' }}</p>
-						</dd>
-					</div>
+						<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
+							<dt class="font-semibold">{{ 'Method'|t('foster-checkout') }}</dt>
+							<dd>
+								<p>{{ order.shippingMethod.name }} {{ order.totalShippingCostAsCurrency }}</p>
+								<p>{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, order.shippingMethod).getDescription() ?? '' }}</p>
+							</dd>
+						</div>
 					{% endif %}
 
 					{% if craft.giftVoucher is defined %}
 						{# Check for applied / redeemed gift card vouchers in orders #}
 
 						{% if order.orderAdjustments|length >= 1 %}
-							{# 
-								We currently only have access to the redeemed gift card vouchers code using order.orderAdjustments[0].description
-								which appears in the form "Gift Voucher discount using code MTLYZKVDAQ"
-								In order to get the code, we'll have to split the description string using 'code ' as its delimeter
+							{#
+							We currently only have access to the redeemed gift card vouchers code using order.orderAdjustments[0].description
+							which appears in the form "Gift Voucher discount using code MTLYZKVDAQ"
+							In order to get the code, we'll have to split the description string using 'code ' as its delimeter
 							#}
-							
+
 							<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
 								<dt class="font-semibold">{{ 'Gift card applied'|t('foster-checkout') }}</dt>
 								<dd>
@@ -122,18 +122,18 @@
 			</div>
 
 			{% if craft.fostercheckout.getOption('enableMadeAMistake') %}
-			{% set mistakeHeading = craft.checkout.note('mistakeHeading') %}
-			{% set mistakeText = craft.checkout.note('mistakeText') %}
-			<div class="hidden lg:block">
-				{% if mistakeHeading %}
-				<h3 class="font-semibold text-2xl">{{ mistakeHeading }}</h3>
-				{% endif %}
-				{% if mistakeText %}
-				<div class="mt-6 space-y-2 text-gray-500">
-					{{ mistakeText | raw }}
+				{% set mistakeHeading = craft.checkout.note('mistakeHeading') %}
+				{% set mistakeText = craft.checkout.note('mistakeText') %}
+				<div class="hidden lg:block">
+					{% if mistakeHeading %}
+						<h3 class="font-semibold text-2xl">{{ mistakeHeading }}</h3>
+					{% endif %}
+					{% if mistakeText %}
+						<div class="mt-6 space-y-2 text-gray-500">
+							{{ mistakeText | raw }}
+						</div>
+					{% endif %}
 				</div>
-				{% endif %}
-			</div>
 			{% endif %}
 		</main>
 

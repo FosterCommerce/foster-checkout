@@ -11,8 +11,10 @@
 	{% set gateways = craft.commerce.gateways.getAllCustomerEnabledGateways %}
 	{% set addresses =  currentUser ? (currentUser.addresses.all() ?? null) : null %}
 
-	<div class="mt-10 pb-28 lg:mt-20 lg:pb-32"
-		 v-scope="Payment({ gatewayId: {{ cart.gatewayId ? cart.gatewayId : 1 }}, billingSameAsShipping: {{ cart.hasMatchingAddresses() ? 1 : 0 }}, addressBookBillingAddress: 0, newBillingAddress: {{ (cart.hasMatchingAddresses() or cart.sourceBillingAddressId is not null) ? 0 : 1 }}, billingAddressId: {{ cart.hasMatchingAddresses() ? 'null' : (cart.sourceBillingAddressId ?? cart.shippingAddressId ?? 'null')}}, editAddress: {{ (cart.sourceBillingAddressId == null and cart.billingAddressId != null) or currentUser == null ? 1 : 0 }} })">
+	<div
+		class="mt-10 pb-28 lg:mt-20 lg:pb-32"
+		v-scope="Payment({ gatewayId: {{ cart.gatewayId ? cart.gatewayId : 1 }}, billingSameAsShipping: {{ cart.hasMatchingAddresses() ? 1 : 0 }}, addressBookBillingAddress: 0, newBillingAddress: {{ (cart.hasMatchingAddresses() or cart.sourceBillingAddressId is not null) ? 0 : 1 }}, billingAddressId: {{ cart.hasMatchingAddresses() ? 'null' : (cart.sourceBillingAddressId ?? cart.shippingAddressId ?? 'null') }}, editAddress: {{ (cart.sourceBillingAddressId == null and cart.billingAddressId != null) or currentUser == null ? 1 : 0 }} })"
+	>
 
 		<h1 class="mb-12 font-medium text-3xl">{{ 'Checkout'|t('foster-checkout') }}</h1>
 
@@ -46,14 +48,14 @@
 										<div class="p-4" :class="{ 'bg-gray-100': parseInt(billingSameAsShipping) === 1 }">
 											<div class="radio">
 												<input v-model="billingSameAsShipping" id="billingSameAsShipping_1"
-														 name="billingAddressSameAsShipping" type="radio" class="sr-only"
-														 value="1"
-														 @change="selectSameAsShipping()"/>
+															 name="billingAddressSameAsShipping" type="radio" class="sr-only"
+															 value="1"
+															 @change="selectSameAsShipping()"/>
 												<label for="billingSameAsShipping_1"
-														 class="flex justify-start items-center gap-4 cursor-pointer">
+															 class="flex justify-start items-center gap-4 cursor-pointer">
 													<span class="block">
 														<span class="block"
-																:class="{ 'font-medium text-black': parseInt(billingSameAsShipping) === 1 }">{{ 'Same as shipping address'|t('foster-checkout') }}</span>
+																	:class="{ 'font-medium text-black': parseInt(billingSameAsShipping) === 1 }">{{ 'Same as shipping address'|t('foster-checkout') }}</span>
 														<span
 															class="block mt-2 text-gray-500">{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.shippingAddress} %}</span>
 													</span>
@@ -71,7 +73,7 @@
 										</div>
 										<div v-else>
 											{{ actionInput('users/save-address') }}
-											<input type="hidden" name="addressId" :value="editAddress" />
+											<input type="hidden" name="addressId" :value="editAddress"/>
 										</div>
 										{% for address in addresses %}
 											{% if address.id != cart.sourceShippingAddressId|default %}
@@ -133,14 +135,14 @@
 
 									{# New billing address #}
 									<div class="border-t border-gray-250"
-										 :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }">
+											 :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }">
 										<div class="p-4 radio">
 											<input v-model="newBillingAddress" id="newBillingAddress"
-												   type="radio" class="sr-only" value="1"
-												   @change="billingSameAsShipping = 0;addressBookBillingAddress = 0; billingAddressId = null;" />
+														 type="radio" class="sr-only" value="1"
+														 @change="billingSameAsShipping = 0;addressBookBillingAddress = 0; billingAddressId = null;"/>
 											<label for="newBillingAddress"
-												   class="inline-flex justify-start items-center gap-4 cursor-pointer"
-												   :class="{ 'font-medium text-black': parseInt(newBillingAddress) === 1 }">
+														 class="inline-flex justify-start items-center gap-4 cursor-pointer"
+														 :class="{ 'font-medium text-black': parseInt(newBillingAddress) === 1 }">
 												{{ 'Use a different billing address'|t('foster-checkout') }}
 											</label>
 										</div>
@@ -156,8 +158,8 @@
 
 												<div class="mt-4 p4 checkbox">
 													<input type="checkbox" class="sr-only"
-														   id="saveBillingAddressOnOrderComplete"
-														   name="saveBillingAddressOnOrderComplete" value="1"/>
+																 id="saveBillingAddressOnOrderComplete"
+																 name="saveBillingAddressOnOrderComplete" value="1"/>
 													<label
 														class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
 														for="saveBillingAddressOnOrderComplete">{{ 'Save to address book'|t('foster-checkout') }}</label>
@@ -166,7 +168,7 @@
 												<div
 													class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
 													<button type="submit"
-															class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]">
+																	class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]">
 														{% if cart.billingAddressId and cart.hasMatchingAddresses == false %}
 															{{ 'Update'|t('foster-checkout') }}
 														{% else %}
@@ -174,8 +176,8 @@
 														{% endif %}
 													</button>
 													<button type="button"
-															class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
-															@click="editAddress = 0">
+																	class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
+																	@click="editAddress = 0">
 														{{ 'Cancel'|t('foster-checkout') }}
 													</button>
 											</form>
@@ -192,7 +194,7 @@
 										{{ 'Apply gift card'|t('foster-checkout') }}
 									</h3>
 
-									{% set voucherCodeError = cart.getFirstError('voucherCode') ?? null  %}
+									{% set voucherCodeError = cart.getFirstError('voucherCode') ?? null %}
 
 									{# If there are no gift voucher code errors #}
 									{% set voucherCodeSuccess =  craft.app.session.getFlash('success') ?? null %} {# Not working for now #}
@@ -236,15 +238,20 @@
 												class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-xl"
 												:disabled="sending"
 											>
-												<svg v-show="sending" aria-hidden="true" role="status" class="inline-block w-4 h-4 me-3 text-gray-200 animate-spin dark:text-gray-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-													<path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-													<path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="#ffffff"/>
+												<svg v-show="sending" aria-hidden="true" role="status"
+														 class="inline-block w-4 h-4 me-3 text-gray-200 animate-spin dark:text-gray-600"
+														 viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+													<path
+														d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+														fill="currentColor"/>
+													<path
+														d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+														fill="#ffffff"/>
 												</svg>
 												<span class="inline-block">{{ 'Submit'|t('foster-checkout') }}</span>
 											</button>
 										</form>
 									</div>
-
 
 
 									{# Check for applied / redeemed gift card vouchers in orders #}
@@ -257,31 +264,33 @@
 											{% set estimatedTotal = cart.storedItemTotal + cart.storedTotalShippingCost + cart.totalTax %}
 											{% set appliedAmount = estimatedTotal < currentAmount ? estimatedTotal : currentAmount %}
 											<div class="flex justify-between items-center">
-												<p class="text-gray-500">{{ 'Gift cards currently applied to your order'|t('foster-checkout') }}: {{ voucherCodes[0] }} ({{ appliedAmount | currency }})</p>
+												<p class="text-gray-500">
+													{{ 'Gift cards currently applied to your order'|t('foster-checkout') }}: {{ voucherCodes[0] }} ({{ appliedAmount | currency }})</p>
 											</div>
 										{% endif %}
 
 										{# Applied gift card greater than 1 #}
 										{% if voucherCodes|length > 1 %}
-											{% set voucherAmountApplied = 0 %}
-											{% set totalVoucherAmountApplied = 0 %}
-											{% set appliedAmount = 0 %}
-											<p class="text-gray-500 m-0">{{ 'Gift cards currently applied to your order'|t('foster-checkout') }}:</p>
-											<ul class="text-gray-500 m-0 list-disc">
-												{% for code in voucherCodes %}
-													{% set voucherCurrentAmount = craft.giftVoucher.codes().codeKey(code).one().currentAmount %}
-													{% set estimatedTotal =  cart.storedItemTotal + cart.storedTotalShippingCost + cart.totalTax %}
-													{% if estimatedTotal - voucherCurrentAmount > 0 %}
-														{% set voucherAmountApplied = voucherAmountApplied + voucherCurrentAmount %}
-														{% set appliedAmount = (cart.storedItemTotal - voucherAmountApplied) <= 0 ? voucherAmountApplied - cart.storedItemTotal : voucherCurrentAmount %}
-														{% set totalVoucherAmountApplied = voucherAmountApplied %}
-													{% else %}
-														{% set appliedAmount = (totalVoucherAmountApplied - estimatedTotal)|abs %}
-													{% endif %}
-													<li class="ml-5">{{ code }} ({{ appliedAmount | currency }})</li>
-												{% endfor %}	
-											</ul>
-										</div>
+										{% set voucherAmountApplied = 0 %}
+										{% set totalVoucherAmountApplied = 0 %}
+										{% set appliedAmount = 0 %}
+										<p class="text-gray-500 m-0">
+											{{ 'Gift cards currently applied to your order'|t('foster-checkout') }}:</p>
+										<ul class="text-gray-500 m-0 list-disc">
+											{% for code in voucherCodes %}
+												{% set voucherCurrentAmount = craft.giftVoucher.codes().codeKey(code).one().currentAmount %}
+												{% set estimatedTotal =  cart.storedItemTotal + cart.storedTotalShippingCost + cart.totalTax %}
+												{% if estimatedTotal - voucherCurrentAmount > 0 %}
+													{% set voucherAmountApplied = voucherAmountApplied + voucherCurrentAmount %}
+													{% set appliedAmount = (cart.storedItemTotal - voucherAmountApplied) <= 0 ? voucherAmountApplied - cart.storedItemTotal : voucherCurrentAmount %}
+													{% set totalVoucherAmountApplied = voucherAmountApplied %}
+												{% else %}
+													{% set appliedAmount = (totalVoucherAmountApplied - estimatedTotal)|abs %}
+												{% endif %}
+												<li class="ml-5">{{ code }} ({{ appliedAmount | currency }})</li>
+											{% endfor %}
+										</ul>
+									</div>
 									{% endif %}
 								</div>
 							{% endif %}
@@ -290,19 +299,17 @@
 								class="xl:border xl:border-b-0 xl:border-gray-250 xl:mt-8 xl:rounded-lg xl:overflow-hidden">
 								{% for gateway in gateways %}
 									{% set gatewayClass = className(gateway) %}
-									{%
-										set shouldRender = cart.total == 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual'
-											or cart.total > 0 and gatewayClass != 'craft\\commerce\\gateways\\Manual'
-									%}
+									{% set shouldRender = cart.total == 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual'
+										or cart.total > 0 and gatewayClass != 'craft\\commerce\\gateways\\Manual' %}
 									{% if shouldRender %}
 										<div class="p-4 border-b border-gray-250"
-											 :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
+												 :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
 											<div class="flex justify-between items-center gap-4 radio">
 												<input id="gateway_{{ gateway.id }}" name="gatewayId" type="radio"
-														 class="sr-only" value="{{ gateway.id }}" checked
-														 @change="gatewayId = {{ gateway.id }}"/>
+															 class="sr-only" value="{{ gateway.id }}" checked
+															 @change="gatewayId = {{ gateway.id }}"/>
 												<label for="gateway_{{ gateway.id }}"
-														 class="inline-flex justify-start items-center gap-4 cursor-pointer">
+															 class="inline-flex justify-start items-center gap-4 cursor-pointer">
 													<span class="block">{{ gateway.name }}</span>
 												</label>
 											</div>
@@ -393,7 +400,7 @@
 								{{ 'Item(s)'|t('foster-checkout') }}
 							</h2>
 							<a href="{{ craft.fostercheckout.getPath('cart') }}"
-							   class="inline-block text-[var(--brandColor)] underline">
+								 class="inline-block text-[var(--brandColor)] underline">
 								{{ 'Edit'|t('foster-checkout') }}
 							</a>
 						</div>
@@ -427,20 +434,20 @@
 
 	{% block mobileFooter %}
 		{% js %}
-			var $paymentForms = document.querySelectorAll('.paymentForm');
-			if ($paymentForms.length) {
-				$paymentForms.forEach(($paymentForm) => {
-					// Only allow the payment form submit to be triggered once.
-					$paymentForm.addEventListener('submit', function(ev) {
-						if ($paymentForm.dataset.processing) {
-							ev.preventDefault();
-							return false;
-						}
+		var $paymentForms = document.querySelectorAll('.paymentForm');
+		if ($paymentForms.length) {
+			$paymentForms.forEach(($paymentForm) => {
+				// Only allow the payment form submit to be triggered once.
+				$paymentForm.addEventListener('submit', function(ev) {
+					if ($paymentForm.dataset.processing) {
+						ev.preventDefault();
+						return false;
+					}
 
-						$paymentForm.dataset.processing = true;
-					});
+					$paymentForm.dataset.processing = true;
 				});
-			}
+			});
+		}
 		{% endjs %}
 
 	{% endblock %}
