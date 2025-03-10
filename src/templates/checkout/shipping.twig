@@ -113,7 +113,7 @@
 
 						<div class="hidden lg:flex lg:justify-end lg:items-center lg:gap-6 lg:mt-10">
 							<a
-								href="#"
+								href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
 								class="block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
 							>
 								{{ 'Continue Shopping'|t('foster-checkout') }}
@@ -196,7 +196,7 @@
 	{% if cart.lineItems|length > 0 %}
 		<div class="hidden grid grid-cols-1 gap-4 p-4 bg-gray-200 sm:p-6">
 			<a
-				href="#"
+				href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
 				class="block w-full px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
 			>
 				{{ 'Continue Shopping'|t('foster-checkout') }}
