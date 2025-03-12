@@ -27,19 +27,19 @@
 				{% for handle, option in cart.availableShippingMethodOptions %}
 					{% set onlyMethod = handle %}
 				{% endfor %}
+			{% else %}
+				{% set onlyMethod = null %}
 			{% endif %}
 		{% endif %}
 	{% endif %}
 
 
-	<div class="mt-10 pb-48 lg:mt-20 lg:pb-32">
-
-		<h1 class="mb-12 font-medium text-3xl">{{ 'Checkout'|t('foster-checkout') }}</h1>
+	<div class="mt-10 pb-28 lg:pb-32">
 
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 			<main v-scope="{ shippingMethodHandle: '{{ cart.shippingMethod.handle ?? onlyMethod }}' }"
 						class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
-				<div class="grid grid-cols-1 gap-6 lg:gap-8">
+				<div class="grid grid-cols-1 gap-4 xl:gap-6">
 
 					{% include 'foster-checkout/_components/app/steps-completed' with {
 						step: 'shipping'
@@ -58,15 +58,16 @@
 
 						<div class="border border-gray-250 rounded-lg overflow-hidden">
 
-							<h2 class="p-4 font-semibold bg-gray-200 lg:px-6">
-								{{ '2. Shipping method'|t('foster-checkout') }}
+							<h2 class="p-4 font-semibold bg-gray-200">
+								{{ 'Shipping method'|t('foster-checkout') }}
 							</h2>
 
-							<div class="xl:p-6">
+							<div class="p-4">
 
-								<div
-									class="xl:border xl:border-b-0 xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
-									{% if availableShippingMethodOptions|length %}
+								{% if availableShippingMethodOptions|length %}
+
+									<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+
 										{% for handle, method in availableShippingMethodOptions %}
 											<div class="p-4 border-b border-gray-250"
 													 :class="{ 'bg-gray-100': shippingMethodHandle === '{{ method.handle }}' }">
@@ -85,55 +86,46 @@
 														for="method_{{ handle }}"
 														class="inline-flex justify-start items-center gap-4 cursor-pointer"
 													>
-                          <span class="block">
-                            <span class="block">{{ method.name }}</span>
-                            <span
+														<span class="block">
+															<span class="block">{{ method.name }}</span>
+															<span
 															class="block mt-1 text-sm text-gray-500">{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, method).getDescription() }}</span>
-                          </span>
+														</span>
 													</label>
 													<span
 														class="block font-semibold">{{ method.getPrice()|commerceCurrency(cart.currency) }}</span>
 												</div>
 											</div>
 										{% endfor %}
-									{% endif %}
+									</div>
+								{% else %}
+									<p>No shipping options available.</p>
+								{% endif %}
+
+								{% set note = craft.fostercheckout.note('shipping') %}
+								{% if note %}
+									<div class="mt-6 p-4 border border-gray-250 rounded-lg">
+										{{ note|raw }}
+									</div>
+								{% endif %}
+
+								<div class="mt-6 grid grid-cols-1 gap-4 md:flex md:justify-end md:items-center md:gap-6">
+									<a
+										href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
+										class="hidden md:block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white"
+									>
+										{{ 'Return to cart'|t('foster-checkout') }}
+									</a>
+									<button
+										type="submit"
+										class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+									>
+										{{ 'Next Step'|t('foster-checkout') }}
+									</button>
 
 								</div>
 
 							</div>
-
-						</div>
-
-						{% set note = craft.fostercheckout.note('shipping') %}
-						{% if note %}
-							<div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6">
-								{{ note|raw }}
-							</div>
-						{% endif %}
-
-						<div class="hidden lg:flex lg:justify-end lg:items-center lg:gap-6 lg:mt-10">
-							<a
-								href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
-								class="block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
-							>
-								{{ 'Continue Shopping'|t('foster-checkout') }}
-							</a>
-							<button
-								type="submit"
-								class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
-							>
-								{{ 'Next Step'|t('foster-checkout') }}
-							</button>
-						</div>
-
-						<div class="lg:hidden mt-4 grid grid-cols-1 gap-4 p-4 bg-gray-200 sm:p-6">
-
-							<button
-								type="submit"
-								class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
-							>
-								{{ 'Next Step'|t('foster-checkout') }}
-							</button>
 
 						</div>
 
@@ -188,26 +180,5 @@
 		</div>
 
 	</div>
-
-{% endblock %}
-
-{% block mobileFooter %}
-
-	{% if cart.lineItems|length > 0 %}
-		<div class="hidden grid grid-cols-1 gap-4 p-4 bg-gray-200 sm:p-6">
-			<a
-				href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
-				class="block w-full px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
-			>
-				{{ 'Continue Shopping'|t('foster-checkout') }}
-			</a>
-			<button
-				type="submit"
-				class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
-			>
-				{{ 'Next Step'|t('foster-checkout') }}
-			</button>
-		</div>
-	{% endif %}
 
 {% endblock %}

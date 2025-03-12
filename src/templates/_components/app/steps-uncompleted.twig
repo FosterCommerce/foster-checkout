@@ -1,19 +1,27 @@
 {% if step|default %}
 
-	<div class="grid grid-cols-1 gap-4 lg:mt-12 xl:gap-6">
+	<div class="grid grid-cols-1 gap-4 xl:gap-6">
 
-		{% if step == 'address' %}
+		{% if step == 'email' %}
 			<div class="p-4 bg-gray-200 rounded-lg xl:px-6">
 				<h2 class="font-semibold text-gray-500">
-					{{ '2. Shipping method'|t('foster-checkout') }}
+					{{ 'Shipping address'|t('foster-checkout') }}
 				</h2>
 			</div>
 		{% endif %}
 
-		{% if step == 'address' or step == 'shipping' %}
+		{% if step == 'email' or step == 'address' %}
 			<div class="p-4 bg-gray-200 rounded-lg xl:px-6">
 				<h2 class="font-semibold text-gray-500">
-					{{ '3. Payment'|t('foster-checkout') }}
+					{{ 'Shipping method'|t('foster-checkout') }}
+				</h2>
+			</div>
+		{% endif %}
+
+		{% if step == 'email' or step == 'address' or step == 'shipping' %}
+			<div class="p-4 bg-gray-200 rounded-lg xl:px-6">
+				<h2 class="font-semibold text-gray-500">
+					{{ 'Payment'|t('foster-checkout') }}
 				</h2>
 			</div>
 		{% endif %}

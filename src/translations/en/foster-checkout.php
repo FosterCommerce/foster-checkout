@@ -1,9 +1,10 @@
 <?php
 
 return [
-	'1. Shipping address' => '1. Shipping address',
-	'2. Shipping method' => '2. Shipping method',
-	'3. Payment' => '3. Payment',
+	'Shipping address' => 'Shipping address',
+	'Shipping method' => 'Shipping method',
+	'Payment' => 'Payment',
+	'Account' => 'Account',
 	'Add' => 'Add',
 	'Address' => 'Address',
 	'Already have an account?' => 'Already have an account?',

@@ -5,14 +5,12 @@
 {% block head %}
 	<title>
 		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }} |
-		{{ 'Checkout'|t('foster-checkout') }} : {{ 'Address'|t('foster-checkout') }}
+		{{ 'Checkout'|t('foster-checkout') }}: {{ 'Address'|t('foster-checkout') }}
 	</title>
 {% endblock %}
 
 {% block body %}
-	<div class="mt-10 pb-48 lg:mt-20 lg:pb-32">
-
-		<h1 class="mb-12 font-medium text-3xl">{{ 'Checkout'|t('foster-checkout') }}</h1>
+	<div class="mt-10 pb-28 lg:pb-32">
 
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 
@@ -24,7 +22,7 @@
 				}"
 				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 
-				<div class="grid grid-cols-1 gap-6 lg:gap-8">
+				<div class="grid grid-cols-1 gap-4 xl:gap-6">
 
 					{% include 'foster-checkout/_components/app/steps-completed' with {
 						step: 'address'
@@ -44,19 +42,21 @@
 
 						<div class="border border-gray-250 rounded-lg overflow-hidden">
 
-							<h2 class="p-4 font-semibold bg-gray-200 lg:px-6">
-								{{ '1. Shipping address'|t('foster-checkout') }}
+							<h2 class="p-4 font-semibold bg-gray-200">
+								{{ 'Shipping address'|t('foster-checkout') }}
 							</h2>
 
-							<div class="xl:p-6">
+							<div class="p-4">
 
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+
 									{% if currentUser and addresses|length %}
 										{% for address in addresses %}
 
-											<div class="p-4 border-t"
+											<div class="p-4 border-b border-gray-250"
 													 :class="{ 'bg-gray-100': (parseInt(shippingAddressId) === {{ address.id }} && useNewAddress === 0) }"
 												{{ cart.sourceShippingAddressId == address.id ? ' checked' : '' }}>
+
 												<div class="flex justify-between items-center gap-4 radio">
 													<input
 														v-model="shippingAddressId"
@@ -91,7 +91,7 @@
 														 class="pt-8">
 													{% include 'foster-checkout/_components/app/address-fields' %}
 													<div
-														class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
+														class="flex justify-start items-center gap-4 mt-4 pt-4">
 														<button
 															type="submit"
 															class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
@@ -112,8 +112,7 @@
 									{% endif %}
 									{# end address list #}
 
-									<div class="border-t border-gray-250"
-											 :class="{ 'bg-gray-100': parseInt(shippingAddressId) === 0 || useNewAddress }">
+									<div :class="{ 'bg-gray-100': parseInt(shippingAddressId) === 0 || useNewAddress }">
 										<div class="p-4 radio">
 											<input
 												id="address_0"
@@ -155,40 +154,30 @@
 
 								</div>
 
+								{% set note = craft.fostercheckout.note('address') %}
+								{% if note %}
+									<div class="mt-6 p-4 border border-gray-250 rounded-lg">
+										{{ note|raw }}
+									</div>
+								{% endif %}
+
+								<div class="mt-6 grid grid-cols-1 gap-4 md:flex md:justify-end md:items-center md:gap-6">
+									<a
+										href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
+										class="hidden md:block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white"
+									>
+										{{ 'Return to cart'|t('foster-checkout') }}
+									</a>
+									<button
+										type="submit"
+										class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+									>
+										{{ 'Next Step'|t('foster-checkout') }}
+									</button>
+
+								</div>
+
 							</div>
-
-						</div>
-
-						{% set note = craft.fostercheckout.note('address') %}
-						{% if note %}
-							<div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6">
-								{{ note|raw }}
-							</div>
-						{% endif %}
-
-						<div class="hidden lg:flex lg:justify-end lg:items-center lg:gap-6 lg:mt-10">
-							<a
-								href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
-								class="block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
-							>
-								{{ 'Continue Shopping'|t('foster-checkout') }}
-							</a>
-							<button
-								type="submit"
-								class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
-							>
-								{{ 'Next Step'|t('foster-checkout') }}
-							</button>
-						</div>
-
-						<div class="lg:hidden mt-4 grid grid-cols-1 gap-4 p-4 bg-gray-200 sm:p-6">
-
-							<button
-								type="submit"
-								class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
-							>
-								{{ 'Next Step'|t('foster-checkout') }}
-							</button>
 
 						</div>
 
@@ -243,27 +232,5 @@
 		</div>
 
 	</div>
-
-{% endblock %}
-
-{% block mobileFooter %}
-
-	{% if cart.lineItems|length > 0 %}
-		<div class="hidden grid grid-cols-1 gap-4 p-4 bg-gray-200 sm:p-6">
-			<a
-					href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
-					class="block w-full px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
-			>
-				{{ 'Continue Shopping'|t('foster-checkout') }}
-			</a>
-			<button
-				type="submit"
-				class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
-			>
-				{{ 'Next Step'|t('foster-checkout') }}
-			</button>
-			</form>
-		</div>
-	{% endif %}
 
 {% endblock %}

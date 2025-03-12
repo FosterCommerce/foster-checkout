@@ -1,3 +1,7 @@
+{% if currentUser %}
+	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address' %}
+{% endif %}
+
 {% extends 'foster-checkout/_layouts/default' %}
 
 {% block head %}
@@ -9,64 +13,121 @@
 
 {% block body %}
 
-	<div class="max-w-[740px] mx-auto my-10 md:my-20">
+<div class="mt-10 pb-28 lg:pb-32">
 
-		<h1 class="font-medium text-2xl md:text-3xl">{{ 'Where should we send your receipt?'|t('foster-checkout') }}</h1>
-		<p class="mt-2 text-sm text-gray-500">
-			{{ 'Already have an account?'|t('foster-checkout') }}
-			<a href="{{ loginUrl }}" class="text-[var(--brandColor)] underline">{{ 'Sign In'|t('foster-checkout') }}</a>.
-		</p>
+	<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 
-		<form class="mt-6" method="post" accept-charset="UTF-8">
+		<main class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 
-			{{ csrfInput() }}
-			{{ actionInput('commerce/cart/update-cart') }}
-			{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address') }}
+			<div class="grid grid-cols-1 gap-6">
 
-			<fieldset class="grid grid-cols-1 gap-6">
+				<div class="border border-gray-250 rounded-lg overflow-hidden">
 
-				<div>
-					{% include 'foster-checkout/_components/base/input-text-clearable' with {
-						label: 'Email'|t('foster-checkout'),
-						id: 'email',
-						name: 'email',
-						type: 'email',
-						autocomplete: 'email',
-						placeholder: 'Enter your email'|t('foster-checkout'),
-						value: cart ? cart.email : '',
-						required: true,
-						errors: [],
-						action: 'if (App.loaded) $el.focus()'
-					} %}
+					<div class="flex justify-between items-center p-4 gap-4 bg-gray-200">
+						<h2 class="font-semibold">
+							{{ 'Contact'|t('foster-checkout') }}
+						</h2>
+						<span class="text-sm text-gray-500 text-right inline-block underline">
+							<a href="{{ loginUrl }}" class="text-[var(--brandColor)] underline">{{ 'Sign In'|t('foster-checkout') }}</a>
+						</span>
+					</div>
+
+					<div class="p-4">
+						<form class="mt-2" method="post" accept-charset="UTF-8">
+
+						{{ csrfInput() }}
+						{{ actionInput('commerce/cart/update-cart') }}
+						{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address') }}
+
+						<fieldset class="grid grid-cols-1 gap-6">
+
+							<div>
+								{% include 'foster-checkout/_components/base/input-text-clearable' with {
+									label: 'Email'|t('foster-checkout'),
+									id: 'email',
+									name: 'email',
+									type: 'email',
+									autocomplete: 'email',
+									placeholder: 'Enter your email'|t('foster-checkout'),
+									value: cart ? cart.email : '',
+									required: true,
+									errors: [],
+									action: 'if (App.loaded) $el.focus()'
+								} %}
+							</div>
+
+						</fieldset>
+
+						{% set note = craft.fostercheckout.note('email') %}
+						{% if note %}
+							<div class="mt-6 p-4 border border-gray-250 rounded-lg">
+								{{ note|raw }}
+							</div>
+						{% endif %}
+
+						<div class="mt-6 grid grid-cols-1 gap-4 md:flex md:justify-end md:items-center md:gap-6">
+							<a
+								href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
+								class="hidden md:block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white"
+							>
+								{{ 'Return to cart'|t('foster-checkout') }}
+							</a>
+							<button
+								type="submit"
+								class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+							>
+								{{ 'Next Step'|t('foster-checkout') }}
+							</button>
+
+						</div>
+
+					</form>
+					</div>
+
 				</div>
 
-			</fieldset>
+				{% include 'foster-checkout/_components/app/steps-uncompleted' with {
+					step: 'email'
+				} %}
+			</div>
+		</main>
 
-			{% set note = craft.fostercheckout.note('email') %}
-			{% if note %}
-				<div class="mt-4 text-gray-500 prose prose-a:text-black prose-a:font-normal">
-					{{ note|raw }}
+		<aside>
+
+			<div
+				class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+
+				<div class="grid grid-cols-1 gap-6">
+
+					<div class="flex justify-between items-center gap-4">
+						<h2 class="text-xl font-bold text-gray-800 leading-snug">
+							{{ 'Item(s)'|t('foster-checkout') }}
+						</h2>
+						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
+						   class="inline-block text-[var(--brandColor)] underline">
+							{{ 'Edit'|t('foster-checkout') }}
+						</a>
+					</div>
+
+					<ul class="grid grid-cols-1 gap-4">
+						{% for lineItem in cart.lineItems %}
+							<li>
+								{% include 'foster-checkout/_components/app/line-item-checkout' with {
+									lineItem: lineItem
+								} %}
+							</li>
+						{% endfor %}
+					</ul>
+
 				</div>
-			{% endif %}
 
-			<div class="mt-12 grid grid-cols-1 gap-4 md:flex md:justify-end md:items-center md:gap-6 md:mt-16">
-				<a
-					href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
-					class="block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
-				>
-					{{ 'Continue Shopping'|t('foster-checkout') }}
-				</a>
-				<button
-					type="submit"
-					class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
-				>
-					{{ 'Next Step'|t('foster-checkout') }}
-				</button>
+				{% include 'foster-checkout/_components/app/summary-cart' %}
 
 			</div>
 
-		</form>
+		</aside>
 
 	</div>
+</div>
 
 {% endblock %}

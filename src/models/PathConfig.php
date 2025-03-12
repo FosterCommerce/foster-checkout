@@ -26,4 +26,10 @@ class PathConfig extends Model
 	 * (ex. '/')
 	 */
 	public string $logo = '/';
+
+	/**
+	 * The site relative path to where the account should be accessible
+	 * (ex. '/')
+	 */
+	public string $account = '/';
 }

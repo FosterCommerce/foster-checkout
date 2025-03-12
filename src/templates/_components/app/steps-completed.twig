@@ -1,17 +1,22 @@
 {% if step|default %}
 
-	<dl class="grid grid-cols-1 gap-6 p-4 bg-gray-200 rounded-lg xl:px-6">
+	<dl class="grid grid-cols-1 gap-4 xl:gap-6 p-4 bg-gray-200 rounded-lg">
 
 		{% if step == 'address' or step == 'shipping' or step == 'payment' %}
 			<div class="sm:grid sm:grid-cols-[125px_1fr] sm:gap-6">
 				<dt class="flex justify-between items-start gap-4">
 					<span class="inline-block font-semibold text-black">
-						{{ 'Customer'|t('foster-checkout') }}
+						{{ 'Contact'|t('foster-checkout') }}
 					</span>
 					{% if not currentUser %}
 						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/email' }}"
 							 class="inline-block underline text-[var(--brandColor)] sm:hidden">
 							{{ 'Edit'|t('foster-checkout') }}
+						</a>
+					{% else %}
+						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}"
+						   class="inline-block underline text-[var(--brandColor)] sm:hidden">
+							{{ 'Account'|t('foster-checkout') }}
 						</a>
 					{% endif %}
 				</dt>
@@ -22,6 +27,11 @@
 							 href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/email' }}">
 							{{ 'Edit'|t('foster-checkout') }}
 						</a>
+					{% else %}
+						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}"
+						   class="inline-block underline text-[var(--brandColor)] sm:hidden">
+							{{ 'Account'|t('foster-checkout') }}
+						</a>
 					{% endif %}
 				</dd>
 			</div>
@@ -31,7 +41,7 @@
 			<div class="sm:grid sm:grid-cols-[125px_1fr] sm:gap-6">
 				<dt class="flex justify-between items-start gap-4">
 					<span class="inline-block font-semibold text-black">
-						{{ 'Shipping address'|t('foster-checkout') }}
+						{{ 'Ship to'|t('foster-checkout') }}
 					</span>
 					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address' }}"
 						 class="inline-block underline text-[var(--brandColor)] sm:hidden">
@@ -49,6 +59,8 @@
 		{% endif %}
 
 		{% if step == 'payment' %}
+			{% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? null %}
+			{% if currentStore.requireShippingMethodSelectionAtCheckout == true %}
 			<div class="sm:grid sm:grid-cols-[125px_1fr] sm:gap-6">
 				<dt class="flex justify-between items-start gap-4">
 					<span class="inline-block font-semibold text-black">
@@ -71,6 +83,7 @@
 					{% endif %}
 				</dd>
 			</div>
+			{% endif %}
 		{% endif %}
 
 	</dl>

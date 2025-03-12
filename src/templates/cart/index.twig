@@ -113,17 +113,3 @@
 	{% endif %}
 
 {% endblock %}
-
-{% block mobileFooter %}
-
-	{% if cart.lineItems|length > 0 %}
-		<div class="p-4 bg-gray-200 sm:p-6">
-			<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}"
-				 class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
-			>
-				{{ 'Checkout'|t('foster-checkout') }}
-			</a>
-		</div>
-	{% endif %}
-
-{% endblock %}
