@@ -1,5 +1,5 @@
 {% extends 'foster-checkout/_layouts/default' %}
-{% set order = craft.orders.number(craft.app.request.getParam('number')).one() ?? null %}
+{% set order = craft.orders.number(craft.app.request.getParam('number')).withAdjustments().withTransactions().withLineItems().one() ?? null %}
 {% if not order %}
 	{% exit 404 %}
 {% endif %}
@@ -14,9 +14,9 @@
 {% block body %}
 
 	<div
-		class="grid grid-cols-1 gap-16 mt-10 pb-10 lg:grid-cols-[1fr_380px] lg:gap-6 lg:mt-20 lg:pb-20 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+		class="grid grid-cols-1 gap-4 mt-10 pb-10 lg:grid-cols-[1fr_380px] lg:gap-6 lg:mt-20 lg:pb-20 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 
-		<main class="grid grid-cols-1 gap-8 lg:gap-12">
+		<main class="grid grid-cols-1 gap-8">
 
 			<header>
 				<h1 class="mb-6 font-semibold text-3xl">
@@ -38,49 +38,77 @@
 				</div>
 			</header>
 
-			<div class="pb-8 border-b border-gray-250 md:py-12 md:border-t">
+			<div class="border border-gray-300">
+				{% set shippingAddress = craft.addresses.id(order.shippingAddressId).one() %}
+				{% if shippingAddress %}
+					<iframe
+						class="w-full"
+						width="790"
+						height="275"
+						frameborder="0"
+						scrolling="no"
+						marginheight="0"
+						marginwidth="0"
+						id="gmap_canvas"
+						src="https://maps.google.com/maps?width=790&amp;height=275&amp;hl=en&amp;q={{ shippingAddress.addressLine1 ~ ' ' ~ shippingAddress.locality ~ ' ' ~ shippingAddress.administrativeArea }}+(Shipping%20address)&amp;t=&amp;z=18&amp;ie=UTF8&amp;iwloc=B&amp;output=embed"></iframe>
+				{% endif %}
 
-				<h2 class="mb-6 font-semibold text-3xl">{{ 'Order Details'|t('foster-checkout') }}</h2>
+				<h3 class="p-4 font-semibold text-xl">
+					Your order is confirmed
+				</h3>
 
-				<dl class="grid grid-cols-1 gap-6 p-4 bg-gray-200 rounded-lg xl:p-6">
-					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
-						<dt class="font-semibold">{{ 'Date'|t('foster-checkout') }}</dt>
-						{# TODO: Use the order date here, this was just for the markup and translation testing #}
-						<dd>{{ order.dateOrdered|date('dateFormat'|t('foster-checkout')) }}</dd>
-					</div>
-					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
-						<dt class="font-semibold">{{ 'Email'|t('foster-checkout') }}</dt>
-						<dd>{{ order.email }}</dd>
-					</div>
-					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
-						<dt class="font-semibold">{{ 'Ship to'|t('foster-checkout') }}</dt>
-						<dd>
-							{% include'foster-checkout/_components/app/formatted-address' with { 'address': order.shippingAddress} %}
-						</dd>
-					</div>
-					{% if order.shippingMethod %}
-						<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
-							<dt class="font-semibold">{{ 'Method'|t('foster-checkout') }}</dt>
-							<dd>
-								<p>{{ order.shippingMethod.name }} {{ order.totalShippingCostAsCurrency }}</p>
-								<p>{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, order.shippingMethod).getDescription() ?? '' }}</p>
-							</dd>
+				<div class="px-4 pb-4">
+					We've accepted your order, and we're getting it ready. A confirmation email has been sent to
+					<strong>{{ order.email }}</strong>.
+				</div>
+			</div>
+
+			<div class="border border-gray-300 p-4">
+
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div class="grid grid-cols-1 content-start">
+
+						<!-- Contact Information -->
+						<div class="">
+							<h2 class="text-lg font-medium text-gray-700">Contact Information</h2>
+							<p class="">{{ order.email }}</p>
 						</div>
-					{% endif %}
 
-					{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
-						{# Check for applied / redeemed gift card vouchers in orders #}
+						<!-- Shipping Address -->
+						<div class="mt-4">
+							<h2 class="text-lg font-medium text-gray-700">Shipping Address</h2>
+							<address class="not-italic mt-1">
+								{% include'foster-checkout/_components/app/formatted-address' with { 'address': order.shippingAddress} %}
+							</address>
+						</div>
 
-						{% if order.orderAdjustments|length >= 1 %}
-							{#
-							We currently only have access to the redeemed gift card vouchers code using order.orderAdjustments[0].description
-							which appears in the form "Gift Voucher discount using code MTLYZKVDAQ"
-							In order to get the code, we'll have to split the description string using 'code ' as its delimeter
-							#}
+						{% if order.shippingMethod %}
+							<!-- Shipping Method -->
+							<div class="mt-4">
+								<h2 class="text-lg font-medium text-gray-700">Shipping Method</h2>
+								<p class="mt-1">
+									{{ order.shippingMethod.name }}
+								</p>
+							</div>
+						{% endif %}
+					</div>
 
-							<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
-								<dt class="font-semibold">{{ 'Gift card applied'|t('foster-checkout') }}</dt>
-								<dd>
+					<div class="grid grid-cols-1 content-start">
+						<!-- Payment Information -->
+						<div>
+							<h2 class="text-lg font-medium text-gray-700">Payment</h2>
+							{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
+								{# Check for applied / redeemed gift card vouchers in orders #}
+
+								{% if order.orderAdjustments|length >= 1 %}
+									{#
+									We currently only have access to the redeemed gift card vouchers code using order.orderAdjustments[0].description
+									which appears in the form "Gift Voucher discount using code MTLYZKVDAQ"
+									In order to get the code, we'll have to split the description string using 'code ' as its delimeter
+									#}
+
+									<p class="mt-1">{{ 'Gift card'|t('foster-checkout') }}</p>
+
 									{% for voucher in order.orderAdjustments %}
 										{# Get redeemed voucher code from description #}
 										{% set voucherCode = voucher.description|split('code ')[1] is defined ? voucher.description|split('code ')[1] : false %}
@@ -89,27 +117,29 @@
 											{% set amountRemaining = craft.giftVoucher.codes().codeKey(voucherCode).one().currentAmount %}
 											{% set appliedVoucherAmount = (order.storedItemTotal - (voucher.amount|abs)) < 0 ? order.storedItemTotal : voucher.amount|abs %}
 											{% set appliedVoucherDescription = voucher.description|split('code ')[1] ~ ' (' ~ appliedVoucherAmount|currency ~ ' applied, ' ~ amountRemaining|currency ~ ' remaining)' %}
-											<p>{{ appliedVoucherDescription }}</p>
+											<p class="mt-1">{{ appliedVoucherDescription }}</p>
 										{% endif %}
 									{% endfor %}
-								</dd>
-							</div>
-						{% endif %}
-					{% endif %}
+								{% endif %}
+							{% endif %}
+							{% set transaction = order.transactions|last %}
+							{% if transaction %}
+								{% set response = transaction.response|json_decode %}
+								{% if response %}
+									<p class="mt-1">{{ response.payment_method.card.display_brand|capitalize }} **** {{ response.payment_method.card.last4 }}</p>
+								{% endif %}
+								<p class="mt-1">{{ transaction.paymentAmount|float|currency('USD') }} (Charged on {{ order.dateOrdered|date }})</p>
+							{% endif %}
+						</div>
 
-					<div class="sm:grid sm:grid-cols-[90px_1fr] sm:gap-6">
-						<dt class="font-semibold">{{ 'Payment'|t('foster-checkout') }}</dt>
-						<dd>{{ order.gateway.name }}</dd>
+						<!-- Billing Address -->
+						<div class="mt-4">
+							<h2 class="text-lg font-medium text-gray-700">Billing Address</h2>
+							<address class="not-italic mt-1">
+								{% include'foster-checkout/_components/app/formatted-address' with { 'address': order.billingAddress} %}
+							</address>
+						</div>
 					</div>
-				</dl>
-
-				<div class="flex justify-end items-center gap-6 mt-9 lg:mt-12">
-					<a
-						href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
-						class="inline-block min-w-[180px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
-					>
-						{{ 'Continue Shopping'|t('foster-checkout') }}
-					</a>
 				</div>
 
 				{% set note = craft.fostercheckout.note('order') %}
@@ -139,7 +169,7 @@
 
 		<aside>
 			<div
-				class="grid grid-cols-1 gap-10 lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+				class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
 
@@ -158,6 +188,8 @@
 					</ul>
 
 				</div>
+
+				{% include 'foster-checkout/_components/app/summary-order' %}
 
 			</div>
 		</aside>
