@@ -36,7 +36,66 @@
 						<form class="mt-2" method="post" accept-charset="UTF-8">
 
 						{{ csrfInput() }}
-						{{ actionInput('commerce/cart/update-cart') }}
+						{% if craft.app.plugins.isPluginEnabled('klaviyoconnect') %}
+							{{ actionInput('klaviyoconnect/api/track') }}
+							<input type="hidden" name="forward" value="/commerce/cart/update-cart">
+							<input type="hidden" name="event[name]" value="Started Checkout" />
+							{% set productDetails = {
+								"TotalPrice": 0,
+								"TotalQuantity": 0,
+								"Items": []
+							} %}
+
+							<input type="hidden" name="event[OrderId]" value="{{ cart.lineItems[0].orderId }}" />
+							<input type="hidden" name="event[OrderNumber]" value="{{ cart.number }}" />
+
+							{% for item in cart.lineItems %}
+
+								{% set variant = item.purchasable %}
+								{% set product = variant.product %}
+
+								{% set imageUrl = null %}
+								{% set previewImage = craft.fostercheckout.lineItemImage(item) %}
+								{% if previewImage|default %}
+									{% set preview = {
+										mode: 'crop',
+										width: 200,
+										height: 200,
+										quality: 90,
+										position: 'center-center'
+									} %}
+									{% set imageUrl = previewImage.getUrl(preview) %}
+								{% endif %}
+
+								{% set productDetails = productDetails|merge({
+									"Items": productDetails.Items|merge([{
+										"value": item.price * item.qty,
+										"ProductName": product.title,
+										"Slug": product.slug,
+										"ProductURL": product.url,
+										"ProductType": product.type.name,
+										"ItemPrice": item.price,
+										"RowTotal": item.subtotal,
+										"Quantity": item.qty,
+										"SKU": variant.sku,
+										"ImageURL": imageUrl
+									}])
+								}) %}
+
+								{% set productDetails = productDetails|merge({
+									"TotalPrice": productDetails.TotalPrice + item.price * item.qty,
+									"TotalQuantity": productDetails.TotalQuantity + item.qty
+								}) %}
+
+							{% endfor %}
+
+							<input type="hidden" name="event[TotalPrice]" value="{{ productDetails.TotalPrice }}" />
+							<input type="hidden" name="event[TotalQuantity]" value="{{ productDetails.TotalQuantity }}" />
+							<input type="hidden" name="event[Items]" value="{{ productDetails.Items|json_encode }}" />
+						{% else %}
+							{{ actionInput('commerce/cart/update-cart') }}
+						{% endif %}
+
 						{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address') }}
 
 						<fieldset class="grid grid-cols-1 gap-6">
