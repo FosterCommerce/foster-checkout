@@ -1,6 +1,6 @@
 {% if step|default %}
 
-	<dl class="grid grid-cols-1 gap-4 xl:gap-6 p-4 bg-gray-200 rounded-lg">
+	<dl class="grid grid-cols-1 gap-4 xl:gap-6 p-4 bg-gray-200 rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 
 		{% if step == 'address' or step == 'shipping' or step == 'payment' %}
 			<div class="sm:grid sm:grid-cols-[125px_1fr] sm:gap-6">
@@ -8,29 +8,31 @@
 					<span class="inline-block font-semibold text-black">
 						{{ 'Contact'|t('foster-checkout') }}
 					</span>
-					{% if not currentUser %}
-						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/email' }}"
-							 class="inline-block underline text-[var(--brandColor)] sm:hidden">
-							{{ 'Edit'|t('foster-checkout') }}
+					{% if currentUser %}
+						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}"
+						   class="inline-block underline text-[var(--brandColor)] sm:hidden"
+							target="_blank">
+							{{ 'View my account'|t('foster-checkout') }}
 						</a>
 					{% else %}
-						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}"
+						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/email' }}"
 						   class="inline-block underline text-[var(--brandColor)] sm:hidden">
-							{{ 'Account'|t('foster-checkout') }}
+							{{ 'Edit'|t('foster-checkout') }}
 						</a>
 					{% endif %}
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
 					<span class="text-black">{{ cart.email }}</span>
-					{% if not currentUser %}
-						<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]"
-							 href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/email' }}">
-							{{ 'Edit'|t('foster-checkout') }}
+					{% if currentUser %}
+						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}"
+						   class="hidden sm:inline-block  underline text-[var(--brandColor)]"
+						   target="_blank">
+							{{ 'View my account'|t('foster-checkout') }}
 						</a>
 					{% else %}
-						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}"
-						   class="inline-block underline text-[var(--brandColor)] sm:hidden">
-							{{ 'Account'|t('foster-checkout') }}
+						<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]"
+						   href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/email' }}">
+							{{ 'Edit'|t('foster-checkout') }}
 						</a>
 					{% endif %}
 				</dd>
@@ -66,10 +68,12 @@
 					<span class="inline-block font-semibold text-black">
 						{{ 'Shipping method'|t('foster-checkout') }}
 					</span>
-					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/shipping' }}"
-						 class="inline-block underline text-[var(--brandColor)] sm:hidden">
-						{{ 'Change'|t('foster-checkout') }}
-					</a>
+					{% if cart.availableShippingMethodOptions|length > 1 %}
+						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/shipping' }}"
+							 class="inline-block underline text-[var(--brandColor)] sm:hidden">
+							{{ 'Change'|t('foster-checkout') }}
+						</a>
+					{% endif %}
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
 					<p class="text-black">

@@ -1,6 +1,6 @@
 <article>
 
-	<h2 class="mb-6 text-xl font-bold text-gray-800 leading-snug">{{ 'Order Summary'|t('foster-checkout') }}</h2>
+	<h2 class="mb-6 text-xl font-bold text-gray-800 leading-snug">{{ 'Order summary'|t('foster-checkout') }}</h2>
 
 	<dl class="grid grid-cols-1 gap-4">
 
@@ -22,11 +22,12 @@
 			{% endif %}
 
 			{% if craft.fostercheckout.settings.options.enableFreeShippingMessage %}
-				<p class="max-w-[210px] -mt-[8px] text-sm text-gray-500">
+				{# TODO: Complete this #}
+				{# <p class="max-w-[210px] -mt-[8px] text-sm text-gray-500">
 					{{ 'Add'|t('foster-checkout') }}
 					<strong class="text-black">$24.15</strong>
 					{{ 'for FREE shipping, or choose FREE Ship to Store.'|t('foster-checkout') }}
-				</p>
+				</p> #}
 			{% endif %}
 
 		{% else %}
