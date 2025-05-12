@@ -17,25 +17,10 @@
 		class="grid grid-cols-1 gap-4 mt-10 pb-10 lg:grid-cols-[1fr_380px] lg:gap-6 lg:mt-20 lg:pb-20 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 
 		<main class="grid grid-cols-1 gap-8">
-
 			<header>
-				<h1 class="mb-6 font-semibold text-3xl">
+				<h1 class="font-semibold text-3xl">
 					{{ 'Thank you for your order!'|t('foster-checkout') }}
 				</h1>
-				<div class="space-y-2">
-					<p>
-						{{ 'Your Order Number is'|t('foster-checkout') }}
-						<strong>{{ order.reference }}</strong>
-					</p>
-					{# Only show email confirmation message if order confirmation email is configured and enabled #}
-					{% set orderStatus = order.orderStatus %}
-					{% if orderStatus.default == true %}
-						{% set emails = orderStatus.getEmails() %}
-						{% for email in emails|filter(email => email.enabled == true and email.recipientType == "customer" and email.getScenario() == "default") %}
-							<p>{{ 'You will receive an order confirmation email shortly.'|t('foster-checkout') }}</p>
-						{% endfor %}
-					{% endif %}
-				</div>
 			</header>
 
 			<div class="lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
@@ -53,13 +38,19 @@
 						src="https://maps.google.com/maps?width=790&amp;height=275&amp;hl=en&amp;q={{ shippingAddress.addressLine1 ~ ' ' ~ shippingAddress.locality ~ ' ' ~ shippingAddress.administrativeArea }}+(Shipping%20address)&amp;t=&amp;z=18&amp;ie=UTF8&amp;iwloc=B&amp;output=embed"></iframe>
 				{% endif %}
 
-				<h3 class="p-4 font-semibold text-xl ">
-					Your order is confirmed
-				</h3>
-
-				<div class="px-4 pb-4">
-					We've accepted your order, and we're getting it ready. A confirmation email has been sent to
-					<strong>{{ order.email }}</strong>.
+				<div class="p-4 space-y-2">
+					<p>
+						{{ 'Your Order Number is'|t('foster-checkout') }}
+						<strong>{{ order.reference }}</strong>
+					</p>
+					{# Only show email confirmation message if order confirmation email is configured and enabled #}
+					{% set orderStatus = order.orderStatus %}
+					{% if orderStatus.default == true %}
+						{% set emails = orderStatus.getEmails() %}
+						{% for email in emails|filter(email => email.enabled == true and email.recipientType == "customer" and email.getScenario() == "default") %}
+							<p>{{ 'You will receive an order confirmation email shortly.'|t('foster-checkout') }}</p>
+						{% endfor %}
+					{% endif %}
 				</div>
 			</div>
 
@@ -107,7 +98,7 @@
 									In order to get the code, we'll have to split the description string using 'code ' as its delimeter
 									#}
 
-									<p class="mt-1">{{ 'Gift card'|t('foster-checkout') }}</p>
+									<p class="mt-1">{{ 'Voucher/Gift card'|t('foster-checkout') }}</p>
 
 									{% for voucher in order.orderAdjustments %}
 										{# Get redeemed voucher code from description #}

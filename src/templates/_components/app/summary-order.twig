@@ -9,7 +9,7 @@
 			<dd class="font-semibold text-right text-black">{{ order.itemSubtotalAsCurrency }}</dd>
 		</div>
 
-		{% if cart.totalDiscount != 0 %}
+		{% if order.totalDiscount != 0 %}
 			<div class="flex justify-between items-center gap-4">
 				<dt class="text-gray-500">{{ 'Discount'|t('foster-checkout') }}</dt>
 				<dd class="text-right text-red-500">{{ order.totalDiscountAsCurrency }}</dd>
@@ -25,6 +25,27 @@
 			<dt class="text-gray-500">{{ 'Tax'|t('foster-checkout') }}</dt>
 			<dd class="text-right text-black">{{ order.totalTaxAsCurrency }}</dd>
 		</div>
+
+		{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
+			{% set voucherAdjustments = order.adjustments|filter(adjustment => adjustment.type == 'voucher') %}
+			{% if voucherAdjustments|length %}
+				<hr class="border-t border-gray-300">
+				{% for adj in voucherAdjustments %}
+					{% set matches = adj.description|split('code ') %}
+					{% set code = matches|length > 1 ? matches[1]|trim("'") : 'Voucher/Gift Card' %}
+					<div class="flex justify-between items-center gap-4">
+						<dt class="text-gray-500">
+							{{ 'Voucher/Gift card applied'|t('foster-checkout') }}
+							<span class="block text-xs text-gray-400">{{ code }}</span>
+						</dt>
+						<dd class="text-right">
+							{{ adj.amount|currency }}
+						</dd>
+					</div>
+				{% endfor %}
+				<hr class="border-t border-gray-300">
+			{% endif %}
+		{% endif %}
 
 		<div class="flex justify-between items-center gap-4 mt-4">
 			<dt class="font-semibold text-black">{{ 'Total'|t('foster-checkout') }}</dt>
