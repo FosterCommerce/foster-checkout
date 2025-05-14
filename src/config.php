@@ -39,6 +39,12 @@ return [
 
 		// Whether to show the line item options
 		'enableLineItemOptions' => '_',
+
+		// The label to display for the estimated tax on the cart summary
+		'estimatedTaxLabel' => 'My Estimated tax',
+
+		// The label to display for the tax on the cart summary
+		'taxLabel' => 'My Tax',
 	],
 	// Branding Settings
 	'branding' => [
