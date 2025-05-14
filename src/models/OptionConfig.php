@@ -50,4 +50,14 @@ class OptionConfig extends Model
 	 * If set to a string, then line items prefixed with that value will be excluded from being shown.
 	 */
 	public bool|string $enableLineItemOptions = '_';
+
+	/**
+	 * The label to display for the estimated tax on the cart summary
+	 */
+	public string $estimatedTaxLabel = 'Estimated tax';
+
+	/**
+	 * The label to display for the tax on the cart summary
+	 */
+	public string $taxLabel = 'Tax';
 }

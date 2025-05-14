@@ -38,6 +38,7 @@ return [
 	'Enter your username' => 'Enter your username',
 	'Estimated shipping to' => 'Estimated shipping to',
 	'Estimated tax' => 'Estimated tax',
+	'Tax' => 'Tax',
 	'Estimated total' => 'Estimated total',
 	'for FREE shipping, or choose FREE Ship to Store.' => 'for FREE shipping, or choose FREE Ship to Store.',
 	'Full name' => 'Full name',

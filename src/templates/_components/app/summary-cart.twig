@@ -39,7 +39,13 @@
 
 
 		<div class="flex justify-between items-center gap-4">
-			<dt class="text-gray-500">{{ 'Estimated tax'|t('foster-checkout') }}</dt>
+			{% if estimatedTax ?? true %}
+				{% set estimatedTaxLabel = craft.fostercheckout.settings.options.estimatedTaxLabel %}
+				<dt class="text-gray-500">{{ estimatedTaxLabel|t('foster-checkout') }}</dt>
+			{% else %}
+				{% set taxLabel = craft.fostercheckout.settings.options.taxLabel %}
+				<dt class="text-gray-500">{{ taxLabel|t('foster-checkout') }}</dt>
+			{% endif %}
 			<dd class="text-right text-black">{{ cart.totalTaxAsCurrency }}</dd>
 		</div>
 

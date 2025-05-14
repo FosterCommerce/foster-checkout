@@ -402,7 +402,9 @@
 
 					</div>
 
-					{% include 'foster-checkout/_components/app/summary-cart' %}
+					{% include 'foster-checkout/_components/app/summary-cart' with {
+						estimatedTax: false
+					} %}
 				</div>
 
 			</aside>
