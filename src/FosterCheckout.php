@@ -88,7 +88,6 @@ class FosterCheckout extends Plugin
 				// Get the paths from the settings
 				$paths = $this->checkout->settings()->paths;
 				$checkoutPath = $paths->checkout;
-				$cartPath = $paths->cart;
 
 				// Define the site URL rules to route to our plugins templates
 				$event->rules[$checkoutPath] = [
@@ -115,9 +114,13 @@ class FosterCheckout extends Plugin
 				$event->rules[$checkoutPath . '/register'] = [
 					'template' => 'foster-checkout/account/register',
 				];
-				$event->rules[$cartPath] = [
-					'template' => 'foster-checkout/cart/index',
-				];
+
+				if ($paths->useCartTemplate) {
+					$cartPath = $paths->cart;
+					$event->rules[$cartPath] = [
+						'template' => 'foster-checkout/cart/index',
+					];
+				}
 			}
 		);
 

@@ -12,6 +12,11 @@ class PathConfig extends Model
 	public string $cart = 'cart';
 
 	/**
+	 * If true, use the cart template for the cart page, otherwise use the path only and let users define their own cart template.
+	 */
+	public bool $useCartTemplate = true;
+
+	/**
 	 * The site relative path to where the checkout should be accessible
 	 */
 	public string $checkout = 'checkout';
@@ -32,4 +37,16 @@ class PathConfig extends Model
 	 * (ex. '/')
 	 */
 	public string $account = '/';
+
+	/**
+	 * @param array<array-key, mixed> $config
+	 */
+	public function __construct($config = [])
+	{
+		parent::__construct($config);
+
+		// Always ensure there's no leading or trailing slashes
+		$this->cart = trim($this->cart, '/');
+		$this->checkout = trim($this->checkout, '/');
+	}
 }

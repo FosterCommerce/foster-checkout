@@ -67,6 +67,9 @@ return [
 		// (ex. 'cart')
 		'cart' => '',
 
+		// If true, use the cart template for the cart page, otherwise use the path only and let users define their own cart template.
+		'useCartTemplate' => true,
+
 		// The site relative path to where the checkout should be accessible
 		// (ex. 'checkout')
 		'checkout' => '',

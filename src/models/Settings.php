@@ -28,7 +28,7 @@ class Settings extends Model
 	public NotesConfig $notes;
 
 	/**
-	 * @param array<mixed, mixed> $config
+	 * @param array<array-key, mixed> $config
 	 */
 	public function __construct(array $config = [])
 	{
@@ -44,6 +44,10 @@ class Settings extends Model
 
 		if (! isset($this->paths)) {
 			$this->paths = new PathConfig();
+		}
+
+		if (! isset($this->notes)) {
+			$this->notes = new NotesConfig();
 		}
 	}
 
