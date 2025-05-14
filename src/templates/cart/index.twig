@@ -61,12 +61,12 @@
 					class="lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 					{% include 'foster-checkout/_components/app/summary-cart' %}
 
-					{% if craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
+					{% if cart.email and craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
 						<form method="POST" accept-charset="UTF-8">
 							{{ csrfInput() }}
 							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout)) }}
-
 							{{ actionInput('klaviyo-connect-plus/api/track') }}
+							{{ hiddenInput('email', cart.email) }}
 							{{ hiddenInput('event[name]', 'Started Checkout') }}
 							{{ hiddenInput('event[trackOrder]', '1') }}
 							{{ hiddenInput('event[orderId]', cart.id) }}
