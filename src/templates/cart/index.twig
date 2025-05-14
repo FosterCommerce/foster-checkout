@@ -70,6 +70,11 @@
 							{{ hiddenInput('event[name]', 'Started Checkout') }}
 							{{ hiddenInput('event[trackOrder]', '1') }}
 							{{ hiddenInput('event[orderId]', cart.id) }}
+							{% set klaviyoListId = craft.fostercheckout.settings.options.klaviyoListId %}
+							{% if klaviyoListId %}
+								{{ hiddenInput('subscribe', '1') }}
+								{{ hiddenInput('list', klaviyoListId) }}
+							{% endif %}
 							<button type="submit"
 									class="hidden w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block">
 								{{ 'Checkout'|t('foster-checkout') }}

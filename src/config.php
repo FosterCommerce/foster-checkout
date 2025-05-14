@@ -45,6 +45,9 @@ return [
 
 		// The label to display for the tax on the cart summary
 		'taxLabel' => 'Tax',
+
+		// The Klaviyo list ID to subscribe the customer to
+		'klaviyoListId' => null,
 	],
 	// Branding Settings
 	'branding' => [

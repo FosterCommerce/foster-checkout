@@ -60,4 +60,9 @@ class OptionConfig extends Model
 	 * The label to display for the tax on the cart summary
 	 */
 	public string $taxLabel = 'Tax';
+
+	/**
+	 * The Klaviyo list ID to subscribe the customer to
+	 */
+	public ?string $klaviyoListId = null;
 }
