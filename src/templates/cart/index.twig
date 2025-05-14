@@ -59,15 +59,31 @@
 			<aside>
 				<div
 					class="lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
-					{% include 'foster-checkout/_components/app/summary-cart' with {
-						postalCode: '90210',
-						couponCode: '121212'
-					} %}
-					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}"
-						 class="hidden w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
-					>
-						{{ 'Checkout'|t('foster-checkout') }}
-					</a>
+					{% include 'foster-checkout/_components/app/summary-cart' %}
+
+					{% if craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
+						<form method="POST" accept-charset="UTF-8">
+							{{ csrfInput() }}
+							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout)) }}
+
+							{{ actionInput('klaviyo-connect-plus/api/track') }}
+							{{ hiddenInput('event[name]', 'Started Checkout') }}
+							{{ hiddenInput('event[trackOrder]', '1') }}
+							{{ hiddenInput('event[orderId]', cart.id) }}
+							<button type="submit"
+									class="hidden w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block">
+								{{ 'Checkout'|t('foster-checkout') }}
+							</button>
+						</form>
+					{% else %}
+						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}"
+							class="hidden w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
+						>
+							{{ 'Checkout'|t('foster-checkout') }}
+						</a>
+					{% endif %}
+
+
 				</div>
 			</aside>
 
