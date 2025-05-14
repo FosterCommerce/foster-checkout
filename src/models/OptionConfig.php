@@ -39,4 +39,15 @@ class OptionConfig extends Model
 	 * If disabled then the heading and text will not be displayed
 	 */
 	public bool $enableMadeAMistake = false;
+
+	/**
+	 * Whether to show the line item options
+	 *
+	 * If false, no line item options will be displayed.
+	 *
+	 * If set to true or an empty string, then all line items will be shown.
+	 *
+	 * If set to a string, then line items prefixed with that value will be excluded from being shown.
+	 */
+	public bool|string $enableLineItemOptions = '_';
 }

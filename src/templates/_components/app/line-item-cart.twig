@@ -57,13 +57,16 @@
 				<h3 class="font-semibold">{{ lineItem.description }}</h3>
 				<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.sku }}</p>
 				{% for adjustment in lineItem.getAdjustments() %}
-					{% set value = adjustment.name ~ ': ' %}
+					{% set value = adjustment.name %}
 					{% if adjustment.description|trim|length > 0 %}
-						{% set value = value ~ adjustment.description ~ ' (' ~ adjustment.amount|commerceCurrency ~ ')' %}
+						{% set value = value ~ ': ' ~ adjustment.description %}
 					{% else %}
-						{% set value = value ~ adjustment.amount|commerceCurrency %}
+						{% set value = value %}
 					{% endif %}
 					<p class="mt-3 text-sm uppercase text-gray-500">{{ value }}</p>
+				{% endfor %}
+				{% for option in craft.fostercheckout.getLineItemOptions(lineItem) %}
+					<p class="mt-3 text-sm uppercase text-gray-500">{{ option.name }}: {{ option.value }}</p>
 				{% endfor %}
 			</div>
 

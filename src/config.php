@@ -36,6 +36,9 @@ return [
 		// Whether or not to show the "Made a mistake" function on the order completed page
 		// If disabled then the heading and text will not be displayed
 		'enableMadeAMistake' => false,
+
+		// Whether to show the line item options
+		'enableLineItemOptions' => '_',
 	],
 	// Branding Settings
 	'branding' => [
