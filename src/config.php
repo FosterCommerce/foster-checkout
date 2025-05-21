@@ -14,6 +14,8 @@
  * you do for 'general.php'
  */
 
+use craft\commerce\elements\Order;
+
 return [
 	// Plugin options
 	'options' => [
@@ -48,6 +50,13 @@ return [
 
 		// The Klaviyo list ID to subscribe the customer to
 		'klaviyoListId' => null,
+
+		'deliveryDate' => [
+			'label' => 'Expected delivery date',
+			'message' => 'Please note: Our support team is unable to investigate delivery issues until after the estimated delivery date has passed.',
+			'value' => '{{ order.dateOrdered|date_modify("+14 days")|date("M j, Y") }}', // closure, twig, string or null
+			'display' => true, // closure, twig or a boolean
+		],
 	],
 	// Branding Settings
 	'branding' => [

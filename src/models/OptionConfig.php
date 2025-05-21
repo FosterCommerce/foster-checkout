@@ -65,4 +65,27 @@ class OptionConfig extends Model
 	 * The Klaviyo list ID to subscribe the customer to
 	 */
 	public ?string $klaviyoListId = null;
+
+	/**
+	 * Delivery date configuration
+	 */
+	public DeliveryDateConfig $deliveryDate;
+
+	/**
+	 * @param array<array-key, mixed> $config
+	 */
+	public function __construct(array $config = [])
+	{
+		if (isset($config['deliveryDate'])) {
+			/** @var array<array-key, mixed> $deliveryDateConfig */
+			$deliveryDateConfig = $config['deliveryDate'];
+			$deliveryDate = new DeliveryDateConfig($deliveryDateConfig);
+		} else {
+			$deliveryDate = new DeliveryDateConfig();
+		}
+
+		$config['deliveryDate'] = $deliveryDate;
+
+		parent::__construct($config);
+	}
 }
