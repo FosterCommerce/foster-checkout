@@ -51,6 +51,12 @@ return [
 		// The Klaviyo list ID to subscribe the customer to
 		'klaviyoListId' => null,
 
+		// The text to display for the subscribe checkbox. Can also be a plain string, or a callable which returns a string
+		'subscribe' => [
+			'elementHandle' => '',
+			'fieldHandle' => '',
+		],
+
 		'deliveryDate' => [
 			'label' => 'Expected delivery date',
 			'message' => 'Please note: Our support team is unable to investigate delivery issues until after the estimated delivery date has passed.',

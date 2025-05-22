@@ -43,7 +43,6 @@
 								{{ hiddenInput('forward', '/commerce/cart/update-cart') }}
 								{% set klaviyoListId = craft.fostercheckout.settings.options.klaviyoListId %}
 								{% if klaviyoListId %}
-									{{ hiddenInput('subscribe', '1') }}
 									{{ hiddenInput('list', klaviyoListId) }}
 								{% endif %}
 							{% else %}
@@ -69,7 +68,14 @@
 								</div>
 
 							</fieldset>
-
+							{% if klaviyoListId %}
+								<div class="mt-4 p4 checkbox">
+									<input type="checkbox" class="sr-only" id="subscribe" name="subscribe" value="1"/>
+									<label
+										class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
+										for="subscribe">{{ craft.fostercheckout.settings.options.subscribe|raw }}</label>
+								</div>
+							{% endif %}
 							{% set note = craft.fostercheckout.note('email') %}
 							{% if note %}
 								<div class="mt-6 p-4 border border-gray-250 rounded-lg">

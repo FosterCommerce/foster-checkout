@@ -6,25 +6,25 @@ use craft\base\Model;
 
 class NotesConfig extends Model
 {
-	public NoteConfig $cart;
+	public TextConfig $cart;
 
-	public NoteConfig $emptyCart;
+	public TextConfig $emptyCart;
 
-	public NoteConfig $login;
+	public TextConfig $login;
 
-	public NoteConfig $email;
+	public TextConfig $email;
 
-	public NoteConfig $address;
+	public TextConfig $address;
 
-	public NoteConfig $shipping;
+	public TextConfig $shipping;
 
-	public NoteConfig $payment;
+	public TextConfig $payment;
 
-	public NoteConfig $order;
+	public TextConfig $order;
 
-	public NoteConfig $mistakeHeading;
+	public TextConfig $mistakeHeading;
 
-	public NoteConfig $mistakeText;
+	public TextConfig $mistakeText;
 
 	/**
 	 * @param array<mixed, mixed> $config
@@ -34,43 +34,43 @@ class NotesConfig extends Model
 		parent::__construct($config);
 
 		if (! isset($this->cart)) {
-			$this->cart = new NoteConfig();
+			$this->cart = new TextConfig();
 		}
 
 		if (! isset($this->emptyCart)) {
-			$this->emptyCart = new NoteConfig();
+			$this->emptyCart = new TextConfig();
 		}
 
 		if (! isset($this->login)) {
-			$this->login = new NoteConfig();
+			$this->login = new TextConfig();
 		}
 
 		if (! isset($this->email)) {
-			$this->email = new NoteConfig();
+			$this->email = new TextConfig();
 		}
 
 		if (! isset($this->address)) {
-			$this->address = new NoteConfig();
+			$this->address = new TextConfig();
 		}
 
 		if (! isset($this->shipping)) {
-			$this->shipping = new NoteConfig();
+			$this->shipping = new TextConfig();
 		}
 
 		if (! isset($this->payment)) {
-			$this->payment = new NoteConfig();
+			$this->payment = new TextConfig();
 		}
 
 		if (! isset($this->order)) {
-			$this->order = new NoteConfig();
+			$this->order = new TextConfig();
 		}
 
 		if (! isset($this->mistakeHeading)) {
-			$this->mistakeHeading = new NoteConfig();
+			$this->mistakeHeading = new TextConfig();
 		}
 
 		if (! isset($this->mistakeText)) {
-			$this->mistakeText = new NoteConfig();
+			$this->mistakeText = new TextConfig();
 		}
 	}
 }

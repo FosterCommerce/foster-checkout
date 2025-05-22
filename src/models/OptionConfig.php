@@ -67,6 +67,11 @@ class OptionConfig extends Model
 	public ?string $klaviyoListId = null;
 
 	/**
+	 * The text to display for the subscribe checkbox. Can also be a plain string, or a callable which returns a string
+	 */
+	public TextConfig $subscribe;
+
+	/**
 	 * Delivery date configuration
 	 */
 	public DeliveryDateConfig $deliveryDate;
@@ -85,6 +90,8 @@ class OptionConfig extends Model
 		}
 
 		$config['deliveryDate'] = $deliveryDate;
+
+		$config['subscribe'] = TextConfig::fromConfig('subscribe', $config);
 
 		parent::__construct($config);
 	}

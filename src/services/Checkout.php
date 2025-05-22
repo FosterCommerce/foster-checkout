@@ -3,21 +3,16 @@
 namespace fostercommerce\fostercheckout\services;
 
 use Craft;
-use craft\base\ElementInterface;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
 use craft\commerce\models\LineItem;
-use craft\commerce\Plugin;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
-use craft\elements\Entry;
-use craft\elements\GlobalSet;
-use craft\errors\InvalidFieldException;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\DeliveryDate;
-use fostercommerce\fostercheckout\models\NoteConfig;
 use fostercommerce\fostercheckout\models\Settings;
+use fostercommerce\fostercheckout\models\TextConfig;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 
@@ -55,32 +50,15 @@ class Checkout extends Component
 	/*
 	 * Gets the custom note data based on the template page we are on
 	*/
-	public function note(string $field): object|string|null
+	public function note(string $field): string|null
 	{
 		$notes = $this->settings()->notes;
 
-		/** @var ?NoteConfig $note */
+		/** @var ?TextConfig $note */
 		$note = $notes->{$field} ?? null;
 
-		$elementHandle = $note?->elementHandle;
-		$fieldHandle = $note?->fieldHandle;
-
-		if ($elementHandle && $fieldHandle) {
-			$global = GlobalSet::find()->handle($elementHandle)->one();
-			$element = $global ?? Entry::find()->section($elementHandle)->one();
-
-			// Get the content field data and parse it if necessary (for rich text fields like Redactor)
-			/** @var ?ElementInterface $element */
-			if ($element !== null) {
-				try {
-					/** @var object|string $content */
-					$content = $element->getFieldValue($fieldHandle);
-
-					return $content;
-				} catch (InvalidFieldException) {
-					// Do nothing
-				}
-			}
+		if ($note instanceof TextConfig) {
+			return (string) $note;
 		}
 
 		return null;
