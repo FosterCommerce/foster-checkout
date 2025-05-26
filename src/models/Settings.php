@@ -77,7 +77,7 @@ class Settings extends Model
 
 		if (array_key_exists('notes', $values)) {
 			foreach ($values['notes'] as &$note) {
-				$note = new TextConfig($note);
+				$note = new ValueConfig($note);
 			}
 
 			$values['notes'] = new NotesConfig($values['notes']);

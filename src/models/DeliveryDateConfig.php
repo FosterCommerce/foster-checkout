@@ -3,30 +3,58 @@
 namespace fostercommerce\fostercheckout\models;
 
 use craft\base\Model;
-use craft\commerce\elements\Order;
 
-/**
- * Model for Delivery Date configuration.
- */
 class DeliveryDateConfig extends Model
 {
 	/**
-	 * @var string|null Label for the delivery date.
+	 * Label for the delivery date.
 	 */
-	public ?string $label = 'Expected delivery date';
+	public ValueConfig $label;
 
 	/**
-	 * @var string|null Message to display regarding delivery date.
+	 * Message to display regarding delivery date.
 	 */
-	public ?string $message = null;
+	public ValueConfig $message;
 
 	/**
-	 * @var callable(Order): ?string|string|null Value for the delivery date. A string will be processed as a Twig template.
+	 * Value for the delivery date.
 	 */
-	public mixed $value = null;
+	public ValueConfig $estimate;
 
 	/**
-	 * @var callable(Order): bool|string|bool Whether to display the delivery date. A string will be processed as a Twig template.
+	 * Whether to display the delivery date.
 	 */
-	public mixed $display = false;
+	public ValueConfig $display;
+
+	/**
+	 * @param array<array-key, mixed> $config
+	 */
+	public function __construct($config = [])
+	{
+		if (isset($config['label'])) {
+			$config['label'] = ValueConfig::fromConfig('label', $config);
+		} else {
+			$config['label'] = new ValueConfig();
+		}
+
+		if (isset($config['message'])) {
+			$config['message'] = ValueConfig::fromConfig('message', $config);
+		} else {
+			$config['message'] = new ValueConfig();
+		}
+
+		if (isset($config['estimate'])) {
+			$config['estimate'] = ValueConfig::fromConfig('estimate', $config);
+		} else {
+			$config['estimate'] = new ValueConfig();
+		}
+
+		if (isset($config['display'])) {
+			$config['display'] = ValueConfig::fromConfig('display', $config);
+		} else {
+			$config['display'] = new ValueConfig();
+		}
+
+		parent::__construct($config);
+	}
 }

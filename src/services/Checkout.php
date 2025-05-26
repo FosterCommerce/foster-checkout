@@ -12,7 +12,7 @@ use craft\elements\db\AssetQuery;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\DeliveryDate;
 use fostercommerce\fostercheckout\models\Settings;
-use fostercommerce\fostercheckout\models\TextConfig;
+use fostercommerce\fostercheckout\models\ValueConfig;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 
@@ -54,10 +54,10 @@ class Checkout extends Component
 	{
 		$notes = $this->settings()->notes;
 
-		/** @var ?TextConfig $note */
+		/** @var ?ValueConfig $note */
 		$note = $notes->{$field} ?? null;
 
-		if ($note instanceof TextConfig) {
+		if ($note instanceof ValueConfig) {
 			return (string) $note;
 		}
 
@@ -156,38 +156,31 @@ class Checkout extends Component
 	{
 		$deliveryDateConfig = $this->settings()->options->deliveryDate;
 
-		if (is_string($deliveryDateConfig->display)) {
-			$display = Craft::$app->getView()->renderString($deliveryDateConfig->display, [
-				'order' => $order,
-			]);
-			/** @var bool $display */
+		$context = [
+			'order' => $order,
+		];
+
+		$display = $deliveryDateConfig->display->getValue($context);
+		if (! is_bool($display)) {
 			$display = filter_var($display, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-		} elseif (is_callable($deliveryDateConfig->display)) {
-			$callable = $deliveryDateConfig->display;
-			$display = $callable($order);
-		} else {
-			$display = $deliveryDateConfig->display;
 		}
 
 		if ($display === false) {
 			return false;
 		}
 
-		if (is_string($deliveryDateConfig->value)) {
-			$value = Craft::$app->getView()->renderString($deliveryDateConfig->value, [
-				'order' => $order,
-			]);
-		} elseif (is_callable($deliveryDateConfig->value)) {
-			$callable = $deliveryDateConfig->value;
-			$value = $callable($order);
-		} else {
-			$value = null;
+		$estimate = $deliveryDateConfig->estimate->getValue($context);
+		if (is_string($estimate) || is_int($estimate)) {
+			$intValue = filter_var($estimate, FILTER_VALIDATE_INT);
+			if ($intValue !== false) {
+				$estimate = $order->dateOrdered?->modify("+{$intValue} days");
+			}
 		}
 
 		return new DeliveryDate([
-			'label' => $deliveryDateConfig->label,
-			'message' => $deliveryDateConfig->message,
-			'value' => $value,
+			'label' => $deliveryDateConfig->label->getValue($context),
+			'message' => $deliveryDateConfig->message->getValue($context),
+			'estimate' => $estimate,
 		]);
 	}
 }

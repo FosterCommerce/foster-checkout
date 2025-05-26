@@ -3,21 +3,22 @@
 namespace fostercommerce\fostercheckout\models;
 
 use craft\base\Model;
+use DateTime;
 
 class DeliveryDate extends Model
 {
 	/**
-	 * @var string|null Label for the delivery date.
+	 * Label for the delivery date.
 	 */
 	public ?string $label = null;
 
 	/**
-	 * @var string|null Message to display regarding delivery date.
+	 * Message to display regarding delivery date.
 	 */
 	public ?string $message = null;
 
 	/**
-	 * @var string|null Value for the delivery date.
+	 * Value for the delivery date.
 	 */
-	public ?string $value = null;
+	public ?DateTime $estimate = null;
 }

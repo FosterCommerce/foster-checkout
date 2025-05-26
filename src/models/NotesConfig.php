@@ -6,25 +6,25 @@ use craft\base\Model;
 
 class NotesConfig extends Model
 {
-	public TextConfig $cart;
+	public ValueConfig $cart;
 
-	public TextConfig $emptyCart;
+	public ValueConfig $emptyCart;
 
-	public TextConfig $login;
+	public ValueConfig $login;
 
-	public TextConfig $email;
+	public ValueConfig $email;
 
-	public TextConfig $address;
+	public ValueConfig $address;
 
-	public TextConfig $shipping;
+	public ValueConfig $shipping;
 
-	public TextConfig $payment;
+	public ValueConfig $payment;
 
-	public TextConfig $order;
+	public ValueConfig $order;
 
-	public TextConfig $mistakeHeading;
+	public ValueConfig $mistakeHeading;
 
-	public TextConfig $mistakeText;
+	public ValueConfig $mistakeText;
 
 	/**
 	 * @param array<mixed, mixed> $config
@@ -34,43 +34,43 @@ class NotesConfig extends Model
 		parent::__construct($config);
 
 		if (! isset($this->cart)) {
-			$this->cart = new TextConfig();
+			$this->cart = new ValueConfig();
 		}
 
 		if (! isset($this->emptyCart)) {
-			$this->emptyCart = new TextConfig();
+			$this->emptyCart = new ValueConfig();
 		}
 
 		if (! isset($this->login)) {
-			$this->login = new TextConfig();
+			$this->login = new ValueConfig();
 		}
 
 		if (! isset($this->email)) {
-			$this->email = new TextConfig();
+			$this->email = new ValueConfig();
 		}
 
 		if (! isset($this->address)) {
-			$this->address = new TextConfig();
+			$this->address = new ValueConfig();
 		}
 
 		if (! isset($this->shipping)) {
-			$this->shipping = new TextConfig();
+			$this->shipping = new ValueConfig();
 		}
 
 		if (! isset($this->payment)) {
-			$this->payment = new TextConfig();
+			$this->payment = new ValueConfig();
 		}
 
 		if (! isset($this->order)) {
-			$this->order = new TextConfig();
+			$this->order = new ValueConfig();
 		}
 
 		if (! isset($this->mistakeHeading)) {
-			$this->mistakeHeading = new TextConfig();
+			$this->mistakeHeading = new ValueConfig();
 		}
 
 		if (! isset($this->mistakeText)) {
-			$this->mistakeText = new TextConfig();
+			$this->mistakeText = new ValueConfig();
 		}
 	}
 }

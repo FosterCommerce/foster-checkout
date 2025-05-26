@@ -69,7 +69,7 @@ class OptionConfig extends Model
 	/**
 	 * The text to display for the subscribe checkbox. Can also be a plain string, or a callable which returns a string
 	 */
-	public TextConfig $subscribe;
+	public ValueConfig $subscribe;
 
 	/**
 	 * Delivery date configuration
@@ -91,7 +91,7 @@ class OptionConfig extends Model
 
 		$config['deliveryDate'] = $deliveryDate;
 
-		$config['subscribe'] = TextConfig::fromConfig('subscribe', $config);
+		$config['subscribe'] = ValueConfig::fromConfig('subscribe', $config);
 
 		parent::__construct($config);
 	}
