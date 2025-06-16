@@ -135,9 +135,16 @@
 
 										<div v-cloak v-if="useNewAddress" class="p-4">
 
+											{% set address = null %}
+											{% if currentUser and cart.sourceShippingAddressId is not null %}
+												{% set address = craft.addresses().owner(currentUser).id(cart.sourceShippingAddressId).one() %}
+											{% elseif cart.shippingAddressId is not null %}
+												{% set address = craft.addresses().id(cart.shippingAddressId).one() %}
+											{% endif %}
+
 											{% include 'foster-checkout/_components/app/address-fields' with {
 												context: 'shippingAddress',
-												address: currentUser ? ( cart.sourceShippingAddressId ? craft.addresses().owner(currentUser).id(cart.sourceShippingAddressId).one() : craft.addresses().id(cart.shippingAddressId).one() ) : cart.shippingAddressId ? craft.addresses().id(cart.shippingAddressId).one() : null
+												address,
 											} %}
 
 											<div class="mt-4 p4 checkbox">
