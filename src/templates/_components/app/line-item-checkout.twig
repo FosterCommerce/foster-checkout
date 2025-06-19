@@ -31,7 +31,7 @@
 			<h3 class="font-semibold leading-snug">{{ lineItem.description }}</h3>
 			<p class="text-sm uppercase text-gray-500">{{ 'Qty'|t('foster-checkout') }}: {{ lineItem.qty }}</p>
 		</div>
-		<h4 class="font-semibold text-right leading-snug">{{ lineItem.subTotalAsCurrency() }}</h4>
+		<h4 class="font-semibold text-right leading-snug">{{ lineItem.subTotal|currency }}</h4>
 	</div>
 
 </article>
