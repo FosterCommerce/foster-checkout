@@ -167,16 +167,7 @@
 				</form>
 
 				<div class="mt-3 md:mt-0">
-					{% set priceDifference = lineItem.total - lineItem.subTotal %}
-					{% if priceDifference < 0.0 %}
-						<p class="mt-1 text-sm text-gray-600 line-through"><span>{{ lineItem.subtotalAsCurrency() }}</span></p>
-						<p
-							class="font-semibold">{{ lineItem.totalAsCurrency() }}</p>
-					{% else %}
-						{# Total is unchanged or its higher than the subtotal #}
-						<p class="font-semibold"><span>{{ lineItem.totalAsCurrency() }}</span>
-						</p>
-					{% endif %}
+					<p class="font-semibold"><span>{{ lineItem.subTotalAsCurrency() }}</span></p>
 				</div>
 
 			</div>
