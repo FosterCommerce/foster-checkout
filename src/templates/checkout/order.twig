@@ -98,26 +98,33 @@
 									In order to get the code, we'll have to split the description string using 'code ' as its delimeter
 									#}
 
-									<p class="mt-1">{{ 'Voucher/Gift card'|t('foster-checkout') }}</p>
-
-									{% for voucher in order.orderAdjustments %}
-										{# Get redeemed voucher code from description #}
-										{% set voucherCode = voucher.description|split('code ')[1] is defined ? voucher.description|split('code ')[1] : false %}
-										{# Get voucher remaining amount #}
-										{% if voucherCode %}
-											{% set amountRemaining = craft.giftVoucher.codes().codeKey(voucherCode).one().currentAmount %}
-											{% set appliedVoucherAmount = (order.storedItemTotal - (voucher.amount|abs)) < 0 ? order.storedItemTotal : voucher.amount|abs %}
-											{% set appliedVoucherDescription = voucher.description|split('code ')[1] ~ ' (' ~ appliedVoucherAmount|currency ~ ' applied, ' ~ amountRemaining|currency ~ ' remaining)' %}
-											<p class="mt-1">{{ appliedVoucherDescription }}</p>
-										{% endif %}
-									{% endfor %}
+									{% set voucherAdjustments = order.orderAdjustments|filter(adjustment => adjustment.type == 'voucher') %}
+									{% if voucherAdjustments|length >= 1 %}
+										<p class="mt-1">Gift card</p>
+										{% for voucher in voucherAdjustments %}
+											{# Get redeemed voucher code from description #}
+											{% set voucherCode = voucher.description|split('code ')[1] is defined ? voucher.description|split('code ')[1] : false %}
+											{# Get voucher remaining amount #}
+											{% if voucherCode %}
+												{% set amountRemaining = craft.giftVoucher.codes().codeKey(voucherCode).one().currentAmount %}
+												{% set appliedVoucherAmount = (order.storedItemTotal - (voucher.amount|abs)) < 0 ? order.storedItemTotal : voucher.amount|abs %}
+												{% set appliedVoucherDescription = voucher.description|split('code ')[1] ~ ' (' ~ appliedVoucherAmount|currency ~ ' applied, ' ~ amountRemaining|currency ~ ' remaining)' %}
+												<p class="mt-1">{{ appliedVoucherDescription }}</p>
+											{% endif %}
+										{% endfor %}
+									{% endif %}
 								{% endif %}
 							{% endif %}
 							{% set transaction = order.transactions|last %}
 							{% if transaction %}
 								{% set response = transaction.response|json_decode %}
 								{% if response %}
-									<p class="mt-1">{{ response.payment_method.card.display_brand|capitalize }} **** {{ response.payment_method.card.last4 }}</p>
+									{% set paymentMethod = response.payment_method %}
+									{% if payment_method.card|default %}
+										<p class="mt-1">{{ response.payment_method.card.display_brand|capitalize }} **** {{ response.payment_method.card.last4 }}</p>
+									{% else %}
+										<p class="mt-1">{{ paymentMethod.type|capitalize }}</p>
+									{% endif %}
 								{% endif %}
 								<p class="mt-1">{{ transaction.paymentAmount|float|currency('USD') }} (Charged on {{ order.dateOrdered|date }})</p>
 							{% endif %}
