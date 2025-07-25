@@ -66,7 +66,7 @@
 														type="radio"
 														class="sr-only"
 														value="{{ address.id }}"
-														:checked="{{ cart.sourceShippingAddressId }} == {{ address.id }}"
+														:checked="{{ cart.sourceShippingAddressId ?? 0 }} == {{ address.id }}"
 														@change="editExistingAddress = 0, useNewAddress = 0, shippingAddressId = {{ address.id }}"
 													/>
 													<label

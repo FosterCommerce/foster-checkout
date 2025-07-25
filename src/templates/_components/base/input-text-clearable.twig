@@ -10,13 +10,18 @@
 	v-scope="ClearableInput({
 		name: '{{ name|default('') }}',
 		value: '{{ value|default('') }}',
+		countryCode: () => countryCode,
+		requiredFields: () => requiredFields(),
+		{% if required is defined %}
+			required: {{ required ? 'true' : 'false' }},
+		{% endif %}
 		errors: {{ errors|default([])|json_encode }},
 		success: {{ success|default([])|json_encode }}
 	})">
 
 	{% if label|default %}
-		<label for="{{ fieldId }}" class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}">
-			{{ label ~ (required|default(false) ? '*' : '') }}
+		<label for="{{ fieldId }}" class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}" >
+			{{ label }}${ isRequired() ? '*' : '' }
 		</label>
 	{% endif %}
 
@@ -40,7 +45,7 @@
 			@focus="focus"
 			@blur="blur($el)"
 			{%- if action|default -%}v-effect="{{ action }}"{%- endif -%}
-			{%- if required|default -%}required{%- endif -%}
+			:required="isRequired()"
 		/>
 		<button
 			v-cloak
