@@ -90,5 +90,8 @@
 
 </div>
 
-{% do cart.clearNotices(null, 'couponCode') %}
-{% do craft.app.elements.saveElement(cart) %}
+{% if couponCodeError %}
+	{# Only update the cart if there was an error previously #}
+	{% do cart.clearNotices(null, 'couponCode') %}
+	{% do craft.app.elements.saveElement(cart) %}
+{% endif %}
