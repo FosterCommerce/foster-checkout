@@ -68,7 +68,7 @@
 								</div>
 
 							</fieldset>
-							{% if klaviyoListId %}
+							{% if klaviyoListId is defined %}
 								{% set subscribe = craft.fostercheckout.settings.options.subscribe|raw %}
 								{% if subscribe is not empty and subscribe != '' %}
 									<div class="mt-4 p4 checkbox">
