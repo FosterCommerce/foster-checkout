@@ -91,7 +91,7 @@
 															{% set methodDescription = craft.commerce.shippingMethods.getMatchingShippingRule(cart, method).getDescription() ?? null %}
 															{% if methodDescription %}
 																<span
-																class="block mt-1 text-sm text-gray-500">{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, method).getDescription() }}</span>
+																class="block mt-1 text-sm text-gray-500">{{ methodDescription }}</span>
 															{% endif %}
 														</span>
 													</label>
