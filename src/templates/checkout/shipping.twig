@@ -88,8 +88,11 @@
 													>
 														<span class="block">
 															<span class="block">{{ method.name }}</span>
-															<span
-															class="block mt-1 text-sm text-gray-500">{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, method).getDescription() }}</span>
+															{% set methodDescription = craft.commerce.shippingMethods.getMatchingShippingRule(cart, method).getDescription() ?? null %}
+															{% if methodDescription %}
+																<span
+																class="block mt-1 text-sm text-gray-500">{{ craft.commerce.shippingMethods.getMatchingShippingRule(cart, method).getDescription() }}</span>
+															{% endif %}
 														</span>
 													</label>
 													<span
