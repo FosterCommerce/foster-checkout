@@ -12,7 +12,7 @@ class CheckoutAsset extends AssetBundle
 	public function init(): void
 	{
 		$this->sourcePath = __DIR__ . '/dist';
-		$this->js = ['js/app.js'];
+		$this->js = ['js/alpine.js'];
 		parent::init();
 	}
 }
