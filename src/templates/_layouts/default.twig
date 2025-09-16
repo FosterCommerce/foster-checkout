@@ -70,6 +70,8 @@
 			opacity: 0;
 		}
 
+		[x-cloak] { display: none !important; }
+
 		{% if craft.fostercheckout.settings.options.enablePageTransitions %}
 		@view-transition {
 			navigation: auto;
@@ -154,6 +156,11 @@
 </script>
 
 {# Inject the javascript bundle #}
-<script src="{{ craft.fostercheckout.jsBundle }}" type="module"></script>
+{#<script src="{{ craft.fostercheckout.jsBundle }}" type="module"></script>#}
+<script src="{{ craft.fostercheckout.alpineJsBundle }}" type="module"></script>
+
+
+
+
 </body>
 </html>

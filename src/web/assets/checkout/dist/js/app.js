@@ -145,7 +145,9 @@ const LineItem = (props) => {
 		sending: false,
 		input: debounce(700, function () {
 			this.qty = this.qty.replace(/\D/g, '');
+			console.log(`input ${this.qty}`);
 			if(this.qty) {
+				console.log('do update');
 				this.updateQty();
 			}
 		}),

@@ -44,6 +44,17 @@ class Checkout extends Component
 	{
 		/** @var string $bundleUrl */
 		$bundleUrl = Craft::$app->assetManager->getPublishedUrl('@fostercheckout/web/assets/checkout/dist/js/app.js', true);
+//		$bundleUrl = Craft::$app->assetManager->getPublishedUrl('@fostercheckout/web/assets/checkout/dist/js/alpine.js', true);
+
+		return $bundleUrl;
+	}
+
+	public function alpineJsBundle(): string
+	{
+		/** @var string $bundleUrl */
+//		$bundleUrl = Craft::$app->assetManager->getPublishedUrl('@fostercheckout/web/assets/checkout/dist/js/app.js', true);
+		$bundleUrl = Craft::$app->assetManager->getPublishedUrl('@fostercheckout/web/assets/checkout/dist/js/alpine.js', true);
+
 		return $bundleUrl;
 	}
 
