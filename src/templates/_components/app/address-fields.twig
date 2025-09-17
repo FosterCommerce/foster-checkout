@@ -26,7 +26,6 @@
 	}"
 	class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-3"
 >
-
 	<div class="sm:col-span-3">
 		<label for="{{ 'countryCode'|namespaceInputId(context) }}" class="block mb-2 font-medium text-gray-500">
 			{{ 'Country'|t('foster-checkout') }}*
@@ -45,7 +44,7 @@
 		>
 			<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
 			<template x-for="(country, key) in countries" :key="key">
-				<option x-text="country" :value="key">
+				<option x-text="country" :value="key" :selected="countryCode == key">
 				</option>
 			</template>
 
