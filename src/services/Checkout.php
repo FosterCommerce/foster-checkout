@@ -9,6 +9,7 @@ use craft\commerce\elements\Variant;
 use craft\commerce\models\LineItem;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
+use craft\errors\InvalidFieldException;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\DeliveryDate;
 use fostercommerce\fostercheckout\models\Settings;
@@ -63,15 +64,19 @@ class Checkout extends Component
 	*/
 	public function note(string $field): string|null
 	{
+
 		$notes = $this->settings()->notes;
 
 		/** @var ?ValueConfig $note */
 		$note = $notes->{$field} ?? null;
 
-		if ($note instanceof ValueConfig) {
-			return (string) $note;
+		try {
+			if ($note instanceof ValueConfig) {
+				return (string) $note;
+			}
+		} catch (InvalidFieldException $e) {
+			return null;
 		}
-
 		return null;
 	}
 

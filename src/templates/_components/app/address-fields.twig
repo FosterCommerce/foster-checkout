@@ -15,7 +15,7 @@
 {% endfor %}
 
 <div
-	v-scope="{
+	x-data="{
 		address: {{ address|json_encode }},
 		countryCode: '{{ address ? address.countryCode : '' }}',
 		administrativeArea: '{{ address ? address.administrativeArea : '' }}',
@@ -32,7 +32,7 @@
 			{{ 'Country'|t('foster-checkout') }}*
 		</label>
 		<select
-			v-model="countryCode"
+			x-model="countryCode"
 			id="{{ 'countryCode'|namespaceInputId(context) }}"
 			name="{{ context ? 'countryCode'|namespaceInputName(context) : 'countryCode' }}"
 			autocomplete="country-name"
@@ -44,18 +44,19 @@
 			required
 		>
 			<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
-			<option v-cloak v-for="(country, key) in countries" :value="key">
-				${country}
-			</option>
+			<template x-for="(country, key) in countries" :key="key">
+				<option x-text="country" :value="key">
+				</option>
+			</template>
+
 		</select>
-		<div
-			v-cloak
-			v-if="'countryCode' in errors"
-			id="{{ 'countryCode'|namespaceInputId(context) }}-error"
-			class="mt-1 text-sm text-red-500"
-		>
-			${ errors.countryCode ? errors.countryCode.join(' ') : '' }
-		</div>
+		<template x-if="'countryCode' in errors">
+			<div
+				id="{{ 'countryCode'|namespaceInputId(context) }}-error"
+				class="mt-1 text-sm text-red-500"
+				x-html="`${ errors.countryCode ? errors.countryCode.join(' ') : '' }`">
+			</div>
+		</template>
 	</div>
 
 	<div class="sm:col-span-3">
@@ -128,47 +129,49 @@
 	</div>
 
 	<div class="sm:col-span-1">
+		<template x-if="regions[countryCode] && !Array.isArray(regions[countryCode])">
+			<div>
+				<label for="{{ 'administrativeArea'|namespaceInputId(context) }}"
+							 class="block mb-2 font-medium text-gray-500">
+					{{ 'State / Province'|t('foster-checkout') }}<span x-text="`${ requiredFields()[countryCode].includes('administrativeArea') ? '*' : '' }`"></span>
+				</label>
+				<select
+					x-model="administrativeArea"
+					id="{{ 'administrativeArea'|namespaceInputId(context) }}"
+					name="{{ context ? 'administrativeArea'|namespaceInputName(context) : 'administrativeArea' }}"
+					autocomplete="address-level1"
+					class="w-full h-12 px-4 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
+					:class="'administrativeArea' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
+					:aria-invalid="'administrativeArea' in errors"
+					aria-errormessage="{{ 'administrativeArea'|namespaceInputId(context) }}-error"
+					@change="if ($el.value) delete errors.administrativeArea"
+					:required="requiredFields()[countryCode].includes('administrativeArea')"
+				>
+					<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
+					<template x-for="(region, key) in regions[countryCode]" :key="key">
+						<option :value="key" :selected="key === administrativeArea" x-text="`${region}`">
+						</option>
+					</template>
+				</select>
+			</div>
+		</template>
 
-		<div v-if="regions[countryCode] && !Array.isArray(regions[countryCode])">
-			<label for="{{ 'administrativeArea'|namespaceInputId(context) }}"
-						 class="block mb-2 font-medium text-gray-500">
-				{{ 'State / Province'|t('foster-checkout') }}${ requiredFields()[countryCode].includes('administrativeArea') ? '*' : '' }
-			</label>
-			<select
-				v-model="administrativeArea"
-				id="{{ 'administrativeArea'|namespaceInputId(context) }}"
-				name="{{ context ? 'administrativeArea'|namespaceInputName(context) : 'administrativeArea' }}"
-				autocomplete="address-level1"
-				class="w-full h-12 px-4 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
-				:class="'administrativeArea' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
-				:aria-invalid="'administrativeArea' in errors"
-				aria-errormessage="{{ 'administrativeArea'|namespaceInputId(context) }}-error"
-				@change="if ($el.value) delete errors.administrativeArea"
-				:required="requiredFields()[countryCode].includes('administrativeArea')"
-			>
-				<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
-				<option v-cloak v-for="(region, key) in regions[countryCode]" :value="key"
-								:selected="key === administrativeArea">
-					${region}
-				</option>
-			</select>
+		<template x-if="regions[countryCode] === false || Array.isArray(regions[countryCode]) ">
+			<div >
+				{% include 'foster-checkout/_components/base/input-text-clearable' with {
+					context: context,
+					label: 'State / Province'|t('foster-checkout'),
+					id: 'administrativeArea',
+					name: 'administrativeArea',
+					type: 'text',
+					autocomplete: 'address-level1',
+					placeholder: 'Your state or province'|t('foster-checkout'),
+					value: address ? address.locality|e('js') : '',
+					errors: errors.locality ?? []
+				} %}
+			</div>
+		</template>
 
-
-		</div>
-
-		<div v-cloak v-else>
-			{% include 'foster-checkout/_components/base/input-text-clearable' with {
-				context: context,
-				label: 'State / Province'|t('foster-checkout'),
-				id: 'administrativeArea',
-				name: 'administrativeArea',
-				type: 'text',
-				autocomplete: 'address-level1',
-				placeholder: 'Your state or province'|t('foster-checkout'),
-				value: address ? address.locality|e('js') : '',
-				errors: errors.locality ?? []
-			} %}
-		</div>
 	</div>
 
 	<div class="sm:col-span-1">
@@ -214,14 +217,14 @@
 					{% endif %}
 				>{{ address ? address[customField.handle]|e('js') : '' }}</textarea>
 
-				<div
-					v-cloak
-					v-if="'{{ customField.handle }}' in errors"
-					id="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}-error"
-					class="mt-1 text-sm text-red-500"
-				>
-					${ errors.{{ customField.handle }} ? errors.{{ customField.handle }}.join(' ') : '' }
-				</div>
+				<template x-if="'{{ customField.handle }}' in errors">
+					<div
+						id="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}-error"
+						class="mt-1 text-sm text-red-500"
+						x-html="`${ errors.{{ customField.handle }} ? errors.{{ customField.handle }}.join(' ') : '' }`">
+					</div>
+				</template>
+
 
 			{% else %}
 				{% include 'foster-checkout/_components/base/input-text-clearable' with {
