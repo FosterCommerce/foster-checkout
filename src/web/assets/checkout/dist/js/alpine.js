@@ -1,6 +1,67 @@
 import Alpine from "https://esm.sh/alpinejs@3";
 import focus from "https://esm.sh/@alpinejs/focus";
 
+const ClearableInput = (props) => {
+	return {
+		name: props.name,
+		value: props.value,
+		countryCode: props.countryCode,
+		requiredFields: props.requiredFields,
+		required: props.required,
+		errors: props.errors,
+		success: props.success,
+		showButton: false,
+		props: props,
+
+		input() {
+			this.showButton = this.value !== '';
+			this.errors = [];
+		},
+		focus() {
+			this.showButton = this.value !== '';
+		},
+		blur() {
+			this.showButton = (this.$refs.button === document.activeElement) && (this.value !== '');
+		},
+		clear() {
+			this.value = '';
+			this.errors = [];
+			this.$refs.input.focus();
+		},
+		isRequired() {
+			// If its a boolean, then we return that, not what the address formatter indicates.
+			if (typeof this.required === 'boolean') {
+				return this.required;
+			}
+
+			// If its a string, then we check if that value is in the requiredFields object
+			if (typeof this.required === 'string') {
+				return this.requiredFields()[this.countryCode()]?.includes(this.required) ?? false;
+			}
+
+			if (!this.requiredFields) {
+				return false;
+			}
+
+			try {
+				let countryCode = this.countryCode() ?? '';
+				let requiredFields = this.requiredFields() ?? {};
+
+				// Check if countryCode and requiredFields are defined
+				if (!countryCode || !requiredFields) {
+					return false;
+				}
+
+				// Otherwise we check if the field name is in the requiredFields object
+				return requiredFields[countryCode]?.includes(this.name) ?? false;
+			} catch (error) {
+				// Somehow there is a moment where the countryCode and requiredFields are not defined
+				// This is a temporary fix to prevent the error log - no functionality is broken.
+				return false;
+			}
+		}
+	}
+};
 const LineItem = (props) => {
 	return {
 		id: props.lineItemId,
@@ -129,6 +190,7 @@ const LineItem = (props) => {
 
 
 Alpine.plugin(focus);
+Alpine.data('ClearableInput', ClearableInput);
 Alpine.data('LineItem', LineItem);
 
 window.Alpine = Alpine;

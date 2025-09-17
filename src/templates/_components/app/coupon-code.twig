@@ -14,26 +14,30 @@
 {% endif %}
 
 <div
-	v-scope="{ isOpen: {{ couponMessage ? 'true' : 'false' }}, sending: false }"
+	x-data="{ isOpen: {{ couponMessage ? 'true' : 'false' }}, sending: false }"
 	class="border-t border-b border-gray-400"
 >
-
 	<button class="flex justify-between items-center w-full py-4" @click="isOpen = !isOpen">
 		<span id="couponCodeLabel" class="font-medium text-gray-500">
 			{{ 'Coupon code'|t('foster-checkout') }}{% if cart.couponCode|default %} ({{ cart.couponCode }}){% endif %}
 		</span>
-		<svg v-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current"
+			<template x-if="isOpen">
+				<svg x-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current"
 				 aria-hidden="true">
-			<path v-if="isOpen"
-						d="M6.99972 0.301388L13.3389 6.64054L11.9247 8.05469L6.99972 3.10469L2.07472 8.02969L0.660568 6.61554L6.99972 0.301388Z"/>
-			<path v-else
-						d="M7.00028 8.70057L0.661133 2.36142L2.07528 0.947266L7.00028 5.89727L11.9253 0.972268L13.3394 2.38642L7.00028 8.70057Z"/>
-		</svg>
+					<path d="M6.99972 0.301388L13.3389 6.64054L11.9247 8.05469L6.99972 3.10469L2.07472 8.02969L0.660568 6.61554L6.99972 0.301388Z"/>
+				</svg>
+			</template>
+			<template x-if="!isOpen">
+				<svg x-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current"
+					 aria-hidden="true">
+					<path d="M7.00028 8.70057L0.661133 2.36142L2.07528 0.947266L7.00028 5.89727L11.9253 0.972268L13.3394 2.38642L7.00028 8.70057Z"/>
+				</svg>
+			</template>
 	</button>
 
 	<div
-		v-cloak
-		v-show="isOpen"
+		x-cloak
+		x-show="isOpen"
 		role="dialog"
 		:aria-hidden="!isOpen"
 		aria-labelledby="couponCodeLabel"
@@ -66,14 +70,14 @@
 				errors: couponCodeError ? [couponMessage] : [],
 				success: cart.couponCode and couponMessage ? [couponMessage] : [],
 				value: cart.couponCode,
-				action: 'if (isOpen) $el.focus()'
+				action: 'if (isOpen) { $nextTick(() => { $refs.input.focus() }) }'
 			} %}
 			<button
 				type="submit"
 				class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-xl"
 				:disabled="sending"
 			>
-				<svg v-show="sending" aria-hidden="true" role="status"
+				<svg x-show="sending" aria-hidden="true" role="status"
 						 class="inline-block w-4 h-4 me-3 text-gray-200 animate-spin dark:text-gray-600" viewBox="0 0 100 101"
 						 fill="none" xmlns="http://www.w3.org/2000/svg">
 					<path
@@ -87,7 +91,6 @@
 			</button>
 		</form>
 	</div>
-
 </div>
 
 {% if couponCodeError %}

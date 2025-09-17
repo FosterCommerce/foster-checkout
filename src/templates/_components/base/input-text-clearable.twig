@@ -7,7 +7,7 @@
 {% endif %}
 
 <div
-	v-scope="ClearableInput({
+	x-data="ClearableInput({
 		name: '{{ name|default('') }}',
 		value: '{{ value|default('') }}',
 		countryCode: () => countryCode,
@@ -18,7 +18,6 @@
 		errors: {{ errors|default([])|json_encode }},
 		success: {{ success|default([])|json_encode }}
 	})">
-
 	{% if label|default %}
 		<label for="{{ fieldId }}" class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}" >
 			{{ label }}${ isRequired() ? '*' : '' }
@@ -27,7 +26,8 @@
 
 	<div class="relative">
 		<input
-			v-model="value"
+			x-model="value"
+			x-ref="input"
 			id="{{ fieldId }}"
 			name="{{ fieldName }}"
 			type="{{ type ?? 'text' }}"
@@ -43,20 +43,20 @@
 			aria-errormessage="{{ fieldId }}-error"
 			@input="input"
 			@focus="focus"
-			@blur="blur($el)"
-			{%- if action|default -%}v-effect="{{ action }}"{%- endif -%}
+			@blur="blur()"
+			{%- if action|default -%}x-init="$watch('isOpen', value => { {{ action }} } )" {%- endif -%}
 			:required="isRequired()"
 		/>
 		<button
-			v-cloak
 			type="button"
+			x-ref="button"
 			class="absolute inset-y-0 right-0 flex justify-center items-center w-12 h-12 rounded-r-xl transition-opacity duration-300"
 			:class="showButton ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'"
 			:aria-hidden="!showButton"
 			:tabindex="value ? '0' : '-1'"
 			@focus="showButton = value ? true : false"
 			@blur="showButton = false"
-			@click="clear($el)"
+			@click="clear()"
 		>
 			<span class="sr-only">{{ 'Clear this field'|t('foster-checkout') }}</span>
 			<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" class="fill-current"
@@ -68,12 +68,11 @@
 		</button>
 	</div>
 
-	<p v-cloak v-if="errors.length" id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500">
-		${ errors.join(' ') }
-	</p>
+	<template x-if="errors.length">
+		<p id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500" x-html="`${ errors.join(' ')}`"></p>
+	</template>
 
-	<p v-cloak v-if="success.length" class="mt-1 text-sm text-green-500">
-		${ success.join(' ') }
-	</p>
-
+	<template x-if="success.length">
+		<p class="mt-1 text-sm text-green-500" x-html="`${ success.join(' ') } `"></p>
+	</template>
 </div>
