@@ -5,9 +5,8 @@
 	{% set fieldId = id ?? '' %}
 	{% set fieldName = name ?? '' %}
 {% endif %}
-
 <div
-	x-data="ClearableInput({
+	v-scope="ClearableInput({
 		name: '{{ name|default('') }}',
 		value: '{{ value|default('') }}',
 		countryCode: () => countryCode,
@@ -18,16 +17,16 @@
 		errors: {{ errors|default([])|json_encode }},
 		success: {{ success|default([])|json_encode }}
 	})">
+
 	{% if label|default %}
 		<label for="{{ fieldId }}" class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}" >
-			{{ label }}<span x-html="`${ isRequired() ? '*' : '' }`"></span>
+			{{ label }}${ isRequired() ? '*' : '' }
 		</label>
 	{% endif %}
 
 	<div class="relative">
 		<input
-			x-model="value"
-			x-ref="input"
+			v-model="value"
 			id="{{ fieldId }}"
 			name="{{ fieldName }}"
 			type="{{ type ?? 'text' }}"
@@ -43,24 +42,24 @@
 			aria-errormessage="{{ fieldId }}-error"
 			@input="input"
 			@focus="focus"
-			@blur="blur()"
-			{%- if action|default -%}x-init="$watch('isOpen', value => { {{ action }} } )" {%- endif -%}
+			@blur="blur($el)"
+			{%- if action|default -%}v-effect="{{ action }}"{%- endif -%}
 			:required="isRequired()"
 		/>
 		<button
+			v-cloak
 			type="button"
-			x-ref="button"
 			class="absolute inset-y-0 right-0 flex justify-center items-center w-12 h-12 rounded-r-xl transition-opacity duration-300"
 			:class="showButton ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'"
 			:aria-hidden="!showButton"
 			:tabindex="value ? '0' : '-1'"
 			@focus="showButton = value ? true : false"
 			@blur="showButton = false"
-			@click="clear()"
+			@click="clear($el)"
 		>
 			<span class="sr-only">{{ 'Clear this field'|t('foster-checkout') }}</span>
 			<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" class="fill-current"
-					 aria-hidden="true">
+				 aria-hidden="true">
 				<path
 					d="M1.22473 13.9682L0.03125 12.7747L5.80625 6.99973L0.03125 1.22473L1.22473 0.03125L6.99973 5.80625L12.7747 0.03125L13.9682 1.22473L8.1932 6.99973L13.9682 12.7747L12.7747 13.9682L6.99973 8.1932L1.22473 13.9682Z"
 					fill="black"/>
@@ -68,11 +67,12 @@
 		</button>
 	</div>
 
-	<template x-if="errors.length">
-		<p id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500" x-html="`${ errors.join(' ')}`"></p>
-	</template>
+	<p v-cloak v-if="errors.length" id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500">
+		${ errors.join(' ') }
+	</p>
 
-	<template x-if="success.length">
-		<p class="mt-1 text-sm text-green-500" x-html="`${ success.join(' ') } `"></p>
-	</template>
+	<p v-cloak v-if="success.length" class="mt-1 text-sm text-green-500">
+		${ success.join(' ') }
+	</p>
+
 </div>

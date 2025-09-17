@@ -1,6 +1,6 @@
 {% set fieldId = id ? ('field_' ~ id) : ('field_' ~ random()) %}
 
-<div v-scope="{
+<div x-data="{
 	value: '{{ value|default('') }}',
 	errors: {{ errors|default([])|json_encode }},
 	success: {{ success|default([])|json_encode }}
@@ -11,7 +11,7 @@
 		</label>
 	{% endif %}
 	<select
-		v-model="value"
+		x-model="value"
 		id="{{ fieldId }}"
 		name="{{ name|default('') }}"
 		class="w-full h-12 px-4 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
@@ -30,11 +30,11 @@
 			<option value="{{ option.value }}">{{ option.label }}</option>
 		{% endfor %}
 	</select>
-	<p v-cloak v-if="errors.length" id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500">
-		${ errors.join(' ') }
-	</p>
-	<p v-cloak v-if="success.length" class="mt-1 text-sm text-green-500">
-		${ success.join(' ') }
-	</p>
+	<template x-if="errors.length" >
+		<p id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500" x-html="`${ errors.join(' ') }`"></p>
+	</template>
+	<template x-if="success.length">
+		<p  class="mt-1 text-sm text-green-500" x-html="`${ success.join(' ') }`"></p>
+	</template>
 </div>
 
