@@ -1,6 +1,17 @@
 import Alpine from "https://esm.sh/alpinejs@3";
 import focus from "https://esm.sh/@alpinejs/focus";
 
+async function callAction(url, body = {}, method = 'POST') {
+	return await fetch(url, {
+		headers: {
+			'Accept': 'application/json',
+			'X-Requested-With': 'XMLHttpRequest'
+		},
+		method,
+		body,
+	})
+}
+
 const ClearableInput = (props) => {
 	return {
 		name: props.name,
@@ -187,11 +198,46 @@ const LineItem = (props) => {
 	}
 };
 
+const Payment = (props) => {
+	return {
+		gatewayId: props.gatewayId,
+		billingSameAsShipping: props.billingSameAsShipping,
+		addressBookBillingAddress: props.addressBookBillingAddress,
+		newBillingAddress: props.newBillingAddress,
+		billingAddressId: props.billingAddressId,
+		editAddress: props.editAddress,
+		async selectSameAsShipping() {
+			this.editAddress = 0;
+			this.newBillingAddress = 0;
+			this.billingSameAsShipping = 1;
+			this.addressBookBillingAddress = 0;
+			this.billingAddressId = null;
+
+			callAction(
+				'/actions/commerce/cart/update-cart',
+				new FormData(document.querySelector(`#sameAsShippingForm`))
+			);
+		},
+		async selectAddress() {
+			this.editAddress = 0;
+			this.newBillingAddress = 0;
+			this.billingSameAsShipping = 0;
+			this.addressBookBillingAddress = 1;
+
+			callAction(
+				'/actions/commerce/cart/update-cart',
+				new FormData(document.querySelector(`#addressBookForm`))
+			);
+		},
+	}
+};
+
 
 
 Alpine.plugin(focus);
 Alpine.data('ClearableInput', ClearableInput);
 Alpine.data('LineItem', LineItem);
+Alpine.data('Payment', Payment);
 
 window.Alpine = Alpine;
 Alpine.start();
