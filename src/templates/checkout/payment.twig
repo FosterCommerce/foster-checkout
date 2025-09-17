@@ -297,6 +297,8 @@
 										{% set gatewayClass = className(gateway) %}
 										{% set shouldRender = cart.total == 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual'
 											or cart.total > 0 and gatewayClass != 'craft\\commerce\\gateways\\Manual' %}
+
+										{% set shouldRender = true %}
 										{% if shouldRender %}
 											<div class="p-4 border-b border-gray-250"
 												 :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
@@ -309,7 +311,7 @@
 														<span class="block">{{ gateway.name }}</span>
 													</label>
 												</div>
-												<div class="pt-8">
+												<div class="pt-8" x-show="gatewayId == {{ gateway.id }}">
 													<form method="POST" id="paymentForm">
 														{{ csrfInput() }}
 														{{ actionInput('commerce/payments/pay') }}
