@@ -54,7 +54,6 @@ class Checkout extends Component
 	*/
 	public function note(string $field): string|null
 	{
-
 		$notes = $this->settings()->notes;
 
 		/** @var ?ValueConfig $note */
@@ -64,9 +63,10 @@ class Checkout extends Component
 			if ($note instanceof ValueConfig) {
 				return (string) $note;
 			}
-		} catch (InvalidFieldException $e) {
+		} catch (InvalidFieldException) {
 			return null;
 		}
+
 		return null;
 	}
 

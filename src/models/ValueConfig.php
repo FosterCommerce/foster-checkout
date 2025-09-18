@@ -49,6 +49,9 @@ class ValueConfig extends Model implements Stringable
 		parent::__construct($config);
 	}
 
+	/**
+	 * @throws InvalidFieldException
+	 */
 	public function __toString(): string
 	{
 		$value = $this->getValue();
