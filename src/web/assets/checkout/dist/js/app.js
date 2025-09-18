@@ -4,7 +4,6 @@ const App = reactive({
 	loaded: false,
 
 	init() {
-		console.log('Vue version');
 		this.loaded = true;
 		Hide();
 	}
