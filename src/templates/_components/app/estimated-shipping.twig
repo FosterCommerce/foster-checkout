@@ -1,12 +1,13 @@
-{% if cart.shippingMethod != null and cart.shippingMethod.handle != 'freeShipping' %}
+{# TODO this is currently commented out so we can see the shipping options to get an estimated shipping cost when no shipping address has been set #}
+{#  the conditional below seems to have a bug because it negates ever seeing any shipping option with the null check #}
+{#{% if cart.shippingMethod != null and cart.shippingMethod.handle != 'freeShipping' %}#}
 	{% set postalCode = cart.estimatedShippingAddress.postalCode|default('') %}
-
-	<div v-scope="FocusModal({ isOpen: false })" class="relative" @vue:mounted="mounted">
+	<div x-data="{ isOpen: false }" class="relative">
 
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">
 				{% if postalCode %}{{ 'Estimated shipping to'|t('foster-checkout') }}{% endif %}
-				<button id="estimatedShippingLabel" class="text-[var(--brandColor)] underline" @click="toggleModal">
+				<button id="estimatedShippingLabel" class="text-[var(--brandColor)] underline" @click="isOpen = true">
 					{{ postalCode ? postalCode : 'Get estimated shipping'|t('foster-checkout') }}
 				</button>
 			</dt>
@@ -14,10 +15,11 @@
 		</div>
 
 		<div
-			v-cloak
-			v-show="isOpen"
 			role="dialog"
 			ref="modal"
+			x-show="isOpen"
+			x-trap="isOpen"
+			@keydown.escape="isOpen = false"
 			:aria-hidden="!isOpen"
 			aria-labelledby="estimatedShippingLabel"
 			aria-describedby="estimatedShippingDesc"
@@ -27,7 +29,7 @@
 			<header class="flex justify-between items-center gap-4 -mt-[8px]">
 				<h4 class="font-semibold text-black">{{ 'Delivery Postal Code'|t('foster-checkout') }}</h4>
 				<button class="w-[48px] h-[48px] -mt-[6px] -mr-[17px] flex justify-center items-center"
-								@click="toggleModal">
+								@click="isOpen = !isOpen">
 					<span class="sr-only">{{ 'Close'|t('foster-checkout') }}</span>
 					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" class="fill-current">
 						<path d="M1.4 14L0 12.6L5.6 7L0 1.4L1.4 0L7 5.6L12.6 0L14 1.4L8.4 7L14 12.6L12.6 14L7 8.4L1.4 14Z"/>
@@ -38,7 +40,7 @@
 			<div class="mt-4">
 
 				<form class="grid grid-cols-[1fr,_90px] gap-4">
-					{% include 'foster-checkout/_components/base/vue-input-text-clearable' with {
+					{% include 'foster-checkout/_components/base/input-text-clearable' with {
 						label: 'Postal Code'|t('foster-checkout'),
 						hideLabel: true,
 						id: 'postalCode',
@@ -68,4 +70,4 @@
 		</div>
 
 	</div>
-{% endif %}
+{#{% endif %}#}

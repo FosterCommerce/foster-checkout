@@ -70,7 +70,7 @@
 				errors: couponCodeError ? [couponMessage] : [],
 				success: cart.couponCode and couponMessage ? [couponMessage] : [],
 				value: cart.couponCode,
-				action: 'if (isOpen) { $nextTick(() => { $refs.input.focus() }) }'
+				action: '$watch("isOpen", value => { if (isOpen) { $nextTick(() => { $refs.input.focus() }) } } )'
 			} %}
 			<button
 				type="submit"

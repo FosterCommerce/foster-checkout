@@ -37,7 +37,7 @@
 	<div class="mt-10 pb-28 lg:pb-32">
 
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
-			<main v-scope="{ shippingMethodHandle: '{{ cart.shippingMethod.handle ?? onlyMethod }}' }"
+			<main x-data="{ shippingMethodHandle: '{{ cart.shippingMethod.handle ?? onlyMethod }}' }"
 						class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
 
@@ -75,7 +75,7 @@
 												<div class="flex justify-between items-center gap-4 radio">
 
 													<input
-														v-model="shippingMethodHandle"
+														x-model="shippingMethodHandle"
 														id="method_{{ handle }}"
 														name="shippingMethodHandle"
 														type="radio"

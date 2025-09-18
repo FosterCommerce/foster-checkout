@@ -44,7 +44,7 @@
 			@input="input"
 			@focus="focus"
 			@blur="blur()"
-			{%- if action|default -%}x-init="$watch('isOpen', value => { {{ action }} } )" {%- endif -%}
+			{%- if action|default -%}x-init="{{ action }}" {%- endif -%}
 			:required="isRequired()"
 		/>
 		<button
