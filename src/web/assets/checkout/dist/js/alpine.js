@@ -233,7 +233,6 @@ const Payment = (props) => {
 };
 
 
-
 Alpine.plugin(focus);
 Alpine.data('ClearableInput', ClearableInput);
 Alpine.data('LineItem', LineItem);

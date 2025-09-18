@@ -52,7 +52,7 @@
 
 							<fieldset class="grid grid-cols-1 gap-6">
 
-								<div>
+								<div >
 									{% include 'foster-checkout/_components/base/input-text-clearable' with {
 										label: 'Email'|t('foster-checkout'),
 										id: 'email',
@@ -63,7 +63,7 @@
 										value: cart ? cart.email : '',
 										required: true,
 										errors: [],
-										action: 'if (App.loaded) $el.focus()'
+										action: '$nextTick(() => { $refs.input.focus() });'
 									} %}
 								</div>
 

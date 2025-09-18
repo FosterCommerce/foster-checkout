@@ -47,7 +47,7 @@
 						<label for="loginPassword" class="block mb-2 font-medium text-gray-500">
 							{{ 'Password'|t('foster-checkout') }}*
 						</label>
-						<div v-scope="{ showPassword: false }" class="relative">
+						<div x-data="{ showPassword: false }" class="relative">
 							<input
 								id="loginPassword"
 								:type="showPassword ? 'text' : 'password'"
