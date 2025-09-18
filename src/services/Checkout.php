@@ -61,6 +61,7 @@ class Checkout extends Component
 
 		try {
 			if ($note instanceof ValueConfig) {
+				/** @throws InvalidFieldException */
 				return (string) $note;
 			}
 		} catch (InvalidFieldException) {
