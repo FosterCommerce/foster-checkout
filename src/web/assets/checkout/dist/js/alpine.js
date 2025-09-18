@@ -9,7 +9,7 @@ async function callAction(url, body = {}, method = 'POST') {
 		},
 		method,
 		body,
-	})
+	});
 }
 
 const ClearableInput = (props) => {
@@ -232,7 +232,6 @@ const Payment = (props) => {
 	}
 };
 
-
 Alpine.plugin(focus);
 Alpine.data('ClearableInput', ClearableInput);
 Alpine.data('LineItem', LineItem);
@@ -240,5 +239,3 @@ Alpine.data('Payment', Payment);
 
 window.Alpine = Alpine;
 Alpine.start();
-console.log('AlpineJS version');
-
