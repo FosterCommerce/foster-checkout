@@ -40,6 +40,7 @@ const ClearableInput = (props) => {
 			this.$refs.input.focus();
 		},
 		isRequired() {
+			console.log(`${this.name} isRequired? ${this.required ? 'yes' : 'no'} `);
 			// If its a boolean, then we return that, not what the address formatter indicates.
 			if (typeof this.required === 'boolean') {
 				return this.required;

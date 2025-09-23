@@ -111,9 +111,12 @@
 															class="text-[var(--brandColor)] underline"
 															@click="editAddress = parseInt(editAddress) === {{ address.id }} ? 0 : {{ address.id }};"
 														>
-															${ parseInt(editAddress) === {{ address.id }} ?
-															'{{ 'Cancel'|t('foster-checkout') }}' :
-															'{{ 'Edit'|t('foster-checkout') }}' }
+															<template x-if="editAddress == {{ address.id }}">
+																<span>{{ 'Cancel'|t('foster-checkout') }}</span>
+															</template>
+															<template x-if="editAddress != {{  address.id }}">
+																<span>{{ 'Edit'|t('foster-checkout') }}</span>
+															</template>
 														</button>
 													</div>
 													<template x-if="parseInt(editAddress) === {{ address.id }}">
@@ -357,15 +360,37 @@
 															{{ gateway.getPaymentFormHtml(params)|raw }}
 														{% endnamespace %}
 
-														{% if gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
-															<button
-																type="submit"
-																class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
-															>
-																{{ buttonText }}
-															</button>
-														{% endif %}
 
+														{% if gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
+															{% set fields = craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
+															<div class="grid grid-cols-1 gap-y-4 gap-x-4 ">
+
+																{% for field in fields %}
+																	<div class="sm:col-span-3">
+
+																		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+																			context: '',
+																			label: field.label,
+																			id: field.handle,
+																			name: "fields[#{field.handle}]",
+																			type: field.type,
+																			placeholder: field.placeholder,
+																			errors: errors.locality ?? [],
+																			maxLength: field.maxLength,
+																			min: field.min,
+																			max: field.max,
+																			required: false,
+																		} %}
+																	</div>
+																{% endfor %}
+																<button
+																	type="submit"
+																	class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+																>
+																	{{ buttonText }}
+																</button>
+															</div>
+														{% endif %}
 													</form>
 												</div>
 											</div>
