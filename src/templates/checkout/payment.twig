@@ -325,9 +325,7 @@
 														})) }}
 														{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
 														{{ hiddenInput('orderEmail', cart.email) }}
-
-														<input type="hidden" x-model="gatewayId"/>
-
+														<input type="hidden" x-model="gatewayId" name="gatewayId"/>
 														{% set params = {} %}
 
 														{# Special params for Paypal checkout #}
