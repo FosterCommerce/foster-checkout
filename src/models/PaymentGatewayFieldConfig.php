@@ -6,10 +6,14 @@ use craft\base\Model;
 
 class PaymentGatewayFieldConfig extends Model
 {
-	/**	@var string the type of input this is, currently supports text and number */
+	/**
+	 * @var string the type of input this is, currently supports text and number
+	 */
 	public string $type = 'text';
 
-	/** @var string the label to display above the input field */
+	/**
+	 * @var string the label to display above the input field
+	 */
 	public string $label = '';
 
 	/** @var int|bool max length for input if type text */
@@ -21,18 +25,23 @@ class PaymentGatewayFieldConfig extends Model
 	/** @var int|bool max value if type number */
 	public int|bool $max = false;
 
-	/**	@var bool is the field value a required field */
+	/**
+	 * @var bool is the field value a required field
+	 */
 	public bool $required = false;
 
-	/** @var string placeholder text for input */
+	/**
+	 * @var string placeholder text for input
+	 */
 	public string $placeholder = '';
 
 	/**
-	 * @param string $handle;
 	 * @param array<array-key, mixed> $config
 	 */
-	public function __construct(public string $handle, $config = [])
-	{
+	public function __construct(
+		public string $handle,
+		$config = []
+	) {
 		parent::__construct($config);
 		//		if (array_key_exists('type', $config)) {
 		//			$this->type = $config['type'];

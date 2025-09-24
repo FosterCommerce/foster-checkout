@@ -14,11 +14,12 @@ class PaymentGatewayConfig extends Model
 	public array $fields = [];
 
 	/**
-	 * @param string $handle;
 	 * @param array<array-key, mixed> $config
 	 */
-	public function __construct(public string $handle, $config = [])
-	{
+	public function __construct(
+		public string $handle,
+		$config = []
+	) {
 		parent::__construct($config);
 		if (array_key_exists('fields', $config)) {
 			$this->fields = [];
