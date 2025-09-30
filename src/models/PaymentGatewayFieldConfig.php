@@ -16,6 +16,16 @@ class PaymentGatewayFieldConfig extends Model
 	 */
 	public string $label = '';
 
+	/**
+	 * @var string|null the name attribute for the input field
+	 */
+	public string|null $name = null;
+
+	/**
+	 * @var string|null the id attribute for the input field
+	 */
+	public string|null $id = null;
+
 	/** @var int|bool max length for input if type text */
 	public int|bool $maxLength = false;
 
