@@ -296,6 +296,8 @@
 								<h3 class="px-4 mb-4 font-semibold xl:px-0">
 									{{ 'Payment method'|t('foster-checkout') }}
 								</h3>
+								DEBUG Selected Gateway ID <span x-text="gatewayId"></span>
+
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
 									{% for gateway in gateways %}
 										{% set gatewayClass = className(gateway) %}
@@ -420,7 +422,7 @@
 																					context: '',
 																					label: field.label,
 																					id: field.id ?? field.handle,
-																					name: field.name ?? "fields[#{field.handle}]",
+																					name: field.name ?? field.handle,
 																					type: field.type,
 																					placeholder: field.placeholder,
 																					errors: errors.locality ?? [],
