@@ -345,10 +345,11 @@
 																			type: field.type,
 																			placeholder: field.placeholder,
 																			errors: errors.locality ?? [],
+																			minLength: field.minLength,
 																			maxLength: field.maxLength,
 																			min: field.min,
 																			max: field.max,
-																			required: false,
+																			required: field.required ?? false,
 																		} %}
 																	</div>
 																{% endfor %}
@@ -361,6 +362,7 @@
 															</div>
 
 														{% else %}
+
 															{% set params = {} %}
 
 															{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
@@ -386,30 +388,36 @@
 																{% set params = { currency: cart.paymentCurrency } %}
 															{% endif %}
 
+															{# Gateway custom fields #}
 															{% if craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
-																{% for field in craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
-																	<div class="sm:col-span-3">
-																		{% include 'foster-checkout/_components/base/input-text-clearable' with {
-																			context: '',
-																			label: field.label,
-																			id: field.id ?? field.handle,
-																			name: field.name ?? "fields[#{field.handle}]",
-																			type: field.type,
-																			placeholder: field.placeholder,
-																			errors: errors.locality ?? [],
-																			maxLength: field.maxLength,
-																			min: field.min,
-																			max: field.max,
-																			required: false,
-																		} %}
-																	</div>
-																{% endfor %}
-																<button
-																	type="submit"
-																	class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
-																>
-																	{{ buttonText }}
-																</button>
+																{% namespace gateway.handle|commercePaymentFormNamespace %}
+
+																	{% for field in craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
+																		<div class="sm:col-span-3">
+																			{% include 'foster-checkout/_components/base/input-text-clearable' with {
+																				context: '',
+																				label: field.label,
+																				id: field.id ?? field.handle,
+																				name: field.name ?? "fields[#{field.handle}]",
+																				type: field.type,
+																				placeholder: field.placeholder,
+																				errors: errors.locality ?? [],
+																				minLength: field.minLength,
+																				maxLength: field.maxLength,
+																				min: field.min,
+																				max: field.max,
+																				required: field.required ?? false,
+																			} %}
+																		</div>
+																	{% endfor %}
+
+																	<button
+																		type="submit"
+																		class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+																	>
+																		{{ buttonText }}
+																	</button>
+																{% endnamespace %}
 															{% else %}
 																{% namespace gateway.handle|commercePaymentFormNamespace %}
 																	{{ gateway.getPaymentFormHtml(params)|raw }}

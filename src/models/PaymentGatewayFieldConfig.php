@@ -26,6 +26,9 @@ class PaymentGatewayFieldConfig extends Model
 	 */
 	public string|null $id = null;
 
+	/** @var int|bool min length for input if type text */
+	public int|bool $minLength = false;
+
 	/** @var int|bool max length for input if type text */
 	public int|bool $maxLength = false;
 
@@ -44,6 +47,9 @@ class PaymentGatewayFieldConfig extends Model
 	 * @var string placeholder text for input
 	 */
 	public string $placeholder = '';
+
+	public string|null $fieldset = null;
+
 
 	/**
 	 * @param array<array-key, mixed> $config
