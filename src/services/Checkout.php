@@ -202,4 +202,14 @@ class Checkout extends Component
 
 		return false;
 	}
+
+
+	public function getManualGatewayColumns(String $gateway): int|null
+	{
+		if (array_key_exists($gateway, $this->settings()->paymentGateways)) {
+			return $this->settings()->paymentGateways[$gateway]->columns;
+		}
+
+		return null;
+	}
 }
