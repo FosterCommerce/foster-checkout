@@ -191,6 +191,78 @@ return [
 				],
 			],
 		],
+		'authorizeNet' => [
+            'columns' => 6,
+            'fields' => [
+                'firstName' => [
+                    'label' => 'First Name',
+                    'placeholder' => 'John',
+                    'type' => 'text',
+                    'required' => true,
+                    'maxLength' => 50,
+                    'columns' => 3,
+                ],
+                'lastName' => [
+                    'label' => 'Last Name',
+                    'placeholder' => 'Smith',
+                    'type' => 'text',
+                    'required' => true,
+                    'maxLength' => 50,
+                    'columns' => 3
+                ],
+
+                'number' => [
+                    'label' => 'Card Number',
+                    'placeholder' => 'XXXX XXXX XXXX XXXX',
+                    'type' => 'text',
+                    'required' => true,
+                    'maxLength' => 19,
+                    'columns' => 4,
+                ],
+                'cvv' => [
+                    'label' => 'CVV',
+                    'placeholder' => 'XXX',
+                    'type' => 'text',
+                    'required' => true,
+                    'minLength' => 3,
+                    'maxLength' => 4,
+                    'columns' => 2,
+                ],
+                'month' => [
+                    'label' => 'Expiration Month',
+                    'placeholder' => 'MM',
+                    'type' => 'select',
+                    'options' => [
+                        ['value' => '01', 'label' => '01 - January'],
+                        ['value' => '02', 'label' => '02 - February'],
+                        ['value' => '03', 'label' => '03 - March'],
+                        ['value' => '04', 'label' => '04 - April'],
+                        ['value' => '05', 'label' => '05 - May'],
+                        ['value' => '06', 'label' => '06 - June'],
+                        ['value' => '07', 'label' => '07 - July'],
+                        ['value' => '08', 'label' => '08 - August'],
+                        ['value' => '09', 'label' => '09 - September'],
+                        ['value' => '10', 'label' => '10 - October'],
+                        ['value' => '11', 'label' => '11 - November'],
+                        ['value' => '12', 'label' => '12 - December'],
+                    ],
+                    'required' => true,
+                    'minLength' => 2,
+                    'maxLength' => 2,
+                    'columns' => 3,
+                ],
+                   'year' => [
+                    'label' => 'Expiration Year',
+                    'placeholder' => 'YYYY',
+                    'type' => 'select',
+                    'options' => $yearsArray,
+                    'required' => true,
+                    'minLength' => 4,
+                    'maxLength' => 4,
+                    'columns' => 3
+                ],
+            ]
+        ]
 		*/
 	],
 ];
