@@ -7,6 +7,7 @@
 {% endif %}
 
 {% set autocomplete = autocomplete ?? false %}
+{% set minLength = minLength ?? false %}
 {% set maxLength = maxLength ?? false %}
 {% set max = max ?? false %}
 {% set min = min ?? false %}
@@ -37,9 +38,10 @@
 			name="{{ fieldName }}"
 			type="{{ type ?? 'text' }}"
 			{{ autocomplete ? "autocomplete=#{autocomplete|default('')}" }}
+			{{ minLength ? "minlength=#{minLength}" }}
 			{{ maxLength ? "maxlength=#{maxLength}" }}
-			{{ max ? "max=#{max}" }}
 			{{ min ? "min=#{min}" }}
+			{{ max ? "max=#{max}" }}
 			class="w-full h-12 pl-4 pr-12 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300 js-clearable"
 			:class="{
 				'text-red-500 border-red-500 focus:border-red-500': errors.length,
