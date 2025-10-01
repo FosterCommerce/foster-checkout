@@ -14,6 +14,11 @@ class PaymentGatewayConfig extends Model
 	public array $fields = [];
 
 	/**
+	 * @var int|null number of columns in this layout
+	 */
+	public null|int $columns = 3;
+
+	/**
 	 * @param array<array-key, mixed> $config
 	 */
 	public function __construct(

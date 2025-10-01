@@ -402,35 +402,38 @@
 															{# Gateway with custom fields #}
 															{% if craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
 																{% namespace gateway.handle|commercePaymentFormNamespace %}
+																	{% set columns = craft.fostercheckout.getManualGatewayColumns(gateway.handle) ?: 3 %}
 
-																	{% for field in craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
-																		<div class="sm:col-span-3">
-																			{% switch field.type %}
-																				{% case 'select' %}
-																					{% set fieldTemplate = 'input-select' %}
+																	<div class="grid gap-y-4 gap-x-4 sm:grid-cols-{{ columns }}">
+																		{% for field in craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
+																			<div class="sm:col-span-{{ field.columns ?: 'full' }}">
+																				{% switch field.type %}
+																					{% case 'select' %}
+																						{% set fieldTemplate = 'input-select' %}
 
-																				{% default %}
-																					{% set fieldTemplate = 'input-text-clearable' %}
-																			{% endswitch %}
+																					{% default %}
+																						{% set fieldTemplate = 'input-text-clearable' %}
+																				{% endswitch %}
 
 
-																			{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
-																				context: '',
-																				label: field.label,
-																				id: field.id ?? field.handle,
-																				name: field.name ?? "fields[#{field.handle}]",
-																				type: field.type,
-																				placeholder: field.placeholder,
-																				errors: errors.locality ?? [],
-																				minLength: field.minLength,
-																				maxLength: field.maxLength,
-																				min: field.min,
-																				max: field.max,
-																				required: field.required ?? false,
-																				options: field.options ?? [],
-																			} %}
-																		</div>
-																	{% endfor %}
+																				{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
+																					context: '',
+																					label: field.label,
+																					id: field.id ?? field.handle,
+																					name: field.name ?? "fields[#{field.handle}]",
+																					type: field.type,
+																					placeholder: field.placeholder,
+																					errors: errors.locality ?? [],
+																					minLength: field.minLength,
+																					maxLength: field.maxLength,
+																					min: field.min,
+																					max: field.max,
+																					required: field.required ?? false,
+																					options: field.options ?? [],
+																				} %}
+																			</div>
+																		{% endfor %}
+																	</div>
 
 																	<button
 																		type="submit"

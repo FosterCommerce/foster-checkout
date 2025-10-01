@@ -38,6 +38,9 @@ class PaymentGatewayFieldConfig extends Model
 	/** @var int|bool max value if type number */
 	public int|bool $max = false;
 
+	/**
+	 *  @var array|null options for a select field
+	 */
 	public array|null $options = null;
 
 	/**
@@ -50,7 +53,10 @@ class PaymentGatewayFieldConfig extends Model
 	 */
 	public string $placeholder = '';
 
-	public string|null $fieldset = null;
+	/**
+	 * @var int|null number of columns the field should span
+	 */
+	public int|null $columns = null;
 
 
 	/**
