@@ -394,7 +394,16 @@
 
 																	{% for field in craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
 																		<div class="sm:col-span-3">
-																			{% include 'foster-checkout/_components/base/input-text-clearable' with {
+																			{% switch field.type %}
+																				{% case 'select' %}
+																					{% set fieldTemplate = 'input-select' %}
+
+																				{% default %}
+																					{% set fieldTemplate = 'input-text-clearable' %}
+																			{% endswitch %}
+
+
+																			{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
 																				context: '',
 																				label: field.label,
 																				id: field.id ?? field.handle,
@@ -407,6 +416,7 @@
 																				min: field.min,
 																				max: field.max,
 																				required: field.required ?? false,
+																				options: field.options ?? [],
 																			} %}
 																		</div>
 																	{% endfor %}

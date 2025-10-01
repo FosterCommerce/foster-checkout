@@ -1,4 +1,5 @@
 {% set fieldId = id ? ('field_' ~ id) : ('field_' ~ random()) %}
+{% set options =  options ?? [] %}
 
 <div x-data="{
 	value: '{{ value|default('') }}',

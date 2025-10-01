@@ -38,6 +38,8 @@ class PaymentGatewayFieldConfig extends Model
 	/** @var int|bool max value if type number */
 	public int|bool $max = false;
 
+	public array|null $options = null;
+
 	/**
 	 * @var bool is the field value a required field
 	 */
