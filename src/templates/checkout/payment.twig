@@ -335,13 +335,22 @@
 															{% set fields = craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
 															<div class="grid grid-cols-1 gap-y-4 gap-x-4 ">
 
-																{% for field in fields %}
+																{% for field in craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
 																	<div class="sm:col-span-3">
-																		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+																		{% switch field.type %}
+																			{% case 'select' %}
+																				{% set fieldTemplate = 'input-select' %}
+
+																			{% default %}
+																				{% set fieldTemplate = 'input-text-clearable' %}
+																		{% endswitch %}
+
+
+																		{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
 																			context: '',
 																			label: field.label,
-																			id: field.handle,
-																			name: "fields[#{field.handle}]",
+																			id: field.id ?? field.handle,
+																			name: field.name ?? "fields[#{field.handle}]",
 																			type: field.type,
 																			placeholder: field.placeholder,
 																			errors: errors.locality ?? [],
@@ -350,9 +359,11 @@
 																			min: field.min,
 																			max: field.max,
 																			required: field.required ?? false,
+																			options: field.options ?? [],
 																		} %}
 																	</div>
 																{% endfor %}
+
 																<button
 																	type="submit"
 																	class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
@@ -388,7 +399,7 @@
 																{% set params = { currency: cart.paymentCurrency } %}
 															{% endif %}
 
-															{# Gateway custom fields #}
+															{# Gateway with custom fields #}
 															{% if craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
 																{% namespace gateway.handle|commercePaymentFormNamespace %}
 
