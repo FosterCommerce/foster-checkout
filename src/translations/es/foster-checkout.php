@@ -69,6 +69,7 @@ return [
 	'Remove' => 'Eliminar',
 	'Remove from cart' => 'Eliminar del carrito',
 	'Removing' => 'Eliminando',
+	'Return to cart' => 'Volver al carrito',
 	'Same as shipping address' => 'Igual que la dirección de envío',
 	'Save' => 'Guardar',
 	'Save for later' => 'Guardar para después',
