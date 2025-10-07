@@ -118,7 +118,7 @@
 							{% set transaction = order.transactions|last %}
 							{% if transaction %}
 								{% set response = transaction.response|json_decode %}
-								{% if response %}
+								{% if response and (response.paymentMethod is defined) %}
 									{% set paymentMethod = response.payment_method %}
 									{% if payment_method.card|default %}
 										<p class="mt-1">{{ response.payment_method.card.display_brand|capitalize }} **** {{ response.payment_method.card.last4 }}</p>
