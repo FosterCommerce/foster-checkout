@@ -126,7 +126,7 @@
 										<p class="mt-1">{{ paymentMethod.type|capitalize }}</p>
 									{% endif %}
 								{% endif %}
-								<p class="mt-1">{{ transaction.paymentAmount|float|currency('USD') }} ({{ 'Charged on'|t('foster-checkount') }} {{ order.dateOrdered|date }})</p>
+								<p class="mt-1">{{ transaction.paymentAmount|float|currency('USD') }} ({{ 'Charged on'|t('foster-checkout') }} {{ order.dateOrdered|date }})</p>
 							{% endif %}
 						</div>
 
