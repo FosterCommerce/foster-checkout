@@ -4,6 +4,7 @@ return [
 	'Shipping address' => 'Shipping address',
 	'Shipping method' => 'Shipping method',
 	'Payment' => 'Payment',
+	'Payment method' => 'Payment method',
 	'Account' => 'Account',
 	'Add' => 'Add',
 	'Address' => 'Address',

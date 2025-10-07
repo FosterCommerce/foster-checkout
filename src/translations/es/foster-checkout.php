@@ -4,6 +4,7 @@ return [
 	'Shipping address' => 'Dirección de envío',
 	'Shipping method' => 'Método de envío',
 	'Payment' => 'Pago',
+	'Payment method' => 'Método de pago',
 	'Account' => 'Cuenta',
 	'Add' => 'Agregar',
 	'Address' => 'Dirección',
