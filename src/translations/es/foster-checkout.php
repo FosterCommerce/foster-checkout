@@ -60,6 +60,7 @@ return [
 	'New shipping address' => 'Nueva dirección de envío',
 	'Next step' => 'Siguiente paso',
 	'No Image' => 'Sin imagen',
+	'No shipping options available' => 'No hay opciones de envío disponibles',
 	'Only {qty} in stock' => 'Solo {qty} en stock',
 	'Optional' => 'Opcional',
 	'Order' => 'Pedido',
