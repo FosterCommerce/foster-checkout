@@ -308,7 +308,7 @@
 														   @change="gatewayId = {{ gateway.id }}"/>
 													<label for="gateway_{{ gateway.id }}"
 														   class="inline-flex justify-start items-center gap-4 cursor-pointer">
-														<span class="block">{{ gateway.name }}</span>
+														<span class="block">{{ gateway.name|t('foster-checkout') }}</span>
 													</label>
 												</div>
 												<div class="pt-8" x-show="gatewayId == {{ gateway.id }}">
