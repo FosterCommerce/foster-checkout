@@ -15,6 +15,7 @@ use craft\services\Addresses;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use craft\web\View;
+use craft\i18n\PhpMessageSource;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\services\Checkout;
 use yii\base\Event;
@@ -35,6 +36,14 @@ class FosterCheckout extends Plugin
 			$this->registerComponents();
 			$this->attachEventHandlers();
 		});
+
+		// Translations
+		Craft::$app->i18n->translations['foster-checkout'] = [
+			'class' => PhpMessageSource::class,
+			'sourceLanguage' => 'en',
+			'basePath' => __DIR__ . '/translations',
+			'allowOverrides' => true,
+		];
 	}
 
 	protected function createSettingsModel(): ?Model
