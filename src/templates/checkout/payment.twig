@@ -300,8 +300,7 @@
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
 									{% for gateway in gateways %}
 										{% set gatewayClass = className(gateway) %}
-										{# {% set shouldRender = cart.total == 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual'
-											or cart.total > 0 and gatewayClass != 'craft\\commerce\\gateways\\Manual' %} #}
+
 
 										{% set shouldRender = true %}
 										{% if shouldRender %}
