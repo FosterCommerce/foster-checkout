@@ -60,7 +60,7 @@ return [
 	'Optional' => 'Optional',
 	'Order' => 'Order',
 	'Order Details' => 'Order Details',
-	'Order Summary' => 'Order Summary',
+	'Order summary' => 'Order summary',
 	'Password' => 'Password',
 	'Place Order' => 'Place Order',
 	'Please address the errors noted above.' => 'Please address the errors noted above.',

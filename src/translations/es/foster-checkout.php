@@ -60,7 +60,7 @@ return [
 	'Optional' => 'Opcional',
 	'Order' => 'Pedido',
 	'Order Details' => 'Detalles del pedido',
-	'Order Summary' => 'Resumen del pedido',
+	'Order summary' => 'Resumen del pedido',
 	'Password' => 'Contraseña',
 	'Place Order' => 'Realizar pedido',
 	'Please address the errors noted above.' => 'Por favor, corrige los errores indicados arriba.',
