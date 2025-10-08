@@ -28,7 +28,7 @@
 >
 	<div class="sm:col-span-3">
 		<label for="{{ 'countryCode'|namespaceInputId(context) }}" class="block mb-2 font-medium text-gray-500">
-			{{ 'Country'|t('foster-checkout') }}*
+			{{ 'addressFields.countryLabel'|t('foster-checkout') }}*
 		</label>
 		<select
 			x-model="countryCode"
@@ -42,7 +42,7 @@
 			@change="administrativeArea = ''; if ($el.value) delete errors.countryCode"
 			required
 		>
-			<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
+			<option value="" disabled>{{ 'addressFields.select'|t('foster-checkout') }}</option>
 			<template x-for="(country, key) in countries" :key="key">
 				<option x-text="country" :value="key" :selected="countryCode == key">
 				</option>
@@ -61,12 +61,12 @@
 	<div class="sm:col-span-3">
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
 			context: context,
-			label: 'Full name'|t('foster-checkout'),
+			label: 'addressFields.fullnameLabel'|t('foster-checkout'),
 			id: 'fullName',
 			name: 'fullName',
 			type: 'text',
 			autocomplete: 'name',
-			placeholder: 'Enter your name'|t('foster-checkout'),
+			placeholder: 'addressFields.fullnamePlaceholder'|t('foster-checkout'),
 			value: address ? address.fullName|e('js') : '',
 			required: true,
 			errors: errors.fullName ?? []
@@ -76,25 +76,25 @@
 	<div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:col-span-3">
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
 			context: context,
-			label: 'Address'|t('foster-checkout'),
+			label: 'addressFields.addressLabel'|t('foster-checkout'),
 			id: 'addressLine1',
 			name: 'addressLine1',
 			type: 'text',
 			autocomplete: 'address-line1',
-			placeholder: 'Street address'|t('foster-checkout'),
+			placeholder: 'addressFields.addressPlaceholder'|t('foster-checkout'),
 			value: address ? address.addressLine1|e('js') : '',
 			errors: errors.addressLine1 ?? []
 		} %}
 
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
 			context: context,
-			label: 'Apt. number, suite'|t('foster-checkout'),
+			label: 'addressFields.address2Label'|t('foster-checkout'),
 			hideLabel: true,
 			id: 'addressLine2',
 			name: 'addressLine2',
 			type: 'text',
 			autocomplete: 'address-line2',
-			placeholder: 'Apt. number, suite'|t('foster-checkout'),
+			placeholder: 'addressFields.address2Placeholder'|t('foster-checkout'),
 			value: address ? address.addressLine2|e('js') : '',
 			errors: errors.addressLine2 ?? []
 		} %}
@@ -116,12 +116,12 @@
 	<div class="sm:col-span-1">
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
 			context: context,
-			label: 'City'|t('foster-checkout'),
+			label: 'addressFields.cityLabel'|t('foster-checkout'),
 			id: 'locality',
 			name: 'locality',
 			type: 'text',
 			autocomplete: 'address-level2',
-			placeholder: 'Your city'|t('foster-checkout'),
+			placeholder: 'addressFields.cityPlaceholder'|t('foster-checkout'),
 			value: address ? address.locality|e('js') : '',
 			errors: errors.locality ?? []
 		} %}
@@ -132,7 +132,7 @@
 			<div>
 				<label for="{{ 'administrativeArea'|namespaceInputId(context) }}"
 							 class="block mb-2 font-medium text-gray-500">
-					{{ 'State / Province'|t('foster-checkout') }}<span x-text="`${ requiredFields()[countryCode].includes('administrativeArea') ? '*' : '' }`"></span>
+					{{ 'addressFields.stateLabel'|t('foster-checkout') }}<span x-text="`${ requiredFields()[countryCode].includes('administrativeArea') ? '*' : '' }`"></span>
 				</label>
 				<select
 					x-model="administrativeArea"
@@ -146,7 +146,7 @@
 					@change="if ($el.value) delete errors.administrativeArea"
 					:required="requiredFields()[countryCode].includes('administrativeArea')"
 				>
-					<option value="" disabled>{{ 'Select'|t('foster-checkout') }}</option>
+					<option value="" disabled>{{ 'addressFields.select'|t('foster-checkout') }}</option>
 					<template x-for="(region, key) in regions[countryCode]" :key="key">
 						<option :value="key" :selected="key === administrativeArea" x-text="`${region}`">
 						</option>
@@ -159,12 +159,12 @@
 			<div >
 				{% include 'foster-checkout/_components/base/input-text-clearable' with {
 					context: context,
-					label: 'State / Province'|t('foster-checkout'),
+					label: 'addressFields.stateLabel'|t('foster-checkout'),
 					id: 'administrativeArea',
 					name: 'administrativeArea',
 					type: 'text',
 					autocomplete: 'address-level1',
-					placeholder: 'Your state or province'|t('foster-checkout'),
+					placeholder: 'addressFields.statePlaceholder'|t('foster-checkout'),
 					value: address ? address.locality|e('js') : '',
 					errors: errors.locality ?? []
 				} %}
@@ -176,12 +176,12 @@
 	<div class="sm:col-span-1">
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
 			context: context,
-			label: 'Postal Code'|t('foster-checkout'),
+			label: 'addressFields.postcodeLabel'|t('foster-checkout'),
 			id: 'postalCode',
 			name: 'postalCode',
 			type: 'text',
 			autocomplete: 'postal-code',
-			placeholder: 'postalCodeFormat'|t('foster-checkout'),
+			placeholder: 'addressFields.postcodePlaceholder'|t('foster-checkout'),
 			value: address ? address.postalCode|e('js') : '',
 			errors: errors.postalCode ?? []
 		} %}
@@ -195,7 +195,7 @@
 
 				<label for="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}"
 							 class="block text-sm font-medium text-gray-700">
-					{{ customField.name }}{% if customField.required %}*{% endif %}
+					{{ customField.name|t('foster-checkout') }}{% if customField.required %}*{% endif %}
 				</label>
 
 				<textarea
@@ -228,11 +228,11 @@
 			{% else %}
 				{% include 'foster-checkout/_components/base/input-text-clearable' with {
 					context: context,
-					label: customField.name,
+					label: customField.name|t('foster-checkout'),
 					id: 'custom-field-' ~ customField.handle,
 					name: 'fields[' ~ customField.handle ~ ']',
 					type: 'text',
-					placeholder: customField.placeholder,
+					placeholder: customField.placeholder|t('foster-checkout'),
 					value: address ? address[customField.handle]|e('js') : '',
 					required: customField.layoutElement.required,
 					errors: errors[customField.handle] ?? []

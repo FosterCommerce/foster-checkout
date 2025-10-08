@@ -11,6 +11,7 @@ use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\i18n\PhpMessageSource;
 use craft\services\Addresses;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
@@ -35,6 +36,14 @@ class FosterCheckout extends Plugin
 			$this->registerComponents();
 			$this->attachEventHandlers();
 		});
+
+		// Translations
+		Craft::$app->i18n->translations['foster-checkout'] = [
+			'class' => PhpMessageSource::class,
+			'sourceLanguage' => 'en',
+			'basePath' => __DIR__ . '/translations',
+			'allowOverrides' => true,
+		];
 	}
 
 	protected function createSettingsModel(): ?Model

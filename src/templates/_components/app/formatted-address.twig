@@ -13,5 +13,5 @@
 		<span class="block">{{ address.fullName }}, {{ address|address({ }, customFormatter) }}</span>
 	</p>
 {% else %}
-	<p>No address to display</p>
+	<p>{{ 'misc.noAddress'|t('foster-checkout') }}</p>
 {% endif %}
