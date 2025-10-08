@@ -49,15 +49,28 @@ return [
 	'address.saveToAddressBook' => 'Save to address book',
 	'address.nextStep' => 'Next step',
 
+	// Address form
+	'addressFields.countryLabel' => 'Country',
+	'addressFields.select' => 'Select',
+	'addressFields.fullnameLabel' => 'Full name',
+	'addressFields.fullnamePlaceholder' => 'Enter your name',
+	'addressFields.addressLabel' => 'Address',
+	'addressFields.addressPlaceholder' => 'Street address',
+	'addressFields.address2Label' => 'Apt. number, suite',
+	'addressFields.address2Placeholder' => 'Apt. number, suite',
+	'addressFields.cityLabel' => 'City',
+	'addressFields.cityPlaceholder' => 'Your City',
+	'addressFields.stateLabel' => 'State / Province',
+	'addressFields.statePlaceholder' => 'Your state or province',
+	'addressFields.postcodeLabel' => 'Postal code',
+	'addressFields.postcodePlaceholder' => '00000',
+
 	// Shipping Method page
 
 	// Payment page
 
 	// Order Confirmation page
 
-
-
-	// Checkout Sidebar
 
 	// Steps
 	'steps.contact' => 'Contact',
