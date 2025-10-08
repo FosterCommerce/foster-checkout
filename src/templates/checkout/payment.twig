@@ -111,9 +111,8 @@
 															class="text-[var(--brandColor)] underline"
 															@click="editAddress = parseInt(editAddress) === {{ address.id }} ? 0 : {{ address.id }};"
 														>
-															${ parseInt(editAddress) === {{ address.id }} ?
-															'{{ 'Cancel'|t('foster-checkout') }}' :
-															'{{ 'Edit'|t('foster-checkout') }}' }
+															<template x-if="parseInt(editAddress) === {{ address.id }}"><span>{{ 'Cancel'|t('foster-checkout') }}</span></template>
+															<template x-if="parseInt(editAddress) !== {{ address.id }}"><span>{{ 'Edit'|t('foster-checkout') }}</span></template>
 														</button>
 													</div>
 													<template x-if="parseInt(editAddress) === {{ address.id }}">
