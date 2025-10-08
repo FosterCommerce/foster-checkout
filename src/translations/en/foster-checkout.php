@@ -43,11 +43,11 @@ return [
 
 
 	// Shipping Address page
-	'shipping.metaTitle' => 'Checkout: Address',
-	'shipping.heading' => 'Shipping address',
-	'shipping.newAddress' => 'New shipping address',
-	'shipping.saveToAddressBook' => 'Save to address book',
-	'shipping.nextStep' => 'Next step',
+	'address.metaTitle' => 'Checkout: Address',
+	'address.heading' => 'Shipping address',
+	'address.newAddress' => 'New shipping address',
+	'address.saveToAddressBook' => 'Save to address book',
+	'address.nextStep' => 'Next step',
 
 	// Shipping Method page
 
@@ -59,6 +59,12 @@ return [
 
 	// Checkout Sidebar
 
+	// Steps
+	'steps.contact' => 'Contact',
+	'steps.shipping' => 'Shipping address',
+	'steps.shippingMethod' => 'Shipping method',
+	'steps.payment' => 'Payment',
+
 	// Miscellaneous
 	'misc.noImage' => 'No Image',
 	'misc.imageOf' => 'Image of',
@@ -67,6 +73,10 @@ return [
 	'misc.cancel' => 'Cancel',
 	'misc.save' => 'Save',
 	'misc.returnToCart' => 'Return to cart',
+	'misc.change' => 'Change',
+	'misc.noAddress' => 'No address to display',
+	'misc.shipTo' => 'Ship to',
+	'misc.viewAccount' => 'View my account',
 
 
 	// 'Shipping address' => 'Shipping address',

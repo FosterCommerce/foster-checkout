@@ -5,7 +5,7 @@
 		{% if step == 'email' %}
 			<div class="p-4 bg-gray-200 rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 				<h2 class="font-semibold text-gray-500">
-					{{ 'Shipping address'|t('foster-checkout') }}
+					{{ 'steps.shipping'|t('foster-checkout') }}
 				</h2>
 			</div>
 		{% endif %}
@@ -13,7 +13,7 @@
 		{% if step == 'email' or step == 'address' %}
 			<div class="p-4 bg-gray-200 rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 				<h2 class="font-semibold text-gray-500">
-					{{ 'Shipping method'|t('foster-checkout') }}
+					{{ 'steps.shippingMethod'|t('foster-checkout') }}
 				</h2>
 			</div>
 		{% endif %}
@@ -21,7 +21,7 @@
 		{% if step == 'email' or step == 'address' or step == 'shipping' %}
 			<div class="p-4 bg-gray-200 rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 				<h2 class="font-semibold text-gray-500">
-					{{ 'Payment'|t('foster-checkout') }}
+					{{ 'shipping.payment'|t('foster-checkout') }}
 				</h2>
 			</div>
 		{% endif %}
