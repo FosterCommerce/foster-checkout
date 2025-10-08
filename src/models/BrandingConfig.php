@@ -12,6 +12,11 @@ class BrandingConfig extends Model
 	public string $color = '#1F2937';
 
 	/**
+	 * The background colour of the header in HEX color
+	 */
+	public string $headerBgColor = '#F3F3F3';
+
+	/**
 	 * The Google web font (https://fonts.google.com/) family name you want to use
 	 * (ex. 'Roboto Slab')
 	 */
