@@ -28,6 +28,14 @@ class Settings extends Model
 	public NotesConfig $notes;
 
 	/**
+	 * For each payment gateway using the gateway handle, to define an array of fields to be rendered when
+	 * that gateway is selected
+	 *
+	 * @var array<string, PaymentGatewayConfig>
+	 */
+	public array $paymentGateways = [];
+
+	/**
 	 * @param array<array-key, mixed> $config
 	 */
 	public function __construct(array $config = [])
@@ -81,6 +89,12 @@ class Settings extends Model
 			}
 
 			$values['notes'] = new NotesConfig($values['notes']);
+		}
+
+		if (array_key_exists('paymentGateways', $values)) {
+			foreach ($values['paymentGateways'] as $gatewayHandle => $paymentGateway) {
+				$values['paymentGateways'][$gatewayHandle] = new PaymentGatewayConfig($gatewayHandle, $paymentGateway);
+			}
 		}
 
 		parent::setAttributes($values, $safeOnly);

@@ -163,4 +163,10 @@ return [
 			'fieldHandle' => '',
 		],
 	],
+	// Payment Gateways: each gateway should be defined with the key matching the configured payment gateway handle in Craft Commerce setup.
+	// Each gateway contains an array of fields that are custom fields additional information that specific gateway can store on the order
+	// in the Craft. A field definition consists of an array key which is the field handle from Craft and an array of
+	// [label(string), placeholder(string), type (text, number), min(number), max(number), required (bool)].
+	'paymentGateways' => [
+	],
 ];

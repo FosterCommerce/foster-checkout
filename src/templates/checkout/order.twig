@@ -118,13 +118,16 @@
 							{% set transaction = order.transactions|last %}
 							{% if transaction %}
 								{% set response = transaction.response|json_decode %}
-								{% if response %}
+								{% if response.payment_method is defined %}
 									{% set paymentMethod = response.payment_method %}
 									{% if payment_method.card|default %}
 										<p class="mt-1">{{ response.payment_method.card.display_brand|capitalize }} **** {{ response.payment_method.card.last4 }}</p>
 									{% else %}
 										<p class="mt-1">{{ paymentMethod.type|capitalize }}</p>
 									{% endif %}
+								{% elseif response.transactionResponse is defined %} {# Authorize.net #}
+									{% set paymentMethod = response.transactionResponse %}
+									<p class="mt-1">{{ paymentMethod.accountType|capitalize }} **** {{ paymentMethod.accountNumber|slice(-4) }}</p>
 								{% endif %}
 								<p class="mt-1">{{ transaction.paymentAmount|float|currency('USD') }} (Charged on {{ order.dateOrdered|date }})</p>
 							{% endif %}
