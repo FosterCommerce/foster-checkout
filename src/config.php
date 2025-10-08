@@ -69,6 +69,9 @@ return [
 		// The brand primary custom color in HEX color
 		'color' => '#333333',
 
+		// The background color of the header in HEX color
+		'headerBgColor' => '#F3F3F3',
+
 		// The Google web font (https://fonts.google.com/) family name you want to use
 		// (ex. 'Roboto Slab')
 		'font' => 'Roboto Slab',
