@@ -25,22 +25,29 @@ return [
 	'cart.continueShopping' => 'Continue shopping',
 
 	// Cart Summary
-	'cart.summary.title' => 'Order summary',
-	'cart.summary.itemsHeading' => 'Items',
-	'cart.summary.discountHeading' => 'Discount',
-	'cart.summary.discountApplied' => 'Voucher/Gift cards applied',
-	'cart.summary.removeCoupon' => 'Remove',
-	'cart.summary.shippingHeading' => 'Shipping &amp; handling',
-	//'cart.summary.estimatedTaxHeading' => 'Estimated tax',
-	//'cart.summary.taxHeading' => 'Tax',
-	'cart.summary.couponCodeHeading' => 'Coupon code',
-	'cart.summary.estimatedTotal' => 'Estimated total',
-	'cart.summary.total' => 'Total',
-	'cart.summary.addFreeShipping' => 'Add',
-	'cart.summary.freeShippingQualifyMessage' => 'for FREE shipping, or choose FREE Ship to Store',
+	'summary.title' => 'Order summary',
+	'summary.itemsTitle' => 'Item(s)',
+	'summary.itemsLabel' => 'Items',
+	'summary.discountLabel' => 'Discount',
+	'summary.discountApplied' => 'Voucher/Gift cards applied',
+	'summary.removeCoupon' => 'Remove',
+	'summary.shippingLabel' => 'Shipping & handling',
+	'summary.estimatedTaxLabel' => 'Estimated tax',
+	'summary.taxLabel' => 'Tax',
+	'summary.couponCodeLabel' => 'Coupon code',
+	'summary.estimatedTotal' => 'Estimated total',
+	'summary.total' => 'Total',
+	'summary.addFreeShipping' => 'Add',
+	'summary.freeShippingQualifyMessage' => 'for FREE shipping, or choose FREE Ship to Store',
+	'summary.lineItem.quantity' => 'Qty',
 
 
 	// Shipping Address page
+	'shipping.metaTitle' => 'Checkout: Address',
+	'shipping.heading' => 'Shipping address',
+	'shipping.newAddress' => 'New shipping address',
+	'shipping.saveToAddressBook' => 'Save to address book',
+	'shipping.nextStep' => 'Next step',
 
 	// Shipping Method page
 
@@ -56,6 +63,11 @@ return [
 	'misc.noImage' => 'No Image',
 	'misc.imageOf' => 'Image of',
 	'misc.signIn' => 'Sign in',
+	'misc.edit' => 'Edit',
+	'misc.cancel' => 'Cancel',
+	'misc.save' => 'Save',
+	'misc.returnToCart' => 'Return to cart',
+
 
 	// 'Shipping address' => 'Shipping address',
 	// 'Shipping method' => 'Shipping method',

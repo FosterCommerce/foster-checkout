@@ -5,7 +5,7 @@
 {% block head %}
 	<title>
 		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }} |
-		{{ 'Checkout'|t('foster-checkout') }}: {{ 'Address'|t('foster-checkout') }}
+		{{ 'shipping.metaTitle'|t('foster-checkout') }}
 	</title>
 {% endblock %}
 
@@ -47,7 +47,7 @@
 						<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 
 							<h2 class="p-4 font-semibold bg-gray-200">
-								{{ 'Shipping address'|t('foster-checkout') }}
+								{{ 'shipping.heading'|t('foster-checkout') }}
 							</h2>
 
 							<div class="p-4">
@@ -85,8 +85,8 @@
 															class="text-[var(--brandColor)] underline"
 															@click="editExistingAddress = parseInt(editExistingAddress) === {{ address.id }} ? 0 : {{ address.id }};"
 														>
-															<template x-if="parseInt(editExistingAddress) === {{ address.id }}"><span>{{ 'Cancel'|t('foster-checkout') }}</span></template>
-															<template x-if="parseInt(editExistingAddress) !== {{ address.id }}"><span>{{ 'Edit'|t('foster-checkout') }}</span></template>
+															<template x-if="parseInt(editExistingAddress) === {{ address.id }}"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
+															<template x-if="parseInt(editExistingAddress) !== {{ address.id }}"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
 														</button>
 													</template>
 												</div>
@@ -99,14 +99,14 @@
 																type="submit"
 																class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
 															>
-																{{ 'Save'|t('foster-checkout') }}
+																{{ 'misc.save'|t('foster-checkout') }}
 															</button>
 															<button
 																type="button"
 																class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
 																@click="editExistingAddress = 0"
 															>
-																{{ 'Cancel'|t('foster-checkout') }}
+																{{ 'misc.cancel'|t('foster-checkout') }}
 															</button>
 														</div>
 													</div>
@@ -132,7 +132,7 @@
 												class="inline-flex justify-start items-center gap-4 cursor-pointer"
 												:class="{ 'font-medium text-black': useNewAddress }"
 											>
-												{{ 'New shipping address'|t('foster-checkout') }}
+												{{ 'shipping.newAddress'|t('foster-checkout') }}
 											</label>
 										</div>
 
@@ -156,7 +156,7 @@
 																 name="saveShippingAddressOnOrderComplete" value="1"/>
 													<label
 														class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
-														for="saveShippingAddressOnOrderComplete">{{ 'Save to address book'|t('foster-checkout') }}</label>
+														for="saveShippingAddressOnOrderComplete">{{ 'shipping.saveToAddressBook'|t('foster-checkout') }}</label>
 												</div>
 											</div>
 										</template>
@@ -175,13 +175,13 @@
 										href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
 										class="hidden md:block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white"
 									>
-										{{ 'Return to cart'|t('foster-checkout') }}
+										{{ 'misc.returnToCart'|t('foster-checkout') }}
 									</a>
 									<button
 										type="submit"
 										class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 									>
-										{{ 'Next step'|t('foster-checkout') }}
+										{{ 'shipping.nextStep'|t('foster-checkout') }}
 									</button>
 
 								</div>
@@ -209,11 +209,11 @@
 
 						<div class="flex justify-between items-center gap-4">
 							<h2 class="text-xl font-bold text-gray-800 leading-snug">
-								{{ 'Item(s)'|t('foster-checkout') }}
+								{{ 'summary.itemsTitle'|t('foster-checkout') }}
 							</h2>
 							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
 								 class="inline-block text-[var(--brandColor)] underline">
-								{{ 'Edit'|t('foster-checkout') }}
+								{{ 'misc.edit'|t('foster-checkout') }}
 							</a>
 						</div>
 
