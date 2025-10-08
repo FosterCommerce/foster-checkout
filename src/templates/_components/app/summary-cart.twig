@@ -1,17 +1,17 @@
 <article>
 
-	<h2 class="mb-6 text-xl font-bold text-gray-800 leading-snug">{{ 'Order summary'|t('foster-checkout') }}</h2>
+	<h2 class="mb-6 text-xl font-bold text-gray-800 leading-snug">{{ 'cart.summary.title'|t('foster-checkout') }}</h2>
 
 	<dl class="grid grid-cols-1 gap-4">
 
 		<div class="flex justify-between items-center gap-4">
-			<dt class="text-gray-500">{{ 'Items'|t('foster-checkout') }}</dt>
+			<dt class="text-gray-500">{{ 'cart.summary.itemsHeading'|t('foster-checkout') }}</dt>
 			<dd class="text-right text-black">{{ cart.itemSubtotalAsCurrency }}</dd>
 		</div>
 
 		{% if cart.totalDiscount != 0 %}
 			<div class="flex justify-between items-center gap-4">
-				<dt class="text-gray-500">{{ 'Discount'|t('foster-checkout') }}</dt>
+				<dt class="text-gray-500">{{ 'cart.summary.discountHeading'|t('foster-checkout') }}</dt>
 				<dd class="text-right text-red-500">{{ cart.totalDiscountAsCurrency }}</dd>
 			</div>
 		{% endif %}
@@ -24,15 +24,15 @@
 			{% if craft.fostercheckout.settings.options.enableFreeShippingMessage %}
 				{# TODO: Complete this #}
 				{# <p class="max-w-[210px] -mt-[8px] text-sm text-gray-500">
-					{{ 'Add'|t('foster-checkout') }}
+					{{ 'cart.summary.addFreeShipping'|t('foster-checkout') }}
 					<strong class="text-black">$24.15</strong>
-					{{ 'for FREE shipping, or choose FREE Ship to Store.'|t('foster-checkout') }}
+					{{ 'cart.summary.freeShippingQualifyMessage.'|t('foster-checkout') }}
 				</p> #}
 			{% endif %}
 
 		{% else %}
 			<div class="flex justify-between items-center gap-4">
-				<dt class="text-gray-500">{{ 'Shipping & handling'|t('foster-checkout') }}</dt>
+				<dt class="text-gray-500">{{ 'cart.summary.shippingHeading'|t('foster-checkout') }}</dt>
 				<dd class="text-right text-black">{{ cart.totalShippingCostAsCurrency }}</dd>
 			</div>
 		{% endif %}
@@ -58,7 +58,7 @@
 
 			{% if voucherAdjustments|length %}
 				<div class="border-gray-400 border-b flex flex-col space-y-2 pb-4">
-					<h3 class="font-semibold text-gray-800">{{ 'Voucher/Gift cards applied'|t('foster-checkout') }}</h3>
+					<h3 class="font-semibold text-gray-800">{{ 'cart.summary.discountApplied'|t('foster-checkout') }}</h3>
 
 					{% for adj in voucherAdjustments %}
 						{% set matches = adj.description|split('code ') %}
@@ -82,7 +82,7 @@
 												d="M2.31807 13.0996C2.01032 13.0996 1.74346 12.9871 1.51751 12.7619C1.29155 12.5367 1.17857 12.2708 1.17857 11.9641V2.5319H0.42749V1.39638H3.73221V0.824646H8.26372V1.39638H11.5724V2.5319H10.8213V11.9641C10.8213 12.2708 10.7084 12.5367 10.4824 12.7619C10.2565 12.9871 9.9896 13.0996 9.68184 13.0996H2.31807ZM4.06481 10.5627H5.13257V3.9127H4.06481V10.5627ZM6.86734 10.5627H7.93909V3.9127H6.86734V10.5627Z"
 												fill="#6B7280"/>
 										</svg>
-										<span class="inline">{{ 'Remove'|t('foster-checkout') }}</span>
+										<span class="inline">{{ 'cart.summary.removeCoupon'|t('foster-checkout') }}</span>
 									</button>
 								</form>
 							</dd>
@@ -98,12 +98,12 @@
 
 		{% if step|default('') != 'payment' %}
 			<div class="flex justify-between items-center gap-4">
-				<dt class="font-semibold text-black">{{ 'Estimated total'|t('foster-checkout') }}</dt>
+				<dt class="font-semibold text-black">{{ 'cart.summary.estimatedTotal'|t('foster-checkout') }}</dt>
 				<dd class="font-semibold text-right text-black">{{ cart.totalPriceAsCurrency }}</dd>
 			</div>
 		{% else %}
 			<div class="flex justify-between items-center gap-4">
-				<dt class="font-semibold text-black">{{ 'Total'|t('foster-checkout') }}</dt>
+				<dt class="font-semibold text-black">{{ 'cart.summary.total'|t('foster-checkout') }}</dt>
 				<dd class="font-semibold text-right text-black">{{ cart.totalPriceAsCurrency }}</dd>
 			</div>
 		{% endif %}
