@@ -14,7 +14,7 @@ return [
 	'Billing address' => 'Dirección de facturación',
 	'Billing Address' => 'Dirección de Facturación',
 	'Cancel' => 'Cancelar',
-	'Cart' => 'Carrito',
+	'cart.cartTitle' => 'Carrito',
 	'Change' => 'Cambiar',
 	'Charged on' => 'Cargado el',
 	'Checkout' => 'Pagar',

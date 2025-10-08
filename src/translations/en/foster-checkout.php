@@ -14,7 +14,7 @@ return [
 	'Billing address' => 'Billing address',
 	'Billing Address' => 'Billing Address',
 	'Cancel' => 'Cancel',
-	'Cart' => 'Cart',
+	'cart.cartTitle' => 'Cart',
 	'Change' => 'Change',
 	'Charged on' => 'Charged on',
 	'Checkout' => 'Checkout',
