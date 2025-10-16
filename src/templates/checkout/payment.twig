@@ -112,12 +112,8 @@
 															class="text-[var(--brandColor)] underline"
 															@click="editAddress = parseInt(editAddress) === {{ address.id }} ? 0 : {{ address.id }};"
 														>
-															<template x-if="editAddress == {{ address.id }}">
-																<span>{{ 'Cancel'|t('foster-checkout') }}</span>
-															</template>
-															<template x-if="editAddress != {{  address.id }}">
-																<span>{{ 'Edit'|t('foster-checkout') }}</span>
-															</template>
+															<template x-if="parseInt(editAddress) === {{ address.id }}"><span>{{ 'Cancel'|t('foster-checkout') }}</span></template>
+															<template x-if="parseInt(editAddress) !== {{ address.id }}"><span>{{ 'Edit'|t('foster-checkout') }}</span></template>
 														</button>
 													</div>
 													<template x-if="parseInt(editAddress) === {{ address.id }}">
@@ -312,7 +308,7 @@
 														   @change="gatewayId = {{ gateway.id }}"/>
 													<label for="gateway_{{ gateway.id }}"
 														   class="inline-flex justify-start items-center gap-4 cursor-pointer">
-														<span class="block">{{ gateway.name }}</span>
+														<span class="block">{{ gateway.name|t('foster-checkout') }}</span>
 													</label>
 												</div>
 												<div class="pt-8" x-show="gatewayId == {{ gateway.id }}">

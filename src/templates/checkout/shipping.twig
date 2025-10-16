@@ -87,11 +87,11 @@
 														class="inline-flex justify-start items-center gap-4 cursor-pointer"
 													>
 														<span class="block">
-															<span class="block">{{ method.name }}</span>
+															<span class="block">{{ method.name|t('foster-checkout') }}</span>
 															{% set methodDescription = craft.commerce.shippingMethods.getMatchingShippingRule(cart, method).getDescription() ?? null %}
 															{% if methodDescription %}
 																<span
-																class="block mt-1 text-sm text-gray-500">{{ methodDescription }}</span>
+																class="block mt-1 text-sm text-gray-500">{{ methodDescription|t('foster-checkout') }}</span>
 															{% endif %}
 														</span>
 													</label>
@@ -102,7 +102,7 @@
 										{% endfor %}
 									</div>
 								{% else %}
-									<p>No shipping options available.</p>
+									<p>{{ 'No shipping options available'|t('foster-checkount') }}.</p>
 								{% endif %}
 
 								{% set note = craft.fostercheckout.note('shipping') %}
