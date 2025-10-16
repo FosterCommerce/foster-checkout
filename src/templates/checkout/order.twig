@@ -125,6 +125,9 @@
 									{% else %}
 										<p class="mt-1">{{ paymentMethod.type|capitalize }}</p>
 									{% endif %}
+								{% elseif response.transactionResponse is defined %} {# Authorize.net #}
+									{% set paymentMethod = response.transactionResponse %}
+									<p class="mt-1">{{ paymentMethod.accountType|capitalize }} **** {{ paymentMethod.accountNumber|slice(-4) }}</p>
 								{% endif %}
 								<p class="mt-1">{{ transaction.paymentAmount|float|currency('USD') }} ({{ 'Charged on'|t('foster-checkout') }} {{ order.dateOrdered|date }})</p>
 							{% endif %}

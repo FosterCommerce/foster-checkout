@@ -69,6 +69,9 @@ return [
 		// The brand primary custom color in HEX color
 		'color' => '#333333',
 
+		// The background color of the header in HEX color
+		'headerBgColor' => '#F3F3F3',
+
 		// The Google web font (https://fonts.google.com/) family name you want to use
 		// (ex. 'Roboto Slab')
 		'font' => 'Roboto Slab',
@@ -159,5 +162,11 @@ return [
 			'elementHandle' => '',
 			'fieldHandle' => '',
 		],
+	],
+	// Payment Gateways: each gateway should be defined with the key matching the configured payment gateway handle in Craft Commerce setup.
+	// Each gateway contains an array of fields that are custom fields additional information that specific gateway can store on the order
+	// in the Craft. A field definition consists of an array key which is the field handle from Craft and an array of
+	// [label(string), placeholder(string), type (text, number), min(number), max(number), required (bool)].
+	'paymentGateways' => [
 	],
 ];
