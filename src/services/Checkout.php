@@ -190,4 +190,25 @@ class Checkout extends Component
 			'estimate' => $estimate,
 		]);
 	}
+
+	/**
+	 * @return array<mixed>|false
+	 */
+	public function getManualGatewayFields(String $gateway): false | array
+	{
+		if (array_key_exists($gateway, $this->settings()->paymentGateways)) {
+			return $this->settings()->paymentGateways[$gateway]->fields;
+		}
+
+		return false;
+	}
+
+	public function getManualGatewayColumns(String $gateway): int|null
+	{
+		if (array_key_exists($gateway, $this->settings()->paymentGateways)) {
+			return $this->settings()->paymentGateways[$gateway]->columns;
+		}
+
+		return null;
+	}
 }

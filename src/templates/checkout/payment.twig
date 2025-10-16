@@ -11,11 +11,12 @@
 	{% set gateways = craft.commerce.gateways.getAllCustomerEnabledGateways %}
 	{% set addresses = currentUser ? (currentUser.addresses.all() ?? null) : null %}
 
+	{%  set defaultGateway = cart.gatewayId ? cart.gatewayId : gateways[0].id %}
+
 	<div
 		class="mt-10 pb-28 lg:pb-32"
-		x-data="Payment({ gatewayId: {{ cart.gatewayId ? cart.gatewayId : 1 }}, billingSameAsShipping: {{ cart.hasMatchingAddresses() ? 1 : 0 }}, addressBookBillingAddress: 0, newBillingAddress: {{ (cart.hasMatchingAddresses() or cart.sourceBillingAddressId is not null) ? 0 : 1 }}, billingAddressId: {{ cart.hasMatchingAddresses() ? 'null' : (cart.sourceBillingAddressId ?? cart.shippingAddressId ?? 'null') }}, editAddress: {{ (cart.sourceBillingAddressId == null and cart.billingAddressId != null) or currentUser == null ? 1 : 0 }} })"
+		x-data="Payment({ gatewayId: {{ defaultGateway }}, billingSameAsShipping: {{ cart.hasMatchingAddresses() ? 1 : 0 }}, addressBookBillingAddress: 0, newBillingAddress: {{ (cart.hasMatchingAddresses() or cart.sourceBillingAddressId is not null) ? 0 : 1 }}, billingAddressId: {{ cart.hasMatchingAddresses() ? 'null' : (cart.sourceBillingAddressId ?? cart.shippingAddressId ?? 'null') }}, editAddress: {{ (cart.sourceBillingAddressId == null and cart.billingAddressId != null) or currentUser == null ? 1 : 0 }} })"
 	>
-
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 
 			<main class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
@@ -111,9 +112,12 @@
 															class="text-[var(--brandColor)] underline"
 															@click="editAddress = parseInt(editAddress) === {{ address.id }} ? 0 : {{ address.id }};"
 														>
-															${ parseInt(editAddress) === {{ address.id }} ?
-															'{{ 'Cancel'|t('foster-checkout') }}' :
-															'{{ 'Edit'|t('foster-checkout') }}' }
+															<template x-if="editAddress == {{ address.id }}">
+																<span>{{ 'Cancel'|t('foster-checkout') }}</span>
+															</template>
+															<template x-if="editAddress != {{  address.id }}">
+																<span>{{ 'Edit'|t('foster-checkout') }}</span>
+															</template>
 														</button>
 													</div>
 													<template x-if="parseInt(editAddress) === {{ address.id }}">
@@ -292,11 +296,11 @@
 								<h3 class="px-4 mb-4 font-semibold xl:px-0">
 									{{ 'Payment method'|t('foster-checkout') }}
 								</h3>
+
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
 									{% for gateway in gateways %}
 										{% set gatewayClass = className(gateway) %}
-										{% set shouldRender = cart.total == 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual'
-											or cart.total > 0 and gatewayClass != 'craft\\commerce\\gateways\\Manual' %}
+
 
 										{% set shouldRender = true %}
 										{% if shouldRender %}
@@ -304,7 +308,7 @@
 												 :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
 												<div class="flex justify-between items-center gap-4 radio">
 													<input id="gateway_{{ gateway.id }}" name="gatewayId" type="radio"
-														   class="sr-only" value="{{ gateway.id }}" checked
+														   class="sr-only" value="{{ gateway.id }}" {{ defaultGateway == gateway.id ? 'checked' }}
 														   @change="gatewayId = {{ gateway.id }}"/>
 													<label for="gateway_{{ gateway.id }}"
 														   class="inline-flex justify-start items-center gap-4 cursor-pointer">
@@ -322,50 +326,131 @@
 														})) }}
 														{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
 														{{ hiddenInput('orderEmail', cart.email) }}
-
-														<input type="hidden" x-model="gatewayId"/>
-
-														{% set params = {} %}
-
-														{# Special params for Paypal checkout #}
-														{% if gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
-															{% set params = { currency: cart.paymentCurrency } %}
-														{% endif %}
+														{{ hiddenInput('gatewayId', gateway.id) }}
 
 														{% set buttonText = 'Pay'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
-														{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
-															{% set params = {
-																order: cart,
-																paymentFormType: 'elements',
-																appearance: {
-																	theme: craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'flat' : 'stripe',
-																	labels: 'floating',
-																	variables: {
-																		colorPrimary: craft.fostercheckout.settings.branding.color ?? '#1F2937',
-																		borderRadius: craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? '0px' : '6px',
-																		gridColumnSpacing: '24px',
-																		gridRowSpacing: '24px',
-																		tabSpacing: '12px',
-																	}
-																},
-																submitButtonText: buttonText,
-																submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block'
-															} %}
-														{% endif %}
-
-														{% namespace gateway.handle|commercePaymentFormNamespace %}
-															{{ gateway.getPaymentFormHtml(params)|raw }}
-														{% endnamespace %}
 
 														{% if gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
-															<button
-																type="submit"
-																class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
-															>
-																{{ buttonText }}
-															</button>
-														{% endif %}
 
+															{% set fields = craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
+															<div class="grid grid-cols-1 gap-y-4 gap-x-4 ">
+
+																{% for field in craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
+																	<div class="sm:col-span-3">
+																		{% switch field.type %}
+																			{% case 'select' %}
+																				{% set fieldTemplate = 'input-select' %}
+
+																			{% default %}
+																				{% set fieldTemplate = 'input-text-clearable' %}
+																		{% endswitch %}
+
+
+																		{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
+																			context: '',
+																			label: field.label,
+																			id: field.id ?? field.handle,
+																			name: field.name ?? "fields[#{field.handle}]",
+																			type: field.type,
+																			placeholder: field.placeholder,
+																			errors: errors.locality ?? [],
+																			minLength: field.minLength,
+																			maxLength: field.maxLength,
+																			min: field.min,
+																			max: field.max,
+																			required: field.required ?? false,
+																			options: field.options ?? [],
+																		} %}
+																	</div>
+																{% endfor %}
+
+																<button
+																	type="submit"
+																	class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+																>
+																	{{ buttonText }}
+																</button>
+															</div>
+
+														{% else %}
+
+															{% set params = {} %}
+
+															{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+																{% set params = {
+																	order: cart,
+																	paymentFormType: 'elements',
+																	appearance: {
+																		theme: craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'flat' : 'stripe',
+																		labels: 'floating',
+																		variables: {
+																			colorPrimary: craft.fostercheckout.settings.branding.color ?? '#1F2937',
+																			borderRadius: craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? '0px' : '6px',
+																			gridColumnSpacing: '24px',
+																			gridRowSpacing: '24px',
+																			tabSpacing: '12px',
+																		}
+																	},
+																	submitButtonText: buttonText,
+																	submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block'
+																} %}
+
+															{% elseif gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
+																{% set params = { currency: cart.paymentCurrency } %}
+															{% endif %}
+
+															{# Gateway with custom fields #}
+															{% if craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
+																{% namespace gateway.handle|commercePaymentFormNamespace %}
+																	{% set columns = craft.fostercheckout.getManualGatewayColumns(gateway.handle) ?: 3 %}
+
+																	<div class="grid gap-y-4 gap-x-4 sm:grid-cols-{{ columns }}">
+																		{% for field in craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
+																			<div class="sm:col-span-{{ field.columns ?: 'full' }}">
+																				{% switch field.type %}
+																					{% case 'select' %}
+																						{% set fieldTemplate = 'input-select' %}
+
+																					{% default %}
+																						{% set fieldTemplate = 'input-text-clearable' %}
+																				{% endswitch %}
+
+
+																				{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
+																					context: '',
+																					label: field.label,
+																					id: field.id ?? field.handle,
+																					name: field.name ?? field.handle,
+																					type: field.type,
+																					placeholder: field.placeholder,
+																					errors: errors.locality ?? [],
+																					minLength: field.minLength,
+																					maxLength: field.maxLength,
+																					min: field.min,
+																					max: field.max,
+																					required: field.required ?? false,
+																					options: field.options ?? [],
+																				} %}
+																			</div>
+																		{% endfor %}
+																	</div>
+
+																	<button
+																		type="submit"
+																		class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+																	>
+																		{{ buttonText }}
+																	</button>
+																{% endnamespace %}
+															{% else %}
+																{% namespace gateway.handle|commercePaymentFormNamespace %}
+																	{{ gateway.getPaymentFormHtml(params)|raw }}
+																{% endnamespace %}
+															{% endif %}
+
+
+
+														{% endif %}
 													</form>
 												</div>
 											</div>
