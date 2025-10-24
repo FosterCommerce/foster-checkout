@@ -49,6 +49,15 @@ return [
 	'summary.freeShippingQualifyMessage' => 'for FREE shipping, or choose FREE Ship to Store',
 	'summary.lineItem.quantity' => 'Qty',
 
+	// Email page
+	'email.contact' => 'Contact',
+	'email.signIn' => 'Sign in',
+	'email.emailLabel' => 'Email',
+	'email.emailPlaceholder' => 'Enter your email',
+	'email.previousStep' => 'Return to cart',
+	'email.nextStep' => 'Next step',
+	'email.items' => 'Item(s)',
+
 
 	// Shipping Address page
 	'address.metaTitle' => 'Checkout: Address',
