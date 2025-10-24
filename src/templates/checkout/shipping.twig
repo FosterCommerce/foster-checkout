@@ -59,7 +59,7 @@
 						<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 
 							<h2 class="p-4 font-semibold bg-gray-200">
-								{{ 'shipping.stepTitle'|t('foster-checkout') }}
+								{{ 'shipping.stepTitle'('foster-checkout') }}
 							</h2>
 
 							<div class="p-4">
@@ -151,7 +151,7 @@
 
 						<div class="flex justify-between items-center gap-4">
 							<h2 class="text-xl font-bold text-gray-800 leading-snug">
-								{{ 'misc.items'|t('foster-checkout') }}
+								{{ 'summary.itemsTitle'|t('foster-checkout') }}
 							</h2>
 							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
 								 class="inline-block text-[var(--brandColor)] underline">

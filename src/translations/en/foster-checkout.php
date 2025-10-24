@@ -59,8 +59,8 @@ return [
 
 
 	// Shipping Address page
-	'address.metaTitle' => 'Checkout: Address',
-	'address.heading' => 'Shipping address',
+	'address.stepTitle' => 'Shipping Address',
+	'address.stepName' => 'Shipping address',
 	'address.newAddress' => 'New shipping address',
 	'address.saveToAddressBook' => 'Save to address book',
 	'address.nextStep' => 'Next step',
@@ -110,7 +110,6 @@ return [
 	'misc.noAddress' => 'No address to display',
 	'misc.shipTo' => 'Ship to',
 	'misc.viewAccount' => 'View my account',
-	'misc.items' => 'Item(s)',
 
 
 	// 'Shipping address' => 'Shipping address',
