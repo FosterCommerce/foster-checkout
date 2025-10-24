@@ -56,7 +56,6 @@ return [
 	'email.emailPlaceholder' => 'Enter your email',
 	'email.previousStep' => 'Return to cart',
 	'email.nextStep' => 'Next step',
-	'email.items' => 'Item(s)',
 
 
 	// Shipping Address page
@@ -83,6 +82,8 @@ return [
 	'addressFields.postcodePlaceholder' => '00000',
 
 	// Shipping Method page
+	'shipping.stepTitle' => 'Shipping method',
+	'shipping.noMethodAvailable' => 'No shipping options available',
 
 	// Payment page
 
@@ -109,6 +110,7 @@ return [
 	'misc.noAddress' => 'No address to display',
 	'misc.shipTo' => 'Ship to',
 	'misc.viewAccount' => 'View my account',
+	'misc.items' => 'Item(s)',
 
 
 	// 'Shipping address' => 'Shipping address',
