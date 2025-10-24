@@ -69,7 +69,7 @@
 				placeholder: 'summary.couponCodePrompt'|t('foster-checkout'),
 				errors: couponCodeError ? [couponMessage] : [],
 				success: cart.couponCode and couponMessage ? [couponMessage] : [],
-				value: summary.couponCode,
+				value: cart.couponCode,
 				action: '$watch("isOpen", value => { if (isOpen) { $nextTick(() => { $refs.input.focus() }) } } )'
 			} %}
 			<button
