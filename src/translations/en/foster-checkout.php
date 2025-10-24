@@ -25,6 +25,13 @@ return [
 	'cart.lineItem.imageOf' => 'Image of',
 	'cart.seePreviousItemsMessage' => 'to see items you might have added previously',
 	'cart.continueShopping' => 'Continue shopping',
+	'cart.couponCodeAdded' => 'Coupon code added',
+	'cart.couponCode' => 'Coupon code',
+	'cart.couponCodeRemoved' => 'Coupon code removed',
+	'cart.couponCodeMessage' => 'Submit a coupon code to get a discount on your order.',
+	'cart.couponCodePrompt' => 'Enter coupon code',
+	'cart.submitCouponCode' => 'Submit',
+	'cart.couponCodeLabel' => 'Coupon code',
 
 	// Cart Summary
 	'summary.title' => 'Order summary',
