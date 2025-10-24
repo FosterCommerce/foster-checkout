@@ -21,6 +21,8 @@ return [
 	'cart.lineItem.increaseQuantity' => 'Increase quantity',
 	'cart.lineItem.limitedStock' => 'Only {qty} in stock',
 	'cart.lineItem.saveForLater' => 'Save for later',
+	'cart.lineItem.noImage' => 'No Image',
+	'cart.lineItem.imageOf' => 'Image of',
 	'cart.seePreviousItemsMessage' => 'to see items you might have added previously',
 	'cart.continueShopping' => 'Continue shopping',
 
