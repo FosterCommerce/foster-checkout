@@ -84,6 +84,7 @@ return [
 	// Shipping Method page
 	'shipping.stepTitle' => 'Shipping method',
 	'shipping.noMethodAvailable' => 'No shipping options available',
+	'shipping.nextStep' => 'Next step',
 
 	// Payment page
 
@@ -93,6 +94,7 @@ return [
 	// Steps
 	'steps.contact' => 'Contact',
 	'steps.shipping' => 'Shipping address',
+	'steps.shipTo' => 'Ship to',
 	'steps.shippingMethod' => 'Shipping method',
 	'steps.payment' => 'Payment',
 
@@ -108,7 +110,6 @@ return [
 	'misc.returnToCart' => 'Return to cart',
 	'misc.change' => 'Change',
 	'misc.noAddress' => 'No address to display',
-	'misc.shipTo' => 'Ship to',
 	'misc.viewAccount' => 'View my account',
 
 
