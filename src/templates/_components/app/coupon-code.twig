@@ -5,7 +5,7 @@
 	{% set couponMessage = couponCodeError.message %}
 {% else %}
 	{% if couponCodeSuccess
-		and couponCodeSuccess == 'summary.couponCodeAdded' | t('Foster Checkout')
+		and couponCodeSuccess == 'summary.couponCodeAdded'|t('Foster Checkout')
 		and summary.couponCode %}
 		{% set couponMessage = couponCodeSuccess %}
 	{% else %}
@@ -68,7 +68,7 @@
 				autocomplete: 'off',
 				placeholder: 'summary.couponCodePrompt'|t('foster-checkout'),
 				errors: couponCodeError ? [couponMessage] : [],
-				success: summary.couponCode and couponMessage ? [couponMessage] : [],
+				success: cart.couponCode and couponMessage ? [couponMessage] : [],
 				value: summary.couponCode,
 				action: '$watch("isOpen", value => { if (isOpen) { $nextTick(() => { $refs.input.focus() }) } } )'
 			} %}
