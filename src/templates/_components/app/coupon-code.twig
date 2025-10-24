@@ -5,8 +5,8 @@
 	{% set couponMessage = couponCodeError.message %}
 {% else %}
 	{% if couponCodeSuccess
-		and couponCodeSuccess == 'cart.couponCodeAdded' | t('Foster Checkout')
-		and cart.couponCode %}
+		and couponCodeSuccess == 'summary.couponCodeAdded' | t('Foster Checkout')
+		and summary.couponCode %}
 		{% set couponMessage = couponCodeSuccess %}
 	{% else %}
 		{% set couponMessage = null %}
@@ -19,7 +19,7 @@
 >
 	<button class="flex justify-between items-center w-full py-4" @click="isOpen = !isOpen">
 		<span id="couponCodeLabel" class="font-medium text-gray-500">
-			{{ 'cart.couponCodeLabel'|t('foster-checkout') }}{% if cart.couponCode|default %} ({{ cart.couponCode }}){% endif %}
+			{{ 'summary.couponCodeLabel'|t('foster-checkout') }}{% if summary.couponCode|default %} ({{ summary.couponCode }}){% endif %}
 		</span>
 			<template x-if="isOpen">
 				<svg x-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current"
@@ -52,24 +52,24 @@
 		>
 			{{ csrfInput() }}
 			{{ actionInput('commerce/cart/update-cart') }}
-			{{ hiddenInput('successMessage', 'cart.couponCodeAdded'|t('Foster Checkout') | hash) }}
+			{{ hiddenInput('successMessage', 'summary.couponCodeAdded'|t('Foster Checkout') | hash) }}
 			{{ hiddenInput('clearNotices', 'Yes, please!') }}
 			<p id="couponCodeDesc" class="sr-only">
-				{{ cart.couponCode|default ?
-				('cart.couponCode'|t('foster-checkout') ~ ': ' ~ cart.couponCode) :
-				'cart.couponCodeMessage'|t('foster-checkout') }}
+				{{ summary.couponCode|default ?
+				('summary.couponCode'|t('foster-checkout') ~ ': ' ~ summary.couponCode) :
+				'summary.couponCodeMessage'|t('foster-checkout') }}
 			</p>
 			{% include 'foster-checkout/_components/base/input-text-clearable' with {
-				label: 'cart.couponCode'|t('foster-checkout'),
+				label: 'summary.couponCode'|t('foster-checkout'),
 				hideLabel: true,
 				id: 'couponCode',
 				name: 'couponCode',
 				type: 'text',
 				autocomplete: 'off',
-				placeholder: 'cart.couponCodePrompt'|t('foster-checkout'),
+				placeholder: 'summary.couponCodePrompt'|t('foster-checkout'),
 				errors: couponCodeError ? [couponMessage] : [],
-				success: cart.couponCode and couponMessage ? [couponMessage] : [],
-				value: cart.couponCode,
+				success: summary.couponCode and couponMessage ? [couponMessage] : [],
+				value: summary.couponCode,
 				action: '$watch("isOpen", value => { if (isOpen) { $nextTick(() => { $refs.input.focus() }) } } )'
 			} %}
 			<button
