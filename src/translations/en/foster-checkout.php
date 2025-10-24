@@ -50,7 +50,7 @@ return [
 	'summary.lineItem.quantity' => 'Qty',
 
 	// Email page
-	'email.contact' => 'Contact',
+	'email.stepTitle' => 'Contact',
 	'email.signIn' => 'Sign in',
 	'email.emailLabel' => 'Email',
 	'email.emailPlaceholder' => 'Enter your email',
@@ -96,6 +96,8 @@ return [
 	'steps.payment' => 'Payment',
 
 	// Miscellaneous
+	'misc.checkoutTitle' => 'Checkout',
+	'misc.cartTitle' => 'Cart',
 	'misc.noImage' => 'No Image',
 	'misc.imageOf' => 'Image of',
 	'misc.signIn' => 'Sign in',

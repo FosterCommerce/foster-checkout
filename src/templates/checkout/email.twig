@@ -7,7 +7,7 @@
 {% block head %}
 	<title>
 		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }} |
-		{{ 'Checkout'|t('foster-checkout') }} : {{ 'Email'|t('foster-checkout') }}
+		{{ 'misc.checkoutTitle'|t('foster-checkout') }} : {{ 'email.stepTitle'|t('foster-checkout') }}
 	</title>
 {% endblock %}
 
@@ -25,7 +25,7 @@
 
 					<div class="flex justify-between items-center p-4 gap-4 bg-gray-200">
 						<h2 class="font-semibold">
-							{{ 'email.contact'|t('foster-checkout') }}
+							{{ 'email.stemName'|t('foster-checkout') }}
 						</h2>
 						<span class="text-sm text-gray-500 text-right inline-block underline">
 							<a href="{{ loginUrl }}" class="text-[var(--brandColor)] underline">{{ 'email.signIn'|t('foster-checkout') }}</a>
