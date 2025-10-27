@@ -1,28 +1,28 @@
 <article>
 
-	<h2 class="mb-6 text-xl font-bold text-gray-800 leading-snug">{{ 'order.summary.title'|t('foster-checkout') }}</h2>
+	<h2 class="mb-6 text-xl font-bold text-gray-800 leading-snug">{{ 'summary.title'|t('foster-checkout') }}</h2>
 
 	<dl class="grid grid-cols-1 gap-4">
 
 		<div class="flex justify-between items-center gap-4">
-			<dt class="text-gray-500">{{ 'Items'|t('foster-checkout') }}</dt>
+			<dt class="text-gray-500">{{ 'summary.itemsLabel'|t('foster-checkout') }}</dt>
 			<dd class="font-semibold text-right text-black">{{ order.itemSubtotalAsCurrency }}</dd>
 		</div>
 
 		{% if order.totalDiscount != 0 %}
 			<div class="flex justify-between items-center gap-4">
-				<dt class="text-gray-500">{{ 'Discount'|t('foster-checkout') }}</dt>
+				<dt class="text-gray-500">{{ 'summary.discountLabel'|t('foster-checkout') }}</dt>
 				<dd class="text-right text-red-500">{{ order.totalDiscountAsCurrency }}</dd>
 			</div>
 		{% endif %}
 
 		<div class="flex justify-between items-center gap-4">
-			<dt class="text-gray-500">{{ 'Shipping & handling'|t('foster-checkout') }}</dt>
+			<dt class="text-gray-500">{{ 'summary.shippingLabel'|t('foster-checkout') }}</dt>
 			<dd class="text-right text-black">{{ order.totalShippingCostAsCurrency }}</dd>
 		</div>
 
 		<div class="flex justify-between items-center gap-4">
-			<dt class="text-gray-500">{{ 'Tax'|t('foster-checkout') }}</dt>
+			<dt class="text-gray-500">{{ 'summary.taxLabel'|t('foster-checkout') }}</dt>
 			<dd class="text-right text-black">{{ order.totalTaxAsCurrency }}</dd>
 		</div>
 
@@ -35,7 +35,7 @@
 					{% set code = matches|length > 1 ? matches[1]|trim("'") : 'Voucher/Gift Card' %}
 					<div class="flex justify-between items-center gap-4">
 						<dt class="text-gray-500">
-							{{ 'Voucher/Gift card applied'|t('foster-checkout') }}
+							{{ 'summary.discountApplied'|t('foster-checkout') }}
 							<span class="block text-xs text-gray-400">{{ code }}</span>
 						</dt>
 						<dd class="text-right">
@@ -48,7 +48,7 @@
 		{% endif %}
 
 		<div class="flex justify-between items-center gap-4 mt-4">
-			<dt class="font-semibold text-black">{{ 'Total'|t('foster-checkout') }}</dt>
+			<dt class="font-semibold text-black">{{ 'summary.total'|t('foster-checkout') }}</dt>
 			<dd class="font-semibold text-right text-black">{{ order.totalPriceAsCurrency }}</dd>
 		</div>
 
