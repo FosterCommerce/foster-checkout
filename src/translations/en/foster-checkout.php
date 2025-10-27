@@ -87,6 +87,20 @@ return [
 	'shipping.nextStep' => 'Next step',
 
 	// Payment page
+	'payment.stepTitle' => 'Payment',
+	'payment.stepName' => 'Payment',
+	'payment.paymentMethod' => 'Payment method',
+	'payment.billingAddress' => 'Billing address',
+	'payment.sameAsShippingAddress' => 'Same as shipping address',
+	'payment.useDifferentBillingAddress' => 'Use a different billing address',
+	'payment.saveToAddressBook' => 'Save to address book',
+
+	// Gift vouchers
+	'voucher.voucherHeading' => 'Apply voucher/gift card',
+	'voucher.voucherCode' => 'Voucher code',
+	'voucher.enterCode' => 'Enter voucher/gift card code',
+	'voucher.applyCode' => 'Submit',
+	'voucher.appliedCodesHeading' => 'Vouchers/gift cards currently applied to your order',
 
 	// Order Confirmation page
 
@@ -107,6 +121,7 @@ return [
 	'misc.edit' => 'Edit',
 	'misc.cancel' => 'Cancel',
 	'misc.save' => 'Save',
+	'misc.update' => 'Update',
 	'misc.returnToCart' => 'Return to cart',
 	'misc.change' => 'Change',
 	'misc.noAddress' => 'No address to display',
