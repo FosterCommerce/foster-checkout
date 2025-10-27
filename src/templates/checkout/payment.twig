@@ -265,7 +265,7 @@
 
 											{% if shouldRender %}
 
-												<div class="gateway-{{ gateway.handle }} border-b border-gray-250" :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }}">
+												<div class="gateway-{{ gateway.handle }} border-b border-gray-250" :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
 													<div class="p-4 flex justify-between items-center gap-4 radio">
 														<input id="gateway_{{ gateway.id }}" name="gatewayId" type="radio" class="sr-only" value="{{ gateway.id }}" {{ defaultGateway == gateway.id ? 'checked' }} @change="gatewayId = {{ gateway.id }}"/>
 														<label for="gateway_{{ gateway.id }}" class="inline-flex justify-start items-center gap-4 cursor-pointer">
