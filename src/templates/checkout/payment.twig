@@ -2,8 +2,11 @@
 
 {% block head %}
 	<title>
-		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }} |
-		{{ 'misc.checkoutTitle'|t('foster-checkout') }} : {{ 'payment.stepTitle'|t('foster-checkout') }}
+		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }}
+		|
+		{{ 'misc.checkoutTitle'|t('foster-checkout') }}
+		:
+		{{ 'payment.stepTitle'|t('foster-checkout') }}
 	</title>
 {% endblock %}
 
@@ -13,10 +16,7 @@
 
 	{%  set defaultGateway = cart.gatewayId ? cart.gatewayId : gateways[0].id %}
 
-	<div
-		class="mt-10 pb-28 lg:pb-32"
-		x-data="Payment({ gatewayId: {{ defaultGateway }}, billingSameAsShipping: {{ cart.hasMatchingAddresses() ? 1 : 0 }}, addressBookBillingAddress: 0, newBillingAddress: {{ (cart.hasMatchingAddresses() or cart.sourceBillingAddressId is not null) ? 0 : 1 }}, billingAddressId: {{ cart.hasMatchingAddresses() ? 'null' : (cart.sourceBillingAddressId ?? cart.shippingAddressId ?? 'null') }}, editAddress: {{ (cart.sourceBillingAddressId == null and cart.billingAddressId != null) or currentUser == null ? 1 : 0 }} })"
-	>
+	<div class="mt-10 pb-28 lg:pb-32" x-data="Payment({ gatewayId: {{ defaultGateway }}, billingSameAsShipping: {{ cart.hasMatchingAddresses() ? 1 : 0 }}, addressBookBillingAddress: 0, newBillingAddress: {{ (cart.hasMatchingAddresses() or cart.sourceBillingAddressId is not null) ? 0 : 1 }}, billingAddressId: {{ cart.hasMatchingAddresses() ? 'null' : (cart.sourceBillingAddressId ?? cart.shippingAddressId ?? 'null') }}, editAddress: {{ (cart.sourceBillingAddressId == null and cart.billingAddressId != null) or currentUser == null ? 1 : 0 }} })">
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 
 			<main class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
@@ -53,17 +53,11 @@
 										{{ actionInput('commerce/cart/update-cart') }}
 										<div class="p-4" :class="{ 'bg-gray-100': parseInt(billingSameAsShipping) === 1 }">
 											<div class="radio">
-												<input x-model="billingSameAsShipping" id="billingSameAsShipping_1"
-													   name="billingAddressSameAsShipping" type="radio" class="sr-only"
-													   value="1"
-													   @change="selectSameAsShipping()"/>
-												<label for="billingSameAsShipping_1"
-													   class="flex justify-start items-center gap-4 cursor-pointer">
+												<input x-model="billingSameAsShipping" id="billingSameAsShipping_1" name="billingAddressSameAsShipping" type="radio" class="sr-only" value="1" @change="selectSameAsShipping()"/>
+												<label for="billingSameAsShipping_1" class="flex justify-start items-center gap-4 cursor-pointer">
 													<span class="block">
-														<span class="block"
-															  :class="{ 'font-medium text-black': parseInt(billingSameAsShipping) === 1 }">{{ 'payment.saveAsShippingAddress'|t('foster-checkout') }}</span>
-														<span
-															class="block mt-2 text-gray-500">{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.shippingAddress} %}</span>
+														<span class="block" :class="{ 'font-medium text-black': parseInt(billingSameAsShipping) === 1 }">{{ 'payment.saveAsShippingAddress'|t('foster-checkout') }}</span>
+														<span class="block mt-2 text-gray-500">{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.shippingAddress} %}</span>
 													</span>
 												</label>
 											</div>
@@ -87,51 +81,29 @@
 										</template>
 										{% for address in addresses %}
 											{% if address.id != cart.sourceShippingAddressId|default %}
-												<div class="p-4 border-t"
-													 :class="{ 'bg-gray-100': parseInt(billingAddressId) === {{ address.id }} }">
+												<div class="p-4 border-t" :class="{ 'bg-gray-100': parseInt(billingAddressId) === {{ address.id }} }">
 													<div class="flex justify-between items-center gap-4 radio">
-														<input
-															x-model="billingAddressId"
-															id="address_{{ address.id }}"
-															name="billingAddressId"
-															type="radio"
-															class="sr-only"
-															value="{{ address.id }}"
-															@change="selectAddress()"
-														/>
-														<label
-															for="address_{{ address.id }}"
-															class="inline-flex justify-start items-center gap-4 cursor-pointer"
-															:class="{ 'font-medium text-black': parseInt(billingAddressId) === 1 }"
-														>
+														<input x-model="billingAddressId" id="address_{{ address.id }}" name="billingAddressId" type="radio" class="sr-only" value="{{ address.id }}" @change="selectAddress()"/>
+														<label for="address_{{ address.id }}" class="inline-flex justify-start items-center gap-4 cursor-pointer" :class="{ 'font-medium text-black': parseInt(billingAddressId) === 1 }">
 															{% include'foster-checkout/_components/app/formatted-address' with { 'address': address } %}
 														</label>
-														<button
-															x-cloak
-															type="button"
-															class="text-[var(--brandColor)] underline"
-															@click="editAddress = parseInt(editAddress) === {{ address.id }} ? 0 : {{ address.id }};"
-														>
-															<template x-if="parseInt(editAddress) === {{ address.id }}"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
-															<template x-if="parseInt(editAddress) !== {{ address.id }}"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
+														<button x-cloak type="button" class="text-[var(--brandColor)] underline" @click="editAddress = parseInt(editAddress) === {{ address.id }} ? 0 : {{ address.id }};">
+															<template x-if="parseInt(editAddress) === {{ address.id }}">
+																<span>{{ 'misc.cancel'|t('foster-checkout') }}</span>
+															</template>
+															<template x-if="parseInt(editAddress) !== {{ address.id }}">
+																<span>{{ 'misc.edit'|t('foster-checkout') }}</span>
+															</template>
 														</button>
 													</div>
 													<template x-if="parseInt(editAddress) === {{ address.id }}">
 														<div class="pt-8">
 															{% include 'foster-checkout/_components/app/address-fields' %}
-															<div
-																class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
-																<button
-																	type="submit"
-																	class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
-																>
+															<div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
+																<button type="submit" class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]">
 																	{{ 'misc.save'|t('foster-checkout') }}
 																</button>
-																<button
-																	type="button"
-																	class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
-																	@click="editAddress = 0"
-																>
+																<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]" @click="editAddress = 0">
 																	{{ 'misc.cancel'|t('foster-checkout') }}
 																</button>
 															</div>
@@ -144,19 +116,14 @@
 									{# end address book #}
 
 									{# New billing address #}
-									<div class="border-t border-gray-250"
-										 :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }">
+									<div class="border-t border-gray-250" :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }">
 										<div class="p-4 radio">
-											<input x-model="newBillingAddress" id="newBillingAddress"
-												   type="radio" class="sr-only" value="1"
-												   @change="billingSameAsShipping = 0;addressBookBillingAddress = 0; billingAddressId = null;"/>
-											<label for="newBillingAddress"
-												   class="inline-flex justify-start items-center gap-4 cursor-pointer"
-												   :class="{ 'font-medium text-black': parseInt(newBillingAddress) === 1 }">
+											<input x-model="newBillingAddress" id="newBillingAddress" type="radio" class="sr-only" value="1" @change="billingSameAsShipping = 0;addressBookBillingAddress = 0; billingAddressId = null;"/>
+											<label for="newBillingAddress" class="inline-flex justify-start items-center gap-4 cursor-pointer" :class="{ 'font-medium text-black': parseInt(newBillingAddress) === 1 }">
 												{{ 'payment.useDifferentBillingAddress'|t('foster-checkout') }}
 											</label>
 										</div>
-										<template x-if="parseInt(newBillingAddress) === 1" >
+										<template x-if="parseInt(newBillingAddress) === 1">
 											<div class="p-4">
 												<form method="post">
 													{{ csrfInput() }}
@@ -168,27 +135,19 @@
 													} %}
 
 													<div class="mt-4 p4 checkbox">
-														<input type="checkbox" class="sr-only"
-															   id="saveBillingAddressOnOrderComplete"
-															   name="saveBillingAddressOnOrderComplete" value="1"/>
-														<label
-															class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
-															for="saveBillingAddressOnOrderComplete">{{ 'payment.saveToAddressBook'|t('foster-checkout') }}</label>
+														<input type="checkbox" class="sr-only" id="saveBillingAddressOnOrderComplete" name="saveBillingAddressOnOrderComplete" value="1"/>
+														<label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveBillingAddressOnOrderComplete">{{ 'payment.saveToAddressBook'|t('foster-checkout') }}</label>
 													</div>
 
-													<div
-														class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
-														<button type="submit"
-																class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]">
+													<div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
+														<button type="submit" class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]">
 															{% if cart.billingAddressId and cart.hasMatchingAddresses == false %}
 																{{ 'misc.update'|t('foster-checkout') }}
 															{% else %}
 																{{ 'misc.save'|t('foster-checkout') }}
 															{% endif %}
 														</button>
-														<button type="button"
-																class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
-																@click="editAddress = 0">
+														<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]" @click="editAddress = 0">
 															{{ 'misc.cancel'|t('foster-checkout') }}
 														</button>
 													</div>
@@ -209,7 +168,8 @@
 									{% set voucherCodeError = cart.getFirstError('voucherCode') ?? null %}
 
 									{# If there are no gift voucher code errors #}
-									{% set voucherCodeSuccess = craft.app.session.getFlash('success') ?? null %} {# Not working for now #}
+									{% set voucherCodeSuccess = craft.app.session.getFlash('success') ?? null %}
+									{# Not working for now #}
 
 									{% if voucherCodeError %}
 										{% set voucherMessage = voucherCodeError %}
@@ -222,14 +182,8 @@
 									{% endif %}
 
 
-									<div class="px-4 xl:px-0"
-									>
-										<form
-											class="grid grid-cols-[1fr,_120px] items-start gap-4"
-											:class="sending ? 'grid-cols-[1fr,_120px]' : 'grid-cols-[1fr,_90px]'"
-											method="post"
-											@submit="sending = true"
-										>
+									<div class="px-4 xl:px-0">
+										<form class="grid grid-cols-[1fr,_120px] items-start gap-4" :class="sending ? 'grid-cols-[1fr,_120px]' : 'grid-cols-[1fr,_90px]'" method="post" @submit="sending = true">
 											{{ csrfInput() }}
 											{{ actionInput('gift-voucher/cart/add-code') }}
 											{{ hiddenInput('successMessage', 'Voucher/Gift card applied' | t('Foster Checkout') | hash) }}
@@ -245,20 +199,10 @@
 												success: false and voucherMessage ? [voucherMessage] : [],
 												value: '',
 											} %}
-											<button
-												type="submit"
-												class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-xl"
-												:disabled="sending"
-											>
-												<svg x-show="sending" aria-hidden="true" role="status"
-													 class="inline-block w-4 h-4 me-3 text-gray-200 animate-spin dark:text-gray-600"
-													 viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-													<path
-														d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-														fill="currentColor"/>
-													<path
-														d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-														fill="#ffffff"/>
+											<button type="submit" class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-xl" :disabled="sending">
+												<svg x-show="sending" aria-hidden="true" role="status" class="inline-block w-4 h-4 me-3 text-gray-200 animate-spin dark:text-gray-600" viewbox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+													<path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+													<path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="#ffffff"/>
 												</svg>
 												<span class="inline-block">{{ 'voucher.applyCode'|t('foster-checkout') }}</span>
 											</button>
@@ -279,7 +223,9 @@
 												{% for adj in voucherAdjustments %}
 													{% set matches = adj.description|split('code ') %}
 													{% set code = matches|length > 1 ? matches[1]|trim("'") : 'Voucher/Gift Card' %}
-													<li class="ml-5">{{ code }} ({{ adj.amount|abs|currency }} applied)</li>
+													<li class="ml-5">{{ code }}
+														({{ adj.amount|abs|currency }}
+														applied)</li>
 												{% endfor %}
 											</ul>
 										</div>
@@ -294,40 +240,46 @@
 								</h3>
 
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
-									{% for gateway in gateways %}
-										{% set gatewayClass = className(gateway) %}
+									<form method="POST" id="paymentForm" class="px-4 xl:px-0">
+										{{ csrfInput() }}
+										{{ actionInput('commerce/payments/pay') }}
+										{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order')) }}
+										{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order', {
+											number: cart.number,
+											success: 'true'
+										})) }}
+										{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
+										{{ hiddenInput('orderEmail', cart.email) }}
 
+										{% for gateway in gateways %}
+											{% set gatewayClass = className(gateway) %}
 
-										{% set shouldRender = true %}
-										{% if shouldRender %}
-											<div class="p-4 border-b border-gray-250"
-												 :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
-												<div class="flex justify-between items-center gap-4 radio">
-													<input id="gateway_{{ gateway.id }}" name="gatewayId" type="radio"
-														   class="sr-only" value="{{ gateway.id }}" {{ defaultGateway == gateway.id ? 'checked' }}
-														   @change="gatewayId = {{ gateway.id }}"/>
-													<label for="gateway_{{ gateway.id }}"
-														   class="inline-flex justify-start items-center gap-4 cursor-pointer">
-														<span class="block">{{ gateway.name|t('foster-checkout') }}</span>
-													</label>
-												</div>
-												<div class="pt-8" x-show="gatewayId == {{ gateway.id }}">
-													<form method="POST" id="paymentForm">
-														{{ csrfInput() }}
-														{{ actionInput('commerce/payments/pay') }}
-														{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order')) }}
-														{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order', {
-															number: cart.number,
-															success: 'true'
-														})) }}
-														{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
-														{{ hiddenInput('orderEmail', cart.email) }}
+											{# Don't show the Stripe gateway for zero value orders #}
+											{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' and cart.totalAmount == 0 %}
+												{% set shouldRender = false %}
+											{% else %}
+												{% set shouldRender = true %}
+											{% endif %}
+
+											{# You can add additional conditions here to hide other gateways if needed #}
+
+											{% if shouldRender %}
+
+												<div class="gateway-{{ gateway.handle }} border-b border-gray-250" :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }}">
+													<div class="p-4 flex justify-between items-center gap-4 radio">
+														<input id="gateway_{{ gateway.id }}" name="gatewayId" type="radio" class="sr-only" value="{{ gateway.id }}" {{ defaultGateway == gateway.id ? 'checked' }} @change="gatewayId = {{ gateway.id }}"/>
+														<label for="gateway_{{ gateway.id }}" class="inline-flex justify-start items-center gap-4 cursor-pointer">
+															<span class="block">{{ gateway.name|t('foster-checkout') }}</span>
+														</label>
+													</div>
+
+													<div class="py-8 px-4" x-show="gatewayId == {{ gateway.id }}">
+
 														{{ hiddenInput('gatewayId', gateway.id) }}
 
 														{% set buttonText = 'Pay'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
 
 														{% if gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
-
 															{% set fields = craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
 															<div class="grid grid-cols-1 gap-y-4 gap-x-4 ">
 
@@ -343,31 +295,27 @@
 
 
 																		{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
-																			context: '',
-																			label: field.label,
-																			id: field.id ?? field.handle,
-																			name: field.name ?? "fields[#{field.handle}]",
-																			type: field.type,
-																			placeholder: field.placeholder,
-																			errors: errors.locality ?? [],
-																			minLength: field.minLength,
-																			maxLength: field.maxLength,
-																			min: field.min,
-																			max: field.max,
-																			required: field.required ?? false,
-																			options: field.options ?? [],
-																		} %}
+																				context: '',
+																				label: field.label,
+																				id: field.id ?? field.handle,
+																				name: field.name ?? "fields[#{field.handle}]",
+																				type: field.type,
+																				placeholder: field.placeholder,
+																				errors: errors.locality ?? [],
+																				minLength: field.minLength,
+																				maxLength: field.maxLength,
+																				min: field.min,
+																				max: field.max,
+																				required: field.required ?? false,
+																				options: field.options ?? [],
+																			} %}
 																	</div>
 																{% endfor %}
 
-																<button
-																	type="submit"
-																	class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
-																>
+																<button type="submit" class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block">
 																	{{ buttonText }}
 																</button>
 															</div>
-
 														{% else %}
 
 															{% set params = {} %}
@@ -398,60 +346,55 @@
 															{# Gateway with custom fields #}
 															{% if craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
 																{% namespace gateway.handle|commercePaymentFormNamespace %}
-																	{% set columns = craft.fostercheckout.getManualGatewayColumns(gateway.handle) ?: 3 %}
+																{% set columns = craft.fostercheckout.getManualGatewayColumns(gateway.handle) ?: 3 %}
 
-																	<div class="grid gap-y-4 gap-x-4 sm:grid-cols-{{ columns }}">
-																		{% for field in craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
-																			<div class="sm:col-span-{{ field.columns ?: 'full' }}">
-																				{% switch field.type %}
-																					{% case 'select' %}
-																						{% set fieldTemplate = 'input-select' %}
+																<div class="grid gap-y-4 gap-x-4 sm:grid-cols-{{ columns }}">
+																{% for field in craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
+																	<div class="sm:col-span-{{ field.columns ?: 'full' }}">
+																		{% switch field.type %}
+																			{% case 'select' %}
+																				{% set fieldTemplate = 'input-select' %}
 
-																					{% default %}
-																						{% set fieldTemplate = 'input-text-clearable' %}
-																				{% endswitch %}
+																			{% default %}
+																				{% set fieldTemplate = 'input-text-clearable' %}
+																		{% endswitch %}
 
 
-																				{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
-																					context: '',
-																					label: field.label,
-																					id: field.id ?? field.handle,
-																					name: field.name ?? field.handle,
-																					type: field.type,
-																					placeholder: field.placeholder,
-																					errors: errors.locality ?? [],
-																					minLength: field.minLength,
-																					maxLength: field.maxLength,
-																					min: field.min,
-																					max: field.max,
-																					required: field.required ?? false,
-																					options: field.options ?? [],
-																				} %}
-																			</div>
-																		{% endfor %}
+																		{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
+																						context: '',
+																						label: field.label,
+																						id: field.id ?? field.handle,
+																						name: field.name ?? field.handle,
+																						type: field.type,
+																						placeholder: field.placeholder,
+																						errors: errors.locality ?? [],
+																						minLength: field.minLength,
+																						maxLength: field.maxLength,
+																						min: field.min,
+																						max: field.max,
+																						required: field.required ?? false,
+																						options: field.options ?? [],
+																					} %}
 																	</div>
+																{% endfor %}
+																</div>
 
-																	<button
-																		type="submit"
-																		class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
-																	>
-																		{{ buttonText }}
-																	</button>
-																{% endnamespace %}
-															{% else %}
-																{% namespace gateway.handle|commercePaymentFormNamespace %}
-																	{{ gateway.getPaymentFormHtml(params)|raw }}
-																{% endnamespace %}
-															{% endif %}
-
-
-
+																<button type="submit" class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block">
+																	{{ buttonText }}
+																</button>
+															{% endnamespace %}
+														{% else %}
+															{% namespace gateway.handle|commercePaymentFormNamespace %}
+															{{ gateway.getPaymentFormHtml(params)|raw }}
+															{% endnamespace %}
 														{% endif %}
-													</form>
+
+													{% endif %}
+													</div>
 												</div>
-											</div>
-										{% endif %}
-									{% endfor %}
+											{% endif %}
+										{% endfor %}
+									</form>
 								</div>
 							</div>
 
@@ -464,8 +407,7 @@
 
 			<aside>
 
-				<div
-					class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+				<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 
 					<div class="grid grid-cols-1 gap-6">
 
@@ -473,8 +415,7 @@
 							<h2 class="text-xl font-bold text-gray-800 leading-snug">
 								{{ 'summary.itemsTitle'|t('foster-checkout') }}
 							</h2>
-							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
-							   class="inline-block text-[var(--brandColor)] underline">
+							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}" class="inline-block text-[var(--brandColor)] underline">
 								{{ 'misc.edit'|t('foster-checkout') }}
 							</a>
 						</div>
@@ -483,8 +424,8 @@
 							{% for lineItem in cart.lineItems %}
 								<li>
 									{% include 'foster-checkout/_components/app/line-item-checkout' with {
-										lineItem: lineItem
-									} %}
+											lineItem: lineItem
+										} %}
 								</li>
 							{% endfor %}
 						</ul>
@@ -492,8 +433,8 @@
 					</div>
 
 					{% include 'foster-checkout/_components/app/summary-cart' with {
-						estimatedTax: false
-					} %}
+							estimatedTax: false
+						} %}
 				</div>
 
 			</aside>
@@ -503,23 +444,22 @@
 	</div>
 
 	{% js %}
-		var $paymentForms = document.querySelectorAll('.paymentForm');
+	var $paymentForms = document.querySelectorAll('.paymentForm');
 
-		if ($paymentForms.length) {
-			$paymentForms.forEach(($paymentForm) => {
+			if ($paymentForms.length) {
+				$paymentForms.forEach(($paymentForm) => {
 
-				// Only allow the payment form submit to be triggered once.
-				$paymentForm.addEventListener('submit', function(ev) {
+					// Only allow the payment form submit to be triggered once.
+					$paymentForm.addEventListener('submit', function(ev) {
 
-					if ($paymentForm.dataset.processing) {
-						ev.preventDefault();
-						return false;
-					}
+						if ($paymentForm.dataset.processing) {
+							ev.preventDefault();
+							return false;
+						}
 
-					$paymentForm.dataset.processing = true;
+						$paymentForm.dataset.processing = true;
+					});
 				});
-			});
-		}
+			}
 	{% endjs %}
-
 {% endblock %}
