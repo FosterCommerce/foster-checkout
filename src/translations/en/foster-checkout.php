@@ -104,7 +104,17 @@ return [
 	'voucher.appliedCodesHeading' => 'Vouchers/gift cards currently applied to your order',
 
 	// Order Confirmation page
-
+	'order.stepTitle' => 'Order',
+	'order.stepName' => 'Thank you for your order!',
+	'order.orderNumberLabel' => 'Your Order Number is',
+	'order.receiptEmailMessage' => 'You will receive an order confirmation email shortly.',
+	'order.contactInformation' => 'Contact Information',
+	'order.shippingAddress' => 'Shipping Address',
+	'order.shippingMethod' => 'Shipping Method',
+	'order.payment' => 'Payment',
+	'order.giftCard' => 'Gift card',
+	'order.dateChargedLabel' => 'Date charged',
+	'order.billingAddress' => 'Billing Address',
 
 	// Steps
 	'steps.contact' => 'Contact',

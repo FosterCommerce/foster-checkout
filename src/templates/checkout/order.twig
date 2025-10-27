@@ -7,7 +7,7 @@
 {% block head %}
 	<title>
 		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }} |
-		{{ 'Checkout'|t('foster-checkout') }} : {{ 'Order'|t('foster-checkout') }}
+		{{ 'misc.checkoutTitle'|t('foster-checkout') }} : {{ 'order.stepTitle'|t('foster-checkout') }}
 	</title>
 {% endblock %}
 
@@ -19,7 +19,7 @@
 		<main class="grid grid-cols-1 gap-8">
 			<header>
 				<h1 class="font-semibold text-3xl">
-					{{ 'Thank you for your order!'|t('foster-checkout') }}
+					{{ 'order.stepName'|t('foster-checkout') }}
 				</h1>
 			</header>
 
@@ -40,7 +40,7 @@
 
 				<div class="p-4 space-y-2">
 					<p>
-						{{ 'Your Order Number is'|t('foster-checkout') }}
+						{{ 'order.orderNumberLabel'|t('foster-checkout') }}
 						<strong>{{ order.reference }}</strong>
 					</p>
 					{# Only show email confirmation message if order confirmation email is configured and enabled #}
@@ -48,7 +48,7 @@
 					{% if orderStatus.default == true %}
 						{% set emails = orderStatus.getEmails() %}
 						{% for email in emails|filter(email => email.enabled == true and email.recipientType == "customer" and email.getScenario() == "default") %}
-							<p>{{ 'You will receive an order confirmation email shortly.'|t('foster-checkout') }}</p>
+							<p>{{ 'order.receiptEmailMessage'|t('foster-checkout') }}</p>
 						{% endfor %}
 					{% endif %}
 				</div>
@@ -61,13 +61,13 @@
 
 						<!-- Contact Information -->
 						<div class="">
-							<h2 class="text-lg font-medium text-gray-700">{{ 'Contact Information'|t('foster-checkout') }}</h2>
+							<h2 class="text-lg font-medium text-gray-700">{{ 'order.contactInformation'|t('foster-checkout') }}</h2>
 							<p class="">{{ order.email }}</p>
 						</div>
 
 						<!-- Shipping Address -->
 						<div class="mt-4">
-							<h2 class="text-lg font-medium text-gray-700">{{ 'Shipping Address'|t('foster-checkout') }}</h2>
+							<h2 class="text-lg font-medium text-gray-700">{{ 'order.shippingAddress'|t('foster-checkout') }}</h2>
 							<address class="not-italic mt-1">
 								{% include'foster-checkout/_components/app/formatted-address' with { 'address': order.shippingAddress} %}
 							</address>
@@ -76,7 +76,7 @@
 						{% if order.shippingMethod %}
 							<!-- Shipping Method -->
 							<div class="mt-4">
-								<h2 class="text-lg font-medium text-gray-700">{{ 'Shipping Method'|t('foster-checkount') }}</h2>
+								<h2 class="text-lg font-medium text-gray-700">{{ 'order.shippingMethod'|t('foster-checkount') }}</h2>
 								<p class="mt-1">
 									{{ order.shippingMethod.name }}
 								</p>
@@ -87,7 +87,7 @@
 					<div class="grid grid-cols-1 content-start">
 						<!-- Payment Information -->
 						<div>
-							<h2 class="text-lg font-medium text-gray-700">{{ 'Payment'|t('foster-checkout') }}</h2>
+							<h2 class="text-lg font-medium text-gray-700">{{ 'order.payment'|t('foster-checkout') }}</h2>
 							{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
 								{# Check for applied / redeemed gift card vouchers in orders #}
 
@@ -100,7 +100,7 @@
 
 									{% set voucherAdjustments = order.orderAdjustments|filter(adjustment => adjustment.type == 'voucher') %}
 									{% if voucherAdjustments|length >= 1 %}
-										<p class="mt-1">{{ 'Gift card'|t('foster-checkout') }}</p>
+										<p class="mt-1">{{ 'order.giftCard'|t('foster-checkout') }}</p>
 										{% for voucher in voucherAdjustments %}
 											{# Get redeemed voucher code from description #}
 											{% set voucherCode = voucher.description|split('code ')[1] is defined ? voucher.description|split('code ')[1] : false %}
@@ -129,13 +129,13 @@
 									{% set paymentMethod = response.transactionResponse %}
 									<p class="mt-1">{{ paymentMethod.accountType|capitalize }} **** {{ paymentMethod.accountNumber|slice(-4) }}</p>
 								{% endif %}
-								<p class="mt-1">{{ transaction.paymentAmount|float|currency('USD') }} ({{ 'Charged on'|t('foster-checkout') }} {{ order.dateOrdered|date }})</p>
+								<p class="mt-1">{{ transaction.paymentAmount|float|currency('USD') }} ({{ 'order.dateChargedLabel'|t('foster-checkout') }} {{ order.dateOrdered|date }})</p>
 							{% endif %}
 						</div>
 
 						<!-- Billing Address -->
 						<div class="mt-4">
-							<h2 class="text-lg font-medium text-gray-700">{{ 'Billing Address'|t('foster-checkout') }}</h2>
+							<h2 class="text-lg font-medium text-gray-700">{{ 'order.billingAddress'|t('foster-checkout') }}</h2>
 							<address class="not-italic mt-1">
 								{% include'foster-checkout/_components/app/formatted-address' with { 'address': order.billingAddress} %}
 							</address>
@@ -175,7 +175,7 @@
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
 
 					<h2 class="text-xl font-bold text-gray-800 leading-snug">
-						{{ 'Item(s)'|t('foster-checkout') }}
+						{{ 'summary.itemsTitle'|t('foster-checkout') }}
 					</h2>
 
 					<ul class="grid grid-cols-1 gap-4">
