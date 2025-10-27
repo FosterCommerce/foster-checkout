@@ -297,8 +297,8 @@
 									{% for gateway in gateways %}
 										{% set gatewayClass = className(gateway) %}
 
+										{% set shouldRender = cart.total >= 0 or (cart.total == 0 and gatewayClass != 'craft\\commerce\\stripe\\gateways\\PaymentIntents') %}
 
-										{% set shouldRender = true %}
 										{% if shouldRender %}
 											<div class="p-4 border-b border-gray-250"
 												 :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
