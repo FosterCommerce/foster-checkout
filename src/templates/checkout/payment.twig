@@ -296,7 +296,6 @@
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
 									{% for gateway in gateways %}
 										{% set gatewayClass = className(gateway) %}
-										{% set gatewayType = gatewayClass|replace('\\','-') %}
 
 										{# Don't show the Stripe gateway for zero value orders #}
 										{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' and cart.totalAmount == 0 %}
@@ -321,7 +320,7 @@
 													</label>
 												</div>
 												<div class="pt-8" x-show="gatewayId == {{ gateway.id }}">
-													<form method="POST" id="paymentForm" class="gateway-{{ gatewayType }}">
+													<form method="POST" id="paymentForm" class="gateway-{{ gateway.handle }}">
 														{{ csrfInput() }}
 														{{ actionInput('commerce/payments/pay') }}
 														{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order')) }}
