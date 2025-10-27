@@ -296,7 +296,7 @@
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
 									{% for gateway in gateways %}
 										{% set gatewayClass = className(gateway) %}
-										{% set gatewayType = gatewayClass|split('\\\\')|last %}
+										{% set gatewayType = gatewayClass|replace('\\','-') %}
 
 										{# Don't show the Stripe gateway for zero value orders #}
 										{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' and cart.totalAmount == 0 %}
