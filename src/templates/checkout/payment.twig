@@ -3,7 +3,7 @@
 {% block head %}
 	<title>
 		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }} |
-		{{ 'Checkout'|t('foster-checkout') }} : {{ 'Payment'|t('foster-checkout') }}
+		{{ 'misc.checkoutTitle'|t('foster-checkout') }} : {{ 'payment.stepTitle'|t('foster-checkout') }}
 	</title>
 {% endblock %}
 
@@ -29,7 +29,7 @@
 					<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 
 						<h2 class="p-4 font-semibold bg-gray-200">
-							{{ 'Payment'|t('foster-checkout') }}
+							{{ 'payment.stepName'|t('foster-checkout') }}
 						</h2>
 
 						<div class="grid grid-cols-1 gap-5 xl:gap-6 p-4">
@@ -43,7 +43,7 @@
 
 							<div>
 								<h3 class="px-4 mb-4 font-semibold xl:px-0">
-									{{ 'Billing address'|t('foster-checkout') }}
+									{{ 'payment.billingAddress'|t('foster-checkout') }}
 								</h3>
 
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
@@ -61,7 +61,7 @@
 													   class="flex justify-start items-center gap-4 cursor-pointer">
 													<span class="block">
 														<span class="block"
-															  :class="{ 'font-medium text-black': parseInt(billingSameAsShipping) === 1 }">{{ 'Same as shipping address'|t('foster-checkout') }}</span>
+															  :class="{ 'font-medium text-black': parseInt(billingSameAsShipping) === 1 }">{{ 'payment.saveAsShippingAddress'|t('foster-checkout') }}</span>
 														<span
 															class="block mt-2 text-gray-500">{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.shippingAddress} %}</span>
 													</span>
@@ -112,8 +112,8 @@
 															class="text-[var(--brandColor)] underline"
 															@click="editAddress = parseInt(editAddress) === {{ address.id }} ? 0 : {{ address.id }};"
 														>
-															<template x-if="parseInt(editAddress) === {{ address.id }}"><span>{{ 'Cancel'|t('foster-checkout') }}</span></template>
-															<template x-if="parseInt(editAddress) !== {{ address.id }}"><span>{{ 'Edit'|t('foster-checkout') }}</span></template>
+															<template x-if="parseInt(editAddress) === {{ address.id }}"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
+															<template x-if="parseInt(editAddress) !== {{ address.id }}"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
 														</button>
 													</div>
 													<template x-if="parseInt(editAddress) === {{ address.id }}">
@@ -125,14 +125,14 @@
 																	type="submit"
 																	class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
 																>
-																	{{ 'Save'|t('foster-checkout') }}
+																	{{ 'misc.save'|t('foster-checkout') }}
 																</button>
 																<button
 																	type="button"
 																	class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
 																	@click="editAddress = 0"
 																>
-																	{{ 'Cancel'|t('foster-checkout') }}
+																	{{ 'misc.cancel'|t('foster-checkout') }}
 																</button>
 															</div>
 														</div>
@@ -153,7 +153,7 @@
 											<label for="newBillingAddress"
 												   class="inline-flex justify-start items-center gap-4 cursor-pointer"
 												   :class="{ 'font-medium text-black': parseInt(newBillingAddress) === 1 }">
-												{{ 'Use a different billing address'|t('foster-checkout') }}
+												{{ 'payment.useDifferentBillingAddress'|t('foster-checkout') }}
 											</label>
 										</div>
 										<template x-if="parseInt(newBillingAddress) === 1" >
@@ -173,7 +173,7 @@
 															   name="saveBillingAddressOnOrderComplete" value="1"/>
 														<label
 															class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
-															for="saveBillingAddressOnOrderComplete">{{ 'Save to address book'|t('foster-checkout') }}</label>
+															for="saveBillingAddressOnOrderComplete">{{ 'payment.saveToAddressBook'|t('foster-checkout') }}</label>
 													</div>
 
 													<div
@@ -181,15 +181,15 @@
 														<button type="submit"
 																class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]">
 															{% if cart.billingAddressId and cart.hasMatchingAddresses == false %}
-																{{ 'Update'|t('foster-checkout') }}
+																{{ 'misc.update'|t('foster-checkout') }}
 															{% else %}
-																{{ 'Save'|t('foster-checkout') }}
+																{{ 'misc.save'|t('foster-checkout') }}
 															{% endif %}
 														</button>
 														<button type="button"
 																class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
 																@click="editAddress = 0">
-															{{ 'Cancel'|t('foster-checkout') }}
+															{{ 'misc.cancel'|t('foster-checkout') }}
 														</button>
 													</div>
 												</form>
@@ -203,7 +203,7 @@
 								<div class="my-6" x-data="{ sending: false }">
 
 									<h3 class="px-4 mb-4 font-semibold xl:px-0">
-										{{ 'Apply voucher/gift card'|t('foster-checkout') }}
+										{{ 'voucher.voucherHeading'|t('foster-checkout') }}
 									</h3>
 
 									{% set voucherCodeError = cart.getFirstError('voucherCode') ?? null %}
@@ -234,13 +234,13 @@
 											{{ actionInput('gift-voucher/cart/add-code') }}
 											{{ hiddenInput('successMessage', 'Voucher/Gift card applied' | t('Foster Checkout') | hash) }}
 											{% include 'foster-checkout/_components/base/input-text-clearable' with {
-												label: 'Voucher code'|t('foster-checkout'),
+												label: 'voucher.voucherCode'|t('foster-checkout'),
 												hideLabel: true,
 												id: 'voucherCode',
 												name: 'voucherCode',
 												type: 'text',
 												autocomplete: 'off',
-												placeholder: 'Enter voucher/gift card code'|t('foster-checkout'),
+												placeholder: 'voucher.enterCode'|t('foster-checkout'),
 												errors: voucherCodeError ? [voucherMessage] : [],
 												success: false and voucherMessage ? [voucherMessage] : [],
 												value: '',
@@ -260,7 +260,7 @@
 														d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
 														fill="#ffffff"/>
 												</svg>
-												<span class="inline-block">{{ 'Submit'|t('foster-checkout') }}</span>
+												<span class="inline-block">{{ 'voucher.applyCode'|t('foster-checkout') }}</span>
 											</button>
 										</form>
 									</div>
@@ -273,7 +273,7 @@
 									{% if voucherAdjustments|length %}
 										<div class="border-gray-400 border-b flex flex-col space-y-2 py-4 px-4 xl:px-0">
 											<p class="text-gray-500 m-0">
-												{{ 'Vouchers/gift cards currently applied to your order'|t('foster-checkout') }}:
+												{{ 'voucher.appliedCodesHeading'|t('foster-checkout') }}:
 											</p>
 											<ul class="text-gray-500 m-0 list-disc">
 												{% for adj in voucherAdjustments %}
@@ -290,7 +290,7 @@
 
 							<div>
 								<h3 class="px-4 mb-4 font-semibold xl:px-0">
-									{{ 'Payment method'|t('foster-checkout') }}
+									{{ 'payment.paymentMethod'|t('foster-checkout') }}
 								</h3>
 
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
@@ -471,11 +471,11 @@
 
 						<div class="flex justify-between items-center gap-4">
 							<h2 class="text-xl font-bold text-gray-800 leading-snug">
-								{{ 'Item(s)'|t('foster-checkout') }}
+								{{ 'summary.itemsTitle'|t('foster-checkout') }}
 							</h2>
 							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
 							   class="inline-block text-[var(--brandColor)] underline">
-								{{ 'Edit'|t('foster-checkout') }}
+								{{ 'misc.edit'|t('foster-checkout') }}
 							</a>
 						</div>
 

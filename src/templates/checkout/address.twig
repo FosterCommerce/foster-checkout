@@ -5,7 +5,7 @@
 {% block head %}
 	<title>
 		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }} |
-		{{ 'shipping.metaTitle'|t('foster-checkout') }}
+		{{ 'misc.checkoutTitle'|t('foster-checkout') }} : {{ 'address.stepTitle'|t('foster-checkout') }}
 	</title>
 {% endblock %}
 
@@ -47,7 +47,7 @@
 						<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 
 							<h2 class="p-4 font-semibold bg-gray-200">
-								{{ 'shipping.heading'|t('foster-checkout') }}
+								{{ 'address.stepName'|t('foster-checkout') }}
 							</h2>
 
 							<div class="p-4">
@@ -132,7 +132,7 @@
 												class="inline-flex justify-start items-center gap-4 cursor-pointer"
 												:class="{ 'font-medium text-black': useNewAddress }"
 											>
-												{{ 'shipping.newAddress'|t('foster-checkout') }}
+												{{ 'address.newAddress'|t('foster-checkout') }}
 											</label>
 										</div>
 
@@ -156,7 +156,7 @@
 																 name="saveShippingAddressOnOrderComplete" value="1"/>
 													<label
 														class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
-														for="saveShippingAddressOnOrderComplete">{{ 'shipping.saveToAddressBook'|t('foster-checkout') }}</label>
+														for="saveShippingAddressOnOrderComplete">{{ 'address.saveToAddressBook'|t('foster-checkout') }}</label>
 												</div>
 											</div>
 										</template>
@@ -181,7 +181,7 @@
 										type="submit"
 										class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 									>
-										{{ 'shipping.nextStep'|t('foster-checkout') }}
+										{{ 'address.nextStep'|t('foster-checkout') }}
 									</button>
 
 								</div>

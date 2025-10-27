@@ -1,0 +1,139 @@
+<?php
+
+return [
+	// Cart page
+	'cart.cartTitle' => 'Panier',
+	'cart.clearCart' => 'Vider le panier',
+	'cart.totalItemsPlural' => 'Il y a {qty} articles dans votre panier',
+	'cart.totalItemsSingle' => 'Il y a {qty} article dans votre panier',
+	'cart.totalItemsZero' => 'Il n’y a aucun article dans votre panier',
+	'cart.isEmpty' => 'Votre panier est actuellement vide',
+	'cart.checkout' => 'Passer au paiement',
+
+	// Cart lineitems
+	'cart.lineItem.update' => 'Mettre à jour',
+	'cart.lineItem.updating' => 'Mise à jour',
+	'cart.lineItem.remove' => 'Supprimer',
+	'cart.lineItem.removing' => 'Suppression',
+	'cart.lineItem.removeFromCart' => 'Retirer du panier',
+	'cart.lineItem.quantity' => 'Quantité',
+	'cart.lineItem.decreaseQuantity' => 'Diminuer la quantité',
+	'cart.lineItem.increaseQuantity' => 'Augmenter la quantité',
+	'cart.lineItem.limitedStock' => 'Plus que {qty} en stock',
+	'cart.lineItem.saveForLater' => 'Enregistrer pour plus tard',
+	'cart.lineItem.noImage' => 'Aucune image',
+	'cart.lineItem.imageOf' => 'Image de',
+	'cart.seePreviousItemsMessage' => 'pour voir les articles que vous avez peut-être ajoutés précédemment',
+	'cart.continueShopping' => 'Continuer vos achats',
+
+	// Cart Summary
+	'summary.title' => 'Récapitulatif de la commande',
+	'summary.itemsTitle' => 'Article(s)',
+	'summary.itemsLabel' => 'Articles',
+	'summary.discountLabel' => 'Remise',
+	'summary.discountApplied' => 'Bons/cartes cadeaux appliqués',
+	'summary.removeCoupon' => 'Retirer',
+	'summary.shippingLabel' => 'Livraison & manutention',
+	'summary.estimatedTaxLabel' => 'Taxes estimées',
+	'summary.taxLabel' => 'Taxes',
+	'summary.couponCodeLabel' => 'Code promo',
+	'summary.couponCodeAdded' => 'Code promo ajouté',
+	'summary.couponCode' => 'Code promo',
+	'summary.couponCodeRemoved' => 'Code promo retiré',
+	'summary.couponCodeMessage' => 'Entrez un code promo pour bénéficier d’une remise sur votre commande.',
+	'summary.couponCodePrompt' => 'Saisissez le code promo',
+	'summary.submitCouponCode' => 'Valider',
+	'summary.estimatedTotal' => 'Total estimé',
+	'summary.total' => 'Total',
+	'summary.addFreeShipping' => 'Ajouter',
+	'summary.freeShippingQualifyMessage' => 'pour profiter de la livraison GRATUITE, ou choisissez le retrait gratuit en magasin',
+	'summary.lineItem.quantity' => 'Qté',
+
+	// Email page
+	'email.stepTitle' => 'Contact',
+	'email.signIn' => 'Se connecter',
+	'email.emailLabel' => 'E-mail',
+	'email.emailPlaceholder' => 'Saisissez votre e-mail',
+	'email.previousStep' => 'Retour au panier',
+	'email.nextStep' => 'Étape suivante',
+
+	// Shipping Address page
+	'address.stepTitle' => 'Adresse de livraison',
+	'address.stepName' => 'Adresse de livraison',
+	'address.newAddress' => 'Nouvelle adresse de livraison',
+	'address.saveToAddressBook' => 'Enregistrer dans le carnet d’adresses',
+	'address.nextStep' => 'Étape suivante',
+
+	// Address form
+	'addressFields.countryLabel' => 'Pays',
+	'addressFields.select' => 'Sélectionner',
+	'addressFields.fullnameLabel' => 'Nom complet',
+	'addressFields.fullnamePlaceholder' => 'Entrez votre nom',
+	'addressFields.addressLabel' => 'Adresse',
+	'addressFields.addressPlaceholder' => 'Adresse',
+	'addressFields.address2Label' => 'N° d’appartement, suite',
+	'addressFields.address2Placeholder' => 'N° d’appartement, suite',
+	'addressFields.cityLabel' => 'Ville',
+	'addressFields.cityPlaceholder' => 'Votre ville',
+	'addressFields.stateLabel' => 'État / Province',
+	'addressFields.statePlaceholder' => 'Votre État ou province',
+	'addressFields.postcodeLabel' => 'Code postal',
+	'addressFields.postcodePlaceholder' => '00000',
+
+	// Shipping Method page
+	'shipping.stepTitle' => 'Mode de livraison',
+	'shipping.noMethodAvailable' => 'Aucune option de livraison disponible',
+	'shipping.nextStep' => 'Étape suivante',
+
+	// Payment page
+	'payment.stepTitle' => 'Paiement',
+	'payment.stepName' => 'Paiement',
+	'payment.paymentMethod' => 'Moyen de paiement',
+	'payment.billingAddress' => 'Adresse de facturation',
+	'payment.sameAsShippingAddress' => 'Identique à l’adresse de livraison',
+	'payment.saveAsShippingAddress' => 'Enregistrer comme adresse de livraison',
+	'payment.useDifferentBillingAddress' => 'Utiliser une autre adresse de facturation',
+	'payment.saveToAddressBook' => 'Enregistrer dans le carnet d’adresses',
+
+	// Gift vouchers
+	'voucher.voucherHeading' => 'Appliquer un bon / une carte cadeau',
+	'voucher.voucherCode' => 'Code du bon',
+	'voucher.enterCode' => 'Saisissez le code du bon / de la carte cadeau',
+	'voucher.applyCode' => 'Valider',
+	'voucher.appliedCodesHeading' => 'Bons/cartes cadeaux actuellement appliqués à votre commande',
+
+	// Order Confirmation page
+	'order.stepTitle' => 'Commande',
+	'order.stepName' => 'Merci pour votre commande !',
+	'order.orderNumberLabel' => 'Votre numéro de commande est',
+	'order.receiptEmailMessage' => 'Vous recevrez bientôt un e-mail de confirmation.',
+	'order.contactInformation' => 'Informations de contact',
+	'order.shippingAddress' => 'Adresse de livraison',
+	'order.shippingMethod' => 'Mode de livraison',
+	'order.payment' => 'Paiement',
+	'order.giftCard' => 'Carte cadeau',
+	'order.dateChargedLabel' => 'Date de débit',
+	'order.billingAddress' => 'Adresse de facturation',
+
+	// Steps
+	'steps.contact' => 'Contact',
+	'steps.shipping' => 'Adresse de livraison',
+	'steps.shipTo' => 'Livrer à',
+	'steps.shippingMethod' => 'Mode de livraison',
+	'steps.payment' => 'Paiement',
+
+	// Miscellaneous
+	'misc.checkoutTitle' => 'Passer au paiement',
+	'misc.cartTitle' => 'Panier',
+	'misc.noImage' => 'Aucune image',
+	'misc.imageOf' => 'Image de',
+	'misc.signIn' => 'Se connecter',
+	'misc.edit' => 'Modifier',
+	'misc.cancel' => 'Annuler',
+	'misc.save' => 'Enregistrer',
+	'misc.update' => 'Mettre à jour',
+	'misc.returnToCart' => 'Retour au panier',
+	'misc.change' => 'Changer',
+	'misc.noAddress' => 'Aucune adresse à afficher',
+	'misc.viewAccount' => 'Voir mon compte',
+];

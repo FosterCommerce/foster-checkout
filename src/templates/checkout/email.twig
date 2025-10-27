@@ -7,7 +7,7 @@
 {% block head %}
 	<title>
 		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }} |
-		{{ 'Checkout'|t('foster-checkout') }} : {{ 'Email'|t('foster-checkout') }}
+		{{ 'misc.checkoutTitle'|t('foster-checkout') }} : {{ 'email.stepTitle'|t('foster-checkout') }}
 	</title>
 {% endblock %}
 
@@ -25,10 +25,10 @@
 
 					<div class="flex justify-between items-center p-4 gap-4 bg-gray-200">
 						<h2 class="font-semibold">
-							{{ 'Contact'|t('foster-checkout') }}
+							{{ 'email.stepName'|t('foster-checkout') }}
 						</h2>
 						<span class="text-sm text-gray-500 text-right inline-block underline">
-							<a href="{{ loginUrl }}" class="text-[var(--brandColor)] underline">{{ 'Sign In'|t('foster-checkout') }}</a>
+							<a href="{{ loginUrl }}" class="text-[var(--brandColor)] underline">{{ 'email.signIn'|t('foster-checkout') }}</a>
 						</span>
 					</div>
 
@@ -54,12 +54,12 @@
 
 								<div >
 									{% include 'foster-checkout/_components/base/input-text-clearable' with {
-										label: 'Email'|t('foster-checkout'),
+										label: 'email.emailLabel'|t('foster-checkout'),
 										id: 'email',
 										name: 'email',
 										type: 'email',
 										autocomplete: 'email',
-										placeholder: 'Enter your email'|t('foster-checkout'),
+										placeholder: 'email.emailPlaceholder'|t('foster-checkout'),
 										value: cart ? cart.email : '',
 										required: true,
 										errors: [],
@@ -91,13 +91,13 @@
 									href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
 									class="hidden md:block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white"
 								>
-									{{ 'Return to cart'|t('foster-checkout') }}
+									{{ 'misc.returnToCart'|t('foster-checkout') }}
 								</a>
 								<button
 									type="submit"
 									class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 								>
-									{{ 'Next step'|t('foster-checkout') }}
+									{{ 'email.nextStep'|t('foster-checkout') }}
 								</button>
 
 							</div>
@@ -122,11 +122,11 @@
 
 					<div class="flex justify-between items-center gap-4">
 						<h2 class="text-xl font-bold text-gray-800 leading-snug">
-							{{ 'Item(s)'|t('foster-checkout') }}
+							{{ 'summary.itemsTitle'|t('foster-checkout') }}
 						</h2>
 						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
 						   class="inline-block text-[var(--brandColor)] underline">
-							{{ 'Edit'|t('foster-checkout') }}
+							{{ 'misc.edit'|t('foster-checkout') }}
 						</a>
 					</div>
 
