@@ -240,31 +240,30 @@
 								</h3>
 
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
-									<form method="POST" id="paymentForm" class="px-4 xl:px-0">
-										{{ csrfInput() }}
-										{{ actionInput('commerce/payments/pay') }}
-										{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order')) }}
-										{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order', {
-											number: cart.number,
-											success: 'true'
-										})) }}
-										{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
-										{{ hiddenInput('orderEmail', cart.email) }}
 
-										{% for gateway in gateways %}
-											{% set gatewayClass = className(gateway) %}
+									{% for gateway in gateways %}
+										{% set gatewayClass = className(gateway) %}
 
-											{# Don't show the Stripe gateway for zero value orders #}
-											{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' and cart.totalAmount == 0 %}
-												{% set shouldRender = false %}
-											{% else %}
-												{% set shouldRender = true %}
-											{% endif %}
+										{# Don't show the Stripe gateway for zero value orders #}
+										{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' and cart.totalAmount == 0 %}
+											{% set shouldRender = false %}
+										{% else %}
+											{% set shouldRender = true %}
+										{% endif %}
 
-											{# You can add additional conditions here to hide other gateways if needed #}
+										{# You can add additional conditions here to hide other gateways if needed #}
 
-											{% if shouldRender %}
-
+										{% if shouldRender %}
+											<form method="POST" id="paymentForm" class="px-4 xl:px-0">
+												{{ csrfInput() }}
+												{{ actionInput('commerce/payments/pay') }}
+												{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order')) }}
+												{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order', {
+													number: cart.number,
+													success: 'true'
+												})) }}
+												{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
+												{{ hiddenInput('orderEmail', cart.email) }}
 												<div class="gateway-{{ gateway.handle }} border-b border-gray-250" :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
 													<div class="p-4 flex justify-between items-center gap-4 radio">
 														<input id="gateway_{{ gateway.id }}" name="gatewayId" type="radio" class="sr-only" value="{{ gateway.id }}" {{ defaultGateway == gateway.id ? 'checked' }} @change="gatewayId = {{ gateway.id }}"/>
@@ -392,9 +391,9 @@
 													{% endif %}
 													</div>
 												</div>
-											{% endif %}
-										{% endfor %}
-									</form>
+											</form>
+										{% endif %}
+									{% endfor %}
 								</div>
 							</div>
 
