@@ -81,7 +81,7 @@
 							{% endif %}
 							{% set note = craft.fostercheckout.note('email') %}
 							{% if note %}
-								<div class="mt-6 p-4 border border-gray-250 rounded-lg">
+								<div class="mt-6 p-4 border border-gray-250 rounded-lg [&_a]:underline [&_a:hover]:decoration-current">
 									{{ note|raw }}
 								</div>
 							{% endif %}

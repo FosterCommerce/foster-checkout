@@ -82,7 +82,7 @@
 
 				{% set note = craft.fostercheckout.note('login') %}
 				{% if note %}
-					<div class="mt-4 text-gray-500 prose prose-a:text-black prose-a:font-normal">
+					<div class="mt-4 text-gray-500 prose prose-a:text-black prose-a:font-normal [&_a]:underline [&_a:hover]:decoration-current">
 						{{ note|raw }}
 					</div>
 				{% endif %}

@@ -36,7 +36,7 @@
 
 							{% set note = craft.fostercheckout.note('payment') %}
 							{% if note %}
-								<div class="mt-2 p-4 border border-gray-250 rounded-lg">
+								<div class="mt-2 p-4 border border-gray-250 rounded-lg [&_a]:underline [&_a:hover]:decoration-current">
 									{{ note|raw }}
 								</div>
 							{% endif %}
