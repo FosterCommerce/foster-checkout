@@ -58,6 +58,15 @@ return [
 	'email.previousStep' => 'Return to cart',
 	'email.nextStep' => 'Next step',
 
+	// Login page
+	'login.emailLabel' => 'Email',
+	'login.usernameLabel' => 'Username',
+	'login.passwordLabel' => 'Password',
+	'login.emailPlaceholder' => 'Enter your email',
+	'login.usernamePlaceholder' => 'Enter your username',
+	'login.showPassword' => 'Show password',
+	'login.hidePassword' => 'Hide password',
+	'login.createAccount' => 'Create an account',
 
 	// Shipping Address page
 	'address.stepTitle' => 'Shipping Address',
@@ -135,6 +144,7 @@ return [
 	'misc.save' => 'Save',
 	'misc.update' => 'Update',
 	'misc.returnToCart' => 'Return to cart',
+	'misc.returnToCheckout' => 'Back to checkout',
 	'misc.change' => 'Change',
 	'misc.noAddress' => 'No address to display',
 	'misc.viewAccount' => 'View my account',
