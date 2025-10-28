@@ -254,31 +254,34 @@
 										{# You can add additional conditions here to hide other gateways if needed #}
 
 										{% if shouldRender %}
-											<form method="POST" id="paymentForm" class="px-4 xl:px-0">
-												{{ csrfInput() }}
-												{{ actionInput('commerce/payments/pay') }}
-												{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order')) }}
-												{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order', {
-													number: cart.number,
-													success: 'true'
-												})) }}
-												{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
-												{{ hiddenInput('orderEmail', cart.email) }}
-												<div class="gateway-{{ gateway.handle }} border-b border-gray-250" :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
-													<div class="p-4 flex justify-between items-center gap-4 radio">
-														<input id="gateway_{{ gateway.id }}" name="gatewayId" type="radio" class="sr-only" value="{{ gateway.id }}" {{ defaultGateway == gateway.id ? 'checked' }} @change="gatewayId = {{ gateway.id }}"/>
-														<label for="gateway_{{ gateway.id }}" class="inline-flex justify-start items-center gap-4 cursor-pointer">
-															<span class="block">{{ gateway.name|t('foster-checkout') }}</span>
-														</label>
-													</div>
-
-													<div class="py-8 px-4" x-show="gatewayId == {{ gateway.id }}">
-
+											<div class="p-4 border-b border-gray-250"
+												 :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
+												<div class="flex justify-between items-center gap-4 radio">
+													<input id="gateway_{{ gateway.id }}" name="gatewayId" type="radio"
+														   class="sr-only" value="{{ gateway.id }}" {{ defaultGateway == gateway.id ? 'checked' }}
+														   @change="gatewayId = {{ gateway.id }}"/>
+													<label for="gateway_{{ gateway.id }}"
+														   class="inline-flex justify-start items-center gap-4 cursor-pointer">
+														<span class="block">{{ gateway.name|t('foster-checkout') }}</span>
+													</label>
+												</div>
+												<div class="pt-8" x-show="gatewayId == {{ gateway.id }}">
+													<form method="POST" id="paymentForm">
+														{{ csrfInput() }}
+														{{ actionInput('commerce/payments/pay') }}
+														{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order')) }}
+														{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order', {
+															number: cart.number,
+															success: 'true'
+														})) }}
+														{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
+														{{ hiddenInput('orderEmail', cart.email) }}
 														{{ hiddenInput('gatewayId', gateway.id) }}
 
-														{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
+														{% set buttonText = 'Pay'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
 
 														{% if gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
+
 															{% set fields = craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
 															<div class="grid grid-cols-1 gap-y-4 gap-x-4 ">
 
@@ -294,27 +297,31 @@
 
 
 																		{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
-																				context: '',
-																				label: field.label,
-																				id: field.id ?? field.handle,
-																				name: field.name ?? "fields[#{field.handle}]",
-																				type: field.type,
-																				placeholder: field.placeholder,
-																				errors: errors.locality ?? [],
-																				minLength: field.minLength,
-																				maxLength: field.maxLength,
-																				min: field.min,
-																				max: field.max,
-																				required: field.required ?? false,
-																				options: field.options ?? [],
-																			} %}
+																			context: '',
+																			label: field.label,
+																			id: field.id ?? field.handle,
+																			name: field.name ?? "fields[#{field.handle}]",
+																			type: field.type,
+																			placeholder: field.placeholder,
+																			errors: errors.locality ?? [],
+																			minLength: field.minLength,
+																			maxLength: field.maxLength,
+																			min: field.min,
+																			max: field.max,
+																			required: field.required ?? false,
+																			options: field.options ?? [],
+																		} %}
 																	</div>
 																{% endfor %}
 
-																<button type="submit" class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block">
+																<button
+																	type="submit"
+																	class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+																>
 																	{{ buttonText }}
 																</button>
 															</div>
+
 														{% else %}
 
 															{% set params = {} %}
@@ -345,53 +352,58 @@
 															{# Gateway with custom fields #}
 															{% if craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
 																{% namespace gateway.handle|commercePaymentFormNamespace %}
-																{% set columns = craft.fostercheckout.getManualGatewayColumns(gateway.handle) ?: 3 %}
+																	{% set columns = craft.fostercheckout.getManualGatewayColumns(gateway.handle) ?: 3 %}
 
-																<div class="grid gap-y-4 gap-x-4 sm:grid-cols-{{ columns }}">
-																{% for field in craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
-																	<div class="sm:col-span-{{ field.columns ?: 'full' }}">
-																		{% switch field.type %}
-																			{% case 'select' %}
-																				{% set fieldTemplate = 'input-select' %}
+																	<div class="grid gap-y-4 gap-x-4 sm:grid-cols-{{ columns }}">
+																		{% for field in craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
+																			<div class="sm:col-span-{{ field.columns ?: 'full' }}">
+																				{% switch field.type %}
+																					{% case 'select' %}
+																						{% set fieldTemplate = 'input-select' %}
 
-																			{% default %}
-																				{% set fieldTemplate = 'input-text-clearable' %}
-																		{% endswitch %}
+																					{% default %}
+																						{% set fieldTemplate = 'input-text-clearable' %}
+																				{% endswitch %}
 
 
-																		{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
-																						context: '',
-																						label: field.label,
-																						id: field.id ?? field.handle,
-																						name: field.name ?? field.handle,
-																						type: field.type,
-																						placeholder: field.placeholder,
-																						errors: errors.locality ?? [],
-																						minLength: field.minLength,
-																						maxLength: field.maxLength,
-																						min: field.min,
-																						max: field.max,
-																						required: field.required ?? false,
-																						options: field.options ?? [],
-																					} %}
+																				{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
+																					context: '',
+																					label: field.label,
+																					id: field.id ?? field.handle,
+																					name: field.name ?? field.handle,
+																					type: field.type,
+																					placeholder: field.placeholder,
+																					errors: errors.locality ?? [],
+																					minLength: field.minLength,
+																					maxLength: field.maxLength,
+																					min: field.min,
+																					max: field.max,
+																					required: field.required ?? false,
+																					options: field.options ?? [],
+																				} %}
+																			</div>
+																		{% endfor %}
 																	</div>
-																{% endfor %}
-																</div>
 
-																<button type="submit" class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block">
-																	{{ buttonText }}
-																</button>
-															{% endnamespace %}
-														{% else %}
-															{% namespace gateway.handle|commercePaymentFormNamespace %}
-															{{ gateway.getPaymentFormHtml(params)|raw }}
-															{% endnamespace %}
+																	<button
+																		type="submit"
+																		class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+																	>
+																		{{ buttonText }}
+																	</button>
+																{% endnamespace %}
+															{% else %}
+																{% namespace gateway.handle|commercePaymentFormNamespace %}
+																	{{ gateway.getPaymentFormHtml(params)|raw }}
+																{% endnamespace %}
+															{% endif %}
+
+
+
 														{% endif %}
-
-													{% endif %}
-													</div>
+													</form>
 												</div>
-											</form>
+											</div>
 										{% endif %}
 									{% endfor %}
 								</div>
