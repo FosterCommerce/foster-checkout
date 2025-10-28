@@ -51,6 +51,7 @@ return [
 
 	// Email page
 	'email.stepTitle' => 'Contacto',
+	'email.stepname' => 'Información de contacto',
 	'email.signIn' => 'Iniciar sesión',
 	'email.emailLabel' => 'Correo electrónico',
 	'email.emailPlaceholder' => 'Ingresa tu correo',
