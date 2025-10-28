@@ -132,6 +132,10 @@
 			}
 		}
 	</style>
+
+	{% if craft.fostercheckout.settings.paths.customCssPath %}
+		<link rel="stylesheet" href="{{ craft.fostercheckout.settings.paths.customCssPath }}" />
+	{% endif %}
 </head>
 
 <body style="--brandColor: {{ craft.fostercheckout.settings.branding.color ?? '#1F2937' }}; --headerBgColor: {{ craft.fostercheckout.settings.branding.headerBgColor ?? '#F3F3F3' }};">

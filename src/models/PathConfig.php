@@ -39,6 +39,11 @@ class PathConfig extends Model
 	public string $account = '/';
 
 	/**
+	 * Path to a custom CSS file to include on cart and checkout pages
+	 */
+	public ?string $customCssPath = null;
+
+	/**
 	 * @param array<array-key, mixed> $config
 	 */
 	public function __construct($config = [])

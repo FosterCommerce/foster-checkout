@@ -104,6 +104,9 @@ return [
 		// The path the user should be taken to if they cancel the checkout process
 		// (ex. '/')
 		'cancel' => '',
+
+		// Path to a custom CSS file to include on cart and checkout pages
+		'customCssPath' => null,
 	],
 
 	// Product Settings
