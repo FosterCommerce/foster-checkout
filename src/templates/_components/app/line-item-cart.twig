@@ -154,13 +154,6 @@
 
 					</p>
 
-					<button
-						type="submit"
-						class="js-hide text-sm underline text-gray-500 hover:no-underline hover:text-gray-700"
-					>
-						{{ 'cart.lineItem.update'|t('foster-checkout') }}
-					</button>
-
 					<div class="relative w-full w-full">
 						<template x-if="showErrorMinMessage">
 							<p class="text-red-700 text-sm text-right absolute top-[100%] w-full" >{{ 'cart.lineItem.minQtyMessage'|t('foster-checkout', params = { qty: minQty }) }}</p>
