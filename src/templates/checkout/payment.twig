@@ -175,7 +175,7 @@
 										{% set voucherMessage = voucherCodeError %}
 									{% else %}
 										{% if voucherCodeSuccess %}
-											{% set voucherMessage = 'Voucher/Gift voucher added' | t('Foster Checkout') %}
+											{% set voucherMessage = 'payment.voucherAdded'|t('Foster Checkout') %}
 										{% else %}
 											{% set voucherMessage = null %}
 										{% endif %}
@@ -186,7 +186,7 @@
 										<form class="grid grid-cols-[1fr,_120px] items-start gap-4" :class="sending ? 'grid-cols-[1fr,_120px]' : 'grid-cols-[1fr,_90px]'" method="post" @submit="sending = true">
 											{{ csrfInput() }}
 											{{ actionInput('gift-voucher/cart/add-code') }}
-											{{ hiddenInput('successMessage', 'Voucher/Gift card applied' | t('Foster Checkout') | hash) }}
+											{{ hiddenInput('successMessage', 'payment.voucherApplied'|t('Foster Checkout') | hash) }}
 											{% include 'foster-checkout/_components/base/input-text-clearable' with {
 												label: 'voucher.voucherCode'|t('foster-checkout'),
 												hideLabel: true,
@@ -277,7 +277,7 @@
 
 														{{ hiddenInput('gatewayId', gateway.id) }}
 
-														{% set buttonText = 'Pay'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
+														{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
 
 														{% if gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
 															{% set fields = craft.fostercheckout.getManualGatewayFields(gateway.handle) %}

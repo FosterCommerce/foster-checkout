@@ -18,13 +18,13 @@
 					<path
 						d="M0.301388 6.99931L6.64054 0.660156L8.05469 2.07431L3.10469 6.99931L8.02969 11.9243L6.61554 13.3385L0.301388 6.99931Z"/>
 				</svg>
-				<span class="inline">{{ 'Back to checkout'|t('foster-checkout') }}</span>
+				<span class="inline">{{ 'misc.returnToCheckout'|t('foster-checkout') }}</span>
 			</a>
 		</nav>
 
 		<div class="max-w-[460px] mx-auto">
 
-			<h1 class="font-medium text-3xl text-center">{{ 'Sign Up'|t('foster-checkout') }}</h1>
+			<h1 class="font-medium text-3xl text-center">{{ 'misc.createAccount'|t('foster-checkout') }}</h1>
 
 			<form class="mt-11" method="post" accept-charset="UTF-8">
 
@@ -35,7 +35,7 @@
 
 					<div>
 						<label for="registerEmail" class="block mb-2 font-medium text-gray-500">
-							{{ 'Email'|t('foster-checkout') }}*
+							{{ 'register.emailLabel'|t('foster-checkout') }}*
 						</label>
 						<input
 							type="email"
@@ -44,7 +44,7 @@
 							autocomplete="email"
 							class="w-full h-12 px-4 bg-white rounded-xl border-gray-500 focus:border-black focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
 							value="{{ craft.app.user.rememberedUsername }}"
-							placeholder="{{ 'Enter your email'|t('foster-checkout') }}"
+							placeholder="{{ 'register.emailPlaceholder'|t('foster-checkout') }}"
 							required
 						/>
 						{{ user ? _self.errorList(user.getErrors('email')) }}
@@ -52,7 +52,7 @@
 
 					<div>
 						<label for="registerPassword" class="block mb-2 font-medium text-gray-500">
-							{{ 'Password'|t('foster-checkout') }}*
+							{{ 'register.passwordLabel'|t('foster-checkout') }}*
 						</label>
 						<input
 							id="registerPassword"
@@ -66,7 +66,7 @@
 
 					<div>
 						<label for="registerConfirmPassword" class="block mb-2 font-medium text-gray-500">
-							{{ 'Confirm Password'|t('foster-checkout') }}*
+							{{ 'register.confirmPasswordLabel'|t('foster-checkout') }}*
 						</label>
 						<input
 							id="registerConfirmPassword"
@@ -89,16 +89,16 @@
 
 				<div class="mt-12 grid grid-cols-1 gap-4">
 					{% if user and user.hasErrors() %}
-						<p class="text-sm text-red-500">{{ 'Please address the errors noted above.'|t('foster-checkout') }}</p>
+						<p class="text-sm text-red-500">{{ 'register.errorAlert'|t('foster-checkout') }}</p>
 					{% endif %}
 					<button
 						type="submit"
 						class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 					>
-						{{ 'Sign Up'|t('foster-checkout') }}
+						{{ 'misc.createAccount'|t('foster-checkout') }}
 					</button>
 					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}" class="text-center underline text-[var(--brandColor)] hover:no-underline">
-						{{ 'I already have an account'|t('foster-checkout') }}
+						{{ 'misc.haveAccount'|t('foster-checkout') }}
 					</a>
 				</div>
 

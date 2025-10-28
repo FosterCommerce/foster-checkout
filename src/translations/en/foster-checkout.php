@@ -19,6 +19,8 @@ return [
 	'cart.lineItem.quantity' => 'Quantity',
 	'cart.lineItem.decreaseQuantity' => 'Decrease quantity',
 	'cart.lineItem.increaseQuantity' => 'Increase quantity',
+	'cart.lineItem.minQtyMessage' => 'You must purchase at least {qty} of this item',
+	'cart.lineItem.maxQtyMessage' => 'You can only purchase up to {qty} of this item',
 	'cart.lineItem.limitedStock' => 'Only {qty} in stock',
 	'cart.lineItem.saveForLater' => 'Save for later',
 	'cart.lineItem.noImage' => 'No Image',
@@ -51,12 +53,29 @@ return [
 
 	// Email page
 	'email.stepTitle' => 'Contact',
+	'email.stepName' => 'Contact information',
 	'email.signIn' => 'Sign in',
 	'email.emailLabel' => 'Email',
 	'email.emailPlaceholder' => 'Enter your email',
 	'email.previousStep' => 'Return to cart',
 	'email.nextStep' => 'Next step',
 
+	// Login page
+	'login.emailLabel' => 'Email',
+	'login.usernameLabel' => 'Username',
+	'login.passwordLabel' => 'Password',
+	'login.emailPlaceholder' => 'Enter your email',
+	'login.usernamePlaceholder' => 'Enter your username',
+	'login.showPassword' => 'Show password',
+	'login.hidePassword' => 'Hide password',
+	'login.createAccount' => 'Create an account',
+
+	// Register page
+	'register.emailLabel' => 'Email',
+	'register.emailPlaceholder' => 'Enter your email',
+	'register.passwordLabel' => 'Password',
+	'register.confirmPasswordLabel' => 'Confirm Password',
+	'register.errorAlert' => 'Please address the errors noted above.',
 
 	// Shipping Address page
 	'address.stepTitle' => 'Shipping Address',
@@ -95,6 +114,8 @@ return [
 	'payment.saveAsShippingAddress' => 'Save as shipping address',
 	'payment.useDifferentBillingAddress' => 'Use a different billing address',
 	'payment.saveToAddressBook' => 'Save to address book',
+	'payment.payButtonText' => 'Pay',
+	'payment.voucherApplied' => 'Voucher/Gift card applied',
 
 	// Gift vouchers
 	'voucher.voucherHeading' => 'Apply voucher/gift card',
@@ -129,12 +150,15 @@ return [
 	'misc.noImage' => 'No Image',
 	'misc.imageOf' => 'Image of',
 	'misc.signIn' => 'Sign in',
+	'misc.createAccount' => 'Sign up',
 	'misc.edit' => 'Edit',
 	'misc.cancel' => 'Cancel',
 	'misc.save' => 'Save',
 	'misc.update' => 'Update',
 	'misc.returnToCart' => 'Return to cart',
+	'misc.returnToCheckout' => 'Back to checkout',
 	'misc.change' => 'Change',
 	'misc.noAddress' => 'No address to display',
 	'misc.viewAccount' => 'View my account',
+	'misc.haveAccount' => 'I already have an account',
 ];

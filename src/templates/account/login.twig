@@ -10,13 +10,13 @@
 					<path
 						d="M0.301388 6.99931L6.64054 0.660156L8.05469 2.07431L3.10469 6.99931L8.02969 11.9243L6.61554 13.3385L0.301388 6.99931Z"/>
 				</svg>
-				<span class="inline">{{ 'Back to checkout'|t('foster-checkout') }}</span>
+				<span class="inline">{{ 'misc.returnToCheckout'|t('foster-checkout') }}</span>
 			</a>
 		</nav>
 
 		<div class="max-w-[460px] mx-auto">
 
-			<h1 class="font-medium text-3xl text-center">{{ 'Sign In'|t('foster-checkout') }}</h1>
+			<h1 class="font-medium text-3xl text-center">{{ 'misc.signIn'|t('foster-checkout') }}</h1>
 
 			<form class="mt-11" method="post" accept-charset="UTF-8">
 
@@ -29,7 +29,7 @@
 
 					<div>
 						<label for="loginName" class="block mb-2 font-medium text-gray-500">
-							{{ useEmail ? 'Email'|t('foster-checkout') : 'Username'|t('foster-checkout') }}*
+							{{ useEmail ? 'login.emailLabel'|t('foster-checkout') : 'login.usernameLabel'|t('foster-checkout') }}*
 						</label>
 						<input
 							type="{{ useEmail ? 'email' : 'text' }}"
@@ -38,14 +38,14 @@
 							autocomplete="{{ useEmail ? 'email' : 'username' }}"
 							class="w-full h-12 px-4 bg-white rounded-xl border-gray-500 focus:border-black focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
 							value="{{ craft.app.user.rememberedUsername }}"
-							placeholder="{{ useEmail ? 'Enter your email'|t('foster-checkout') : 'Enter your username'|t('foster-checkout') }}"
+							placeholder="{{ useEmail ? 'login.emailPlaceholder'|t('foster-checkout') : 'login.usernamePlaceholder'|t('foster-checkout') }}"
 							required
 						/>
 					</div>
 
 					<div>
 						<label for="loginPassword" class="block mb-2 font-medium text-gray-500">
-							{{ 'Password'|t('foster-checkout') }}*
+							{{ 'login.passwordLabel'|t('foster-checkout') }}*
 						</label>
 						<div x-data="{ showPassword: false }" class="relative">
 							<input
@@ -62,7 +62,7 @@
 								@click="showPassword = !showPassword"
 							>
 								<span
-									class="sr-only">${showPassword ? '{{ 'Hide password'|t('foster-checkout') }}' : '{{ 'Show password'|t('foster-checkout') }}'}</span>
+									class="sr-only">${showPassword ? '{{ 'login.hidePassword'|t('foster-checkout') }}' : '{{ 'login.showPassword'|t('foster-checkout') }}'}</span>
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
 										 stroke-width="1.5"
 										 class="w-5 h-5 text-gray-900 stroke-current">
@@ -94,13 +94,13 @@
 						type="submit"
 						class="block w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 					>
-						{{ 'Sign In'|t('foster-checkout') }}
+						{{ 'misc.signIn'|t('foster-checkout') }}
 					</button>
 					<a
 						href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
 						class="block w-full px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl"
 					>
-						{{ 'Create an account'|t('foster-checkout') }}
+						{{ 'login.createAccount'|t('foster-checkout') }}
 					</a>
 				</div>
 
