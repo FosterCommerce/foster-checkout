@@ -114,6 +114,8 @@ return [
 	'payment.saveAsShippingAddress' => 'Save as shipping address',
 	'payment.useDifferentBillingAddress' => 'Use a different billing address',
 	'payment.saveToAddressBook' => 'Save to address book',
+	'payment.payButtonText' => 'Pay',
+	'payment.voucherApplied' => 'Voucher/Gift card applied',
 
 	// Gift vouchers
 	'voucher.voucherHeading' => 'Apply voucher/gift card',
