@@ -68,6 +68,13 @@ return [
 	'login.hidePassword' => 'Hide password',
 	'login.createAccount' => 'Create an account',
 
+	// Register page
+	'register.emailLabel' => 'Email',
+	'register.emailPlaceholder' => 'Enter your email',
+	'register.passwordLabel' => 'Password',
+	'register.confirmPasswordLabel' => 'Confirm Password',
+	'register.errorAlert' => 'Please address the errors noted above.',
+
 	// Shipping Address page
 	'address.stepTitle' => 'Shipping Address',
 	'address.stepName' => 'Shipping address',
@@ -139,6 +146,7 @@ return [
 	'misc.noImage' => 'No Image',
 	'misc.imageOf' => 'Image of',
 	'misc.signIn' => 'Sign in',
+	'misc.createAccount' => 'Sign up',
 	'misc.edit' => 'Edit',
 	'misc.cancel' => 'Cancel',
 	'misc.save' => 'Save',
@@ -148,4 +156,5 @@ return [
 	'misc.change' => 'Change',
 	'misc.noAddress' => 'No address to display',
 	'misc.viewAccount' => 'View my account',
+	'misc.haveAccount' => 'I already have an account',
 ];
