@@ -19,6 +19,8 @@ return [
 	'cart.lineItem.quantity' => 'Quantity',
 	'cart.lineItem.decreaseQuantity' => 'Decrease quantity',
 	'cart.lineItem.increaseQuantity' => 'Increase quantity',
+	'cart.lineItem.minQtyMessage' => 'You must purchase at least {qty} of this item',
+	'cart.lineItem.maxQtyMessage' => 'You can only purchase up to {qty} of this item',
 	'cart.lineItem.limitedStock' => 'Only {qty} in stock',
 	'cart.lineItem.saveForLater' => 'Save for later',
 	'cart.lineItem.noImage' => 'No Image',

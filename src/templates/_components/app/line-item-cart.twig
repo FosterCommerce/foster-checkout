@@ -163,15 +163,15 @@
 
 					<div class="relative w-full w-full">
 						<template x-if="showErrorMinMessage">
-							<p class="text-red-700 text-sm text-right absolute top-[100%] w-full" >{{ 'You must purchase at least {qty} of this item' | t('foster-checkout', params = { qty: minQty }) }}</p>
+							<p class="text-red-700 text-sm text-right absolute top-[100%] w-full" >{{ 'cart.lineItem.minQtyMessage'|t('foster-checkout', params = { qty: minQty }) }}</p>
 						</template>
 
 						<template x-if="showErrorMaxMessage">
-							<p class="text-red-700 text-sm text-right absolute top-[100%] w-full">{{ 'You may only purchase {qty} of this item' | t('foster-checkout', params = { qty: maxQty}) }}</p>
+							<p class="text-red-700 text-sm text-right absolute top-[100%] w-full">{{ 'cart.lineItem.maxQtyMessage'|t('foster-checkout', params = { qty: maxQty}) }}</p>
 						</template>
 
 						<template x-if="showErrorStockMessage">
-							<p class="text-red-700 text-sm text-right absolute top-[100%] w-full">{{ 'Only {qty} in stock' | t('foster-checkout', params = { qty: stock }) }}</p>
+							<p class="text-red-700 text-sm text-right absolute top-[100%] w-full">{{ 'cart.lineItem.limitedStock'|t('foster-checkout', params = { qty: stock }) }}</p>
 						</template>
 					</div>
 				</form>
