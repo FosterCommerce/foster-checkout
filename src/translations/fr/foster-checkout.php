@@ -23,7 +23,7 @@ return [
 	'cart.lineItem.maxQtyMessage' => 'Tu peux acheter au maximum {qty} de cet article',
 	'cart.lineItem.limitedStock' => 'Seulement {qty} en stock',
 	'cart.lineItem.saveForLater' => 'Mettre de côté',
-	'cart.lineItem.noImage' => 'Pas d\'image',
+	'cart.lineItem.noImage' => "Pas d'image",
 	'cart.lineItem.imageOf' => 'Image de',
 	'cart.seePreviousItemsMessage' => 'pour voir les articles que tu as peut-être ajoutés précédemment',
 	'cart.continueShopping' => 'Continuer vos achats',
@@ -62,10 +62,10 @@ return [
 
 	// Login page
 	'login.emailLabel' => 'E-mail',
-	'login.usernameLabel' => 'Nom d\'utilisateur',
+	'login.usernameLabel' => "Nom d'utilisateur",
 	'login.passwordLabel' => 'Mot de passe',
 	'login.emailPlaceholder' => 'Entre ton e-mail',
-	'login.usernamePlaceholder' => 'Entre ton nom d\'utilisateur',
+	'login.usernamePlaceholder' => "Entre ton nom d'utilisateur",
 	'login.showPassword' => 'Afficher le mot de passe',
 	'login.hidePassword' => 'Cacher le mot de passe',
 	'login.createAccount' => 'Créer un compte',
@@ -81,7 +81,7 @@ return [
 	'address.stepTitle' => 'Adresse de livraison',
 	'address.stepName' => 'Adresse de livraison',
 	'address.newAddress' => 'Nouvelle adresse de livraison',
-	'address.saveToAddressBook' => 'Enregistrer dans le carnet d\'adresses',
+	'address.saveToAddressBook' => "Enregistrer dans le carnet d'adresses",
 	'address.nextStep' => 'Étape suivante',
 
 	// Address form
@@ -113,7 +113,7 @@ return [
 	'payment.sameAsShippingAddress' => 'Même que l\'adresse de livraison',
 	'payment.saveAsShippingAddress' => 'Enregistrer comme adresse de livraison',
 	'payment.useDifferentBillingAddress' => 'Utiliser une autre adresse de facturation',
-	'payment.saveToAddressBook' => 'Enregistrer dans le carnet d\'adresses',
+	'payment.saveToAddressBook' => "Enregistrer dans le carnet d'adresses",
 	'payment.payButtonText' => 'Payer',
 	'payment.voucherApplied' => 'Coupon / carte-cadeau appliqué(e)',
 
@@ -147,10 +147,10 @@ return [
 	// Miscellaneous
 	'misc.checkoutTitle' => 'Paiement',
 	'misc.cartTitle' => 'Panier',
-	'misc.noImage' => 'Pas d\'image',
+	'misc.noImage' => "Pas d'image",
 	'misc.imageOf' => 'Image de',
 	'misc.signIn' => 'Se connecter',
-	'misc.createAccount' => 'S\'inscrire',
+	'misc.createAccount' => "S'inscrire",
 	'misc.edit' => 'Modifier',
 	'misc.cancel' => 'Annuler',
 	'misc.save' => 'Enregistrer',
