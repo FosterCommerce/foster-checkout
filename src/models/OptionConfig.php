@@ -76,6 +76,9 @@ class OptionConfig extends Model
 	 */
 	public DeliveryDateConfig $deliveryDate;
 
+	public ?array $imagerXConfig = null;
+
+
 	/**
 	 * @param array<array-key, mixed> $config
 	 */
@@ -88,6 +91,7 @@ class OptionConfig extends Model
 		} else {
 			$deliveryDate = new DeliveryDateConfig();
 		}
+
 
 		$config['deliveryDate'] = $deliveryDate;
 

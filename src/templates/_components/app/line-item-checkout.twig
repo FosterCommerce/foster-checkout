@@ -1,14 +1,21 @@
 {% set imageUrl = null %}
 {% set previewImage = craft.fostercheckout.lineItemImage(lineItem) %}
 {% if previewImage|default %}
-	{% set preview = {
-		mode: 'crop',
-		width: 70,
-		height: 70,
-		quality: 90,
-		position: 'center-center'
-	} %}
-	{% set imageUrl = previewImage.getUrl(preview) %}
+	{% if craft.fostercheckout.settings.options.imagerXConfig %}
+		{% set image = craft.imagerx.transformImage(previewImage, craft.fostercheckout.settings.options.imagerXConfig) %}
+		{% set imageUrl = image.url %}
+	{% else %}
+		{% set preview = {
+			mode: 'crop',
+			width: 70,
+			height: 70,
+			quality: 90,
+			position: 'center-center'
+		} %}
+		{% set imageUrl = previewImage.getUrl(preview) %}
+		{% set imageSrcSet = previewImage.getSrcSet(['80', '200']) %}
+	{% endif %}
+
 {% endif %}
 
 <article class="flex justify-between items-stretch gap-4 p-4 bg-gray-200 rounded-xl">
