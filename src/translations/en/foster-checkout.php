@@ -50,6 +50,9 @@ return [
 	'summary.addFreeShipping' => 'Add',
 	'summary.freeShippingQualifyMessage' => 'for FREE shipping, or choose FREE Ship to Store',
 	'summary.lineItem.quantity' => 'Qty',
+	'summary.orderNoteHeading' => 'Notes',
+	'summary.saveOrderNote' => 'Save note',
+	'summary.addOrderNote' => 'Add a note to your order',
 
 	// Email page
 	'email.stepTitle' => 'Contact',
