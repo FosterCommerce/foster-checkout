@@ -8,9 +8,11 @@
 
 	{% set cart = cart is not defined ? craft.commerce.carts.cart : cart %}
 
-	{% if
-		(craft.app.request.getSegment(1) != craft.fostercheckout.settings.paths.cart and craft.app.request.getSegment(-1) != 'order' and cart.lineItems|length == 0)
-		or (craft.app.request.getSegment(-1) == 'order' and craft.app.request.getParam('number') == null) %}
+	{% if cart.lineItems|length == 0 and (craft.app.request.getFullPath() != craft.fostercheckout.settings.paths.cart and craft.app.request.getSegment(-1) != 'order') %}
+		{% redirect siteUrl(craft.fostercheckout.settings.paths.cart) %}
+	{% endif %}
+
+	{% if craft.app.request.getSegment(-1) == 'order' and craft.app.request.getParam('number') == null %}
 		{% redirect siteUrl(craft.fostercheckout.settings.paths.cart) %}
 	{% endif %}
 
