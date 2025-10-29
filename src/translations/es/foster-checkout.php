@@ -157,6 +157,7 @@ return [
 	'misc.edit' => 'Editar',
 	'misc.cancel' => 'Cancelar',
 	'misc.save' => 'Guardar',
+	'misc.saving' => 'Guardando',
 	'misc.update' => 'Actualizar',
 	'misc.returnToCart' => 'Volver al carrito',
 	'misc.returnToCheckout' => 'Volver al pago',
