@@ -78,7 +78,6 @@ class OptionConfig extends Model
 
 	public ?array $imagerXConfig = null;
 
-
 	/**
 	 * @param array<array-key, mixed> $config
 	 */
