@@ -8,31 +8,15 @@
 {% endblock %}
 
 {% block body %}
-	{% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? null %}
-	{% set onlyMethod = null %}
+	{% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? [] %}
+	{% set optionCount = availableShippingMethodOptions|length %}
+	{% set onlyMethod = optionCount ? (availableShippingMethodOptions|keys|first) : null %}
+
 	{% if cart is defined %}
-		{% if currentStore.requireShippingMethodSelectionAtCheckout == false %}
-			{# If there's 1 or more shipping method available then set it on the cart #}
-			{% if cart.availableShippingMethodOptions|length >= 1 %}
-				{% for handle, option in cart.availableShippingMethodOptions %}
-					{% set onlyMethod = handle %}
-				{% endfor %}
-			{% elseif cart.availableShippingMethodOptions|length == 0 %}
-				{# If requireShippingMethodSelectionAtCheckout is false and there are no available shipping methods, then just redirect to the payment page #}
-				{% redirect(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/payment') %}
-			{% endif %}
-		{% else %}
-			{# If there's 1 or more shipping method available then set it on the cart #}
-			{% if cart.availableShippingMethodOptions|length >= 1 %}
-				{% for handle, option in cart.availableShippingMethodOptions %}
-					{% set onlyMethod = handle %}
-				{% endfor %}
-			{% else %}
-				{% set onlyMethod = null %}
-			{% endif %}
+		{% if optionCount == 0 and currentStore.requireShippingMethodSelectionAtCheckout == false %}
+			{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/payment' %}
 		{% endif %}
 	{% endif %}
-
 
 	<div class="mt-10 pb-28 lg:pb-32">
 
@@ -174,6 +158,8 @@
 					{% include 'foster-checkout/_components/app/summary-cart' %}
 
 				</div>
+
+				{% include 'foster-checkout/_components/app/global-checkout-note' %}
 
 			</aside>
 

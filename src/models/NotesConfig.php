@@ -22,6 +22,8 @@ class NotesConfig extends Model
 
 	public ValueConfig $order;
 
+	public ValueConfig $globalCheckout;
+
 	public ValueConfig $mistakeHeading;
 
 	public ValueConfig $mistakeText;
@@ -63,6 +65,10 @@ class NotesConfig extends Model
 
 		if (! isset($this->order)) {
 			$this->order = new ValueConfig();
+		}
+
+		if (! isset($this->globalCheckout)) {
+			$this->globalCheckout = new ValueConfig();
 		}
 
 		if (! isset($this->mistakeHeading)) {

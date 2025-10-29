@@ -154,6 +154,10 @@ return [
 			'elementHandle' => '',
 			'fieldHandle' => '',
 		],
+		'globalCheckout' => [
+			'elementHandle' => '',
+			'fieldHandle' => '',
+		],
 		'mistakeHeading' => [
 			'elementHandle' => '',
 			'fieldHandle' => '',
