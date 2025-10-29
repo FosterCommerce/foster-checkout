@@ -1,8 +1,12 @@
 {% if craft.fostercheckout.settings.notes.order.fieldHandle %}
-	<div class="mt-8" x-data="{ showButton : false }">
+	<div class="mt-8" x-data="{
+		showButton : false,
+		buttonText : '{{ "summary.saveOrderNote"|t("foster-checkout") }}'
+	}">
 		<h3 class="mb-2 text-md font-bold text-gray-800 leading-snug">{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</h3>
 		<form method="post" class="flex flex-col md:flex-row justify-start items-end gap-4"
 			x-on:blur="showButton = false"
+			x-on:submit="buttonText = '{{ "misc.saving"|t("foster-checkout") }}'"
 		>
 			{{ csrfInput() }}
 			{{ actionInput('/commerce/cart/update-cart') }}
@@ -20,9 +24,8 @@
 				type="submit"
 				class="block px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl text-nowrap"
 				:class="showButton ? 'visible' : 'hidden'"
-			>
-				{{ 'summary.saveOrderNote'|t('foster-checkout') }}
-			</button>
+				x-text="buttonText"
+			></button>
 		</form>
 	</div>
 {% endif %}
