@@ -1,0 +1,8 @@
+{% set note = craft.fostercheckout.note('globalCheckout') %}
+{% if note %}
+<div class="grid grid-cols-1 gap-10 mt-6 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+	<div class="[&amp;_a]:underline [&amp;_a:hover]:decoration-current">
+		{{ note|raw }}
+	</div>
+</div>
+{% endif %}

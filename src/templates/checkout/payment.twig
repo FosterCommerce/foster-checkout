@@ -265,8 +265,56 @@
 														<span class="block">{{ gateway.name|t('foster-checkout') }}</span>
 													</label>
 												</div>
-												<div class="pt-8" x-show="gatewayId == {{ gateway.id }}">
-													<form method="POST" id="paymentForm">
+												<div
+													class="pt-8
+													[&_form]:grid [&_form]:gap-2
+
+													/* fieldsets */
+													[&_fieldset]:border [&_fieldset]:border-gray-250 [&_fieldset]:rounded-lg [&_fieldset]:p-4
+													[&_fieldset+fieldset]:mt-4
+													[&_legend]:px-1 [&_legend]:text-sm [&_legend]:font-medium [&_legend]:text-gray-700
+
+													/* rows and grids inside vendor markup */
+													[&_.grid]:grid [&_.grid]:gap-4
+													[&_.grid[data-cols='2']]:grid-cols-1 md:[&_.grid[data-cols='2']]:grid-cols-2
+													[&_.item]:space-y-2
+
+													/* the multi-input card row (number, exp, cvv) */
+													[&_.multitext]:grid [&_.multitext]:gap-3
+													[&_.multitextrow]:grid [&_.multitextrow]:gap-3
+													[&_.multitextrow]:grid-cols-1 sm:[&_.multitextrow]:grid-cols-[2fr_1fr_1fr]
+
+													/* inputs */
+													[&_input.text]:block [&_input.text]:w-full
+													[&_input.text]:rounded-xl
+													[&_input.text]:border [&_input.text]:border-gray-300
+													[&_input.text]:px-3 [&_input.text]:py-2
+													focus:[&_input.text]:outline-none
+													focus:[&_input.text]:ring-2 focus:[&_input.text]:ring-[var(--brandColor)]
+													[&_input.text::placeholder]:text-gray-400
+
+													/* errors if gateway injects them later */
+													[&_.errors]:text-sm [&_.errors]:text-red-600 [&_.errors]:mt-1
+
+													/* button */
+													[&_button#paymentForm-authorizeNet-authorizeSubmit]:block
+													[&_button#paymentForm-authorizeNet-authorizeSubmit]:min-w-[200px]
+													[&_button#paymentForm-authorizeNet-authorizeSubmit]:px-4
+													[&_button#paymentForm-authorizeNet-authorizeSubmit]:py-3
+													[&_button#paymentForm-authorizeNet-authorizeSubmit]:font-medium
+													[&_button#paymentForm-authorizeNet-authorizeSubmit]:text-white
+													[&_button#paymentForm-authorizeNet-authorizeSubmit]:text-center
+													[&_button#paymentForm-authorizeNet-authorizeSubmit]:bg-[var(--brandColor)]
+													[&_button#paymentForm-authorizeNet-authorizeSubmit]:border
+													[&_button#paymentForm-authorizeNet-authorizeSubmit]:border-[var(--brandColor)]
+													[&_button#paymentForm-authorizeNet-authorizeSubmit]:rounded-xl
+													[&_button#paymentForm-authorizeNet-authorizeSubmit]:transition
+													hover:[&_button#paymentForm-authorizeNet-authorizeSubmit]:opacity-90
+													"
+													x-show="gatewayId == {{ gateway.id }}"
+												>
+
+												<form method="POST" id="paymentForm">
 														{{ csrfInput() }}
 														{{ actionInput('commerce/payments/pay') }}
 														{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order')) }}
@@ -286,7 +334,7 @@
 															<div class="grid grid-cols-1 gap-y-4 gap-x-4 ">
 
 																{% for field in craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
-																	<div class="sm:col-span-3">
+																	<div>
 																		{% switch field.type %}
 																			{% case 'select' %}
 																				{% set fieldTemplate = 'input-select' %}
@@ -294,7 +342,6 @@
 																			{% default %}
 																				{% set fieldTemplate = 'input-text-clearable' %}
 																		{% endswitch %}
-
 
 																		{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
 																			context: '',
@@ -316,7 +363,7 @@
 
 																<button
 																	type="submit"
-																	class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+																	class="mt-4 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
 																>
 																	{{ buttonText }}
 																</button>
@@ -447,6 +494,8 @@
 							estimatedTax: false
 						} %}
 				</div>
+
+				{% include 'foster-checkout/_components/app/global-checkout-note' %}
 
 			</aside>
 

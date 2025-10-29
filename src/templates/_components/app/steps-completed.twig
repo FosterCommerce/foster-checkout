@@ -61,32 +61,40 @@
 		{% endif %}
 
 		{% if step == 'payment' %}
-			{% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? null %}
-			{% if currentStore.requireShippingMethodSelectionAtCheckout == true %}
-			<div class="sm:grid sm:grid-cols-[125px_1fr] sm:gap-6">
-				<dt class="flex justify-between items-start gap-4">
-					<span class="inline-block font-semibold text-black">
-						{{ 'steps.shippingMethod'|t('foster-checkout') }}
-					</span>
-					{% if cart.availableShippingMethodOptions|length > 1 %}
-						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/shipping' }}"
-							 class="inline-block underline text-[var(--brandColor)] sm:hidden">
-							{{ 'misc.change'|t('foster-checkout') }}
-						</a>
-					{% endif %}
-				</dt>
-				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
-					<p class="text-black">
-						{{ cart.shippingMethodName ?? '' }}
-					</p>
-					{% if cart.availableShippingMethodOptions|length > 1 %}
-						<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]"
-							 href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/shipping' }}">
-							{{ 'misc.change'|t('foster-checkout') }}
-						</a>
-					{% endif %}
-				</dd>
-			</div>
+			{% set options = cart.availableShippingMethodOptions ?? [] %}
+			{% set hasSelectedMethod = (cart.shippingMethodHandle ?? null)
+				or (cart.shippingMethod ?? null)
+				or ((cart.shippingMethodName ?? '')|length) %}
+
+			{% if hasSelectedMethod %}
+				<div class="sm:grid sm:grid-cols-[125px_1fr] sm:gap-6">
+					<dt class="flex justify-between items-start gap-4">
+						<span class="inline-block font-semibold text-black">
+						  {{ 'steps.shippingMethod'|t('foster-checkout') }}
+						</span>
+						{% if options|length > 1 %}
+							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/shipping' }}"
+							   class="inline-block underline text-[var(--brandColor)] sm:hidden">
+								{{ 'misc.change'|t('foster-checkout') }}
+							</a>
+						{% endif %}
+					</dt>
+
+					<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
+						<p class="text-black">
+							{{ cart.shippingMethodName
+							?? cart.shippingMethod.handle
+							?? cart.shippingMethodHandle
+							?? '' }}
+						</p>
+						{% if options|length > 1 %}
+							<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]"
+							   href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/shipping' }}">
+								{{ 'misc.change'|t('foster-checkout') }}
+							</a>
+						{% endif %}
+					</dd>
+				</div>
 			{% endif %}
 		{% endif %}
 
