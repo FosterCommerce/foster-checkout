@@ -1,0 +1,26 @@
+{% if craft.fostercheckout.settings.notes.order.fieldHandle %}
+	<div class="mt-8" x-data="{ showButton : false }">
+		<h3 class="mb-2 text-md font-bold text-gray-800 leading-snug">{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</h3>
+		<form method="post" class="flex flex-col md:flex-row justify-start items-end gap-4"
+			x-on:blur="showButton = false"
+		>
+			{{ csrfInput() }}
+			{{ actionInput('/commerce/cart/update-cart') }}
+			<textarea
+				name="fields[{{ craft.fostercheckout.settings.notes.order.fieldHandle }}]"
+				rows="2"
+				class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+				placeholder="{{ 'summary.addOrderNote'|t('foster-checkout') }}"
+				x-on:focus="showButton = true"
+				>{{ cart.orderNotes ?? '' }}</textarea>
+
+			<button
+				type="submit"
+				class="block px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl text-nowrap"
+				:class="showButton ? 'visible' : 'hidden'"
+			>
+				{{ 'summary.saveOrderNote'|t('foster-checkout') }}
+			</button>
+		</form>
+	</div>
+{% endif %}
