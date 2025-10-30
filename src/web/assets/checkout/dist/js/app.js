@@ -152,7 +152,7 @@ const LineItem = (props) => {
 		increment() {
 			this.removeMessages();
 			this.qty++;
-			this.updateQty();
+			this.debounce(1000, this.updateQty());
 		},
 		decrement() {
 			this.removeMessages()
@@ -160,7 +160,7 @@ const LineItem = (props) => {
 				this.remove();
 			} else {
 				this.qty = this.qty > 1 ? (this.qty - 1) : 1;
-				this.updateQty();
+				this.debounce(1000, this.updateQty());
 			}
 		},
 		async remove() {

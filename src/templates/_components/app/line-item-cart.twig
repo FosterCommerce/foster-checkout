@@ -79,7 +79,6 @@
 						<button
 							type="button"
 							class="flex justify-center items-center w-[38px] h-[38px] text-[var(--brandColor)]"
-							:disabled="sending"
 							@click="decrement"
 						>
 							<template x-if="qty <= 1">
@@ -118,7 +117,6 @@
 						<button
 							type="button"
 							class="flex justify-center items-center w-[38px] h-[38px] text-[var(--brandColor)]"
-							:disabled="sending"
 							@click="increment"
 						>
 							<span class="sr-only">{{ 'cart.lineItem.increaseQuantity'|t('foster-checkout') }}</span>
@@ -153,13 +151,6 @@
 						</template>
 
 					</p>
-
-					<button
-						type="submit"
-						class="js-hide text-sm underline text-gray-500 hover:no-underline hover:text-gray-700"
-					>
-						{{ 'cart.lineItem.update'|t('foster-checkout') }}
-					</button>
 
 					<div class="relative w-full w-full">
 						<template x-if="showErrorMinMessage">
