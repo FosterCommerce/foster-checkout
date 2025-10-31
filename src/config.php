@@ -154,9 +154,9 @@ return [
 			'elementHandle' => '',
 			'fieldHandle' => '',
 		],
-		'orderNotes' => [
-			'elementHandle' => 'order',
-			'fieldHandle' => 'orderNotes',
+		'customersOrderNotes' => [
+			'elementHandle' => '',
+			'fieldHandle' => '',
 		],
 		'globalCheckout' => [
 			'elementHandle' => '',
