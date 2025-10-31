@@ -154,7 +154,7 @@ return [
 			'elementHandle' => '',
 			'fieldHandle' => '',
 		],
-		'orderNotes'  => [
+		'orderNotes' => [
 			'elementHandle' => 'order',
 			'fieldHandle' => 'orderNotes',
 		],
