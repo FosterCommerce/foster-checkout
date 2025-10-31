@@ -36,7 +36,7 @@
 {% endif %}
 
 <article
-		x-data="LineItem({
+	x-data="LineItem({
 		id: {{ lineItem.id }},
 		qty: {{ lineItem.qty }},
 		min: {{ minQty ?? 0 }},
@@ -50,19 +50,19 @@
 		showErrorMinMessage: false,
 		showErrorStockMessage: false
 	})"
-		class="flex justify-between items-stretch gap-5 p-5 bg-gray-200 rounded-xl"
+	class="flex justify-between items-stretch gap-5 p-5 bg-gray-200 rounded-xl"
 >
 
 	{% if hasImage %}
 		<div class="w-[80px] min-w-[80px] max-w-[80px] md:w-[200px] md:min-w-[200px] md:max-w-[200px] flex-grow">
 			<figure class="rounded-lg overflow-hidden min-w-full">
 				<img
-						srcset="{{ imageSrcSet }}"
-						sizes="(min-width: 768px) 200px, 80px"
-						width="200"
-						height="200"
-						class="min-w-full"
-						alt="{{ 'misc.imageOf'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
+					srcset="{{ imageSrcSet }}"
+					sizes="(min-width: 768px) 200px, 80px"
+					width="200"
+					height="200"
+					class="min-w-full"
+					alt="{{ 'misc.imageOf'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
 				/>
 			</figure>
 		</div>
@@ -90,10 +90,10 @@
 			<div class="mt-3 md:flex md:flex-col-reverse md:justify-start md:items-end md:gap-3 md:mt-0">
 
 				<form
-						id="lineItemQty-{{ lineItem.id }}"
-						class="flex flex-col items-start md:items-end gap-2"
-						method="post"
-						x-on:submit="sending = true"
+					id="lineItemQty-{{ lineItem.id }}"
+					class="flex flex-col items-start md:items-end gap-2"
+					method="post"
+					x-on:submit="sending = true"
 				>
 					{{ csrfInput() }}
 					{{ actionInput('commerce/cart/update-cart') }}
@@ -101,12 +101,12 @@
 					<div class="inline-flex bg-white border border-gray-300 rounded-lg overflow-hidden">
 						<!-- Persistent left control to avoid DOM swap issues -->
 						<button
-								type="button"
-								class="flex justify-center items-center w-[38px] h-[38px] text-[var(--brandColor)]"
-								:aria-label="qty <= 1 ? removeLabel : decreaseLabel"
-								:disabled="sending"
-								@mousedown="onButtonMouseDown()"
-								@click="leftClick()"
+							type="button"
+							class="flex justify-center items-center w-[38px] h-[38px] text-[var(--brandColor)]"
+							:aria-label="qty <= 1 ? removeLabel : decreaseLabel"
+							:disabled="sending"
+							@mousedown="onButtonMouseDown()"
+							@click="leftClick()"
 						>
 							<span>
 								<span class="sr-only" x-text="qty <= 1 ? removeLabel : decreaseLabel"></span>
@@ -123,25 +123,25 @@
 
 						<label for="qty_{{ lineItem.id }}" class="sr-only">{{ 'cart.lineItem.quantity'|t('foster-checkout') }}</label>
 						<input
-								name="lineItems[{{ lineItem.id }}][qty]"
-								x-model.number="qty"
-								id="qty_{{ lineItem.id }}"
-								type="text"
-								inputmode="numeric"
-								pattern="[0-9]*"
-								class="w-[38px] h-[38px] px-0 text-center border-none"
-								@keydown.enter.prevent
-								@input.debounce.700ms="input()"
-								@blur="blur()"
+							name="lineItems[{{ lineItem.id }}][qty]"
+							x-model.number="qty"
+							id="qty_{{ lineItem.id }}"
+							type="text"
+							inputmode="numeric"
+							pattern="[0-9]*"
+							class="w-[38px] h-[38px] px-0 text-center border-none"
+							@keydown.enter.prevent
+							@input.debounce.700ms="input()"
+							@blur="blur()"
 						/>
 
 						<button
-								type="button"
-								class="flex justify-center items-center w-[38px] h-[38px] text-[var(--brandColor)]"
-								:aria-label="increaseLabel"
-								:disabled="sending"
-								@mousedown="onButtonMouseDown()"
-								@click="increment()"
+							type="button"
+							class="flex justify-center items-center w-[38px] h-[38px] text-[var(--brandColor)]"
+							:aria-label="increaseLabel"
+							:disabled="sending"
+							@mousedown="onButtonMouseDown()"
+							@click="increment()"
 						>
 							<span class="sr-only" x-text="increaseLabel"></span>
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" class="fill-current">
@@ -212,11 +212,11 @@
 				{% endif %}
 
 				<button
-						type="button"
-						class="inline-flex justify-start items-center gap-2 text-sm underline text-gray-500 hover:no-underline hover:text-gray-700"
-						:disabled="sending"
-						@mousedown="onButtonMouseDown()"
-						@click="remove()"
+					type="button"
+					class="inline-flex justify-start items-center gap-2 text-sm underline text-gray-500 hover:no-underline hover:text-gray-700"
+					:disabled="sending"
+					@mousedown="onButtonMouseDown()"
+					@click="remove()"
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" width="12" height="14" viewBox="0 0 12 14" class="fill-current">
 						<path d="M2.31807 13.0996C2.01032 13.0996 1.74346 12.9871 1.51751 12.7619C1.29155 12.5367 1.17857 12.2708 1.17857 11.9641V2.5319H0.42749V1.39638H3.73221V0.824646H8.26372V1.39638H11.5724V2.5319H10.8213V11.9641C10.8213 12.2708 10.7084 12.5367 10.4824 12.7619C10.2565 12.9871 9.9896 13.0996 9.68184 13.0996H2.31807ZM4.06481 10.5627H5.13257V3.9127H4.06481V10.5627ZM6.86734 10.5627H7.93909V3.9127H6.86734V10.5627Z" fill="#6B7280"/>
