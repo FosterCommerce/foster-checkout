@@ -8,79 +8,97 @@
 {% endblock %}
 
 {% block body %}
+	{# Compute options and cart-aligned initial handle #}
 	{% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? [] %}
 	{% set optionCount = availableShippingMethodOptions|length %}
 	{% set onlyMethod = optionCount ? (availableShippingMethodOptions|keys|first) : null %}
 
-	{% if cart is defined %}
-		{% if optionCount == 0 and currentStore.requireShippingMethodSelectionAtCheckout == false %}
-			{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/payment' %}
-		{% endif %}
+	{# Prefer cart.shippingMethodHandle over cart.shippingMethod.handle #}
+	{% set _cartHandle = cart.shippingMethodHandle ?? (cart.shippingMethod.handle ?? null) %}
+	{% set _hasCartHandle = _cartHandle and (_cartHandle in availableShippingMethodOptions|keys) %}
+	{% set _initialHandle = _hasCartHandle ? _cartHandle : onlyMethod %}
+
+	{# If store doesn’t require selection and no methods, skip #}
+	{% if optionCount == 0 and currentStore.requireShippingMethodSelectionAtCheckout == false %}
+		{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/payment' %}
 	{% endif %}
 
 	<div class="mt-10 pb-28 lg:pb-32">
-
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
-			<main x-data="{ shippingMethodHandle: '{{ cart.shippingMethod.handle ?? onlyMethod }}' }"
-						class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
+
+			<main
+				x-data="{ shippingMethodHandle: '{{ _initialHandle|e('js') }}' }"
+				x-effect="$refs.postShipMethod.value = shippingMethodHandle"
+				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0"
+			>
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
+					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'shipping' } %}
 
-					{% include 'foster-checkout/_components/app/steps-completed' with {
-						step: 'shipping'
-					} %}
-
-					<form method="post">
-
+					<form method="post" x-data x-on:submit="$el.querySelector('[data-next]')?.setAttribute('disabled','disabled')">
 						{{ csrfInput() }}
 						{{ actionInput('commerce/cart/update-cart') }}
 
-						{% if cart.availableShippingMethodOptions|length >= 1 %}
+						{# Always mirror the Alpine value in a hidden field #}
+						<input type="hidden" x-ref="postShipMethod" name="shippingMethodHandle" value="{{ _initialHandle|e('js') }}">
+
+						{# Redirects #}
+						{% if optionCount >= 1 %}
 							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/payment') }}
 						{% else %}
 							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/shipping') }}
 						{% endif %}
 
-						<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+						{# Auto-submit if only one option and cart not already set #}
+						{% if optionCount == 1 and not _hasCartHandle %}
+							<div x-init="$nextTick(() => $root.requestSubmit && $root.requestSubmit())"></div>
+						{% endif %}
 
+						<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 							<h2 class="p-4 font-semibold bg-gray-200">
 								{{ 'shipping.stepTitle'|t('foster-checkout') }}
 							</h2>
 
 							<div class="p-4">
-
-								{% if availableShippingMethodOptions|length %}
-
+								{% if optionCount %}
 									<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
-
 										{% for handle, method in availableShippingMethodOptions %}
+											{% set rule = craft.commerce.shippingMethods.getMatchingShippingRule(cart, method) %}
+											{% set methodDescription = rule and rule.getDescription() ? rule.getDescription() : null %}
+											{% set methodPrice = method.getPrice() ?? (rule ? rule.price : null) %}
+
 											<div class="p-4 border-b border-gray-250"
-													 :class="{ 'bg-gray-100': shippingMethodHandle === '{{ method.handle }}' }">
-
-												<div class="flex justify-between items-center gap-4 radio">
-
+												 :class="{ 'bg-gray-100': shippingMethodHandle === '{{ handle|e('js') }}' }">
+												<div class="relative flex justify-between items-center gap-4 radio">
 													<input
 														x-model="shippingMethodHandle"
 														id="method_{{ handle }}"
-														name="shippingMethodHandle"
+														name="shippingMethodHandle_radio"
 														type="radio"
-														class="sr-only"
+														class="absolute opacity-0 w-px h-px"
 														value="{{ handle }}"
+														@change="$refs.postShipMethod.value = shippingMethodHandle"
 													/>
 													<label
 														for="method_{{ handle }}"
 														class="inline-flex justify-start items-center gap-4 cursor-pointer"
 													>
 														<span class="block">
-															<span class="block">{{ method.name|t('foster-checkout') }}</span>
-															{% set methodDescription = craft.commerce.shippingMethods.getMatchingShippingRule(cart, method).getDescription() ?? null %}
-															{% if methodDescription %}
-																<span
-																class="block mt-1 text-sm text-gray-500">{{ methodDescription|t('foster-checkout') }}</span>
-															{% endif %}
+														  <span class="block">{{ method.name|t('foster-checkout') }}</span>
+														  {% if methodDescription %}
+															  <span class="block mt-1 text-sm text-gray-500">
+															  {{ methodDescription|t('foster-checkout') }}
+															</span>
+														  {% endif %}
 														</span>
 													</label>
-													<span
-														class="block font-semibold">{{ method.getPrice()|commerceCurrency(cart.currency) }}</span>
+
+													<span class="block font-semibold">
+														{% if methodPrice is not null and methodPrice == 0 %}
+															{{ 'shipping.free'|t('foster-checkout') }}
+														{% else %}
+															{{ (methodPrice ?? 0)|commerceCurrency(cart.currency) }}
+														{% endif %}
+													  </span>
 												</div>
 											</div>
 										{% endfor %}
@@ -104,41 +122,29 @@
 										{{ 'misc.returnToCart'|t('foster-checkout') }}
 									</a>
 									<button
+										data-next
 										type="submit"
 										class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 									>
 										{{ 'shipping.nextStep'|t('foster-checkout') }}
 									</button>
-
 								</div>
-
 							</div>
-
 						</div>
-
 					</form>
 
-					{% include 'foster-checkout/_components/app/steps-uncompleted' with {
-						step: 'shipping'
-					} %}
-
+					{% include 'foster-checkout/_components/app/steps-uncompleted' with { step: 'shipping' } %}
 				</div>
-
 			</main>
 
 			<aside>
-
-				<div
-					class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
-
+				<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 					<div class="grid grid-cols-1 gap-6">
-
 						<div class="flex justify-between items-center gap-4">
 							<h2 class="text-xl font-bold text-gray-800 leading-snug">
 								{{ 'summary.itemsTitle'|t('foster-checkout') }}
 							</h2>
-							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
-								 class="inline-block text-[var(--brandColor)] underline">
+							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}" class="inline-block text-[var(--brandColor)] underline">
 								{{ 'misc.edit'|t('foster-checkout') }}
 							</a>
 						</div>
@@ -146,25 +152,18 @@
 						<ul class="grid grid-cols-1 gap-4">
 							{% for lineItem in cart.lineItems %}
 								<li>
-									{% include 'foster-checkout/_components/app/line-item-checkout' with {
-										lineItem: lineItem
-									} %}
+									{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem } %}
 								</li>
 							{% endfor %}
 						</ul>
-
 					</div>
 
 					{% include 'foster-checkout/_components/app/summary-cart' %}
-
 				</div>
 
 				{% include 'foster-checkout/_components/app/global-checkout-note' %}
-
 			</aside>
 
 		</div>
-
 	</div>
-
 {% endblock %}
