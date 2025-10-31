@@ -76,6 +76,9 @@ class OptionConfig extends Model
 	 */
 	public DeliveryDateConfig $deliveryDate;
 
+	/**
+	 * @var ?array<non-empty-string, mixed>
+	 */
 	public ?array $imagerXConfig = null;
 
 	/**
@@ -95,6 +98,10 @@ class OptionConfig extends Model
 		$config['deliveryDate'] = $deliveryDate;
 
 		$config['subscribe'] = ValueConfig::fromConfig('subscribe', $config);
+
+		if (! isset($config['imagerXConfig'])) {
+			$config['imagerXConfig'] = [];
+		}
 
 		parent::__construct($config);
 	}
