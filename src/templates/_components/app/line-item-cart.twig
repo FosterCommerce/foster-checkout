@@ -231,81 +231,107 @@
 </article>
 
 {% js %}
-	document.addEventListener('alpine:init', () => {
-	Alpine.data('LineItem', (o) => ({
-	...o,
-	sending: false,
-	action: 'update',
-	postTimer: null,
-	justClickedButton: false,
+document.addEventListener('alpine:init', () => {
+	Alpine.data('LineItem', (opts) => ({
+		// ----- state -----
+		...opts,
+		sending: false,
+		action: 'update',
+		postTimer: null,
+		justClickedButton: false,
 
-	get maxAllowed() {
-	if (this.unlimitedStock) return this.max || Infinity
-	const cap = this.max || Infinity
-	return Math.min(cap, this.stock ?? 0)
-	},
+		// ----- derived limits -----
+		get maxAllowed() {
+			if (this.unlimitedStock) return this.max || Infinity
+			const hardCap = this.max || Infinity
+			return Math.min(hardCap, this.stock ?? 0)
+		},
 
-	clamp(v) {
-	v = Number.isFinite(+v) ? +v : (this.min || 1)
-	this.showErrorMinMessage = !!(this.min && v < this.min)
-	if (this.showErrorMinMessage) v = this.min
+		// Keep qty within min, max, and stock. Also flips error flags.
+		clamp(value) {
+			let v = Number.isFinite(+value) ? +value : (this.min || 1)
 
-	const maxA = this.maxAllowed
-	this.showErrorMaxMessage = Number.isFinite(maxA) && v > maxA
-	if (this.showErrorMaxMessage) v = maxA
+			this.showErrorMinMessage = !!(this.min && v < this.min)
+			if (this.showErrorMinMessage) v = this.min
 
-	this.showErrorStockMessage = !this.unlimitedStock && v > (this.stock ?? 0)
-	return v
-	},
+			const limit = this.maxAllowed
+			this.showErrorMaxMessage = Number.isFinite(limit) && v > limit
+			if (this.showErrorMaxMessage) v = limit
 
-	// Persistent left control
-	leftClick() {
-	if (this.qty <= 1) {
-	this.remove()
-	} else {
-	this.qty = this.clamp(this.qty - 1)
-	this.schedulePost()
-	}
-	},
+			this.showErrorStockMessage = !this.unlimitedStock && v > (this.stock ?? 0)
 
-	// Right control
-	increment() { this.qty = this.clamp(this.qty + 1); this.schedulePost() },
+			return v
+		},
 
-	// Manual typing: clamp live, submit on blur
-	input() { this.qty = this.clamp(this.qty) },
-	blur() {
-	if (this.justClickedButton) { this.justClickedButton = false; return }
-	this.clearPending()
-	this.qty = this.clamp(this.qty)
-	this.post('update')
-	},
+		// ----- UI actions -----
 
-	onButtonMouseDown() { this.justClickedButton = true },
+		// Left control: remove at 1, else decrement with debounce
+		leftClick() {
+			if (this.qty <= 1) {
+				this.remove()
+				return
+			}
+			this.qty = this.clamp(this.qty - 1)
+			this.schedulePost()
+		},
 
-	// Footer and left-control remove
-	remove() {
-	this.clearPending()
-	this.qty = 0
-	this.post('remove')
-	},
+		// Right control: increment with debounce
+		increment() {
+			this.qty = this.clamp(this.qty + 1)
+			this.schedulePost()
+		},
 
-	schedulePost(delay = 500) {
-	this.clearPending()
-	this.postTimer = setTimeout(() => this.post('update'), delay)
-	},
-	clearPending() {
-	if (this.postTimer) { clearTimeout(this.postTimer); this.postTimer = null }
-	},
+		// Typing: clamp as you type, do not submit yet
+		input() {
+			this.qty = this.clamp(this.qty)
+		},
 
-	post(act) {
-	this.action = act
-	this.$nextTick(() => {
-	const sel = `input[name="lineItems[${this.id}][qty]"]`
-	const input = this.$root.querySelector(sel)
-	if (input) input.value = this.qty
-	this.$root.querySelector('form')?.requestSubmit()
-	})
-	},
+		// Leaving the field: submit once with the final value
+		blur() {
+			if (this.justClickedButton) {
+				this.justClickedButton = false
+				return
+			}
+			this.clearPending()
+			this.qty = this.clamp(this.qty)
+			this.post('update')
+		},
+
+		onButtonMouseDown() {
+			this.justClickedButton = true
+		},
+
+		// Remove from cart immediately
+		remove() {
+			this.clearPending()
+			this.qty = 0
+			this.post('remove')
+		},
+
+		// ----- debounce helpers -----
+		schedulePost(delay = 500) {
+			this.clearPending()
+			this.postTimer = setTimeout(() => this.post('update'), delay)
+		},
+
+		clearPending() {
+			if (!this.postTimer) return
+			clearTimeout(this.postTimer)
+			this.postTimer = null
+		},
+
+		// ----- submit -----
+		post(actionType) {
+			this.action = actionType
+			this.$nextTick(() => {
+				const input = this.$root.querySelector(
+					`input[name="lineItems[${this.id}][qty]"]`
+				)
+				if (input) input.value = this.qty
+				this.$root.querySelector('form')?.requestSubmit()
+			})
+		},
 	}))
-	})
+})
 {% endjs %}
+
