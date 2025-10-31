@@ -47,9 +47,9 @@
 
 				</div>
 
-				<div class="flex flex-row justify-start">
+				<div>
 					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
-							class="px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
+							class="block md:inline-block px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 						>
 							{{ 'cart.continueShopping'|t('foster-checkout') }}
 					</a>
@@ -79,13 +79,13 @@
 							{{ hiddenInput('event[trackOrder]', '1') }}
 							{{ hiddenInput('event[orderId]', cart.id) }}
 							<button type="submit"
-									class="hidden w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block">
+									class="block md:inline-block lg:block mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl">
 								{{ 'cart.checkout'|t('foster-checkout') }}
 							</button>
 						</form>
 					{% else %}
 						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}"
-							class="hidden w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
+							class="block md:inline-block lg:block mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 						>
 							{{ 'cart.checkout'|t('foster-checkout') }}
 						</a>
@@ -126,7 +126,7 @@
 				</div>
 				<a
 					href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
-					class="inline-block max-w-[260px] mt-10 mx-auto px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
+					class="inline-block lg:block max-w-[260px] mt-10 mx-auto px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl "
 				>
 					{{ 'cart.continueShopping'|t('foster-checkout') }}
 				</a>
