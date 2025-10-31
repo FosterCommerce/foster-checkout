@@ -1,6 +1,6 @@
 {% extends 'foster-checkout/_layouts/default' %}
-{% set addresses =  currentUser ? (currentUser.addresses.all() ?? null) : null %}
-{% set primaryShippingAddressId =  currentUser ? (currentUser.getPrimaryShippingAddressId() ?? -1) : -1 %}
+{% set addresses = currentUser ? (currentUser.addresses.all() ?? null) : null %}
+{% set primaryShippingAddressId = currentUser ? (currentUser.getPrimaryShippingAddressId() ?? -1) : -1 %}
 
 {% block head %}
 	<title>
@@ -10,7 +10,6 @@
 {% endblock %}
 
 {% block body %}
-	{# --- Correct truth table for selection --- #}
 	{# If a user address was chosen, Commerce sets cart.sourceShippingAddressId to that address-book id. #}
 	{# If "new address" was chosen, sourceShippingAddressId is null but cart.shippingAddressId exists. #}
 	{% set _sourceId = cart.sourceShippingAddressId ?? null %}
@@ -21,16 +20,16 @@
 	<div class="mt-10 pb-28 lg:pb-32">
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 			<main
-					x-data="{
-          editExistingAddress: 0,
-          shippingAddressId: {{ _initialRadio }},
-          useNewAddress: {{ _isNew ? 1 : 0 }},
-        }"
-					x-effect="
-          $refs.postShipId.value = shippingAddressId;
-          $refs.postUseNew.value = useNewAddress ? 1 : 0;
-        "
-					class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0"
+				x-data="{
+				  editExistingAddress: 0,
+				  shippingAddressId: {{ _initialRadio }},
+				  useNewAddress: {{ _isNew ? 1 : 0 }},
+				}"
+				x-effect="
+				  $refs.postShipId.value = shippingAddressId;
+				  $refs.postUseNew.value = useNewAddress ? 1 : 0;
+				"
+				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0"
 			>
 				<div class="grid grid-cols-1 gap-4 xl:gap-6 ">
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'address' } %}
@@ -71,27 +70,27 @@
 												 :class="{ 'bg-gray-100': (parseInt(shippingAddressId) === {{ address.id }} && useNewAddress === 0) }">
 												<div class="flex justify-between items-center gap-4 radio">
 													<input
-															x-model.number="shippingAddressId"
-															id="address_{{ address.id }}"
-															name="shippingAddressId_radio"
-															type="radio"
-															class="sr-only"
-															value="{{ address.id }}"
-															@change="useNewAddress = 0; editExistingAddress = 0"
+														x-model.number="shippingAddressId"
+														id="address_{{ address.id }}"
+														name="shippingAddressId_radio"
+														type="radio"
+														class="sr-only"
+														value="{{ address.id }}"
+														@change="useNewAddress = 0; editExistingAddress = 0"
 													/>
 													<label
-															for="address_{{ address.id }}"
-															class="inline-flex justify-start items-center gap-4 cursor-pointer"
-															:class="{ 'font-medium text-black': parseInt(shippingAddressId) === {{ address.id }} && useNewAddress === 0 }"
+														for="address_{{ address.id }}"
+														class="inline-flex justify-start items-center gap-4 cursor-pointer"
+														:class="{ 'font-medium text-black': parseInt(shippingAddressId) === {{ address.id }} && useNewAddress === 0 }"
 													>
 														{% include 'foster-checkout/_components/app/formatted-address' with { address: address } %}
 													</label>
 
 													<template x-if="parseInt(shippingAddressId) === {{ address.id }} && useNewAddress === 0">
 														<button
-																type="button"
-																class="text-[var(--brandColor)] underline"
-																@click="editExistingAddress = parseInt(editExistingAddress) === {{ address.id }} ? 0 : {{ address.id }}"
+															type="button"
+															class="text-[var(--brandColor)] underline"
+															@click="editExistingAddress = parseInt(editExistingAddress) === {{ address.id }} ? 0 : {{ address.id }}"
 														>
 															<template x-if="parseInt(editExistingAddress) === {{ address.id }}"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
 															<template x-if="parseInt(editExistingAddress) !== {{ address.id }}"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
@@ -120,18 +119,18 @@
 									<div :class="{ 'bg-gray-100': parseInt(shippingAddressId) === 0 || useNewAddress }">
 										<div class="p-4 radio">
 											<input
-													id="address_0"
-													name="shippingAddressId_radio"
-													type="radio"
-													class="sr-only"
-													x-model.number="shippingAddressId"
-													value="0"
-													@change="useNewAddress = 1; editExistingAddress = 0"
+												id="address_0"
+												name="shippingAddressId_radio"
+												type="radio"
+												class="sr-only"
+												x-model.number="shippingAddressId"
+												value="0"
+												@change="useNewAddress = 1; editExistingAddress = 0"
 											/>
 											<label
-													for="address_0"
-													class="inline-flex justify-start items-center gap-4 cursor-pointer"
-													:class="{ 'font-medium text-black': useNewAddress || parseInt(shippingAddressId) === 0 }"
+												for="address_0"
+												class="inline-flex justify-start items-center gap-4 cursor-pointer"
+												:class="{ 'font-medium text-black': useNewAddress || parseInt(shippingAddressId) === 0 }"
 											>
 												{{ 'address.newAddress'|t('foster-checkout') }}
 											</label>
@@ -142,12 +141,12 @@
 										{%- set initialSaveChecked = initialSaveParam is not empty and initialSaveParam|trim != '0' -%}
 
 										<div
-												x-data="{
-                        saveToBook: (sessionStorage.getItem('saveShip') !== null)
-                          ? JSON.parse(sessionStorage.getItem('saveShip'))
-                          : {{ initialSaveChecked ? 'true' : 'false' }},
-                      }"
-												x-init="$watch('saveToBook', v => sessionStorage.setItem('saveShip', JSON.stringify(v)))"
+											x-data="{
+												saveToBook: (sessionStorage.getItem('saveShip') !== null)
+												  ? JSON.parse(sessionStorage.getItem('saveShip'))
+												  : {{ initialSaveChecked ? 'true' : 'false' }},
+											  }"
+											x-init="$watch('saveToBook', v => sessionStorage.setItem('saveShip', JSON.stringify(v)))"
 										>
 											<div x-show="useNewAddress" x-cloak>
 												<div class="p-4">
@@ -167,16 +166,16 @@
 														<input type="hidden" name="saveShippingAddressOnOrderComplete" :value="saveToBook ? 1 : 0">
 
 														<input
-																type="checkbox"
-																id="saveShippingAddressOnOrderComplete"
-																class="sr-only"
-																x-model="saveToBook"
-																:checked="saveToBook"
-																aria-checked="saveToBook.toString()"
+															type="checkbox"
+															id="saveShippingAddressOnOrderComplete"
+															class="sr-only"
+															x-model="saveToBook"
+															:checked="saveToBook"
+															aria-checked="saveToBook.toString()"
 														/>
 														<label
-																class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
-																for="saveShippingAddressOnOrderComplete"
+															class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
+															for="saveShippingAddressOnOrderComplete"
 														>
 															{{ 'address.saveToAddressBook'|t('foster-checkout') }}
 														</label>
