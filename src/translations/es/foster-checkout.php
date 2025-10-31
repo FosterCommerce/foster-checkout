@@ -114,7 +114,6 @@ return [
 	'payment.paymentMethod' => 'Método de pago',
 	'payment.billingAddress' => 'Dirección de facturación',
 	'payment.sameAsShippingAddress' => 'Igual que la dirección de envío',
-	'payment.saveAsShippingAddress' => 'Guardar como dirección de envío',
 	'payment.useDifferentBillingAddress' => 'Usar otra dirección de facturación',
 	'payment.saveToAddressBook' => 'Guardar en la libreta de direcciones',
 	'payment.payButtonText' => 'Pagar',
