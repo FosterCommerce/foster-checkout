@@ -1,4 +1,4 @@
-{% if craft.fostercheckout.settings.notes.order.fieldHandle %}
+{% if craft.fostercheckout.settings.notes.orderNotes.fieldHandle %}
 	<div class="mt-8" x-data="{
 		showButton : false,
 		buttonText : '{{ "summary.saveOrderNote"|t("foster-checkout") }}'
@@ -13,7 +13,7 @@
 			<label for="orderNote" class="sr-only">{{ 'summary.addOrderNote'|t('foster-checkout') }}</label>
 			<textarea
 				id="orderNote"
-				name="fields[{{ craft.fostercheckout.settings.notes.order.fieldHandle }}]"
+				name="fields[{{ craft.fostercheckout.settings.notes.orderNotes.fieldHandle }}]"
 				rows="2"
 				class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
 				placeholder="{{ 'summary.addOrderNote'|t('foster-checkout') }}"
