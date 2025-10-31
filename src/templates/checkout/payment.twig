@@ -28,8 +28,8 @@
 	{% set _initialGatewayId = _hasGateway ? _cartGatewayId : (gateways|length ? gateways[0].id : null) %}
 
 	<div
-			class="mt-10 pb-28 lg:pb-32"
-			x-data="{
+		class="mt-10 pb-28 lg:pb-32"
+		x-data="{
 		  // billing selection
 		  billingSameAsShipping: {{ _initialBillingSame }},
 		  billingAddressId: {{ _initialBillingAddressId is not null ? _initialBillingAddressId : 'null' }},
@@ -47,8 +47,8 @@
 			if (this.$refs.postGateway) this.$refs.postGateway.value = this.gatewayId ?? '';
 		  }
 		}"
-			x-init="syncHidden()"
-			x-effect="syncHidden()"
+		x-init="syncHidden()"
+		x-effect="syncHidden()"
 	>
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 			<main class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
@@ -105,12 +105,12 @@
 										<div class="p-4" :class="{ 'bg-gray-100': parseInt(billingSameAsShipping) === 1 }">
 											<div class="radio">
 												<input
-														id="billingSameAsShipping_1"
-														type="radio"
-														class="absolute opacity-0 w-px h-px"
-														x-model.number="billingSameAsShipping"
-														value="1"
-														@change="newBillingAddress = 0; billingAddressId = null; editBillingAddressId = 0"
+													id="billingSameAsShipping_1"
+													type="radio"
+													class="absolute opacity-0 w-px h-px"
+													x-model.number="billingSameAsShipping"
+													value="1"
+													@change="newBillingAddress = 0; billingAddressId = null; editBillingAddressId = 0"
 												>
 												<label for="billingSameAsShipping_1" class="flex justify-start items-center gap-4 cursor-pointer">
 													<span class="block">
@@ -132,26 +132,26 @@
 													 :class="{ 'bg-gray-100': parseInt(billingAddressId) === {{ address.id }} && !billingSameAsShipping }">
 													<div class="flex justify-between items-center gap-4 radio">
 														<input
-																id="bill_addr_{{ address.id }}"
-																type="radio"
-																class="absolute opacity-0 w-px h-px"
-																name="billingAddressId_radio"
-																x-model.number="billingAddressId"
-																value="{{ address.id }}"
-																@change="billingSameAsShipping = 0; newBillingAddress = 0; editBillingAddressId = 0"
+															id="bill_addr_{{ address.id }}"
+															type="radio"
+															class="absolute opacity-0 w-px h-px"
+															name="billingAddressId_radio"
+															x-model.number="billingAddressId"
+															value="{{ address.id }}"
+															@change="billingSameAsShipping = 0; newBillingAddress = 0; editBillingAddressId = 0"
 														>
 														<label
-																for="bill_addr_{{ address.id }}"
-																class="inline-flex justify-start items-center gap-4 cursor-pointer"
-																:class="{ 'font-medium text-black': parseInt(billingAddressId) === {{ address.id }} && !billingSameAsShipping }"
+															for="bill_addr_{{ address.id }}"
+															class="inline-flex justify-start items-center gap-4 cursor-pointer"
+															:class="{ 'font-medium text-black': parseInt(billingAddressId) === {{ address.id }} && !billingSameAsShipping }"
 														>
 															{% include 'foster-checkout/_components/app/formatted-address' with { address: address } %}
 														</label>
 
 														<button
-																type="button"
-																class="text-[var(--brandColor)] underline"
-																@click="editBillingAddressId = parseInt(editBillingAddressId) === {{ address.id }} ? 0 : {{ address.id }}"
+															type="button"
+															class="text-[var(--brandColor)] underline"
+															@click="editBillingAddressId = parseInt(editBillingAddressId) === {{ address.id }} ? 0 : {{ address.id }}"
 														>
 															<template x-if="parseInt(editBillingAddressId) === {{ address.id }}"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
 															<template x-if="parseInt(editBillingAddressId) !== {{ address.id }}"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
@@ -179,17 +179,17 @@
 										<div class="border-t border-gray-250" :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }">
 											<div class="p-4 radio">
 												<input
-														id="newBillingAddress"
-														type="radio"
-														class="absolute opacity-0 w-px h-px"
-														x-model.number="newBillingAddress"
-														value="1"
-														@change="billingSameAsShipping = 0; billingAddressId = null; editBillingAddressId = 0"
+													id="newBillingAddress"
+													type="radio"
+													class="absolute opacity-0 w-px h-px"
+													x-model.number="newBillingAddress"
+													value="1"
+													@change="billingSameAsShipping = 0; billingAddressId = null; editBillingAddressId = 0"
 												>
 												<label
-														for="newBillingAddress"
-														class="inline-flex justify-start items-center gap-4 cursor-pointer"
-														:class="{ 'font-medium text-black': parseInt(newBillingAddress) === 1 }"
+													for="newBillingAddress"
+													class="inline-flex justify-start items-center gap-4 cursor-pointer"
+													:class="{ 'font-medium text-black': parseInt(newBillingAddress) === 1 }"
 												>
 													{{ 'payment.useDifferentBillingAddress'|t('foster-checkout') }}
 												</label>
@@ -247,12 +247,12 @@
 												 :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
 												<div class="relative flex justify-between items-center gap-4 radio">
 													<input
-															id="gateway_{{ gateway.id }}"
-															name="gatewayId_radio"
-															type="radio"
-															class="absolute opacity-0 w-px h-px"
-															x-model.number="gatewayId"
-															value="{{ gateway.id }}"
+														id="gateway_{{ gateway.id }}"
+														name="gatewayId_radio"
+														type="radio"
+														class="absolute opacity-0 w-px h-px"
+														x-model.number="gatewayId"
+														value="{{ gateway.id }}"
 													>
 													<label for="gateway_{{ gateway.id }}" class="inline-flex justify-start items-center gap-4 cursor-pointer">
 														<span class="block">{{ gateway.name|t('foster-checkout') }}</span>
@@ -261,7 +261,7 @@
 
 												{# Gateway form panel #}
 												<div
-														class="pt-8
+													class="pt-8
 													  [&_form]:grid [&_form]:gap-2
 
 													  /* fieldsets */
@@ -318,8 +318,8 @@
 													  [&_button[id$='authorizeSubmit']]:border-[var(--brandColor)]
 													  [&_button[id$='authorizeSubmit']]:rounded-xl
 													  "
-														x-show="parseInt(gatewayId) === {{ gateway.id }}"
-														x-cloak
+													x-show="parseInt(gatewayId) === {{ gateway.id }}"
+													x-cloak
 												>
 
 													{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
@@ -432,15 +432,15 @@
 	</div>
 
 	{% js %}
-		// Optional: block double submits on any .paymentForm the gateways inject
-		document.querySelectorAll('.paymentForm').forEach(function(form){
+	// Optional: block double submits on any .paymentForm the gateways inject
+	document.querySelectorAll('.paymentForm').forEach(function(form){
 		form.addEventListener('submit', function(ev){
-		if (form.dataset.processing) {
-		ev.preventDefault();
-		return false;
-		}
-		form.dataset.processing = '1';
+			if (form.dataset.processing) {
+				ev.preventDefault();
+				return false;
+			}
+			form.dataset.processing = '1';
 		});
-		});
+	});
 	{% endjs %}
 {% endblock %}
