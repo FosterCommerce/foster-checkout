@@ -8,8 +8,17 @@
 {% set previewImage = craft.fostercheckout.lineItemImage(lineItem) %}
 {% if previewImage|default %}
 	{% if craft.fostercheckout.settings.options.imagerXConfig %}
-		{% set image = craft.imagerx.transformImage(previewImage, craft.fostercheckout.settings.options.imagerXConfig) %}
-		{% set imageUrl = image.url %}
+		{% set images = craft.imagerx.transformImage(
+			previewImage,
+			[
+				{width:80, height:80},
+				{width:200, height:200}
+			],
+			craft.fostercheckout.settings.options.imagerXConfig
+		) %}
+
+		{% set imageUrl = images[0].url %}
+		{% set imageSrcSet = craft.imagerx.srcset(images) %}
 	{% else %}
 		{% set preview = {
 			mode: 'crop',
