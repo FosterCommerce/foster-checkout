@@ -47,6 +47,14 @@
 
 				</div>
 
+				<div class="flex flex-row justify-start">
+					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
+							class="px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:block"
+						>
+							{{ 'cart.continueShopping'|t('foster-checkout') }}
+					</a>
+				</div>
+
 				{% set note = craft.fostercheckout.note('cart') %}
 				{% if note %}
 					<div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6 [&_a]:underline [&_a:hover]:decoration-current">
