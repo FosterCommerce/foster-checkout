@@ -13,144 +13,167 @@
 
 {% block body %}
 
-<div class="mt-10 pb-28 lg:pb-32">
+	<div class="mt-10 pb-28 lg:pb-32">
 
-	<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 
-		<main class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
-
-			<div class="grid grid-cols-1 gap-6">
-
-				<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
-
-					<div class="flex justify-between items-center p-4 gap-4 bg-gray-200">
-						<h2 class="font-semibold">
-							{{ 'email.stepName'|t('foster-checkout') }}
-						</h2>
-						<span class="text-sm text-gray-500 text-right inline-block underline">
-							<a href="{{ loginUrl }}" class="text-[var(--brandColor)] underline">{{ 'email.signIn'|t('foster-checkout') }}</a>
-						</span>
-					</div>
-
-					<div class="p-4">
-						<form class="mt-2" method="post" accept-charset="UTF-8">
-							{{ csrfInput() }}
-							{% if craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
-								{{ actionInput('klaviyo-connect-plus/api/track') }}
-								{{ hiddenInput('event[name]', 'Started Checkout') }}
-								{{ hiddenInput('event[trackOrder]', '1') }}
-								{{ hiddenInput('event[orderId]', cart.id) }}
-								{{ hiddenInput('forward', '/commerce/cart/update-cart') }}
-								{% set klaviyoListId = craft.fostercheckout.settings.options.klaviyoListId %}
-								{% if klaviyoListId %}
-									{{ hiddenInput('list', klaviyoListId) }}
-								{% endif %}
-							{% else %}
-								{{ actionInput('commerce/cart/update-cart') }}
-							{% endif %}
-							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address') }}
-
-							<fieldset class="grid grid-cols-1 gap-6">
-
-								<div >
-									{% include 'foster-checkout/_components/base/input-text-clearable' with {
-										label: 'email.emailLabel'|t('foster-checkout'),
-										id: 'email',
-										name: 'email',
-										type: 'email',
-										autocomplete: 'email',
-										placeholder: 'email.emailPlaceholder'|t('foster-checkout'),
-										value: cart ? cart.email : '',
-										required: true,
-										errors: [],
-										action: '$nextTick(() => { $refs.input.focus() });'
-									} %}
-								</div>
-
-							</fieldset>
-							{% if klaviyoListId is defined %}
-								{% set subscribe = craft.fostercheckout.settings.options.subscribe|raw %}
-								{% if subscribe is not empty and subscribe != '' %}
-									<div class="mt-4 p4 checkbox">
-										<input type="checkbox" class="sr-only" id="subscribe" name="subscribe" value="1"/>
-										<label
-											class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
-											for="subscribe">{{ craft.fostercheckout.settings.options.subscribe|raw }}</label>
-									</div>
-								{% endif %}
-							{% endif %}
-							{% set note = craft.fostercheckout.note('email') %}
-							{% if note %}
-								<div class="mt-6 p-4 border border-gray-250 rounded-lg [&_a]:underline [&_a:hover]:decoration-current">
-									{{ note|raw }}
-								</div>
-							{% endif %}
-
-							<div class="mt-6 grid grid-cols-1 gap-4 md:flex md:justify-end md:items-center md:gap-6">
-								<a
-									href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
-									class="hidden md:block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white"
-								>
-									{{ 'misc.returnToCart'|t('foster-checkout') }}
-								</a>
-								<button
-									type="submit"
-									class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
-								>
-									{{ 'email.nextStep'|t('foster-checkout') }}
-								</button>
-
-							</div>
-
-						</form>
-					</div>
-
-				</div>
-
-				{% include 'foster-checkout/_components/app/steps-uncompleted' with {
-					step: 'email'
-				} %}
-			</div>
-		</main>
-
-		<aside>
-
-			<div
-				class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+			<main class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 
 				<div class="grid grid-cols-1 gap-6">
 
-					<div class="flex justify-between items-center gap-4">
-						<h2 class="text-xl font-bold text-gray-800 leading-snug">
-							{{ 'summary.itemsTitle'|t('foster-checkout') }}
-						</h2>
-						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
-						   class="inline-block text-[var(--brandColor)] underline">
-							{{ 'misc.edit'|t('foster-checkout') }}
-						</a>
+					<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+
+						<div class="flex justify-between items-center p-4 gap-4 bg-gray-200">
+							<h2 class="font-semibold">
+								{{ 'email.stepName'|t('foster-checkout') }}
+							</h2>
+							<span class="text-sm text-gray-500 text-right inline-block underline">
+							<a href="{{ loginUrl }}" class="text-[var(--brandColor)] underline">{{ 'email.signIn'|t('foster-checkout') }}</a>
+						</span>
+						</div>
+
+						<div class="p-4">
+							<form class="mt-2" method="post" accept-charset="UTF-8">
+								{{ csrfInput() }}
+								{% if craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
+									{{ actionInput('klaviyo-connect-plus/api/track') }}
+									{{ hiddenInput('event[name]', 'Started Checkout') }}
+									{{ hiddenInput('event[trackOrder]', '1') }}
+									{{ hiddenInput('event[orderId]', cart.id) }}
+									{{ hiddenInput('forward', '/commerce/cart/update-cart') }}
+									{% set klaviyoListId = craft.fostercheckout.settings.options.klaviyoListId %}
+									{% if klaviyoListId %}
+										{{ hiddenInput('list', klaviyoListId) }}
+									{% endif %}
+								{% else %}
+									{{ actionInput('commerce/cart/update-cart') }}
+								{% endif %}
+								{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address') }}
+
+								<fieldset class="grid grid-cols-1 gap-6">
+
+									<div >
+										{% include 'foster-checkout/_components/base/input-text-clearable' with {
+											label: 'email.emailLabel'|t('foster-checkout'),
+											id: 'email',
+											name: 'email',
+											type: 'email',
+											autocomplete: 'email',
+											placeholder: 'email.emailPlaceholder'|t('foster-checkout'),
+											value: cart ? cart.email : '',
+											required: true,
+											errors: [],
+											action: '$nextTick(() => { $refs.input.focus() });'
+										} %}
+									</div>
+
+								</fieldset>
+								{% if klaviyoListId is defined %}
+									{% set subscribe = craft.fostercheckout.settings.options.subscribe|raw %}
+									{% if subscribe is not empty and subscribe != '' %}
+										{% set isChecked = craft.app.request.getBodyParam('subscribe') is not null
+											? (craft.app.request.getBodyParam('subscribe') == '1')
+											: true %}
+										<div
+											x-data="{
+											subscribe: JSON.parse(localStorage.getItem('fc_subscribe') ?? 'true'),
+											init() { this.$watch('subscribe', v => localStorage.setItem('fc_subscribe', JSON.stringify(v))) }
+										  }"
+											class="mt-4 p4 checkbox"
+										>
+											<input type="hidden" name="subscribe" :value="subscribe ? 1 : 0">
+											<input type="checkbox" id="subscribe" class="sr-only" x-model="subscribe">
+											<label for="subscribe" class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500">
+												{{ craft.fostercheckout.settings.options.subscribe|raw }}
+											</label>
+										</div>
+
+									{% endif %}
+								{% endif %}
+								{% set note = craft.fostercheckout.note('email') %}
+								{% if note %}
+									<div class="mt-6 p-4 border border-gray-250 rounded-lg [&_a]:underline [&_a:hover]:decoration-current">
+										{{ note|raw }}
+									</div>
+								{% endif %}
+
+								<div class="mt-6 grid grid-cols-1 gap-4 md:flex md:justify-end md:items-center md:gap-6">
+									<a
+										href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
+										class="hidden md:block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white"
+									>
+										{{ 'misc.returnToCart'|t('foster-checkout') }}
+									</a>
+									<button
+										type="submit"
+										class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+									>
+										{{ 'email.nextStep'|t('foster-checkout') }}
+									</button>
+
+								</div>
+
+							</form>
+						</div>
+
 					</div>
 
-					<ul class="grid grid-cols-1 gap-4">
-						{% for lineItem in cart.lineItems %}
-							<li>
-								{% include 'foster-checkout/_components/app/line-item-checkout' with {
-									lineItem: lineItem
-								} %}
-							</li>
-						{% endfor %}
-					</ul>
+					{% include 'foster-checkout/_components/app/steps-uncompleted' with {
+						step: 'email'
+					} %}
+				</div>
+			</main>
+
+			<aside>
+
+				<div
+					class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+
+					<div class="grid grid-cols-1 gap-6">
+
+						<div class="flex justify-between items-center gap-4">
+							<h2 class="text-xl font-bold text-gray-800 leading-snug">
+								{{ 'summary.itemsTitle'|t('foster-checkout') }}
+							</h2>
+							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
+							   class="inline-block text-[var(--brandColor)] underline">
+								{{ 'misc.edit'|t('foster-checkout') }}
+							</a>
+						</div>
+
+						<ul class="grid grid-cols-1 gap-4">
+							{% for lineItem in cart.lineItems %}
+								<li>
+									{% include 'foster-checkout/_components/app/line-item-checkout' with {
+										lineItem: lineItem
+									} %}
+								</li>
+							{% endfor %}
+						</ul>
+
+					</div>
+
+					{% include 'foster-checkout/_components/app/summary-cart' %}
 
 				</div>
 
-				{% include 'foster-checkout/_components/app/summary-cart' %}
+				{% include 'foster-checkout/_components/app/global-checkout-note' %}
 
-			</div>
+			</aside>
 
-			{% include 'foster-checkout/_components/app/global-checkout-note' %}
-
-		</aside>
-
+		</div>
 	</div>
-</div>
+
+	{% set site = craft.app.sites.currentSite %}
+	{% set parts = [
+		'fc_subscribe',
+		craft.app.request.hostName,
+		site.id,
+		site.language,
+		cart.number
+	]|join('_') %}
+	{% js at head %}
+		window.FC_SUBSCRIBE_KEY = {{ parts|json_encode|raw }};
+	{% endjs %}
 
 {% endblock %}

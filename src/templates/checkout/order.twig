@@ -207,4 +207,8 @@
 
 	</div>
 
+	{% js %}
+		try { localStorage.removeItem('fc_subscribe'); } catch (_) {}
+	{% endjs %}
+
 {% endblock %}
