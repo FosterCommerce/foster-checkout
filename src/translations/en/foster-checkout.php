@@ -114,7 +114,6 @@ return [
 	'payment.paymentMethod' => 'Payment method',
 	'payment.billingAddress' => 'Billing address',
 	'payment.sameAsShippingAddress' => 'Same as shipping address',
-	'payment.saveAsShippingAddress' => 'Save as shipping address',
 	'payment.useDifferentBillingAddress' => 'Use a different billing address',
 	'payment.saveToAddressBook' => 'Save to address book',
 	'payment.payButtonText' => 'Pay',
