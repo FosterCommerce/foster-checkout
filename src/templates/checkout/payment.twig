@@ -115,7 +115,7 @@
 												<label for="billingSameAsShipping_1" class="flex justify-start items-center gap-4 cursor-pointer">
 													<span class="block">
 														<span class="block" :class="{ 'font-medium text-black': parseInt(billingSameAsShipping) === 1 }">
-														  {{ 'payment.saveAsShippingAddress'|t('foster-checkout') }}
+														  {{ 'payment.sameAsShippingAddress'|t('foster-checkout') }}
 														</span>
 														<span class="block mt-2 text-gray-500">
 														  {% include 'foster-checkout/_components/app/formatted-address' with { address: cart.shippingAddress } %}

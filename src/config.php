@@ -63,6 +63,8 @@ return [
 			'value' => '{{ order.dateOrdered|date_modify("+14 days")|date("M j, Y") }}', // closure, twig, string or null
 			'display' => true, // closure, twig or a boolean
 		],
+
+		'imagerXConfig' => null,
 	],
 	// Branding Settings
 	'branding' => [

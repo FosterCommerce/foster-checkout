@@ -3,19 +3,37 @@
 {% set stock = lineItem.purchasable.stock %}
 {% set unlimitedStock = lineItem.purchasable.hasUnlimitedStock ? 1 : 0 %}
 
-{% set imageUrl = null %}
+{% set hasImage = true %}
 {% set imageSrcSet = null %}
+
 {% set previewImage = craft.fostercheckout.lineItemImage(lineItem) %}
 {% if previewImage|default %}
-	{% set preview = {
-		mode: 'crop',
-		width: 200,
-		height: 200,
-		quality: 90,
-		position: 'center-center'
-	} %}
-	{% set imageUrl = previewImage.getUrl(preview) %}
-	{% set imageSrcSet = previewImage.getSrcSet(['80', '200']) %}
+	{% if craft.app.plugins.isPluginEnabled('imager-x') %}
+		{% set images = craft.imagerx.transformImage(
+			previewImage,
+			[
+				{width:80, height:80},
+				{width:200, height:200}
+			],
+			craft.fostercheckout.settings.options.imagerXConfig
+		) %}
+
+		{% set imageSrcSet = craft.imagerx.srcset(images) %}
+	{% else %}
+		{% set preview = {
+			mode: 'crop',
+			width: 200,
+			height: 200,
+			quality: 90,
+			position: 'center-center'
+		} %}
+		{% set imageSrcSet = previewImage.getSrcSet(['80', '200']) %}
+	{% endif %}
+{% elseif craft.fostercheckout.settings.options.enablePlaceholderImages %}
+	{% set placeHolderImage = 'https://placehold.co/200x200?text=' ~ 'misc.noImage'|t('foster-checkout')|split(' ')|join('+') %}
+	{% set imageSrcSet = placeHolderImage ~ ' 200w' %}
+{% else %}
+	{% set hasImage = false %}
 {% endif %}
 
 <article
@@ -36,17 +54,16 @@
 		class="flex justify-between items-stretch gap-5 p-5 bg-gray-200 rounded-xl"
 >
 
-	{% if imageUrl or craft.fostercheckout.settings.options.enablePlaceholderImages %}
+	{% if hasImage %}
 		<div class="w-[80px] min-w-[80px] max-w-[80px] md:w-[200px] md:min-w-[200px] md:max-w-[200px] flex-grow">
 			<figure class="rounded-lg overflow-hidden min-w-full">
 				<img
-						src="{{ imageUrl ?? ('https://placehold.co/200x200?text=' ~ 'misc.noImage'|t('foster-checkout')|split(' ')|join('+')) }}"
-						srcset="{{ imageUrl ? imageSrcSet : '' }}"
-						sizes="(min-width: 768px) 200px, 80px"
-						width="200"
-						height="200"
-						class="min-w-full"
-						alt="{{ 'misc.imageOf'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
+					srcset="{{ imageSrcSet }}"
+					sizes="(min-width: 768px) 200px, 80px"
+					width="200"
+					height="200"
+					class="min-w-full"
+					alt="{{ 'misc.imageOf'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
 				/>
 			</figure>
 		</div>
