@@ -1,9 +1,19 @@
-{% set imageUrl = null %}
 {% set previewImage = craft.fostercheckout.lineItemImage(lineItem) %}
+
+{% set hasImage = true %}
+{% set imageUrl = null %}
+
 {% if previewImage|default %}
-	{% if craft.fostercheckout.settings.options.imagerXConfig %}
-		{% set image = craft.imagerx.transformImage(previewImage, craft.fostercheckout.settings.options.imagerXConfig) %}
-		{% set imageUrl = image.url %}
+	{% if craft.app.plugins.isPluginEnabled('imager-x') %}
+		{% set images = craft.imagerx.transformImage(
+			previewImage,
+			[
+				{width:70, height:70},
+			],
+			craft.fostercheckout.settings.options.imagerXConfig
+		) %}
+
+		{% set imageUrl = images[0].url %}
 	{% else %}
 		{% set preview = {
 			mode: 'crop',
@@ -13,18 +23,20 @@
 			position: 'center-center'
 		} %}
 		{% set imageUrl = previewImage.getUrl(preview) %}
-		{% set imageSrcSet = previewImage.getSrcSet(['80', '200']) %}
 	{% endif %}
-
+{% elseif craft.fostercheckout.settings.options.enablePlaceholderImages %}
+	{% set imageUrl = 'https://placehold.co/70x70?text=' ~ 'misc.noImage'|t('foster-checkout')|split(' ')|join('+') %}
+{% else %}
+	{% set hasImage = false %}
 {% endif %}
 
 <article class="flex justify-between items-stretch gap-4 p-4 bg-gray-200 rounded-xl">
-
-	{% if imageUrl or craft.fostercheckout.settings.options.enablePlaceholderImages %}
+	{% if hasImage %}
 		<div class="w-[70px] min-w-[70px]">
 			<figure class="rounded-lg overflow-hidden">
 				<img
-					src="{{ imageUrl ?? ('https://placehold.co/70x70?text=' ~ 'No Image'|t('foster-checkout')|split(' ')|join('+')) }}"
+					srcset="{{ imageUrl }}"
+					sizes="(min-width: 768px) 200px, 80px"
 					width="70"
 					height="70"
 					alt="{{ 'Image of'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
