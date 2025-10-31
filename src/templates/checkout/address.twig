@@ -14,12 +14,12 @@
 
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 			<main
-					x-data="{
+				x-data="{
 					editExistingAddress: 0,
 					shippingAddressId: {{ cart.sourceShippingAddressId ?? cart.shippingAddressId ?? 0 }},
 					useNewAddress: {{ (cart.sourceShippingAddressId == null) or (currentUser and not (cart.sourceShippingAddressId ?? cart.shippingAddressId)) ? 1 : 0 }}
 				}"
-					class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
+				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 
 				<div class="grid grid-cols-1 gap-4 xl:gap-6 ">
 
@@ -58,32 +58,32 @@
 										{% for address in addresses %}
 
 											<div class="p-4 border-b border-gray-250"
-												 :class="{ 'bg-gray-100': (parseInt(shippingAddressId) === {{ address.id }} && useNewAddress === 0) }"
-													{{ cart.sourceShippingAddressId == address.id ? ' checked' : '' }}>
+													 :class="{ 'bg-gray-100': (parseInt(shippingAddressId) === {{ address.id }} && useNewAddress === 0) }"
+												{{ cart.sourceShippingAddressId == address.id ? ' checked' : '' }}>
 
 												<div class="flex justify-between items-center gap-4 radio">
 													<input
-															x-model="shippingAddressId"
-															id="address_{{ address.id }}"
-															name="shippingAddressId"
-															type="radio"
-															class="sr-only"
-															value="{{ address.id }}"
-															:checked="{{ cart.sourceShippingAddressId ?? 0 }} == {{ address.id }}"
-															@change="editExistingAddress = 0, useNewAddress = 0, shippingAddressId = {{ address.id }}"
+														x-model="shippingAddressId"
+														id="address_{{ address.id }}"
+														name="shippingAddressId"
+														type="radio"
+														class="sr-only"
+														value="{{ address.id }}"
+														:checked="{{ cart.sourceShippingAddressId ?? 0 }} == {{ address.id }}"
+														@change="editExistingAddress = 0, useNewAddress = 0, shippingAddressId = {{ address.id }}"
 													/>
 													<label
-															for="address_{{ address.id }}"
-															class="inline-flex justify-start items-center gap-4 cursor-pointer"
-															:class="{ 'font-medium text-black': parseInt(shippingAddressId) === 1 }"
+														for="address_{{ address.id }}"
+														class="inline-flex justify-start items-center gap-4 cursor-pointer"
+														:class="{ 'font-medium text-black': parseInt(shippingAddressId) === 1 }"
 													>
 														{% include'foster-checkout/_components/app/formatted-address' with { 'address': address } %}
 													</label>
 													<template x-if="parseInt(shippingAddressId) === {{ address.id }} && useNewAddress === 0">
 														<button
-																type="button"
-																class="text-[var(--brandColor)] underline"
-																@click="editExistingAddress = parseInt(editExistingAddress) === {{ address.id }} ? 0 : {{ address.id }};"
+															type="button"
+															class="text-[var(--brandColor)] underline"
+															@click="editExistingAddress = parseInt(editExistingAddress) === {{ address.id }} ? 0 : {{ address.id }};"
 														>
 															<template x-if="parseInt(editExistingAddress) === {{ address.id }}"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
 															<template x-if="parseInt(editExistingAddress) !== {{ address.id }}"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
@@ -94,17 +94,17 @@
 													<div class="pt-8">
 														{% include 'foster-checkout/_components/app/address-fields' %}
 														<div
-																class="flex justify-start items-center gap-4 mt-4 pt-4">
+															class="flex justify-start items-center gap-4 mt-4 pt-4">
 															<button
-																	type="submit"
-																	class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
+																type="submit"
+																class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
 															>
 																{{ 'misc.save'|t('foster-checkout') }}
 															</button>
 															<button
-																	type="button"
-																	class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
-																	@click="editExistingAddress = 0"
+																type="button"
+																class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]"
+																@click="editExistingAddress = 0"
 															>
 																{{ 'misc.cancel'|t('foster-checkout') }}
 															</button>
@@ -119,18 +119,18 @@
 									<div :class="{ 'bg-gray-100': parseInt(shippingAddressId) === 0 || useNewAddress }">
 										<div class="p-4 radio">
 											<input
-													id="address_0"
-													name="shippingAddressId"
-													type="radio"
-													class="sr-only"
-													value="0"
-													:checked="useNewAddress"
-													@change="editExistingAddress = 0, useNewAddress = 1"
+												id="address_0"
+												name="shippingAddressId"
+												type="radio"
+												class="sr-only"
+												value="0"
+												:checked="useNewAddress"
+												@change="editExistingAddress = 0, useNewAddress = 1"
 											/>
 											<label
-													for="address_0"
-													class="inline-flex justify-start items-center gap-4 cursor-pointer"
-													:class="{ 'font-medium text-black': useNewAddress }"
+												for="address_0"
+												class="inline-flex justify-start items-center gap-4 cursor-pointer"
+												:class="{ 'font-medium text-black': useNewAddress }"
 											>
 												{{ 'address.newAddress'|t('foster-checkout') }}
 											</label>
@@ -166,16 +166,16 @@
 														<input type="hidden" name="saveShippingAddressOnOrderComplete" :value="saveToBook ? 1 : 0">
 
 														<input
-																type="checkbox"
-																id="saveShippingAddressOnOrderComplete"
-																class="sr-only"
-																x-model="saveToBook"
-																:checked="saveToBook"
-																aria-checked="saveToBook.toString()"
+															type="checkbox"
+															id="saveShippingAddressOnOrderComplete"
+															class="sr-only"
+															x-model="saveToBook"
+															:checked="saveToBook"
+															aria-checked="saveToBook.toString()"
 														/>
 														<label
-																class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
-																for="saveShippingAddressOnOrderComplete"
+															class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
+															for="saveShippingAddressOnOrderComplete"
 														>
 															{{ 'address.saveToAddressBook'|t('foster-checkout') }}
 														</label>
@@ -183,7 +183,6 @@
 												</div>
 											</div>
 										</div>
-
 									</div>
 								</div>
 
@@ -196,14 +195,14 @@
 
 								<div class="mt-6 grid grid-cols-1 gap-4 md:flex md:justify-end md:items-center md:gap-6">
 									<a
-											href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
-											class="hidden md:block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white"
+										href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
+										class="hidden md:block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white"
 									>
 										{{ 'misc.returnToCart'|t('foster-checkout') }}
 									</a>
 									<button
-											type="submit"
-											class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+										type="submit"
+										class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 									>
 										{{ 'address.nextStep'|t('foster-checkout') }}
 									</button>
@@ -227,7 +226,7 @@
 			<aside>
 
 				<div
-						class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+					class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 
 					<div class="grid grid-cols-1 gap-6">
 
@@ -236,7 +235,7 @@
 								{{ 'summary.itemsTitle'|t('foster-checkout') }}
 							</h2>
 							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
-							   class="inline-block text-[var(--brandColor)] underline">
+								 class="inline-block text-[var(--brandColor)] underline">
 								{{ 'misc.edit'|t('foster-checkout') }}
 							</a>
 						</div>
