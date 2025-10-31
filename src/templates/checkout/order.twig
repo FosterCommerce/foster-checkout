@@ -1,5 +1,6 @@
 {% extends 'foster-checkout/_layouts/default' %}
-{% set order = craft.orders.number(craft.app.request.getParam('number')).withAdjustments().withTransactions().withLineItems().one() ?? null %}
+{% set number = craft.app.request.getParam('number') %}
+{% set order = craft.orders.number(number).isCompleted(true).withAdjustments().withTransactions().withLineItems().one() ?? null %}
 {% if not order %}
 	{% exit 404 %}
 {% endif %}
@@ -24,18 +25,18 @@
 			</header>
 
 			<div class="lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
-				{% set shippingAddress = craft.addresses.id(order.shippingAddressId).one() %}
+				{% set shippingAddress = order.shippingAddress ?? null %}
 				{% if shippingAddress %}
-					<iframe
-						class="w-full lg:bg-white lg:rounded-xl "
-						width="790"
-						height="275"
-						frameborder="0"
-						scrolling="no"
-						marginheight="0"
-						marginwidth="0"
-						id="gmap_canvas"
-						src="https://maps.google.com/maps?width=790&amp;height=275&amp;hl=en&amp;q={{ shippingAddress.addressLine1 ~ ' ' ~ shippingAddress.locality ~ ' ' ~ shippingAddress.administrativeArea }}+(Shipping%20address)&amp;t=&amp;z=18&amp;ie=UTF8&amp;iwloc=B&amp;output=embed"></iframe>
+					{% set q = (shippingAddress.addressLine1 ~ ' ' ~ shippingAddress.locality ~ ' ' ~ shippingAddress.administrativeArea)|url_encode %}
+					<div class="relative w-full overflow-hidden rounded-xl aspect-[790/275]">
+						<iframe
+							class="absolute inset-0 h-full w-full"
+							title="Shipping address map"
+							loading="lazy"
+							referrerpolicy="no-referrer-when-downgrade"
+							src="https://maps.google.com/maps?hl=en&q={{ q }}+(Shipping%20address)&t=&z=18&ie=UTF8&iwloc=B&output=embed">
+						</iframe>
+					</div>
 				{% endif %}
 
 				<div class="p-4 space-y-2">
@@ -76,7 +77,7 @@
 						{% if order.shippingMethod %}
 							<!-- Shipping Method -->
 							<div class="mt-4">
-								<h2 class="text-lg font-medium text-gray-700">{{ 'order.shippingMethod'|t('foster-checkount') }}</h2>
+								<h2 class="text-lg font-medium text-gray-700">{{ 'order.shippingMethod'|t('foster-checkout') }}</h2>
 								<p class="mt-1">
 									{{ order.shippingMethod.name }}
 								</p>
@@ -117,19 +118,28 @@
 							{% endif %}
 							{% set transaction = order.transactions|last %}
 							{% if transaction %}
-								{% set response = transaction.response|json_decode %}
-								{% if response and (response.paymentMethod is defined) %}
-									{% set paymentMethod = response.payment_method %}
-									{% if payment_method.card|default %}
-										<p class="mt-1">{{ response.payment_method.card.display_brand|capitalize }} **** {{ response.payment_method.card.last4 }}</p>
-									{% else %}
-										<p class="mt-1">{{ paymentMethod.type|capitalize }}</p>
-									{% endif %}
-								{% elseif response.transactionResponse is defined %} {# Authorize.net #}
-									{% set paymentMethod = response.transactionResponse %}
-									<p class="mt-1">{{ paymentMethod.accountType|capitalize }} **** {{ paymentMethod.accountNumber|slice(-4) }}</p>
+								{% set paymentResponse = (transaction.response ?? null)|json_decode %}
+								{% set cardBrand = null %}
+								{% set cardLast4 = null %}
+
+								{% if paymentResponse and paymentResponse.payment_method is defined and paymentResponse.payment_method.card is defined %}
+									{% set cardBrand = paymentResponse.payment_method.card.display_brand ?? paymentResponse.payment_method.card.brand ?? null %}
+									{% set cardLast4 = paymentResponse.payment_method.card.last4 ?? null %}
+								{% elseif paymentResponse and paymentResponse.transactionResponse is defined %}
+									{% set cardBrand = paymentResponse.transactionResponse.accountType ?? null %}
+									{% set cardLast4 = paymentResponse.transactionResponse.accountNumber is defined ? paymentResponse.transactionResponse.accountNumber|slice(-4) : null %}
 								{% endif %}
-								<p class="mt-1">{{ transaction.paymentAmount|float|currency('USD') }} ({{ 'order.dateChargedLabel'|t('foster-checkout') }} {{ order.dateOrdered|date }})</p>
+
+								{% if cardBrand or cardLast4 %}
+									<p class="mt-1">
+										{{ cardBrand ? cardBrand|capitalize ~ ' ' : '' }}{{ cardLast4 ? '**** ' ~ cardLast4 : '' }}
+									</p>
+								{% endif %}
+
+								<p class="mt-1">
+									{{ transaction.paymentAmount|float|currency(order.paymentCurrency) }}
+									({{ 'order.dateChargedLabel'|t('foster-checkout') }} {{ order.dateOrdered|date }})
+								</p>
 							{% endif %}
 						</div>
 
