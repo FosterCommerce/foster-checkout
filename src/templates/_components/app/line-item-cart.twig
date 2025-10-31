@@ -76,29 +76,36 @@
 					{{ csrfInput() }}
 					{{ actionInput('commerce/cart/update-cart') }}
 					<div class="inline-flex bg-white border border-gray-300 rounded-lg overflow-hidden">
-						<button
-							type="button"
-							class="flex justify-center items-center w-[38px] h-[38px] text-[var(--brandColor)]"
-							@click="decrement"
-						>
-							<template x-if="qty <= 1">
-							 	<span >
+						<template x-if="qty <= 1">
+							<button
+								type="button"
+								class="flex justify-center items-center w-[38px] h-[38px] text-[var(--brandColor)]"
+								@click="remove"
+							>
+								<span>
 									<span class="sr-only">{{ 'cart.lineItem.removeFromCart'|t('foster-checkout') }}</span>
 									<svg xmlns="http://www.w3.org/2000/svg" width="18" height="20" viewBox="0 0 18 20" class="fill-current">
-									  <path
-										  d="M3.47723 19.1494C3.0156 19.1494 2.61532 18.9806 2.27638 18.6428C1.93745 18.305 1.76798 17.9062 1.76798 17.4462V3.29781H0.641357V1.59454H5.59843V0.736938H12.3957V1.59454H17.3588V3.29781H16.2321V17.4462C16.2321 17.9062 16.0627 18.305 15.7237 18.6428C15.3848 18.9806 14.9845 19.1494 14.5229 19.1494H3.47723ZM6.09733 15.344H7.69898V5.36901H6.09733V15.344ZM10.3011 15.344H11.9088V5.36901H10.3011V15.344Z"/>
+										<path
+											d="M3.47723 19.1494C3.0156 19.1494 2.61532 18.9806 2.27638 18.6428C1.93745 18.305 1.76798 17.9062 1.76798 17.4462V3.29781H0.641357V1.59454H5.59843V0.736938H12.3957V1.59454H17.3588V3.29781H16.2321V17.4462C16.2321 17.9062 16.0627 18.305 15.7237 18.6428C15.3848 18.9806 14.9845 19.1494 14.5229 19.1494H3.47723ZM6.09733 15.344H7.69898V5.36901H6.09733V15.344ZM10.3011 15.344H11.9088V5.36901H10.3011V15.344Z"/>
 									</svg>
 								</span>
-							</template>
-							<template x-if="qty > 1">
-								<span >
+							</button>
+						</template>
+
+						<template x-if="qty > 1">
+							<button
+								type="button"
+								class="flex justify-center items-center w-[38px] h-[38px] text-[var(--brandColor)]"
+								@click="decrement"
+							>
+								<span>
 									<span class="sr-only">{{ 'cart.lineItem.decreaseQuantity'|t('foster-checkout') }}</span>
 									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="2" viewBox="0 0 16 2" class="fill-current">
 									  <path d="M0.850586 1.85163V0.148376H15.1555V1.85163H0.850586Z"/>
 									</svg>
 								</span>
-							</template>
-						</button>
+							</button>
+						</template>
 
 						<label for="qty_{{ lineItem.id }}" class="sr-only">{{ 'cart.lineItem.quantity'|t('foster-checkout') }}</label>
 						<input
