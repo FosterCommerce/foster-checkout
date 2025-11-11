@@ -14,7 +14,9 @@
 	{# If "new address" was chosen, sourceShippingAddressId is null but cart.shippingAddressId exists. #}
 	{% set _sourceId = cart.sourceShippingAddressId ?? null %}
 	{% set _hasCartShip = cart.shippingAddressId is not empty %}
-	{% set _isNew = (_sourceId is null) and _hasCartShip %}
+	{% set _hasBookAddresses = currentUser and addresses|length %}
+	{# New address when: using a cart address OR there are no saved addresses #}
+	{% set _isNew = (_sourceId is null) and (_hasCartShip or not _hasBookAddresses) %}
 	{% set _initialRadio = _isNew ? 0 : (_sourceId ?? 0) %}
 
 	<div class="mt-10 pb-28 lg:pb-32">
@@ -25,6 +27,7 @@
 				  shippingAddressId: {{ _initialRadio }},
 				  useNewAddress: {{ _isNew ? 1 : 0 }},
 				}"
+				x-init="useNewAddress = Number(shippingAddressId) === 0 ? 1 : useNewAddress"
 				x-effect="
 				  $refs.postShipId.value = shippingAddressId;
 				  $refs.postUseNew.value = useNewAddress ? 1 : 0;

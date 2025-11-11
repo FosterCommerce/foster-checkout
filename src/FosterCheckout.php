@@ -6,6 +6,7 @@ use CommerceGuys\Addressing\AddressFormat\AddressField;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
+use craft\commerce\elements\Order;
 use craft\events\DefineAddressFieldLabelEvent;
 use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
@@ -132,6 +133,37 @@ class FosterCheckout extends Plugin
 				}
 			}
 		);
+
+		Event::on(
+			Order::class,
+			Order::EVENT_AFTER_COMPLETE_ORDER,
+			function(Event $event) {
+				/** @var Order $order */
+				$order = $event->sender;
+
+				$customers = Commerce::getInstance()->getCustomers();
+				$addresses = Commerce::getInstance()->getAddresses();
+				$customer = $order->getCustomer();
+				if (!$customer) return;
+
+				if ($order->saveShippingAddressOnOrderComplete && $order->shippingAddress) {
+					$address = clone $order->shippingAddress;
+					$address->id = null;
+					if ($addresses->saveAddress($address, $customer)) {
+						$customers->savePrimaryShippingAddressId($customer->id, (int)$address->id);
+					}
+				}
+
+				if ($order->saveBillingAddressOnOrderComplete && $order->billingAddress) {
+					$address = clone $order->billingAddress;
+					$addr->id = null;
+					if ($addresses->saveAddress($address, $customer)) {
+						$customers->savePrimaryBillingAddressId($customer->id, (int)$address->id);
+					}
+				}
+			}
+		);
+
 
 		// Although a county is not actually required for UK addresses (the postal service ignores it)
 		// it is normal in the UK to write addresses with a county
