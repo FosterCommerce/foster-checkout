@@ -6,7 +6,6 @@ use CommerceGuys\Addressing\AddressFormat\AddressField;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
-use craft\commerce\elements\Order;
 use craft\events\DefineAddressFieldLabelEvent;
 use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
