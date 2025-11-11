@@ -47,20 +47,21 @@
 
 				</div>
 
-				<div>
-					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
-							class="block md:inline-block px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
-						>
-							{{ 'cart.continueShopping'|t('foster-checkout') }}
-					</a>
-				</div>
-
 				{% set note = craft.fostercheckout.note('cart') %}
 				{% if note %}
 					<div class="mt-6 p-4 border border-gray-250 rounded-lg xl:p-6 [&_a]:underline [&_a:hover]:decoration-current">
 						{{ note|raw }}
 					</div>
 				{% endif %}
+
+				<div>
+					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
+					   class="block md:inline-block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white"
+
+					>
+						{{ 'cart.continueShopping'|t('foster-checkout') }}
+					</a>
+				</div>
 
 			</main>
 
@@ -126,7 +127,7 @@
 				</div>
 				<a
 					href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
-					class="inline-block lg:block max-w-[260px] mt-10 mx-auto px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl "
+					class="inline-block lg:block max-w-[260px] mt-10 mx-auto px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 				>
 					{{ 'cart.continueShopping'|t('foster-checkout') }}
 				</a>

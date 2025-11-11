@@ -34,8 +34,10 @@
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'shipping' } %}
 
-					<form method="post" x-data x-on:submit="$el.querySelector('[data-next]')?.setAttribute('disabled','disabled')">
-						{{ csrfInput() }}
+					<form method="post" x-data x-ref="shippingForm" x-on:submit="$el.querySelector('[data-next]')?.setAttribute('disabled','disabled')">
+						{# --- CSRF, not namespaced for the auto-submit version below --- #}
+						<input type="hidden" name="{{ craft.app.config.general.csrfTokenName }}" value="{{ craft.app.request.csrfToken }}">
+
 						{{ actionInput('commerce/cart/update-cart') }}
 
 						{# Always mirror the Alpine value in a hidden field #}
@@ -49,9 +51,11 @@
 						{% endif %}
 
 						{# Auto-submit if only one option and cart not already set #}
+						{# Hidden until we decide if this is how we want to handle these types of carts
 						{% if optionCount == 1 and not _hasCartHandle %}
-							<div x-init="$nextTick(() => $root.requestSubmit && $root.requestSubmit())"></div>
+							<div x-init="$nextTick(() => $refs.shippingForm?.requestSubmit())"></div>
 						{% endif %}
+						#}
 
 						<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 							<h2 class="p-4 font-semibold bg-gray-200">
@@ -93,12 +97,8 @@
 													</label>
 
 													<span class="block font-semibold">
-														{% if methodPrice is not null and methodPrice == 0 %}
-															{{ 'shipping.free'|t('foster-checkout') }}
-														{% else %}
-															{{ (methodPrice ?? 0)|commerceCurrency(cart.currency) }}
-														{% endif %}
-													  </span>
+														{{ (methodPrice ?? 0)|commerceCurrency(cart.currency) }}
+													</span>
 												</div>
 											</div>
 										{% endfor %}

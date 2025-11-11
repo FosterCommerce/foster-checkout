@@ -335,9 +335,13 @@
 														{% set params = { currency: cart.paymentCurrency } %}
 													{% endif %}
 
-													{# Gateway with custom fields (manual add-ons) #}
-													{% if craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
-														<form method="POST" class="grid gap-y-4 gap-x-4 sm:grid-cols-{{ craft.fostercheckout.getManualGatewayColumns(gateway.handle) ?: 3 }}">
+													{# Manual vs native gateway rendering #}
+													{% set manualFields  = craft.fostercheckout.getManualGatewayFields(gateway.handle) ?? [] %}
+													{% set manualColumns = craft.fostercheckout.getManualGatewayColumns(gateway.handle) ?: 3 %}
+													{% set isManualGateway = (gatewayClass == 'craft\\commerce\\gateways\\Manual') %}
+
+													{% if isManualGateway or manualFields|length %}
+														<form method="POST" class="grid gap-y-4 gap-x-4 sm:grid-cols-{{ manualColumns }}">
 															{{ csrfInput() }}
 															{{ actionInput('commerce/payments/pay') }}
 
@@ -347,37 +351,39 @@
 															{{ hiddenInput('orderEmail', cart.email) }}
 															{{ hiddenInput('gatewayId', gateway.id) }}
 
-															{# Only namespace the gateway fields #}
-															{% namespace gateway.handle|commercePaymentFormNamespace %}
-																{% for field in craft.fostercheckout.getManualGatewayFields(gateway.handle) %}
-																	<div class="sm:col-span-{{ field.columns ?: 'full' }}">
-																		{% switch field.type %}
-																		{% case 'select' %}{% set fieldTemplate = 'input-select' %}
-																		{% default %}{% set fieldTemplate = 'input-text-clearable' %}
-																		{% endswitch %}
+															{# Only namespace additional custom fields if they exist #}
+															{% if manualFields|length %}
+																{% namespace gateway.handle|commercePaymentFormNamespace %}
+																	{% for field in manualFields %}
+																		<div class="sm:col-span-{{ field.columns ?: 'full' }}">
+																			{% switch field.type %}
+																			{% case 'select' %}{% set fieldTemplate = 'input-select' %}
+																			{% default %}{% set fieldTemplate = 'input-text-clearable' %}
+																			{% endswitch %}
 
-																		{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
-																			context: '',
-																			label: field.label,
-																			id: field.id ?? field.handle,
-																			name: field.name ?? field.handle,
-																			type: field.type,
-																			placeholder: field.placeholder,
-																			errors: [],
-																			minLength: field.minLength,
-																			maxLength: field.maxLength,
-																			min: field.min,
-																			max: field.max,
-																			required: field.required ?? false,
-																			options: field.options ?? [],
-																		} %}
-																	</div>
-																{% endfor %}
-															{% endnamespace %}
+																			{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
+																				context: '',
+																				label: field.label,
+																				id: field.id ?? field.handle,
+																				name: field.name ?? field.handle,
+																				type: field.type,
+																				placeholder: field.placeholder,
+																				errors: [],
+																				minLength: field.minLength,
+																				maxLength: field.maxLength,
+																				min: field.min,
+																				max: field.max,
+																				required: field.required ?? false,
+																				options: field.options ?? [],
+																			} %}
+																		</div>
+																	{% endfor %}
+																{% endnamespace %}
+															{% endif %}
 
 															<button
-																	type="submit"
-																	class="mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+																type="submit"
+																class="justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
 															>
 																{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
 															</button>
