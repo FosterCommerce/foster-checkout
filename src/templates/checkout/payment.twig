@@ -390,9 +390,21 @@
 														</form>
 													{% else %}
 														{# Native gateway form #}
-														{% namespace gateway.handle|commercePaymentFormNamespace %}
-															{{ gateway.getPaymentFormHtml(params)|raw }}
-														{% endnamespace %}
+														{# Native gateway form #}
+														<form id="paymentForm" method="POST" class="grid gap-y-4 gap-x-4">
+															{{ csrfInput() }}
+															{{ actionInput('commerce/payments/pay') }}
+
+															{# IMPORTANT: these must NOT be namespaced #}
+															{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order', { number: cart.number, success: 'true' })) }}
+															{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
+															{{ hiddenInput('orderEmail', cart.email) }}
+															{{ hiddenInput('gatewayId', gateway.id) }}
+
+															{% namespace gateway.handle|commercePaymentFormNamespace %}
+																{{ gateway.getPaymentFormHtml(params)|raw }}
+															{% endnamespace %}
+														</form>
 													{% endif %}
 												</div>
 											</div>
