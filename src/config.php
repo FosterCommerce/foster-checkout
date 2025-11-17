@@ -112,7 +112,7 @@ return [
 		'checkoutFooter' => [
 			'elementHandle' => '',
 			'fieldHandle' => '',
-		]
+		],
 	],
 
 	// Product Settings

@@ -68,7 +68,6 @@ class Checkout extends Component
 		return null;
 	}
 
-
 	/*
 	 * Gets the custom note data based on the template page we are on
 	*/

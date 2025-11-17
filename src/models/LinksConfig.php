@@ -8,7 +8,6 @@ class LinksConfig extends Model
 {
 	public ValueConfig $footerLinks;
 
-
 	/**
 	 * @param array<mixed, mixed> $config
 	 */

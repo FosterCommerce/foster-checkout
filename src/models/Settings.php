@@ -29,7 +29,6 @@ class Settings extends Model
 
 	public LinksConfig $links;
 
-
 	/**
 	 * For each payment gateway using the gateway handle, to define an array of fields to be rendered when
 	 * that gateway is selected
