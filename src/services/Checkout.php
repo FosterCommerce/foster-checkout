@@ -49,6 +49,26 @@ class Checkout extends Component
 		return $bundleUrl;
 	}
 
+	public function links(string $field): string|null
+	{
+		$links = $this->settings()->links;
+
+		/** @var ?ValueConfig $links */
+		$link = $links->{$field} ?? null;
+
+		try {
+			if ($link instanceof ValueConfig) {
+				/** @throws InvalidFieldException */
+				return (string) $link;
+			}
+		} catch (InvalidFieldException) {
+			return null;
+		}
+
+		return null;
+	}
+
+
 	/*
 	 * Gets the custom note data based on the template page we are on
 	*/

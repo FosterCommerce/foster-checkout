@@ -108,6 +108,13 @@ return [
 		'cancel' => '',
 	],
 
+	'links' => [
+		'checkoutFooter' => [
+			'elementHandle' => '',
+			'fieldHandle' => '',
+		]
+	],
+
 	// Product Settings
 	'products' => [
 		/*
