@@ -50,7 +50,7 @@
 								{% endif %}
 								{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address') }}
 
-								<fieldset class="grid grid-cols-1 gap-6">
+								<fieldset class="grid grid-cols-1 gap-6" x-data="{ createAccount: '{{ cart.registerUserOnOrderComplete }}' }">
 
 									<div>
 										{% include 'foster-checkout/_components/base/input-text-clearable' with {
@@ -67,9 +67,8 @@
 										} %}
 									</div>
 
-									<div class="checkbox" x-data="{ createAccount: {{ cart.registerUserOnOrderComplete }} }">
-										<input type="hidden" name="registerUserOnOrderComplete" :value="creataAccount ? 1 : 0">
-
+									<div class="checkbox">
+										<input type="hidden" name="registerUserOnOrderComplete" :value="createAccount ? 1 : 0">
 										<input
 											type="checkbox"
 											id="registerUserOnOrderComplete"
