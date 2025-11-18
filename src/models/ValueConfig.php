@@ -22,7 +22,7 @@ class ValueConfig extends Model implements Stringable
 	 */
 	public mixed $value = null;
 
-	private mixed $memo = null;
+	private mixed $fieldData = null;
 
 	/**
 	 * @param string|array<array-key, mixed> $config
@@ -73,19 +73,19 @@ class ValueConfig extends Model implements Stringable
 	 */
 	public function getValue(array $context = []): mixed
 	{
-		if ($this->memo !== null) {
-			return $this->memo;
+		if ($this->fieldData !== null) {
+			return $this->fieldData;
 		}
 
-		$this->memo = null;
+		$this->fieldData = null;
 
 		if (is_string($this->value)) {
 			// If it's a string, then we render it as a twig template
-			$this->memo = Craft::$app->getView()->renderString($this->value, $context);
+			$this->fieldData = Craft::$app->getView()->renderString($this->value, $context);
 		} elseif (is_callable($this->value)) {
 			// If it's a callable, then we call it with the context
 			$callable = $this->value;
-			$this->memo = $callable($context);
+			$this->fieldData = $callable($context);
 		} elseif ($this->elementHandle !== null && $this->fieldHandle !== null) {
 			// If it's and element and field handle, then we get the field value
 			$elementHandle = trim($this->elementHandle);
@@ -100,12 +100,18 @@ class ValueConfig extends Model implements Stringable
 			}
 
 			// Get the content field data and parse it if necessary (for rich text fields like Redactor)
-			$this->memo = $element->getFieldValue($fieldHandle);
+			$fieldData = $element->getFieldValue($fieldHandle);
+			if($fieldData instanceof craft\ckeditor\data\FieldData){
+				$this->fieldData = $fieldData;
+			} else {
+				$this->fieldData = $element->$fieldHandle;
+			}
+
 		} else {
-			$this->memo = $this->value;
+			$this->fieldData = $this->value;
 		}
 
-		return $this->memo;
+		return $this->fieldData;
 	}
 
 	/**

@@ -111,6 +111,7 @@ class Settings extends Model
 			$values['links'] = new LinksConfig($values['links']);
 		}
 
+
 		parent::setAttributes($values, $safeOnly);
 	}
 }

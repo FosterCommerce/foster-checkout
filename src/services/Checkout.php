@@ -62,7 +62,7 @@ class Checkout extends Component
 				return (string) $link;
 			}
 		} catch (InvalidFieldException) {
-			return null;
+			return 'invalid field exception';
 		}
 
 		return null;

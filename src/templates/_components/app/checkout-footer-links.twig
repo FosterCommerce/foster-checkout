@@ -1,1 +1,3 @@
-{{ dump(craft.fostercheckout.links('links')) }}
+{% set links = craft.fostercheckout.links('footerLinks') %}
+
+{{ dump(links) }}
