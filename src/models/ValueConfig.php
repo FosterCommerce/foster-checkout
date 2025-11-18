@@ -101,12 +101,11 @@ class ValueConfig extends Model implements Stringable
 
 			// Get the content field data and parse it if necessary (for rich text fields like Redactor)
 			$fieldData = $element->getFieldValue($fieldHandle);
-			if($fieldData instanceof craft\ckeditor\data\FieldData){
+			if ($fieldData instanceof craft\ckeditor\data\FieldData) {
 				$this->fieldData = $fieldData;
 			} else {
-				$this->fieldData = $element->$fieldHandle;
+				$this->fieldData = $element->{$fieldHandle};
 			}
-
 		} else {
 			$this->fieldData = $this->value;
 		}

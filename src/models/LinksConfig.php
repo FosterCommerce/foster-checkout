@@ -18,6 +18,5 @@ class LinksConfig extends Model
 		if (! isset($this->footerLinks)) {
 			$this->footerLinks = new ValueConfig();
 		}
-
 	}
 }
