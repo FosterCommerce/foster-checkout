@@ -52,7 +52,7 @@
 
 								<fieldset class="grid grid-cols-1 gap-6">
 
-									<div >
+									<div>
 										{% include 'foster-checkout/_components/base/input-text-clearable' with {
 											label: 'email.emailLabel'|t('foster-checkout'),
 											id: 'email',
@@ -65,6 +65,12 @@
 											errors: [],
 											action: '$nextTick(() => { $refs.input.focus() });'
 										} %}
+									</div>
+
+									<div>
+										<label for="registerUserOnOrderComplete">
+										Create an account?
+										<input type="checkbox" name="registerUserOnOrderComplete" value="1" {{ cart.registerUserOnOrderComplete == 1 ? 'checked' }}/>
 									</div>
 
 								</fieldset>
