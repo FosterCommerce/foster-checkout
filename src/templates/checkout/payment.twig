@@ -236,7 +236,12 @@
 
 									{% for gateway in gateways %}
 										{% set gatewayClass = className(gateway) %}
-										{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' and cart.totalAmount == 0 %}
+
+										{% if cart.total == 0 and gateway.handle == zeroValueGatewayHandle %}
+											{% set shouldRender = true %}
+										{% elseif cart.total == 0 %}
+											{% set shouldRender = false %}
+										{% elseif gateway.handle == zeroValueGatewayHandle %}
 											{% set shouldRender = false %}
 										{% else %}
 											{% set shouldRender = true %}
