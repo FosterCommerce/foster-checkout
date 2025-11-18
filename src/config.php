@@ -180,5 +180,5 @@ return [
 	'paymentGateways' => [
 	],
 	// The handle for the gateway that should handle Zero value orders
-	'zeroValueGatewayHandle' => ''
+	'zeroValueGatewayHandle' => '',
 ];
