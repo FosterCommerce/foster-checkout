@@ -67,10 +67,23 @@
 										} %}
 									</div>
 
-									<div>
-										<label for="registerUserOnOrderComplete">
-										Create an account?
-										<input type="checkbox" name="registerUserOnOrderComplete" value="1" {{ cart.registerUserOnOrderComplete == 1 ? 'checked' }}/>
+									<div class="checkbox" x-data="{ createAccount: {{ cart.registerUserOnOrderComplete }} }">
+										<input type="hidden" name="registerUserOnOrderComplete" :value="creataAccount ? 1 : 0">
+
+										<input
+											type="checkbox"
+											id="registerUserOnOrderComplete"
+											class="sr-only"
+											x-model="createAccount"
+											:checked="createAccount"
+											aria-checked="createAccount.toString()"
+										/>
+										<label
+											class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
+											for="registerUserOnOrderComplete"
+										>
+											{{ 'email.createAccount'|t('foster-checkout') }}
+										</label>
 									</div>
 
 								</fieldset>
