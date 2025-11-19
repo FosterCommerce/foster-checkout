@@ -1,3 +1,9 @@
 {% set links = craft.fostercheckout.links('footerLinks') %}
 
-{{ dump(links) }}
+{% if links|length %}
+	<div class="flex flex-row gap-4 justify-center md:justify-start mt-6 text-sm">
+	{% for link in links %}
+	<a class="underline text-[var(--brandColor)]" href="{{ link.url }}">{{ link.text }}</a>
+	{% endfor %}
+	</div>
+{% endif %}
