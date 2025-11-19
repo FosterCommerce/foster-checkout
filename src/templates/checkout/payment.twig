@@ -162,10 +162,10 @@
 														<div class="pt-8">
 															{% include 'foster-checkout/_components/app/address-fields' %}
 															<div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
-																<button type="submit" data-bill-submit class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]">
+																<button type="submit" data-bill-submit class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]">
 																	{{ 'misc.save'|t('foster-checkout') }}
 																</button>
-																<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]" @click="editBillingAddressId = 0">
+																<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]" @click="editBillingAddressId = 0">
 																	{{ 'misc.cancel'|t('foster-checkout') }}
 																</button>
 															</div>
@@ -213,10 +213,10 @@
 												{% endif %}
 
 												<div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
-													<button type="submit" data-bill-submit class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]">
+													<button type="submit" data-bill-submit class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]">
 														{{ cart.billingAddressId and not _hasMatch ? 'misc.update'|t('foster-checkout') : 'misc.save'|t('foster-checkout') }}
 													</button>
-													<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]" @click="newBillingAddress = 0">
+													<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]" @click="newBillingAddress = 0">
 														{{ 'misc.cancel'|t('foster-checkout') }}
 													</button>
 												</div>
@@ -280,7 +280,7 @@
 
 													/* inputs */
 													[&_input.text]:block [&_input.text]:w-full
-													[&_input.text]:rounded-xl
+													[&_input.text]:rounded-lg
 													[&_input.text]:border [&_input.text]:border-gray-300
 													[&_input.text]:px-3 [&_input.text]:py-2
 													focus:[&_input.text]:outline-none
@@ -301,7 +301,7 @@
 													[&_button#paymentForm-authorizeNet-authorizeSubmit]:bg-[var(--brandColor)]
 													[&_button#paymentForm-authorizeNet-authorizeSubmit]:border
 													[&_button#paymentForm-authorizeNet-authorizeSubmit]:border-[var(--brandColor)]
-													[&_button#paymentForm-authorizeNet-authorizeSubmit]:rounded-xl
+													[&_button#paymentForm-authorizeNet-authorizeSubmit]:rounded-lg
 													[&_button#paymentForm-authorizeNet-authorizeSubmit]:transition
 													hover:[&_button#paymentForm-authorizeNet-authorizeSubmit]:opacity-90
 													"
@@ -328,7 +328,7 @@
 																}
 															},
 															submitButtonText: buttonText,
-															submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block'
+															submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg lg:inline-block'
 														} %}
 													{% elseif gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
 														{% set params = { currency: cart.paymentCurrency } %}
@@ -382,7 +382,7 @@
 
 															<button
 																type="submit"
-																class="justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+																class="justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg lg:inline-block"
 															>
 																{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
 															</button>
@@ -408,7 +408,7 @@
 			</main>
 
 			<aside>
-				<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+				<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 					<div class="grid grid-cols-1 gap-6">
 						<div class="flex justify-between items-center gap-4">
 							<h2 class="text-xl font-bold text-gray-800 leading-snug">

@@ -35,7 +35,7 @@
 			id="{{ 'countryCode'|namespaceInputId(context) }}"
 			name="{{ context ? 'countryCode'|namespaceInputName(context) : 'countryCode' }}"
 			autocomplete="country-name"
-			class="w-full h-12 px-4 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
+			class="w-full h-12 px-4 bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
 			:class="'countryCode' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
 			:aria-invalid="'countryCode' in errors"
 			aria-errormessage="{{ 'countryCode'|namespaceInputId(context) }}-error"
@@ -139,7 +139,7 @@
 					id="{{ 'administrativeArea'|namespaceInputId(context) }}"
 					name="{{ context ? 'administrativeArea'|namespaceInputName(context) : 'administrativeArea' }}"
 					autocomplete="address-level1"
-					class="w-full h-12 px-4 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
+					class="w-full h-12 px-4 bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
 					:class="'administrativeArea' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
 					:aria-invalid="'administrativeArea' in errors"
 					aria-errormessage="{{ 'administrativeArea'|namespaceInputId(context) }}-error"
@@ -201,7 +201,7 @@
 				<textarea
 					id="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}"
 					name="{{ context ? ('fields[' ~ customField.handle ~ ']')|namespaceInputName(context) : ('fields[' ~ customField.handle ~ ']') }}"
-					class="w-full p-4 bg-white rounded-xl focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
+					class="w-full p-4 bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
 					:class="'{{ customField.handle }}' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
 					rows="{{ customField.initialRows }}"
 					{% if not customField.required %}
