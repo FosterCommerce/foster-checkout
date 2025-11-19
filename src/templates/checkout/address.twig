@@ -162,27 +162,29 @@
 
 													{% include 'foster-checkout/_components/app/address-fields' with {
 														context: 'shippingAddress',
-														address,
+														address: null,
 													} %}
 
-													<div class="mt-4 p4 checkbox">
-														<input type="hidden" name="saveShippingAddressOnOrderComplete" :value="saveToBook ? 1 : 0">
+													{% if currentUser %}
+														<div class="mt-4 p4 checkbox">
+															<input type="hidden" name="saveShippingAddressOnOrderComplete" :value="saveToBook ? 1 : 0">
 
-														<input
-															type="checkbox"
-															id="saveShippingAddressOnOrderComplete"
-															class="sr-only"
-															x-model="saveToBook"
-															:checked="saveToBook"
-															aria-checked="saveToBook.toString()"
-														/>
-														<label
-															class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
-															for="saveShippingAddressOnOrderComplete"
-														>
-															{{ 'address.saveToAddressBook'|t('foster-checkout') }}
-														</label>
-													</div>
+															<input
+																type="checkbox"
+																id="saveShippingAddressOnOrderComplete"
+																class="sr-only"
+																x-model="saveToBook"
+																:checked="saveToBook"
+																aria-checked="saveToBook.toString()"
+															/>
+															<label
+																class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
+																for="saveShippingAddressOnOrderComplete"
+															>
+																{{ 'address.saveToAddressBook'|t('foster-checkout') }}
+															</label>
+														</div>
+													{% endif %}
 												</div>
 											</div>
 										</div>

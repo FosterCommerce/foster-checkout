@@ -202,13 +202,15 @@
 													address: cart.billingAddress ?? null,
 												} %}
 
-												<div class="mt-4 p4 checkbox">
-													{# You can switch this to a cart custom field if you want cart-truth only #}
-													<input type="checkbox" class="absolute opacity-0 w-px h-px" id="saveBillingAddressOnOrderComplete" name="saveBillingAddressOnOrderComplete" value="1">
-													<label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveBillingAddressOnOrderComplete">
-														{{ 'payment.saveToAddressBook'|t('foster-checkout') }}
-													</label>
-												</div>
+												{% if currentUser %}
+													<div class="mt-4 p4 checkbox">
+														{# You can switch this to a cart custom field if you want cart-truth only #}
+														<input type="checkbox" class="absolute opacity-0 w-px h-px" id="saveBillingAddressOnOrderComplete" name="saveBillingAddressOnOrderComplete" value="1">
+														<label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveBillingAddressOnOrderComplete">
+															{{ 'payment.saveToAddressBook'|t('foster-checkout') }}
+														</label>
+													</div>
+												{% endif %}
 
 												<div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
 													<button type="submit" data-bill-submit class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]">
@@ -237,15 +239,7 @@
 									{% for gateway in gateways %}
 										{% set gatewayClass = className(gateway) %}
 
-										{% if cart.total == 0 and gateway.handle == zeroValueGatewayHandle %}
-											{% set shouldRender = true %}
-										{% elseif cart.total == 0 %}
-											{% set shouldRender = false %}
-										{% elseif gateway.handle == zeroValueGatewayHandle %}
-											{% set shouldRender = false %}
-										{% else %}
-											{% set shouldRender = true %}
-										{% endif %}
+										{% set shouldRender = true %}
 
 										{% if shouldRender %}
 											<div class="p-4 border-b border-gray-250"
