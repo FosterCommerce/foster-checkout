@@ -20,6 +20,8 @@ use yii\base\InvalidConfigException;
 /**
  * Checkout service
  *
+ * @phpstan-type LinksTable array<array-key, array{text: non-empty-string, url: non-empty-string}>
+ *
  * @property-read array $gateways
  * @property-read array $regions
  * @property-read string $paymentForm
@@ -47,6 +49,29 @@ class Checkout extends Component
 		$bundleUrl = Craft::$app->assetManager->getPublishedUrl('@fostercheckout/web/assets/checkout/dist/js/alpine.js', true);
 
 		return $bundleUrl;
+	}
+
+	/**
+	 * @return ?LinksTable
+	 */
+	public function links(string $field): ?array
+	{
+		$links = $this->settings()->links;
+
+		/** @var ?ValueConfig $links */
+		$link = $links->{$field} ?? null;
+
+		try {
+			if ($link instanceof ValueConfig) {
+				/** @var LinksTable $value */
+				$value = $link->getValue();
+				return $value;
+			}
+		} catch (InvalidFieldException) {
+			return null;
+		}
+
+		return null;
 	}
 
 	/*

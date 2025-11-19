@@ -27,6 +27,8 @@ class Settings extends Model
 	 */
 	public NotesConfig $notes;
 
+	public LinksConfig $links;
+
 	/**
 	 * For each payment gateway using the gateway handle, to define an array of fields to be rendered when
 	 * that gateway is selected
@@ -58,6 +60,10 @@ class Settings extends Model
 
 		if (! isset($this->notes)) {
 			$this->notes = new NotesConfig();
+		}
+
+		if (! isset($this->links)) {
+			$this->links = new LinksConfig();
 		}
 	}
 
@@ -98,6 +104,15 @@ class Settings extends Model
 				$values['paymentGateways'][$gatewayHandle] = new PaymentGatewayConfig($gatewayHandle, $paymentGateway);
 			}
 		}
+
+		if (array_key_exists('links', $values)) {
+			foreach ($values['links'] as &$link) {
+				$link = new ValueConfig($link);
+			}
+
+			$values['links'] = new LinksConfig($values['links']);
+		}
+
 
 		parent::setAttributes($values, $safeOnly);
 	}
