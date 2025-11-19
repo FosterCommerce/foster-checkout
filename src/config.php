@@ -108,6 +108,10 @@ return [
 		'cancel' => '',
 	],
 
+	/*	Extra supplementary links
+		Field should be a table field, with columns for 'text' and 'url'
+		checkoutFooter links are displayed at the bottom of each page in the checkout process
+	*/
 	'links' => [
 		'checkoutFooter' => [
 			'elementHandle' => '',
