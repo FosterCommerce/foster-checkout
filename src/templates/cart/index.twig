@@ -71,7 +71,7 @@
 
 			<aside>
 				<div
-					class="lg:p-6 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' }}">
+					class="lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 					{% include 'foster-checkout/_components/app/summary-cart' %}
 
 					{% if cart.email and craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
@@ -84,13 +84,13 @@
 							{{ hiddenInput('event[trackOrder]', '1') }}
 							{{ hiddenInput('event[orderId]', cart.id) }}
 							<button type="submit"
-									class="block md:inline-block lg:block mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg">
+									class="block md:inline-block lg:block mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl">
 								{{ 'cart.checkout'|t('foster-checkout') }}
 							</button>
 						</form>
 					{% else %}
 						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}"
-							class="block md:inline-block lg:block mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg"
+							class="block md:inline-block lg:block mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 						>
 							{{ 'cart.checkout'|t('foster-checkout') }}
 						</a>
@@ -131,7 +131,7 @@
 				</div>
 				<a
 					href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
-					class="inline-block lg:block max-w-[260px] mt-10 mx-auto px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg"
+					class="inline-block lg:block max-w-[260px] mt-10 mx-auto px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 				>
 					{{ 'cart.continueShopping'|t('foster-checkout') }}
 				</a>

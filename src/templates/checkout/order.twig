@@ -24,7 +24,7 @@
 				</h1>
 			</header>
 
-			<div class="lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' }}">
+			<div class="lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 				{% set shippingAddress = order.shippingAddress ?? null %}
 				{% if shippingAddress %}
 					{% set q = (shippingAddress.addressLine1 ~ ' ' ~ shippingAddress.locality ~ ' ' ~ shippingAddress.administrativeArea)|url_encode %}
@@ -55,7 +55,7 @@
 				</div>
 			</div>
 
-			<div class="p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' }}">
+			<div class="p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div class="grid grid-cols-1 content-start">
@@ -183,7 +183,7 @@
 
 		<aside>
 			<div
-				class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' }}">
+				class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
 
