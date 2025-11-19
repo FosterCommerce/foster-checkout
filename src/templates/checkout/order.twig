@@ -24,7 +24,7 @@
 				</h1>
 			</header>
 
-			<div class="lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+			<div class="lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 				{% set shippingAddress = order.shippingAddress ?? null %}
 				{% if shippingAddress %}
 					{% set q = (shippingAddress.addressLine1 ~ ' ' ~ shippingAddress.locality ~ ' ' ~ shippingAddress.administrativeArea)|url_encode %}
