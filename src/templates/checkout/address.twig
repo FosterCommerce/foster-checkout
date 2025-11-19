@@ -105,10 +105,10 @@
 													<div class="pt-8">
 														{% include 'foster-checkout/_components/app/address-fields' %}
 														<div class="flex justify-start items-center gap-4 mt-4 pt-4">
-															<button type="submit" class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]">
+															<button type="submit" class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]">
 																{{ 'misc.save'|t('foster-checkout') }}
 															</button>
-															<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]" @click="editExistingAddress = 0">
+															<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]" @click="editExistingAddress = 0">
 																{{ 'misc.cancel'|t('foster-checkout') }}
 															</button>
 														</div>
@@ -202,7 +202,7 @@
 									<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}" class="hidden md:block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white">
 										{{ 'misc.returnToCart'|t('foster-checkout') }}
 									</a>
-									<button type="submit" class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl">
+									<button type="submit" class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg">
 										{{ 'address.nextStep'|t('foster-checkout') }}
 									</button>
 								</div>
@@ -218,7 +218,7 @@
 			</main>
 
 			<aside>
-				<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+				<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
 					<div class="grid grid-cols-1 gap-6">
 						<div class="flex justify-between items-center gap-4">
 							<h2 class="text-xl font-bold text-gray-800 leading-snug">
