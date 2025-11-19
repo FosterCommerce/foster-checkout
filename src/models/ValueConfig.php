@@ -85,7 +85,10 @@ class ValueConfig extends Model implements Stringable
 		} elseif (is_callable($this->value)) {
 			// If it's a callable, then we call it with the context
 			$callable = $this->value;
+			// TODO we probably want to ensure that this is returning the correct data
 			$this->fieldData = $callable($context);
+		} elseif (is_array($this->value)) {
+			$this->fieldData = $this->parseArrayValue($this->value);
 		} elseif ($this->elementHandle !== null && $this->fieldHandle !== null) {
 			// If it's and element and field handle, then we get the field value
 			$elementHandle = trim($this->elementHandle);
@@ -101,11 +104,7 @@ class ValueConfig extends Model implements Stringable
 
 			// Get the content field data and parse it if necessary (for rich text fields like Redactor)
 			$fieldData = $element->getFieldValue($fieldHandle);
-			if ($fieldData instanceof craft\ckeditor\data\FieldData) {
-				$this->fieldData = $fieldData;
-			} else {
-				$this->fieldData = $element->{$fieldHandle};
-			}
+			$this->fieldData = is_array($fieldData) ? $this->parseArrayValue($fieldData) : $fieldData;
 		} else {
 			$this->fieldData = $this->value;
 		}
@@ -125,5 +124,32 @@ class ValueConfig extends Model implements Stringable
 		}
 
 		return new self();
+	}
+
+	/**
+	 * @param array<array-key, mixed> $value
+	 * @return array<array-key, mixed>
+	 * @throws InvalidConfigException
+	 */
+	private function parseArrayValue(array $value): array
+	{
+		$isArrayOfLinks = array_reduce(
+			$value,
+			static fn ($memo, $item): bool => $memo && is_array($item) && (array_key_exists('text', $item) || array_key_exists('url', $item)),
+			true,
+		);
+
+		if ($isArrayOfLinks) {
+			/** @var array<array-key, array{text: non-empty-string, url: non-empty-string}> $value */
+			return array_map(
+				static fn ($item): array => [
+					'text' => $item['text'],
+					'url' => $item['url'],
+				],
+				$value
+			);
+		}
+
+		throw new InvalidConfigException('Invalid config, field data is not a valid format');
 	}
 }

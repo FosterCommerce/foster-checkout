@@ -20,6 +20,8 @@ use yii\base\InvalidConfigException;
 /**
  * Checkout service
  *
+ * @phpstan-type LinksTable array<array-key, array{text: non-empty-string, url: non-empty-string}>
+ *
  * @property-read array $gateways
  * @property-read array $regions
  * @property-read string $paymentForm
@@ -49,7 +51,10 @@ class Checkout extends Component
 		return $bundleUrl;
 	}
 
-	public function links(string $field): string|null
+	/**
+	 * @return ?LinksTable
+	 */
+	public function links(string $field): ?array
 	{
 		$links = $this->settings()->links;
 
@@ -58,11 +63,12 @@ class Checkout extends Component
 
 		try {
 			if ($link instanceof ValueConfig) {
-				/** @throws InvalidFieldException */
-				return (string) $link;
+				/** @var LinksTable $value */
+				$value = $link->getValue();
+				return $value;
 			}
 		} catch (InvalidFieldException) {
-			return 'invalid field exception';
+			return null;
 		}
 
 		return null;
