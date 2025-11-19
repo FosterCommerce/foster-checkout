@@ -193,7 +193,7 @@
 
 								{% set note = craft.fostercheckout.note('address') %}
 								{% if note %}
-									<div class="mt-6 p-4 border border-gray-250 rounded-lg [&_a]:underline [&_a:hover]:decoration-current">
+									<div class="mt-4 p-4 border border-gray-250 text-sm text-gray-500 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? '' : 'lg:rounded-lg' }} [&_a]:underline [&_a:hover]:decoration-current">
 										{{ note|raw }}
 									</div>
 								{% endif %}
