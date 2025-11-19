@@ -71,7 +71,7 @@
 
 			<aside>
 				<div
-					class="lg:p-6 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+					class="lg:p-6 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' }}">
 					{% include 'foster-checkout/_components/app/summary-cart' %}
 
 					{% if cart.email and craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
