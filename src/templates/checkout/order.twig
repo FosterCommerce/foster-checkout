@@ -154,8 +154,8 @@
 				</div>
 
 				{% if order[craft.fostercheckout.settings.notes.order.fieldHandle] %}
-					<h2 class="mt-4 p-4 border border-gray-250 text-sm text-gray-500 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? '' : 'lg:rounded-lg' }} [&_a]:underline [&_a:hover]:decoration-current">Notes</h2>
-					<div>
+					<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
+					<h2>Notes</h2>
 						{{ order[craft.fostercheckout.settings.notes.order.fieldHandle]|nl2br }}
 					</div>
 				{% endif %}
