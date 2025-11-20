@@ -37,6 +37,10 @@ class Settings extends Model
 	 */
 	public array $paymentGateways = [];
 
+	/**
+	 * Summary of zeroValueGatewayHandles
+	 * @var array<string>
+	 */
 	public array $zeroValueGatewayHandles = [];
 
 	/**
