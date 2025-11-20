@@ -238,8 +238,14 @@
 
 									{% for gateway in gateways %}
 										{% set gatewayClass = className(gateway) %}
-
+										{% set zeroValueGatewayHandles = craft.fostercheckout.settings.zeroValueGatewayHandles %}
 										{% set shouldRender = true %}
+
+										{% if cart.total != 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual' and gateway.getOnlyAllowForZeroPriceOrders() %}
+											{% set shouldRender = false %}
+										{% elseif cart.total == 0 and gateway.handle not in zeroValueGatewayHandles %}
+											{% set shouldRender = false %}
+										{% endif %}
 
 										{% if shouldRender %}
 											<div class="p-4 border-b border-gray-250"
