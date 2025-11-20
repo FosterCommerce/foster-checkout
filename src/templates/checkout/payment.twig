@@ -238,16 +238,13 @@
 
 									{% for gateway in gateways %}
 										{% set gatewayClass = className(gateway) %}
-										{% set zeroValueGatewayHandle = craft.fostercheckout.settings.zeroValueGatewayHandle ?? null %}
+										{% set zeroValueGatewayHandles = craft.fostercheckout.settings.zeroValueGatewayHandles %}
+										{% set shouldRender = true %}
 
-										{% if cart.total == 0 and gateway.handle == zeroValueGatewayHandle %}
-											{% set shouldRender = true %}
-										{% elseif cart.total == 0 %}
+										{% if cart.total != 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual' and gateway.getOnlyAllowForZeroPriceOrders() %}
 											{% set shouldRender = false %}
-										{% elseif gateway.handle == zeroValueGatewayHandle %}
+										{% elseif cart.total == 0 and gateway.handle not in zeroValueGatewayHandles %}
 											{% set shouldRender = false %}
-										{% else %}
-											{% set shouldRender = true %}
 										{% endif %}
 
 										{% if shouldRender %}

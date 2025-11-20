@@ -190,6 +190,6 @@ return [
 	// [label(string), placeholder(string), type (text, number), min(number), max(number), required (bool)].
 	'paymentGateways' => [
 	],
-	// The handle for the gateway that should handle Zero value orders
+	// A comma delimited list of handles for the gateways that should handle Zero value orders
 	'zeroValueGatewayHandle' => '',
 ];
