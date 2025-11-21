@@ -36,7 +36,7 @@
 			name="{{ context ? 'countryCode'|namespaceInputName(context) : 'countryCode' }}"
 			autocomplete="country-name"
 			class="w-full h-12 px-4 bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
-			:class="'countryCode' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
+			:class="'countryCode' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-250 focus:border-black'"
 			:aria-invalid="'countryCode' in errors"
 			aria-errormessage="{{ 'countryCode'|namespaceInputId(context) }}-error"
 			@change="administrativeArea = ''; if ($el.value) delete errors.countryCode"

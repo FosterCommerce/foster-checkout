@@ -19,7 +19,7 @@
 		:class="{
 			'border-red-500 focus:border-red-500': errors.length,
 			'border-green-500 focus:border-green-500': success.length,
-			'border-gray-500 focus:border-black': !errors.length && !success.length
+			'border-gray-250 focus:border-black': !errors.length && !success.length
 		}"
 		:aria-invalid="errors.length > 0"
 		aria-errormessage="{{ fieldId }}-error"

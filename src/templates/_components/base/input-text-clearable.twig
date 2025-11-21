@@ -46,7 +46,7 @@
 			:class="{
 				'text-red-500 border-red-500 focus:border-red-500': errors.length,
 				'text-gray-800 border-green-500 focus:border-green-500': success.length,
-				'text-gray-800 border-gray-500 focus:border-black': !errors.length && !success.length
+				'text-gray-800 border-gray-250 focus:border-black': !errors.length && !success.length
 			}"
 			placeholder="{{ placeholder|default('') }}"
 			:aria-invalid="errors.length ? true : false"
