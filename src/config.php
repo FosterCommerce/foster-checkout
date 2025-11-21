@@ -190,6 +190,10 @@ return [
 	// [label(string), placeholder(string), type (text, number), min(number), max(number), required (bool)].
 	'paymentGateways' => [
 	],
+
 	// A comma delimited list of handles for the gateways that should handle Zero value orders
 	'zeroValueGatewayHandle' => '',
+
+	// An array of country codes that will be shown first in the country select dropdowns
+	'priorityCountries' => [],
 ];
