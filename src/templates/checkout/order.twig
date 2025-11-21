@@ -22,13 +22,20 @@
 				<h1 class="font-semibold text-3xl">
 					{{ 'order.stepName'|t('foster-checkout') }}
 				</h1>
+
+				{% set note = craft.fostercheckout.note('order') %}
+				{% if note %}
+					<div class="mt-4 [&_a]:underline [&_a:hover]:decoration-current">
+						{{ note|raw }}
+					</div>
+				{% endif %}
 			</header>
 
-			<div class="lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+			<div class="lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 				{% set shippingAddress = order.shippingAddress ?? null %}
 				{% if shippingAddress %}
 					{% set q = (shippingAddress.addressLine1 ~ ' ' ~ shippingAddress.locality ~ ' ' ~ shippingAddress.administrativeArea)|url_encode %}
-					<div class="relative w-full overflow-hidden rounded-xl aspect-[790/275]">
+					<div class="relative w-full overflow-hidden rounded-lg aspect-[790/275]">
 						<iframe
 							class="absolute inset-0 h-full w-full"
 							title="Shipping address map"
@@ -55,7 +62,7 @@
 				</div>
 			</div>
 
-			<div class="p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+			<div class="p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div class="grid grid-cols-1 content-start">
@@ -153,10 +160,10 @@
 					</div>
 				</div>
 
-				{% if order[craft.fostercheckout.settings.notes.order.fieldHandle] %}
-					<h2 class="mt-6 mb-2 text-lg font-medium text-gray-700">Notes</h2>
-					<div>
-						{{ order[craft.fostercheckout.settings.notes.order.fieldHandle]|nl2br }}
+				{% if order[craft.fostercheckout.settings.notes.customersOrderNotes.fieldHandle] %}
+					<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
+					<h2 class="text-lg font-medium text-gray-700">Customer Note</h2>
+						{{ order[craft.fostercheckout.settings.notes.customersOrderNotes.fieldHandle]|nl2br }}
 					</div>
 				{% endif %}
 
@@ -176,11 +183,14 @@
 					{% endif %}
 				</div>
 			{% endif %}
+
+			{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+
 		</main>
 
 		<aside>
 			<div
-				class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+				class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
 

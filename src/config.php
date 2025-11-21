@@ -108,6 +108,17 @@ return [
 		'cancel' => '',
 	],
 
+	/*	Extra supplementary links
+		Field should be a table field, with columns for 'text' and 'url'
+		checkoutFooter links are displayed at the bottom of each page in the checkout process
+	*/
+	'links' => [
+		'checkoutFooter' => [
+			'elementHandle' => '',
+			'fieldHandle' => '',
+		],
+	],
+
 	// Product Settings
 	'products' => [
 		/*
@@ -179,4 +190,6 @@ return [
 	// [label(string), placeholder(string), type (text, number), min(number), max(number), required (bool)].
 	'paymentGateways' => [
 	],
+	// A comma delimited list of handles for the gateways that should handle Zero value orders
+	'zeroValueGatewayHandle' => '',
 ];

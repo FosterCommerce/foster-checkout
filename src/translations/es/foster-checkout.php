@@ -62,6 +62,8 @@ return [
 	'email.emailPlaceholder' => 'Introduce tu correo',
 	'email.previousStep' => 'Volver al carrito',
 	'email.nextStep' => 'Siguiente paso',
+	'email.createAccount' => '¿Crear una cuenta?',
+
 
 	// Login page
 	'login.emailLabel' => 'Correo electrónico',

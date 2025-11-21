@@ -55,7 +55,7 @@
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'payment' } %}
 
-					<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+					<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 						<h2 class="p-4 font-semibold bg-gray-200">
 							{{ 'payment.stepName'|t('foster-checkout') }}
 						</h2>
@@ -65,7 +65,7 @@
 							{# Optional note #}
 							{% set note = craft.fostercheckout.note('payment') %}
 							{% if note %}
-								<div class="mt-2 p-4 border border-gray-250 rounded-lg [&_a]:underline [&_a:hover]:decoration-current">
+								<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
 									{{ note|raw }}
 								</div>
 							{% endif %}
@@ -162,10 +162,10 @@
 														<div class="pt-8">
 															{% include 'foster-checkout/_components/app/address-fields' %}
 															<div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
-																<button type="submit" data-bill-submit class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]">
+																<button type="submit" data-bill-submit class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]">
 																	{{ 'misc.save'|t('foster-checkout') }}
 																</button>
-																<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]" @click="editBillingAddressId = 0">
+																<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]" @click="editBillingAddressId = 0">
 																	{{ 'misc.cancel'|t('foster-checkout') }}
 																</button>
 															</div>
@@ -202,19 +202,21 @@
 													address: cart.billingAddress ?? null,
 												} %}
 
-												<div class="mt-4 p4 checkbox">
-													{# You can switch this to a cart custom field if you want cart-truth only #}
-													<input type="checkbox" class="absolute opacity-0 w-px h-px" id="saveBillingAddressOnOrderComplete" name="saveBillingAddressOnOrderComplete" value="1">
-													<label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveBillingAddressOnOrderComplete">
-														{{ 'payment.saveToAddressBook'|t('foster-checkout') }}
-													</label>
-												</div>
+												{% if currentUser %}
+													<div class="mt-4 p4 checkbox">
+														{# You can switch this to a cart custom field if you want cart-truth only #}
+														<input type="checkbox" class="absolute opacity-0 w-px h-px" id="saveBillingAddressOnOrderComplete" name="saveBillingAddressOnOrderComplete" value="1">
+														<label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveBillingAddressOnOrderComplete">
+															{{ 'payment.saveToAddressBook'|t('foster-checkout') }}
+														</label>
+													</div>
+												{% endif %}
 
 												<div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
-													<button type="submit" data-bill-submit class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]">
+													<button type="submit" data-bill-submit class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]">
 														{{ cart.billingAddressId and not _hasMatch ? 'misc.update'|t('foster-checkout') : 'misc.save'|t('foster-checkout') }}
 													</button>
-													<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-xl sm:min-w-[140px] md:min-w-[200px]" @click="newBillingAddress = 0">
+													<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]" @click="newBillingAddress = 0">
 														{{ 'misc.cancel'|t('foster-checkout') }}
 													</button>
 												</div>
@@ -407,10 +409,13 @@
 						</div>
 					</div>
 				</div>
+
+				{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+
 			</main>
 
 			<aside>
-				<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+				<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 					<div class="grid grid-cols-1 gap-6">
 						<div class="flex justify-between items-center gap-4">
 							<h2 class="text-xl font-bold text-gray-800 leading-snug">

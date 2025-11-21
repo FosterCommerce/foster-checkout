@@ -22,7 +22,7 @@ class ValueConfig extends Model implements Stringable
 	 */
 	public mixed $value = null;
 
-	private mixed $memo = null;
+	private mixed $fieldData = null;
 
 	/**
 	 * @param string|array<array-key, mixed> $config
@@ -73,19 +73,22 @@ class ValueConfig extends Model implements Stringable
 	 */
 	public function getValue(array $context = []): mixed
 	{
-		if ($this->memo !== null) {
-			return $this->memo;
+		if ($this->fieldData !== null) {
+			return $this->fieldData;
 		}
 
-		$this->memo = null;
+		$this->fieldData = null;
 
 		if (is_string($this->value)) {
 			// If it's a string, then we render it as a twig template
-			$this->memo = Craft::$app->getView()->renderString($this->value, $context);
+			$this->fieldData = Craft::$app->getView()->renderString($this->value, $context);
 		} elseif (is_callable($this->value)) {
 			// If it's a callable, then we call it with the context
 			$callable = $this->value;
-			$this->memo = $callable($context);
+			// TODO we probably want to ensure that this is returning the correct data
+			$this->fieldData = $callable($context);
+		} elseif (is_array($this->value)) {
+			$this->fieldData = $this->parseArrayValue($this->value);
 		} elseif ($this->elementHandle !== null && $this->fieldHandle !== null) {
 			// If it's and element and field handle, then we get the field value
 			$elementHandle = trim($this->elementHandle);
@@ -100,12 +103,13 @@ class ValueConfig extends Model implements Stringable
 			}
 
 			// Get the content field data and parse it if necessary (for rich text fields like Redactor)
-			$this->memo = $element->getFieldValue($fieldHandle);
+			$fieldData = $element->getFieldValue($fieldHandle);
+			$this->fieldData = is_array($fieldData) ? $this->parseArrayValue($fieldData) : $fieldData;
 		} else {
-			$this->memo = $this->value;
+			$this->fieldData = $this->value;
 		}
 
-		return $this->memo;
+		return $this->fieldData;
 	}
 
 	/**
@@ -120,5 +124,32 @@ class ValueConfig extends Model implements Stringable
 		}
 
 		return new self();
+	}
+
+	/**
+	 * @param array<array-key, mixed> $value
+	 * @return array<array-key, mixed>
+	 * @throws InvalidConfigException
+	 */
+	private function parseArrayValue(array $value): array
+	{
+		$isArrayOfLinks = array_reduce(
+			$value,
+			static fn ($memo, $item): bool => $memo && is_array($item) && (array_key_exists('text', $item) || array_key_exists('url', $item)),
+			true,
+		);
+
+		if ($isArrayOfLinks) {
+			/** @var array<array-key, array{text: non-empty-string, url: non-empty-string}> $value */
+			return array_map(
+				static fn ($item): array => [
+					'text' => $item['text'],
+					'url' => $item['url'],
+				],
+				$value
+			);
+		}
+
+		throw new InvalidConfigException('Invalid config, field data is not a valid format');
 	}
 }

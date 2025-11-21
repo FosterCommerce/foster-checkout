@@ -21,7 +21,7 @@
 
 				<div class="grid grid-cols-1 gap-6">
 
-					<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+					<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 
 						<div class="flex justify-between items-center p-4 gap-4 bg-gray-200">
 							<h2 class="font-semibold">
@@ -50,9 +50,9 @@
 								{% endif %}
 								{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address') }}
 
-								<fieldset class="grid grid-cols-1 gap-6">
+								<fieldset class="grid grid-cols-1 gap-6" x-data="{ createAccount: '{{ cart.registerUserOnOrderComplete }}' }">
 
-									<div >
+									<div>
 										{% include 'foster-checkout/_components/base/input-text-clearable' with {
 											label: 'email.emailLabel'|t('foster-checkout'),
 											id: 'email',
@@ -65,6 +65,24 @@
 											errors: [],
 											action: '$nextTick(() => { $refs.input.focus() });'
 										} %}
+									</div>
+
+									<div class="checkbox">
+										<input type="hidden" name="registerUserOnOrderComplete" :value="createAccount ? 1 : 0">
+										<input
+											type="checkbox"
+											id="registerUserOnOrderComplete"
+											class="sr-only"
+											x-model="createAccount"
+											:checked="createAccount"
+											aria-checked="createAccount.toString()"
+										/>
+										<label
+											class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
+											for="registerUserOnOrderComplete"
+										>
+											{{ 'email.createAccount'|t('foster-checkout') }}
+										</label>
 									</div>
 
 								</fieldset>
@@ -92,7 +110,7 @@
 								{% endif %}
 								{% set note = craft.fostercheckout.note('email') %}
 								{% if note %}
-									<div class="mt-6 p-4 border border-gray-250 rounded-lg [&_a]:underline [&_a:hover]:decoration-current">
+									<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
 										{{ note|raw }}
 									</div>
 								{% endif %}
@@ -106,7 +124,7 @@
 									</a>
 									<button
 										type="submit"
-										class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+										class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg"
 									>
 										{{ 'email.nextStep'|t('foster-checkout') }}
 									</button>
@@ -122,12 +140,15 @@
 						step: 'email'
 					} %}
 				</div>
+
+				{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+
 			</main>
 
 			<aside>
 
 				<div
-					class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:shadow-[0_4px_12px_0_rgba(0,0,0,0.16)]' }}">
+					class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 
 					<div class="grid grid-cols-1 gap-6">
 
