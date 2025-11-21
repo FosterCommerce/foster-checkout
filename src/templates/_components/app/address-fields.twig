@@ -9,6 +9,26 @@
 
 {% set countries = craft.commerce.stores.currentStore.settings.getCountriesList() %}
 {% set requiredFields = [] %}
+{% set priorityCountries = craft.fostercheckout.settings.priorityCountries %}
+
+{# Put priority countries first then list all the countries in alphabetical order
+Note that any countries that are in the priority countries array won't show in the rest of the list
+since the array key will be the same #}
+{% set orderedCountries = {} %}
+{% for code in priorityCountries %}
+	{% if countries[code] is defined %}
+		{% set orderedCountries = orderedCountries|merge({(code): countries[code]}) %}
+	{% endif %}
+{% endfor %}
+{# Add a spacer option #}
+{% set orderedCountries = orderedCountries|merge({' ': ''}) %}
+{# Now add the rest of the countries #}
+{% for code, name in countries %}
+	{% set orderedCountries = orderedCountries|merge({(code): name}) %}
+{% endfor %}
+
+
+{% set countries = orderedCountries %}
 
 {% for countryCode, _country in countries %}
 	{% set requiredFields = requiredFields|merge({(countryCode): craft.app.addresses.getAddressFormatRepository().get(countryCode).getRequiredFields()}) %}
