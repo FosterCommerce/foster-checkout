@@ -233,6 +233,29 @@
 								<h3 class="px-4 mb-4 font-semibold xl:px-0">
 									{{ 'payment.paymentMethod'|t('foster-checkout') }}
 								</h3>
+
+
+								{% set flashError = craft.app.session.getFlash('error') %}
+								{% if flashError %}
+									<div class="mb-4 p-4 text-sm text-red-700 bg-red-100 border border-red-300 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'flat' : 'rounded-lg' }}">
+										{{ flashError }}
+									</div>
+								{% endif %}
+
+
+								{% set cartErrors = cart.getErrors() %}
+								{% if cartErrors %}
+									<div class="mb-4 p-4 text-sm text-red-700 bg-red-100 border border-red-300 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'flat' : 'rounded-lg' }}">
+										<ul class="list-disc list-inside">
+											{% for error in errors %}
+												{% for error in errors %}
+													<li>{{ error }}</li>
+												{% endfor %}
+											{% endfor %}
+										</ul>
+									</div>
+								{% endif %}
+
 								<form method="POST" class="grid gap-y-4 gap-x-4" id="paymentForm">
 									{{ csrfInput() }}
 									{{ actionInput('commerce/payments/pay') }}
