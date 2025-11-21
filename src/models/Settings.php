@@ -44,7 +44,7 @@ class Settings extends Model
 	 */
 	public array $zeroValueGatewayHandles = [];
 
-		/**
+	/**
 	 * Array of country codes that will be shown first in the country select dropdowns
 	 *
 	 * @var array<string>
