@@ -217,7 +217,7 @@
 														<button type="submit" data-bill-submit class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]">
 															{{ cart.billingAddressId and not _hasMatch ? 'misc.update'|t('foster-checkout') : 'misc.save'|t('foster-checkout') }}
 														</button>
-														<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]" @click="newBillingAddress = 0">
+														<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]" @click="newBillingAddress = 0; billingSameAsShipping = 1; editBillingAddressId = 0;">
 															{{ 'misc.cancel'|t('foster-checkout') }}
 														</button>
 													</div>
