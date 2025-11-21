@@ -195,32 +195,34 @@
 												</label>
 											</div>
 
-											<div x-show="parseInt(newBillingAddress) === 1" x-cloak class="p-4">
-												{# When newBillingAddress is chosen, just post to update-cart with the address fields #}
-												{% include 'foster-checkout/_components/app/address-fields' with {
-													context: 'billingAddress',
-													address: cart.billingAddress ?? null,
-												} %}
+											<template x-if="parseInt(newBillingAddress) === 1" x-cloak>
+												<div class="p-4">
+													{# When newBillingAddress is chosen, just post to update-cart with the address fields #}
+													{% include 'foster-checkout/_components/app/address-fields' with {
+														context: 'billingAddress',
+														address: cart.billingAddress ?? null,
+													} %}
 
-												{% if currentUser %}
-													<div class="mt-4 p4 checkbox">
-														{# You can switch this to a cart custom field if you want cart-truth only #}
-														<input type="checkbox" class="absolute opacity-0 w-px h-px" id="saveBillingAddressOnOrderComplete" name="saveBillingAddressOnOrderComplete" value="1">
-														<label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveBillingAddressOnOrderComplete">
-															{{ 'payment.saveToAddressBook'|t('foster-checkout') }}
-														</label>
+													{% if currentUser %}
+														<div class="mt-4 p4 checkbox">
+															{# You can switch this to a cart custom field if you want cart-truth only #}
+															<input type="checkbox" class="absolute opacity-0 w-px h-px" id="saveBillingAddressOnOrderComplete" name="saveBillingAddressOnOrderComplete" value="1">
+															<label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveBillingAddressOnOrderComplete">
+																{{ 'payment.saveToAddressBook'|t('foster-checkout') }}
+															</label>
+														</div>
+													{% endif %}
+
+													<div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
+														<button type="submit" data-bill-submit class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]">
+															{{ cart.billingAddressId and not _hasMatch ? 'misc.update'|t('foster-checkout') : 'misc.save'|t('foster-checkout') }}
+														</button>
+														<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]" @click="newBillingAddress = 0; billingSameAsShipping = 1; editBillingAddressId = 0;">
+															{{ 'misc.cancel'|t('foster-checkout') }}
+														</button>
 													</div>
-												{% endif %}
-
-												<div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
-													<button type="submit" data-bill-submit class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]">
-														{{ cart.billingAddressId and not _hasMatch ? 'misc.update'|t('foster-checkout') : 'misc.save'|t('foster-checkout') }}
-													</button>
-													<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]" @click="newBillingAddress = 0">
-														{{ 'misc.cancel'|t('foster-checkout') }}
-													</button>
 												</div>
-											</div>
+											</template>
 										</div>
 									</form>
 								</div>
