@@ -151,7 +151,7 @@
 											  }"
 											x-init="$watch('saveToBook', v => sessionStorage.setItem('saveShip', JSON.stringify(v)))"
 										>
-											<div x-show="useNewAddress" x-cloak>
+											<template x-if="useNewAddress" x-cloak>
 												<div class="p-4">
 													{% set address = null %}
 													{% if currentUser and cart.sourceShippingAddressId is not null %}
