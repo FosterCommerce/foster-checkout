@@ -20,8 +20,9 @@ since the array key will be the same #}
 		{% set orderedCountries = orderedCountries|merge({(code): countries[code]}) %}
 	{% endif %}
 {% endfor %}
-{# Add a spacer option #}
-{% set orderedCountries = orderedCountries|merge({' ': ''}) %}
+{% if orderedCountries|length > 0 %}
+	{% set orderedCountries = orderedCountries|merge({' ': '──────────'}) %}
+{% endif %}
 {# Now add the rest of the countries #}
 {% for code, name in countries %}
 	{% set orderedCountries = orderedCountries|merge({(code): name}) %}
@@ -64,7 +65,7 @@ since the array key will be the same #}
 		>
 			<option value="" disabled>{{ 'addressFields.select'|t('foster-checkout') }}</option>
 			<template x-for="(country, key) in countries" :key="key">
-				<option x-text="country" :value="key" :selected="countryCode == key">
+				<option x-text="country" :value="key" :selected="countryCode == key" :disabled="key === ' ' ? true : false">
 				</option>
 			</template>
 
