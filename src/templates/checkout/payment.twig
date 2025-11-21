@@ -233,180 +233,180 @@
 								<h3 class="px-4 mb-4 font-semibold xl:px-0">
 									{{ 'payment.paymentMethod'|t('foster-checkout') }}
 								</h3>
+								<form method="POST" class="grid gap-y-4 gap-x-4" id="paymentForm">
+									{{ csrfInput() }}
+									{{ actionInput('commerce/payments/pay') }}
 
-								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
-									{# Hidden mirror so a cart update elsewhere could use it, and so pay forms can read it #}
-									<input type="hidden" x-ref="postGateway" value="{{ _initialGatewayId }}">
+									{# IMPORTANT: these must NOT be namespaced #}
+									{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order', { number: cart.number, success: 'true' })) }}
+									{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
+									{{ hiddenInput('orderEmail', cart.email) }}
 
-									{% for gateway in gateways %}
-										{% set gatewayClass = className(gateway) %}
-										{% set zeroValueGatewayHandles = craft.fostercheckout.settings.zeroValueGatewayHandles %}
-										{% set shouldRender = true %}
+									<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+										{# Hidden mirror so a cart update elsewhere could use it, and so pay forms can read it #}
+										<input type="hidden" x-ref="postGateway" value="{{ _initialGatewayId }}">
 
-										{% if cart.total != 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual' and gateway.getOnlyAllowForZeroPriceOrders() %}
-											{% set shouldRender = false %}
-										{% elseif cart.total == 0 and gateway.handle not in zeroValueGatewayHandles %}
-											{% set shouldRender = false %}
-										{% endif %}
+										{% for gateway in gateways %}
+											{% set gatewayClass = className(gateway) %}
+											{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' and cart.totalAmount == 0 %}
+												{% set shouldRender = false %}
+											{% else %}
+												{% set shouldRender = true %}
+											{% endif %}
 
-										{% if shouldRender %}
-											<div class="p-4 border-b border-gray-250"
-												 :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
-												<div class="relative flex justify-between items-center gap-4 radio">
-													<input
-														id="gateway_{{ gateway.id }}"
-														name="gatewayId_radio"
-														type="radio"
-														class="absolute opacity-0 w-px h-px"
-														x-model.number="gatewayId"
-														value="{{ gateway.id }}"
-													>
-													<label for="gateway_{{ gateway.id }}" class="inline-flex justify-start items-center gap-4 cursor-pointer">
-														<span class="block">{{ gateway.name|t('foster-checkout') }}</span>
-													</label>
-												</div>
+											{% if shouldRender %}
+												<div class="p-4 border-b border-gray-250"
+													:class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
+													<div class="relative flex justify-between items-center gap-4 radio">
+														<input
+															id="gateway_{{ gateway.id }}"
+															name="gatewayId"
+															type="radio"
+															class="absolute opacity-0 w-px h-px"
+															x-model.number="gatewayId"
+															value="{{ gateway.id }}"
+														>
+														<label for="gateway_{{ gateway.id }}" class="inline-flex justify-start items-center gap-4 cursor-pointer">
+															<span class="block">{{ gateway.name|t('foster-checkout') }}</span>
+														</label>
+													</div>
 
-												{# Gateway form panel #}
-												<div
-													class="pt-8
-													[&_form]:grid [&_form]:gap-2
+													{# Gateway form panel #}
+													{# Using a template and x-if to remove form elements if not visible. This avoids issues with required fields #}
+													<template x-if="parseInt(gatewayId) === {{ gateway.id }}">
+														<div
+															class="pt-8
+															[&_form]:grid [&_form]:gap-2
 
-													/* fieldsets */
-													[&_fieldset]:border [&_fieldset]:border-gray-250 [&_fieldset]:rounded-lg [&_fieldset]:p-4
-													[&_fieldset+fieldset]:mt-4
-													[&_legend]:px-1 [&_legend]:text-sm [&_legend]:font-medium [&_legend]:text-gray-700
+															/* fieldsets */
+															[&_fieldset]:border [&_fieldset]:border-gray-250 [&_fieldset]:rounded-lg [&_fieldset]:p-4
+															[&_fieldset+fieldset]:mt-4
+															[&_legend]:px-1 [&_legend]:text-sm [&_legend]:font-medium [&_legend]:text-gray-700
 
-													/* rows and grids inside vendor markup */
-													[&_.grid]:grid [&_.grid]:gap-4
-													[&_.grid[data-cols='2']]:grid-cols-1 md:[&_.grid[data-cols='2']]:grid-cols-2
-													[&_.item]:space-y-2
+															/* rows and grids inside vendor markup */
+															[&_.grid]:grid [&_.grid]:gap-4
+															[&_.grid[data-cols='2']]:grid-cols-1 md:[&_.grid[data-cols='2']]:grid-cols-2
+															[&_.item]:space-y-2
 
-													/* the multi-input card row (number, exp, cvv) */
-													[&_.multitext]:grid [&_.multitext]:gap-3
-													[&_.multitextrow]:grid [&_.multitextrow]:gap-3
-													[&_.multitextrow]:grid-cols-1 sm:[&_.multitextrow]:grid-cols-[2fr_1fr_1fr]
+															/* the multi-input card row (number, exp, cvv) */
+															[&_.multitext]:grid [&_.multitext]:gap-3
+															[&_.multitextrow]:grid [&_.multitextrow]:gap-3
+															[&_.multitextrow]:grid-cols-1 sm:[&_.multitextrow]:grid-cols-[2fr_1fr_1fr]
 
-													/* inputs */
-													[&_input.text]:block [&_input.text]:w-full
-													[&_input.text]:rounded-lg
-													[&_input.text]:border [&_input.text]:border-gray-300
-													[&_input.text]:px-3 [&_input.text]:py-2
-													focus:[&_input.text]:outline-none
-													focus:[&_input.text]:ring-2 focus:[&_input.text]:ring-[var(--brandColor)]
-													[&_input.text::placeholder]:text-gray-400
+															/* inputs */
+															[&_input.text]:block [&_input.text]:w-full
+															[&_input.text]:rounded-xl
+															[&_input.text]:border [&_input.text]:border-gray-300
+															[&_input.text]:px-3 [&_input.text]:py-2
+															focus:[&_input.text]:outline-none
+															focus:[&_input.text]:ring-2 focus:[&_input.text]:ring-[var(--brandColor)]
+															[&_input.text::placeholder]:text-gray-400
 
-													/* errors if gateway injects them later */
-													[&_.errors]:text-sm [&_.errors]:text-red-600 [&_.errors]:mt-1
+															/* errors if gateway injects them later */
+															[&_.errors]:text-sm [&_.errors]:text-red-600 [&_.errors]:mt-1
 
-													/* button */
-													[&_button#paymentForm-authorizeNet-authorizeSubmit]:block
-													[&_button#paymentForm-authorizeNet-authorizeSubmit]:min-w-[200px]
-													[&_button#paymentForm-authorizeNet-authorizeSubmit]:px-4
-													[&_button#paymentForm-authorizeNet-authorizeSubmit]:py-3
-													[&_button#paymentForm-authorizeNet-authorizeSubmit]:font-medium
-													[&_button#paymentForm-authorizeNet-authorizeSubmit]:text-white
-													[&_button#paymentForm-authorizeNet-authorizeSubmit]:text-center
-													[&_button#paymentForm-authorizeNet-authorizeSubmit]:bg-[var(--brandColor)]
-													[&_button#paymentForm-authorizeNet-authorizeSubmit]:border
-													[&_button#paymentForm-authorizeNet-authorizeSubmit]:border-[var(--brandColor)]
-													[&_button#paymentForm-authorizeNet-authorizeSubmit]:rounded-lg
-													[&_button#paymentForm-authorizeNet-authorizeSubmit]:mt-4
-													[&_button#paymentForm-authorizeNet-authorizeSubmit]:transition
-													hover:[&_button#paymentForm-authorizeNet-authorizeSubmit]:opacity-90
-													"
-													x-show="parseInt(gatewayId) === {{ gateway.id }}"
-													x-cloak
-												>
+															/* button */
+															[&_button#paymentForm-authorizeNet-authorizeSubmit]:block
+															[&_button#paymentForm-authorizeNet-authorizeSubmit]:min-w-[200px]
+															[&_button#paymentForm-authorizeNet-authorizeSubmit]:px-4
+															[&_button#paymentForm-authorizeNet-authorizeSubmit]:py-3
+															[&_button#paymentForm-authorizeNet-authorizeSubmit]:mt-6
+															[&_button#paymentForm-authorizeNet-authorizeSubmit]:font-medium
+															[&_button#paymentForm-authorizeNet-authorizeSubmit]:text-white
+															[&_button#paymentForm-authorizeNet-authorizeSubmit]:text-center
+															[&_button#paymentForm-authorizeNet-authorizeSubmit]:bg-[var(--brandColor)]
+															[&_button#paymentForm-authorizeNet-authorizeSubmit]:border
+															[&_button#paymentForm-authorizeNet-authorizeSubmit]:border-[var(--brandColor)]
+															[&_button#paymentForm-authorizeNet-authorizeSubmit]:rounded-xl
+															[&_button#paymentForm-authorizeNet-authorizeSubmit]:transition
+															hover:[&_button#paymentForm-authorizeNet-authorizeSubmit]:opacity-90
+															"
+															{# x-show="parseInt(gatewayId) === {{ gateway.id }}" #}
+															{# x-cloak #}
+														>
+															{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
 
-													{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
-
-													{% set params = {} %}
-													{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
-														{% set params = {
-															order: cart,
-															paymentFormType: 'elements',
-															appearance: {
-																theme: craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'flat' : 'stripe',
-																labels: 'floating',
-																variables: {
-																	colorPrimary: craft.fostercheckout.settings.branding.color ?? '#1F2937',
-																	borderRadius: craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? '0px' : '6px',
-																	gridColumnSpacing: '24px',
-																	gridRowSpacing: '24px',
-																	tabSpacing: '12px',
-																}
-															},
-															submitButtonText: buttonText,
-															submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg lg:inline-block'
-														} %}
-													{% elseif gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
-														{% set params = { currency: cart.paymentCurrency } %}
-													{% endif %}
-
-													{# Manual vs native gateway rendering #}
-													{% set manualFields  = craft.fostercheckout.getManualGatewayFields(gateway.handle) ?? [] %}
-													{% set manualColumns = craft.fostercheckout.getManualGatewayColumns(gateway.handle) ?: 3 %}
-													{% set isManualGateway = (gatewayClass == 'craft\\commerce\\gateways\\Manual') %}
-
-													{% if isManualGateway or manualFields|length %}
-														<form method="POST" class="grid gap-y-4 gap-x-4 sm:grid-cols-{{ manualColumns }}">
-															{{ csrfInput() }}
-															{{ actionInput('commerce/payments/pay') }}
-
-															{# IMPORTANT: these must NOT be namespaced #}
-															{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order', { number: cart.number, success: 'true' })) }}
-															{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
-															{{ hiddenInput('orderEmail', cart.email) }}
-															{{ hiddenInput('gatewayId', gateway.id) }}
-
-															{# Only namespace additional custom fields if they exist #}
-															{% if manualFields|length %}
-																{% namespace gateway.handle|commercePaymentFormNamespace %}
-																	{% for field in manualFields %}
-																		<div class="sm:col-span-{{ field.columns ?: 'full' }}">
-																			{% switch field.type %}
-																			{% case 'select' %}{% set fieldTemplate = 'input-select' %}
-																			{% default %}{% set fieldTemplate = 'input-text-clearable' %}
-																			{% endswitch %}
-
-																			{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
-																				context: '',
-																				label: field.label,
-																				id: field.id ?? field.handle,
-																				name: field.name ?? field.handle,
-																				type: field.type,
-																				placeholder: field.placeholder,
-																				errors: [],
-																				minLength: field.minLength,
-																				maxLength: field.maxLength,
-																				min: field.min,
-																				max: field.max,
-																				required: field.required ?? false,
-																				options: field.options ?? [],
-																			} %}
-																		</div>
-																	{% endfor %}
-																{% endnamespace %}
+															{% set params = {} %}
+															{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+																{% set params = {
+																	order: cart,
+																	paymentFormType: 'elements',
+																	appearance: {
+																		theme: craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'flat' : 'stripe',
+																		labels: 'floating',
+																		variables: {
+																			colorPrimary: craft.fostercheckout.settings.branding.color ?? '#1F2937',
+																			borderRadius: craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? '0px' : '6px',
+																			gridColumnSpacing: '24px',
+																			gridRowSpacing: '24px',
+																			tabSpacing: '12px',
+																		}
+																	},
+																	submitButtonText: buttonText,
+																	submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block'
+																} %}
+															{% elseif gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
+																{% set params = { currency: cart.paymentCurrency } %}
 															{% endif %}
 
-															<button
-																type="submit"
-																class="justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg lg:inline-block"
-															>
-																{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
-															</button>
-														</form>
-													{% else %}
-														{# Native gateway form #}
-														{% namespace gateway.handle|commercePaymentFormNamespace %}
-															{{ gateway.getPaymentFormHtml(params)|raw }}
-														{% endnamespace %}
-													{% endif %}
+															{# Manual vs native gateway rendering #}
+															{% set manualFields  = craft.fostercheckout.getManualGatewayFields(gateway.handle) ?? [] %}
+															{% set manualColumns = craft.fostercheckout.getManualGatewayColumns(gateway.handle) ?: 3 %}
+															{% set isManualGateway = (gatewayClass == 'craft\\commerce\\gateways\\Manual') %}
+
+															{% if isManualGateway or manualFields|length %}
+																<div class="{{ manualColumns ? 'sm:grid-cols-' ~ manualColumns }}">
+																	{# Only namespace additional custom fields if they exist #}
+																	{% if manualFields|length %}
+																		{% namespace gateway.handle|commercePaymentFormNamespace %}
+																			{% for field in manualFields %}
+																				<div class="sm:col-span-{{ field.columns ?: 'full' }}">
+																					{% switch field.type %}
+																					{% case 'select' %}{% set fieldTemplate = 'input-select' %}
+																					{% default %}{% set fieldTemplate = 'input-text-clearable' %}
+																					{% endswitch %}
+
+																					{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
+																						context: '',
+																						label: field.label,
+																						id: field.id ?? field.handle,
+																						name: field.name ?? field.handle,
+																						type: field.type,
+																						placeholder: field.placeholder,
+																						errors: [],
+																						minLength: field.minLength,
+																						maxLength: field.maxLength,
+																						min: field.min,
+																						max: field.max,
+																						required: field.required ?? false,
+																						options: field.options ?? [],
+																						gatewayId: gateway.id,
+																					} %}
+																				</div>
+																			{% endfor %}
+																		{% endnamespace %}
+																	{% endif %}
+
+																	<button
+																		type="submit"
+																		class="justify-between items-center gap-4 w-full px-4 py-3 mt-6 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+																	>
+																		{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
+																	</button>
+																</div>
+															{% else %}
+																{# Native gateway fields #}
+																{% namespace gateway.handle|commercePaymentFormNamespace %}
+																	{{ gateway.getPaymentFormHtml(params)|raw }}
+																{% endnamespace %}
+															{% endif %}
+														</div>
+													</template>
 												</div>
-											</div>
-										{% endif %}
-									{% endfor %}
-								</div>
+											{% endif %}
+										{% endfor %}
+									</div>
+								</form>
 							</section>
 						</div>
 					</div>
