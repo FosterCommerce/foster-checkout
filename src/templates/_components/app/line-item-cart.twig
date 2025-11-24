@@ -186,6 +186,9 @@
 				</form>
 
 				<div class="mt-3 md:mt-0">
+					{% if lineItem.getOnPromotion() %}
+						<p class="text-sm text-gray-500 line-through"><span>{{ (lineItem.price * lineItem.qty)|commerceCurrency }}</span></p>
+					{% endif %}
 					<p class="font-semibold"><span>{{ lineItem.subtotalAsCurrency }}</span></p>
 				</div>
 
