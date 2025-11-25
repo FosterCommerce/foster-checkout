@@ -344,8 +344,6 @@
 															[&_button#paymentForm-authorizeNet-authorizeSubmit]:transition
 															hover:[&_button#paymentForm-authorizeNet-authorizeSubmit]:opacity-90
 															"
-															{# x-show="parseInt(gatewayId) === {{ gateway.id }}" #}
-															{# x-cloak #}
 														>
 															{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
 
