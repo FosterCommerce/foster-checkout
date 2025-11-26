@@ -38,4 +38,10 @@ class BrandingConfig extends Model
 	 * Leave blank to use the Craft's siteName
 	 */
 	public string $title = '';
+
+	/**
+	 *  Array of favicons to be used in the checkout
+	 * @var array
+	 */
+	public array $faviconConfig = [];
 }

@@ -88,6 +88,19 @@ return [
 		// The first part of the text in the title meta tag.
 		// Leave blank to use the Craft's siteName
 		'title' => '',
+
+		//  Array of paths to favicons for use in the cart/checkout
+		'faviconConfig' => [
+			'faviconIco'     	=> '',
+			'favicon32'      	=> '',
+			'favicon16'      	=> '',
+			'appleTouchIcon' 	=> '',
+			'maskIcon'			=> '',
+			'maskIconColor'  	=> '',
+			'manifestUrl'		=> '',
+			'msTileColor'		=> '',
+			'themeColor'		=> '',
+		],
 	],
 
 	// Path Settings

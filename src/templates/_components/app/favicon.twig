@@ -1,0 +1,21 @@
+{% set faviconSet = craft.fostercheckout.settings.branding.faviconConfig %}
+
+{% set faviconIco = faviconSet.faviconIco ?? null %}
+{% set favicon32 = faviconSet.favicon32 ?? null %}
+{% set favicon16 = faviconSet.favicon16 ?? null %}
+{% set appleTouchIcon = faviconSet.appleTouchIcon ?? null %}
+{% set maskIcon = faviconSet.maskIcon ?? null %}
+{% set maskIconColor = faviconSet.maskIconColor ?? null %}
+{% set manifestUrl = faviconSet.manifestUrl ?? null %}
+{% set msTileColor = faviconSet.msTileColor ?? null %}
+{% set themeColor = faviconSet.themeColor ?? null %}
+
+
+{% if faviconIco %}<link rel="shortcut icon" href="{{ faviconIco }}">{% endif %}
+{% if favicon32 %}<link rel="icon" type="image/png" sizes="32x32" href="{{ favicon32 }}">{% endif %}
+{% if favicon16 %}<link rel="icon" type="image/png" sizes="16x16" href="{{ favicon16 }}">{% endif %}
+{% if appleTouchIcon %}<link rel="apple-touch-icon" sizes="180x180" href="{{ appleTouchIcon }}">{% endif %}
+{% if manifestUrl %}<link rel="manifest" href="{{ manifestUrl }}">{% endif %}
+{% if maskIcon and maskIconColor %}<link rel="mask-icon" href="{{ maskIcon }}" color="{{ maskIconColor }}">{% endif %}
+{% if msTileColor %}<meta name="msapplication-TileColor" content="{{ msTileColor }}">{% endif %}
+{% if themeColor %}<meta name="theme-color" content="{{ themeColor }}">{% endif %}
