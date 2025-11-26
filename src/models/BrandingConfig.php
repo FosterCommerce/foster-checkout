@@ -41,7 +41,7 @@ class BrandingConfig extends Model
 
 	/**
 	 *  Array of favicons to be used in the checkout
-	 * @var array
+	 * @var array<string>
 	 */
 	public array $faviconConfig = [];
 }

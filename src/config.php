@@ -91,15 +91,15 @@ return [
 
 		//  Array of paths to favicons for use in the cart/checkout
 		'faviconConfig' => [
-			'faviconIco'     	=> '',
-			'favicon32'      	=> '',
-			'favicon16'      	=> '',
-			'appleTouchIcon' 	=> '',
-			'maskIcon'			=> '',
-			'maskIconColor'  	=> '',
-			'manifestUrl'		=> '',
-			'msTileColor'		=> '',
-			'themeColor'		=> '',
+			'faviconIco' => '',
+			'favicon32' => '',
+			'favicon16' => '',
+			'appleTouchIcon' => '',
+			'maskIcon' => '',
+			'maskIconColor' => '',
+			'manifestUrl' => '',
+			'msTileColor' => '',
+			'themeColor' => '',
 		],
 	],
 
