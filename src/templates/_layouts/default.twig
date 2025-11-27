@@ -6,6 +6,8 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
 	<meta name="robots" content="noindex, nofollow"/>
 
+	{% include 'foster-checkout/_components/base/favicon' %}
+
 	{% set cart = cart is not defined ? craft.commerce.carts.cart : cart %}
 
 	{% if cart.lineItems|length == 0 and (craft.app.request.getFullPath() != craft.fostercheckout.settings.paths.cart and craft.app.request.getSegment(-1) != 'order') %}
