@@ -75,13 +75,7 @@
 			<div class="md:pr-4">
 				<h3 class="font-semibold">{{ lineItem.description }}</h3>
 				<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.sku }}</p>
-				{% for adjustment in lineItem.getAdjustments() %}
-					{% set value = adjustment.name %}
-					{% if adjustment.description|trim|length > 0 %}
-						{% set value = value ~ ': ' ~ adjustment.description %}
-					{% endif %}
-					<p class="mt-3 text-sm uppercase text-gray-500">{{ value }}</p>
-				{% endfor %}
+
 				{% for option in craft.fostercheckout.getLineItemOptions(lineItem) %}
 					<p class="mt-3 text-sm uppercase text-gray-500">{{ option.name }}: {{ option.value }}</p>
 				{% endfor %}
@@ -186,10 +180,21 @@
 				</form>
 
 				<div class="mt-3 md:mt-0 md:text-right">
-					{% if lineItem.getOnPromotion() %}
-						<p class="text-sm text-gray-500 line-through"><span>{{ (lineItem.price * lineItem.qty)|commerceCurrency }}</span></p>
+					{% if lineItem.getOnPromotion() or lineItem.getDiscount() %}
+						<p class="text-sm text-gray-500 line-through"><span>{{ lineItem.subtotalAsCurrency }}</span></p>
+						<p class="font-semibold"><span>{{ lineItem.totalAsCurrency }}</span></p>
+						{% for adjustment in lineItem.getAdjustments() %}
+							{% if adjustment.getAttributes().sourceSnapshot.allPurchasables == false %}
+								{% set message = adjustment.name %}
+								{% if adjustment.description|trim|length > 0 %}
+									{% set message = message ~ '<br />' ~ adjustment.description %}
+								{% endif %}
+								<p class="text-sm text-gray-500">{{ message|raw }}</p>
+							{% endif %}
+						{% endfor %}
+					{% else %}
+						<p class="font-semibold"><span>{{ lineItem.totalAsCurrency }}</span></p>
 					{% endif %}
-					<p class="font-semibold"><span>{{ lineItem.subtotalAsCurrency }}</span></p>
 				</div>
 
 			</div>
