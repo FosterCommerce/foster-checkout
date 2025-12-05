@@ -11,7 +11,20 @@
 
 		{% if order.totalDiscount != 0 %}
 			<div class="flex justify-between items-center gap-4">
-				<dt class="text-gray-500">{{ 'summary.discountLabel'|t('foster-checkout') }}</dt>
+				<dt class="text-gray-500">{{ 'summary.discountLabel'|t('foster-checkout') }}
+					{% set discounts = order.getAdjustmentsByType('discount') %}
+					{% if discounts|length %}
+						<br/>
+						{% set discountNames = [] %}
+						{% for adjustment in discounts %}
+							{% if adjustment.sourceSnapshot.allPurchasables == true %}
+								{% set discountNames = discountNames|merge([adjustment.name]) %}
+							{% endif %}
+						{% endfor %}
+						{% set discountNames = discountNames|unique %}
+						{{ discountNames|join('<br />')|raw }}
+					{% endif %}
+				</dt>
 				<dd class="text-right text-red-500">{{ order.totalDiscountAsCurrency }}</dd>
 			</div>
 		{% endif %}
