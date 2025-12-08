@@ -31,9 +31,10 @@ return [
 	// Cart Summary
 	'summary.title' => 'Resumen del pedido',
 	'summary.itemsTitle' => 'Artículo(s)',
-	'summary.itemsLabel' => 'Artículos',
-	'summary.discountLabel' => 'Descuento',
+	'summary.itemsLabel' => 'Subtotal',
+	'summary.discountLabel' => 'Descuentos',
 	'summary.discountApplied' => 'Cupones aplicados',
+	'summary.onSaleLabel' => 'Tu precio',
 	'summary.removeCoupon' => 'Eliminar',
 	'summary.shippingLabel' => 'Envío y manejo',
 	'summary.estimatedTaxLabel' => 'Impuesto estimado',

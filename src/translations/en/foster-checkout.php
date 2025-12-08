@@ -31,9 +31,10 @@ return [
 	// Cart Summary
 	'summary.title' => 'Order summary',
 	'summary.itemsTitle' => 'Item(s)',
-	'summary.itemsLabel' => 'Items',
-	'summary.discountLabel' => 'Discount',
+	'summary.itemsLabel' => 'Subtotal',
+	'summary.discountLabel' => 'Discounts',
 	'summary.discountApplied' => 'Voucher/Gift cards applied',
+	'summary.onSaleLabel' => 'Your price',
 	'summary.removeCoupon' => 'Remove',
 	'summary.shippingLabel' => 'Shipping & handling',
 	'summary.estimatedTaxLabel' => 'Estimated tax',
