@@ -184,7 +184,6 @@
 				<div class="mt-3 md:mt-0 md:text-right">
 					{% if lineItem.getDiscount() %}
 						<p>
-							{# discounts #}
 							{% for adjustment in lineItem.getAdjustments() %}
 								{% if adjustment.type == 'discount' %}
 									<span class="text-sm text-[var(--brandColor)]">
@@ -195,9 +194,12 @@
 							<span class="text-lg font-semibold">{{ lineItem.totalAsCurrency }}</span>
 						</p>
 						<p class="text-sm text-gray-500">
-							Original price: <span class="line-through">{{ (lineItem.price * lineItem.qty) | commerceCurrency }}</span>
+							{% if lineItem.getOnPromotion() or lineItem.purchasable.getSales()|length %}
+								{{ 'summary.onSaleLabel'|t('foster-checkout') }}: {{ (lineItem.salePrice * lineItem.qty) | commerceCurrency }}<br>
+							{% endif %}
+							{{ 'summary.originalPriceLabel'|t('foster-checkout') }}: <span class="line-through">{{ (lineItem.price * lineItem.qty) | commerceCurrency }}</span>
 						</p>
-					{% elseif lineItem.getOnPromotion() or lineItem.purchasable.getSales()|length%}
+					{% elseif lineItem.getOnPromotion() or lineItem.purchasable.getSales()|length %}
 						<p>
 							<span class="text-sm text-gray-500">
 								{{ 'summary.onSaleLabel'|t('foster-checkout') }}
