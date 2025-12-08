@@ -50,7 +50,18 @@
 			<h3 class="font-semibold leading-snug">{{ lineItem.description }}</h3>
 			<p class="text-sm uppercase text-gray-500">{{ 'Qty'|t('foster-checkout') }}: {{ lineItem.qty }}</p>
 		</div>
-		<h4 class="font-semibold text-right leading-snug">{{ lineItem.subtotalAsCurrency }}</h4>
+		<h4 class="font-semibold text-right leading-snug">
+			{% if lineItem.getDiscount() %}
+				{% for adjustment in lineItem.getAdjustments() %}
+					{% if adjustment.type == 'discount' %}
+						<span class="text-sm text-[var(--brandColor)]">{{ adjustment.name|raw }}</span><br>
+					{% endif %}
+				{% endfor %}
+				<span class="line-through text-sm text-gray-500">{{ (lineItem.price * lineItem.qty) | commerceCurrency }}</span> {{ lineItem.totalAsCurrency }}
+			{% else %}
+				{{ lineItem.subtotalAsCurrency }}
+			{% endif %}
+		</h4>
 	</div>
 
 </article>
