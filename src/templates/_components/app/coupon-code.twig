@@ -106,10 +106,9 @@
 			<input type="hidden" name="couponCode" value="" />
 
 			<div class="flex justify-between items-center text-sm text-grey-400 p-2 rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
-				<p><span class="font-bold">{{ cart.couponCode }}</span>.
-				{% if discount.description %}
-					<span class="text-xs font-italic">{{ discount.description }}</span>
-				{% endif %}
+				<p>
+					<span class="font-bold">{{ cart.couponCode }}</span>
+					<span class="text-xs font-italic">{{ discount.name }}</span>
 				</p>
 				<button
 					type="submit"
