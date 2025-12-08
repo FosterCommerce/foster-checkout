@@ -183,7 +183,7 @@
 
 				<div class="mt-3 md:mt-0 md:text-right">
 					{% if lineItem.getOnPromotion() or lineItem.getDiscount() or lineItem.purchasable.getSales()|length %}
-						<p class="text-sm text-gray-500 line-through">{{ lineItem.subtotalAsCurrency }}</p>
+						<p class="text-sm text-gray-500 line-through">{{ (lineItem.price * lineItem.qty) | commerceCurrency }}</p>
 						<p class="font-semibold"><span>{{ lineItem.totalAsCurrency }}</span></p>
 
 						{# discounts #}
