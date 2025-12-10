@@ -82,13 +82,13 @@
 							{{ hiddenInput('event[trackOrder]', '1') }}
 							{{ hiddenInput('event[orderId]', cart.id) }}
 							<button type="submit"
-									class="block md:inline-block lg:block mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl">
+											class="block w-full md:inline-block md:w-auto lg:block lg:w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl">
 								{{ 'cart.checkout'|t('foster-checkout') }}
 							</button>
 						</form>
 					{% else %}
 						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}"
-							class="block md:inline-block lg:block mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
+							 class="block w-full md:inline-block md:w-auto lg:block lg:w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 						>
 							{{ 'cart.checkout'|t('foster-checkout') }}
 						</a>
