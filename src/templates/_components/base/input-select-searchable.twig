@@ -1,0 +1,142 @@
+{% set model = model ?? '' %}
+{% set id = id ?? '' %}
+{% set name = name ?? '' %}
+{% set options = options ?? [] %}
+{% set label = label ?? null %}
+{% set placeholder = placeholder ?? 'Select' %}
+{% set required = required|default %}
+{% set errors = errors ?? [] %}
+
+<div
+	x-cloak
+	x-data="SearchableSelect({
+		id: '{{ id }}',
+		name: '{{ name }}',
+		placeholder: '{{ placeholder }}',
+		options: {{ options|json_encode }}
+	})"
+	x-modelable="modelValue"
+	x-model="{{ model }}"
+	class="w-full"
+	@keydown.escape.stop.prevent="closeAndFocusButton()"
+	@click.outside="closeListbox()"
+>
+	<!-- Label -->
+	{% if label %}
+		<label
+			:id="labelId()"
+			class="block mb-2 font-medium text-gray-500"
+			@click="openListbox()"
+		>
+			{{ label ~ (required|default ? '*' : '') }}
+		</label>
+	{% endif %}
+
+	<!-- Button that behaves like a native select -->
+	<button
+		type="button"
+		x-ref="button"
+		:id="buttonId()"
+		@click="toggleListbox()"
+		@keydown.arrow-down.prevent="openListbox()"
+		@keydown.arrow-up.prevent="openListbox()"
+		@keydown.enter.prevent="toggleListbox()"
+		@keydown.space.prevent="toggleListbox()"
+		class="relative w-full py-[11px] pl-3 pr-10 rounded-lg cursor-default border border-gray-300 bg-white text-left focus:!ring-0 focus:!outline-none focus:border-black transition-color duration-300"
+		:aria-haspopup="'listbox'"
+		:aria-expanded="open ? 'true' : 'false'"
+		:aria-labelledby="labelId()"
+		:aria-controls="listboxId()"
+	>
+		<span class="block truncate" x-text="buttonLabel"></span>
+		<span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+			<svg class="h-6 w-6" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+				<path stroke='#6B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'></path>
+			</svg>
+		</span>
+	</button>
+
+	<!-- Hidden input for form submission (server sees just the value/code) -->
+	<input
+		type="hidden"
+		:name="name"
+		:value="modelValue ?? ''"
+	/>
+
+	<!-- Dropdown -->
+	<div
+		x-show="open"
+		x-transition.origin.top
+		class="relative"
+	>
+		<div
+			class="absolute z-10 mt-1 w-full rounded-lg bg-white shadow-lg border border-gray-200"
+		>
+			<!-- Search box inside dropdown -->
+			<div class="p-2 border-b border-gray-100">
+				<label class="sr-only" :for="`${id}-search`">Search options</label>
+				<input
+					:id="`${id}-search`"
+					x-ref="search"
+					type="text"
+					x-model="search"
+					role="searchbox"
+					:aria-controls="listboxId()"
+					:aria-activedescendant="open && hasOptions ? optionId(activeIndex) : null"
+					placeholder="Type to search…"
+					class="w-full rounded-md border border-gray-300 bg-white h-12 px-4 focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
+					@keydown.arrow-down.prevent="moveActive(1)"
+					@keydown.arrow-up.prevent="moveActive(-1)"
+					@keydown.enter.prevent="selectActiveOption()"
+					@keydown.escape.prevent="closeAndFocusButton()"
+				/>
+			</div>
+
+			<!-- Options list -->
+			<ul
+				x-ref="listbox"
+				:id="listboxId()"
+				role="listbox"
+				:aria-labelledby="labelId()"
+				:aria-activedescendant="open && hasOptions ? optionId(activeIndex) : null"
+				class="max-h-[260px] overflow-auto py-2"
+			>
+				<!-- No results -->
+				<li x-show="!hasOptions" class="px-4 py-3 text-gray-500">
+					No results found
+				</li>
+
+				<!-- Options -->
+				<template x-for="(option, index) in filteredOptions" :key="option.value">
+					<li
+						:id="optionId(index)"
+						role="option"
+						:aria-selected="isSelected(option) ? 'true' : 'false'"
+						@mouseenter="activeIndex = index"
+						@mouseleave="activeIndex = index"
+						@mousedown.prevent
+						@click="selectOption(option)"
+						class="relative cursor-default select-none py-3 pl-4 pr-9"
+						:class="{
+							'bg-gray-800 text-white': index === activeIndex,
+							'text-gray-800': index !== activeIndex && !isSelected(option),
+							'text-gray-800 bg-gray-200': isSelected(option) && index !== activeIndex
+						}"
+					>
+						<span
+							class="block truncate"
+							:class="{ 'font-semibold': isSelected(option), 'font-normal': !isSelected(option) }"
+							x-text="option.label"
+						></span>
+
+						<span x-show="isSelected(option)" class="absolute inset-y-0 right-0 flex items-center pr-4">
+							<svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+								<path fill-rule="evenodd" d="M16.704 5.29a1 1 0 00-1.408-1.42l-6.3 6.24-2.29-2.27a1 1 0 10-1.42 1.41l3 2.98a1 1 0 001.41-.01l7-6.93z" clip-rule="evenodd"></path>
+							</svg>
+						</span>
+					</li>
+				</template>
+			</ul>
+		</div>
+	</div>
+</div>
