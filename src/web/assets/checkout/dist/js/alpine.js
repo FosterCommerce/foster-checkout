@@ -403,6 +403,7 @@ const Payment = (props) => {
 
 Alpine.plugin(focus);
 Alpine.data('ClearableInput', ClearableInput);
+Alpine.data('SearchableSelect', SearchableSelect);
 Alpine.data('LineItem', LineItem);
 Alpine.data('Payment', Payment);
 
