@@ -29,6 +29,16 @@ since the array key will be the same #}
 	{% set requiredFields = requiredFields|merge({(countryCode): craft.app.addresses.getAddressFormatRepository().get(countryCode).getRequiredFields()}) %}
 {% endfor %}
 
+{% set testCountries = [
+	{ value: 'US', label: 'United States' },
+	{ value: 'CA', label: 'Canada' },
+	{ value: 'GB', label: 'United Kingdom' },
+	{ value: 'DE', label: 'Germany' },
+	{ value: 'FR', label: 'France' },
+	{ value: 'ES', label: 'Spain' },
+	{ value: 'MX', label: 'Mexico' },
+] %}
+
 <div
 	x-data="{
 		address: {{ address|json_encode }},
@@ -42,6 +52,28 @@ since the array key will be the same #}
 	}"
 	class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-3"
 >
+	<div class="sm:col-span-3">
+		<div
+			x-data="{ testCountryCode: 'US', testAdministrativeArea: 'FL' }"
+			@selected.window="console.log('Select Changed', $event.detail); testAdministrativeArea = ''"
+		>
+
+			<div x-text="`Country Code is ${testCountryCode}`"></div>
+			<div x-text="`State/Province Code is ${testAdministrativeArea}`"></div>
+
+			{% include '_components/base/input-select-searchable' with {
+				model: 'testCountryCode',
+				name: 'testCountryCode',
+				options: testCountries,
+				label: 'Country',
+				placeholder: 'Select',
+				required: true,
+				errors: errors.countryCode ?? []
+			} %}
+		</div>
+	</div>
+
+
 	<div class="sm:col-span-3">
 		<label for="{{ 'countryCode'|namespaceInputId(context) }}" class="block mb-2 font-medium text-gray-500">
 			{{ 'addressFields.countryLabel'|t('foster-checkout') }}*
