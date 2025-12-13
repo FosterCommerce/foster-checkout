@@ -78,8 +78,11 @@ const SearchableSelect = (props) => {
 	return {
 		id: props.id || `ss-${Math.random().toString(36).slice(2)}`,
 		name: props.name || 'select',
-		options: props.options || [],
 		placeholder: props.placeholder || 'Select',
+		options: props.options || [],
+		required: props.required || false,
+		errors: props.errors || [],
+		success: props.success || [],
 		modelValue: props.value || null,
 		open: false,
 		search: '',
@@ -134,6 +137,11 @@ const SearchableSelect = (props) => {
 		get hasOptions() {
 			return this.filteredOptions.length > 0;
 		},
+		
+		isLastPinned(option) {
+			const pinned = this.filteredOptions.filter(o => o.pinned)
+			return pinned.length && pinned[pinned.length - 1] === option
+		},
 
 		labelId() {
 			return `${this.id}-label`;
@@ -145,6 +153,10 @@ const SearchableSelect = (props) => {
 
 		listboxId() {
 			return `${this.id}-listbox`;
+		},
+		
+		errorId() {
+			return `${this.id}-error`;
 		},
 
 		optionId(index) {

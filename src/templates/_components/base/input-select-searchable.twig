@@ -1,19 +1,27 @@
+{% if context|default %}
+	{% set fieldId = id|default ? id|namespaceInputId(context) : '' %}
+	{% set fieldName = name|default ? name|namespaceInputName(context) : '' %}
+{% else %}
+	{% set fieldId = id ?? '' %}
+	{% set fieldName = name ?? '' %}
+{% endif %}
+
 {% set model = model ?? '' %}
-{% set id = id ?? '' %}
-{% set name = name ?? '' %}
 {% set options = options ?? [] %}
-{% set label = label ?? null %}
 {% set placeholder = placeholder ?? 'Select' %}
-{% set required = required|default %}
-{% set errors = errors ?? [] %}
 
 <div
 	x-cloak
 	x-data="SearchableSelect({
-		id: '{{ id }}',
-		name: '{{ name }}',
+		id: '{{ fieldId }}',
+		name: '{{ fieldName }}',
 		placeholder: '{{ placeholder }}',
-		options: {{ options|json_encode }}
+		options: {{ options|json_encode }},
+		{% if required|default %}
+			required: {{ required ? 'true' : 'false' }},
+		{% endif %}
+		errors: {{ errors|default([])|json_encode }},
+		success: {{ success|default([])|json_encode }}
 	})"
 	x-modelable="modelValue"
 	x-model="{{ model }}"
@@ -22,7 +30,7 @@
 	@click.outside="closeListbox()"
 >
 	<!-- Label -->
-	{% if label %}
+	{% if label|default %}
 		<label
 			:id="labelId()"
 			class="block mb-2 font-medium text-gray-500"
@@ -42,8 +50,9 @@
 		@keydown.arrow-up.prevent="openListbox()"
 		@keydown.enter.prevent="toggleListbox()"
 		@keydown.space.prevent="toggleListbox()"
-		class="relative w-full py-[11px] pl-3 pr-10 rounded-lg cursor-default border border-gray-300 bg-white text-left focus:!ring-0 focus:!outline-none focus:border-black transition-color duration-300"
-		:aria-haspopup="'listbox'"
+		class="relative w-full py-[11px] pl-3 pr-10 rounded-lg cursor-default border bg-white text-left focus:!ring-0 focus:!outline-none transition-color duration-300"
+		:class="errors.length ? 'border-red-500 focus:border-red-500' : 'border-gray-250 focus:border-black'"
+		aria-haspopup="listbox"
 		:aria-expanded="open ? 'true' : 'false'"
 		:aria-labelledby="labelId()"
 		:aria-controls="listboxId()"
@@ -61,6 +70,8 @@
 		type="hidden"
 		:name="name"
 		:value="modelValue ?? ''"
+		:aria-invalid="errors.length ? true : false"
+		:aria-errormessage="errorId()"
 	/>
 
 	<!-- Dropdown -->
@@ -120,7 +131,8 @@
 						:class="{
 							'bg-gray-800 text-white': index === activeIndex,
 							'text-gray-800': index !== activeIndex && !isSelected(option),
-							'text-gray-800 bg-gray-200': isSelected(option) && index !== activeIndex
+							'text-gray-800 bg-gray-200': isSelected(option) && index !== activeIndex,
+							'border-b border-gray-300': isLastPinned(option),
 						}"
 					>
 						<span
@@ -139,4 +151,12 @@
 			</ul>
 		</div>
 	</div>
+
+	<template x-if="errors.length">
+		<p :id="errorId()" class="mt-1 text-sm text-red-500" x-html="`${ errors.join(' ')}`"></p>
+	</template>
+
+	<template x-if="success.length">
+		<p class="mt-1 text-sm text-green-500" x-html="`${ success.join(' ') } `"></p>
+	</template>
 </div>

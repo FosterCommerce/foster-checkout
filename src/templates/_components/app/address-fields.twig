@@ -20,20 +20,33 @@ since the array key will be the same #}
 		{% set pinnedCountries = pinnedCountries|merge({(code): countries[code]}) %}
 	{% endif %}
 {% endfor %}
+{#
 {% if pinnedCountries|length > 0 %}
 	{% set pinnedCountries = pinnedCountries|merge({' ': '──────────'}) %}
 {% endif %}
-
+#}
 
 {% for countryCode, _country in countries %}
 	{% set requiredFields = requiredFields|merge({(countryCode): craft.app.addresses.getAddressFormatRepository().get(countryCode).getRequiredFields()}) %}
 {% endfor %}
 
+{% if pinnedCountries|length > 0 %}
+	{% set countries = countries|filter((value, key) => key not in pinnedCountries|keys) %}
+{% endif %}
+
 {% set countriesArr = [] %}
+{% for key, name in pinnedCountries %}
+	{% set countriesArr = countriesArr|merge([{
+		value: key,
+		label: name,
+		pinned: true
+	}]) %}
+{% endfor %}
 {% for key, name in countries %}
 	{% set countriesArr = countriesArr|merge([{
 		value: key,
-		label: name
+		label: name,
+		pinned: false
 	}]) %}
 {% endfor %}
 
@@ -53,7 +66,8 @@ since the array key will be the same #}
 >
 	<div class="sm:col-span-3">
 		{% include 'foster-checkout/_components/base/input-select-searchable' with {
-			id: context|default ? 'countryCode'|namespaceInputId(context) : 'countryCode',
+			context: context,
+			id: 'countryCode',
 			model: 'countryCode',
 			name: 'countryCode',
 			options: countriesArr,
