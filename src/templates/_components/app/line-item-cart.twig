@@ -54,7 +54,7 @@
 >
 
 	{% if hasImage %}
-		<div class="w-[80px] min-w-[80px] max-w-[80px] md:w-[200px] md:min-w-[200px] md:max-w-[200px] flex-grow">
+		<div class="hidden sm:block w-[80px] min-w-[80px] max-w-[80px] md:w-[200px] md:min-w-[200px] md:max-w-[200px] flex-grow">
 			<figure class="rounded-lg overflow-hidden min-w-full">
 				<img
 					srcset="{{ imageSrcSet }}"
@@ -83,7 +83,7 @@
 
 			</div>
 
-			<div class="mt-0 md:flex md:flex-col-reverse md:justify-start md:items-end md:gap-3 md:w-1/2">
+			<div class="mt-0 flex flex-col-reverse gap-3 justify-start items-end md:w-1/2">
 
 				<form
 					id="lineItemQty-{{ lineItem.id }}"
