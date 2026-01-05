@@ -85,6 +85,40 @@
 
 			<div class="mt-0 md:flex md:flex-col-reverse md:justify-start md:items-end md:gap-3 md:w-1/2">
 
+				<div class="mt-0 mb-3 sm:mb-0 text-right">
+					{% if lineItem.getDiscount() %}
+						<p>
+							{% for adjustment in lineItem.getAdjustments() %}
+								{% if adjustment.type == 'discount' %}
+									<span class="text-sm text-[var(--brandColor)]">
+										{{ 'summary.discountLabel'|t('foster-checkout') }}: {{ adjustment.name|raw }}
+									</span><br>
+								{% endif %}
+							{% endfor %}
+							<span class="text-lg font-semibold">{{ lineItem.totalAsCurrency }}</span>
+						</p>
+						<p class="text-sm text-gray-500">
+							{% if lineItem.getOnPromotion() or lineItem.purchasable.getSales()|length %}
+								{{ 'summary.onSaleLabel'|t('foster-checkout') }}: {{ (lineItem.salePrice * lineItem.qty) | commerceCurrency }}<br>
+							{% endif %}
+							{{ 'summary.originalPriceLabel'|t('foster-checkout') }}: <span class="line-through">{{ (lineItem.price * lineItem.qty) | commerceCurrency }}</span>
+						</p>
+					{% elseif lineItem.getOnPromotion() or lineItem.purchasable.getSales()|length %}
+						<p>
+							<span class="text-sm text-gray-500">
+								{{ 'summary.onSaleLabel'|t('foster-checkout') }}
+							</span><br>
+							<span class="text-sm text-[var(--brandColor)]">
+								-{{ ((lineItem.salePrice / lineItem.price) * 100) }}%
+							</span>
+							<span class="text-lg font-semibold">{{ lineItem.totalAsCurrency }}</span>
+						</p>
+					{% else %}
+						<p class="font-semibold"><span>{{ lineItem.totalAsCurrency }}</span></p>
+					{% endif %}
+
+				</div>
+
 				<form
 					id="lineItemQty-{{ lineItem.id }}"
 					class="flex flex-col items-start items-end gap-2"
@@ -180,40 +214,6 @@
 						</template>
 					</div>
 				</form>
-
-				<div class="mt-0 text-right">
-					{% if lineItem.getDiscount() %}
-						<p>
-							{% for adjustment in lineItem.getAdjustments() %}
-								{% if adjustment.type == 'discount' %}
-									<span class="text-sm text-[var(--brandColor)]">
-										{{ 'summary.discountLabel'|t('foster-checkout') }}: {{ adjustment.name|raw }}
-									</span><br>
-								{% endif %}
-							{% endfor %}
-							<span class="text-lg font-semibold">{{ lineItem.totalAsCurrency }}</span>
-						</p>
-						<p class="text-sm text-gray-500">
-							{% if lineItem.getOnPromotion() or lineItem.purchasable.getSales()|length %}
-								{{ 'summary.onSaleLabel'|t('foster-checkout') }}: {{ (lineItem.salePrice * lineItem.qty) | commerceCurrency }}<br>
-							{% endif %}
-							{{ 'summary.originalPriceLabel'|t('foster-checkout') }}: <span class="line-through">{{ (lineItem.price * lineItem.qty) | commerceCurrency }}</span>
-						</p>
-					{% elseif lineItem.getOnPromotion() or lineItem.purchasable.getSales()|length %}
-						<p>
-							<span class="text-sm text-gray-500">
-								{{ 'summary.onSaleLabel'|t('foster-checkout') }}
-							</span><br>
-							<span class="text-sm text-[var(--brandColor)]">
-								-{{ ((lineItem.salePrice / lineItem.price) * 100) }}%
-							</span>
-							<span class="text-lg font-semibold">{{ lineItem.totalAsCurrency }}</span>
-						</p>
-					{% else %}
-						<p class="font-semibold"><span>{{ lineItem.totalAsCurrency }}</span></p>
-					{% endif %}
-
-				</div>
 
 			</div>
 
