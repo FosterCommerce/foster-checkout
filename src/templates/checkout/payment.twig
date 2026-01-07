@@ -349,12 +349,8 @@
 															"
 
 															x-init="
-																const gatewayClass = '{{ gateway.className() }}';
-																const initHandlers = {
-																	'craft\commerce\paypalcheckout\gateways\Gateway': initPaypalCheckout,
-																	'craft\commerce\stripe\gateways\PaymentIntents': initStripe
-																};
-																(initHandlers[gatewayClass] ?? (() => {}))();
+																'{{ gateway.className() }}' === 'craft\commerce\paypalcheckout\gateways\Gateway' ? initPaypalCheckout() : null;
+																'{{ gateway.className() }}' === 'craft\commerce\stripe\gateways\PaymentIntents' ? initStripe() : null;
 															"
 														>
 															{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
