@@ -54,7 +54,7 @@
 >
 
 	{% if hasImage %}
-		<div class="w-[80px] min-w-[80px] max-w-[80px] md:w-[200px] md:min-w-[200px] md:max-w-[200px] flex-grow">
+		<div class="hidden sm:block w-[80px] min-w-[80px] max-w-[80px] md:w-[200px] md:min-w-[200px] md:max-w-[200px] flex-grow">
 			<figure class="rounded-lg overflow-hidden min-w-full">
 				<img
 					srcset="{{ imageSrcSet }}"
@@ -70,9 +70,9 @@
 
 	<div class="flex flex-col justify-between items-stretch gap-10 flex-grow">
 
-		<div class="md:flex md:justify-between md:items-start">
+		<div class="flex justify-between items-start">
 
-			<div class="md:pr-4">
+			<div class="pr-4">
 				<h3 class="font-semibold">{{ lineItem.description }}</h3>
 				<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.sku }}</p>
 
@@ -83,11 +83,11 @@
 
 			</div>
 
-			<div class="mt-3 md:flex md:flex-col-reverse md:justify-start md:items-end md:gap-3 md:mt-0 md:w-1/2">
+			<div class="mt-0 flex flex-col-reverse gap-3 justify-start items-end md:w-1/2">
 
 				<form
 					id="lineItemQty-{{ lineItem.id }}"
-					class="flex flex-col items-start md:items-end gap-2"
+					class="flex flex-col items-start items-end gap-2"
 					method="post"
 					x-on:submit="sending = true"
 				>
@@ -181,7 +181,7 @@
 					</div>
 				</form>
 
-				<div class="mt-3 md:mt-0 md:text-right">
+				<div class="mt-0 text-right">
 					{% if lineItem.getDiscount() %}
 						<p>
 							{% for adjustment in lineItem.getAdjustments() %}
@@ -219,7 +219,7 @@
 
 		</div>
 
-		<footer class="flex flex-col justify-between items-start gap-3">
+		<footer class="hidden md:block flex flex-col justify-between items-start gap-3">
 			{% if not lineItem.purchasable.hasUnlimitedStock %}
 				<p class="text-sm font-medium text-gray-500">
 					{{ 'cart.lineItem.limitedStock'|t('foster-checkout', params = { qty: lineItem.purchasable.stock }) }}
