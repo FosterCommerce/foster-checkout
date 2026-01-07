@@ -12,6 +12,17 @@
 	</title>
 {% endblock %}
 
+{% block includeHead %}
+	{% set headInclude = craft.fostercheckout.settings.includes.head %}
+	{% if headInclude|default %}
+		{% include headInclude with {
+			context: 'checkout',
+			location: 'head',
+			step: 'confirmation'
+		} %}
+	{% endif %}
+{% endblock %}
+
 {% block body %}
 
 	<div
@@ -221,4 +232,15 @@
 		try { localStorage.removeItem('fc_subscribe'); } catch (_) {}
 	{% endjs %}
 
+{% endblock %}
+
+{% block includeBody %}
+	{% set bodyInclude = craft.fostercheckout.settings.includes.body %}
+	{% if bodyInclude|default %}
+		{% include bodyInclude with {
+			context: 'checkout',
+			location: 'body',
+			step: 'confirmation'
+		} %}
+	{% endif %}
 {% endblock %}

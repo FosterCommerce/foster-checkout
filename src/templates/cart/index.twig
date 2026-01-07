@@ -5,6 +5,17 @@
 		| {{ 'misc.cartTitle'|t('foster-checkout') }}</title>
 {% endblock %}
 
+{% block includeHead %}
+	{% set headInclude = craft.fostercheckout.settings.includes.head %}
+	{% if headInclude|default %}
+		{% include headInclude with {
+			context: 'cart',
+			location: 'head',
+			step: null
+		} %}
+	{% endif %}
+{% endblock %}
+
 {% block body %}
 
 	{% if cart.lineItems|length > 0 %}
@@ -139,4 +150,15 @@
 
 	{% endif %}
 
+{% endblock %}
+
+{% block includeBody %}
+	{% set bodyInclude = craft.fostercheckout.settings.includes.body %}
+	{% if bodyInclude|default %}
+		{% include bodyInclude with {
+			context: 'cart',
+			location: 'body',
+			step: null
+		} %}
+	{% endif %}
 {% endblock %}

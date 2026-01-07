@@ -127,12 +127,12 @@ return [
 
 		context : Either "cart" or "checkout"
 		location : Either "head" or "body"
-		step: Either "email", "shipping-address", "shipping-method", "payment", "confirmation" or null
+		step: Either "email", "shipping-address", "shipping-method", "payment", "confirmation" or an empty string
 	*/
 	'includes' => [
-		// Relative path to the include/partial in your template directory that will be injected into the <head>
+		// Relative path to the include in your template directory that will be injected into the document <head>
 		'head' => '',
-		// Relative path to the include/partial in your template directory that will be injected into the <body>
+		// Relative path to the include in your template directory that will be injected before the end </body> tag
 		'body' => '',
 	],
 

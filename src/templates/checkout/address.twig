@@ -9,6 +9,17 @@
 	</title>
 {% endblock %}
 
+{% block includeHead %}
+	{% set headInclude = craft.fostercheckout.settings.includes.head %}
+	{% if headInclude|default %}
+		{% include headInclude with {
+			context: 'checkout',
+			location: 'head',
+			step: 'shipping-address'
+		} %}
+	{% endif %}
+{% endblock %}
+
 {% block body %}
 	{# If a user address was chosen, Commerce sets cart.sourceShippingAddressId to that address-book id. #}
 	{# If "new address" was chosen, sourceShippingAddressId is null but cart.shippingAddressId exists. #}
@@ -245,4 +256,15 @@
 			</aside>
 		</div>
 	</div>
+{% endblock %}
+
+{% block includeBody %}
+	{% set bodyInclude = craft.fostercheckout.settings.includes.body %}
+	{% if bodyInclude|default %}
+		{% include bodyInclude with {
+			context: 'checkout',
+			location: 'body',
+			step: 'shipping-address'
+		} %}
+	{% endif %}
 {% endblock %}
