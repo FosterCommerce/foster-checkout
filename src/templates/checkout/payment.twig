@@ -348,7 +348,7 @@
 															hover:[&_button#paymentForm-authorizeNet-authorizeSubmit]:opacity-90
 															"
 
-															x-init="'{{ gateway.className() }}' == 'craft\commerce\paypalcheckout\gateways\Gateway' ? initPaypalCheckout() : null"
+															x-init="'{{ gateway.className() }}' === 'craft\commerce\paypalcheckout\gateways\Gateway' ? initPaypalCheckout() : null"
 														>
 															{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
 
