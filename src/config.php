@@ -126,7 +126,8 @@ return [
 		the cart and checkout pages. Within these includes the following variables will be available :
 		context : Either "cart" or "checkout"
 		location : Either "head" or "body"
-		step: Either "email", "shipping-address", "shipping-method", "payment", "confirmation" or an empty string
+		step : Either "email", "shipping-address", "shipping-method", "payment", "confirmation" or an empty string
+		cart : The current Commerce cart/order
 	*/
 	'includes' => [
 		// Relative path to the include in your template directory that will be injected into the document <head>

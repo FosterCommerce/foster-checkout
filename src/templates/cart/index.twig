@@ -11,7 +11,8 @@
 		{% include headInclude with {
 			context: 'cart',
 			location: 'head',
-			step: null
+			step: null,
+			cart: cart
 		} %}
 	{% endif %}
 {% endblock %}
@@ -158,7 +159,8 @@
 		{% include bodyInclude with {
 			context: 'cart',
 			location: 'body',
-			step: null
+			step: null,
+			cart: cart
 		} %}
 	{% endif %}
 {% endblock %}

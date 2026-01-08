@@ -18,7 +18,8 @@
 		{% include headInclude with {
 			context: 'checkout',
 			location: 'head',
-			step: 'confirmation'
+			step: 'confirmation',
+			cart: order
 		} %}
 	{% endif %}
 {% endblock %}
@@ -240,7 +241,8 @@
 		{% include bodyInclude with {
 			context: 'checkout',
 			location: 'body',
-			step: 'confirmation'
+			step: 'confirmation',
+			cart: order
 		} %}
 	{% endif %}
 {% endblock %}

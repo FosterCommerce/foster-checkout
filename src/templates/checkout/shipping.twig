@@ -13,7 +13,8 @@
 		{% include headInclude with {
 			context: 'checkout',
 			location: 'head',
-			step: 'shipping-method'
+			step: 'shipping-method',
+			cart: cart
 		} %}
 	{% endif %}
 {% endblock %}
@@ -188,7 +189,8 @@
 		{% include bodyInclude with {
 			context: 'checkout',
 			location: 'body',
-			step: 'shipping-method'
+			step: 'shipping-method',
+			cart: cart
 		} %}
 	{% endif %}
 {% endblock %}

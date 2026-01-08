@@ -17,7 +17,8 @@
 		{% include headInclude with {
 			context: 'checkout',
 			location: 'head',
-			step: 'email'
+			step: 'email',
+			cart: cart
 		} %}
 	{% endif %}
 {% endblock %}
@@ -216,7 +217,8 @@
 		{% include bodyInclude with {
 			context: 'checkout',
 			location: 'body',
-			step: 'email'
+			step: 'email',
+			cart: cart
 		} %}
 	{% endif %}
 {% endblock %}

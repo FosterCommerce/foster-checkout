@@ -15,7 +15,8 @@
 		{% include headInclude with {
 			context: 'checkout',
 			location: 'head',
-			step: 'shipping-address'
+			step: 'shipping-address',
+			cart: cart
 		} %}
 	{% endif %}
 {% endblock %}
