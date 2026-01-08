@@ -121,6 +121,21 @@ return [
 		'cancel' => '',
 	],
 
+	/*	Custom Includes
+		Paths to twig includes/partials in your templates directory which will be injected into
+		the cart and checkout pages. Within these includes the following variables will be available :
+		context : Either "cart" or "checkout"
+		location : Either "head" or "body"
+		step : Either "email", "shipping-address", "shipping-method", "payment", "confirmation" or an empty string
+		cart : The current Commerce cart/order
+	*/
+	'includes' => [
+		// Relative path to the include in your template directory that will be injected into the document <head>
+		'head' => '',
+		// Relative path to the include in your template directory that will be injected before the end </body> tag
+		'body' => '',
+	],
+
 	/*	Extra supplementary links
 		Field should be a table field, with columns for 'text' and 'url'
 		checkoutFooter links are displayed at the bottom of each page in the checkout process

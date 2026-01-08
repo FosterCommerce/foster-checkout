@@ -11,6 +11,18 @@
 	</title>
 {% endblock %}
 
+{% block includeHead %}
+	{% set headInclude = craft.fostercheckout.settings.includes.head %}
+	{% if headInclude|default %}
+		{% include headInclude with {
+			context: 'checkout',
+			location: 'head',
+			step: 'email',
+			cart: cart
+		} %}
+	{% endif %}
+{% endblock %}
+
 {% block body %}
 
 	<div class="mt-10 pb-28 lg:pb-32">
@@ -197,4 +209,16 @@
 		window.FC_SUBSCRIBE_KEY = {{ parts|json_encode|raw }};
 	{% endjs %}
 
+{% endblock %}
+
+{% block includeBody %}
+	{% set bodyInclude = craft.fostercheckout.settings.includes.body %}
+	{% if bodyInclude|default %}
+		{% include bodyInclude with {
+			context: 'checkout',
+			location: 'body',
+			step: 'email',
+			cart: cart
+		} %}
+	{% endif %}
 {% endblock %}

@@ -7,6 +7,18 @@
 	</title>
 {% endblock %}
 
+{% block includeHead %}
+	{% set headInclude = craft.fostercheckout.settings.includes.head %}
+	{% if headInclude|default %}
+		{% include headInclude with {
+			context: 'checkout',
+			location: 'head',
+			step: 'payment',
+			cart: cart
+		} %}
+	{% endif %}
+{% endblock %}
+
 {% block body %}
 	{% set gateways = craft.commerce.gateways.getAllCustomerEnabledGateways %}
 	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
@@ -572,4 +584,16 @@
 			});
 		}
 	{% endjs %}
+{% endblock %}
+
+{% block includeBody %}
+	{% set bodyInclude = craft.fostercheckout.settings.includes.body %}
+	{% if bodyInclude|default %}
+		{% include bodyInclude with {
+			context: 'checkout',
+			location: 'body',
+			step: 'payment',
+			cart: cart
+		} %}
+	{% endif %}
 {% endblock %}
