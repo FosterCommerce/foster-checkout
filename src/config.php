@@ -42,12 +42,6 @@ return [
 		// Whether to show the line item options
 		'enableLineItemOptions' => '_',
 
-		// The label to display for the estimated tax on the cart summary
-		'estimatedTaxLabel' => 'Estimated tax',
-
-		// The label to display for the tax on the cart summary
-		'taxLabel' => 'Tax',
-
 		// The Klaviyo list ID to subscribe the customer to
 		'klaviyoListId' => null,
 
