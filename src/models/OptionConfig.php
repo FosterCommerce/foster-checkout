@@ -52,16 +52,6 @@ class OptionConfig extends Model
 	public bool|string $enableLineItemOptions = '_';
 
 	/**
-	 * The label to display for the estimated tax on the cart summary
-	 */
-	public string $estimatedTaxLabel = 'Estimated tax';
-
-	/**
-	 * The label to display for the tax on the cart summary
-	 */
-	public string $taxLabel = 'Tax';
-
-	/**
 	 * The Klaviyo list ID to subscribe the customer to
 	 */
 	public ?string $klaviyoListId = null;
