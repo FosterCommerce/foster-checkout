@@ -27,12 +27,6 @@ class PathConfig extends Model
 	public string $cancel = '/';
 
 	/**
-	 * The path the user should be taken to if they click the logo
-	 * (ex. '/')
-	 */
-	public string $logo = '/';
-
-	/**
 	 * The site relative path to where the account should be accessible
 	 * (ex. '/')
 	 */
