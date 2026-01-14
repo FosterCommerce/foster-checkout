@@ -205,7 +205,7 @@
 								{{ 'summary.onSaleLabel'|t('foster-checkout') }}
 							</span><br>
 							<span class="text-sm text-[var(--brandColor)]">
-								-{{ ((lineItem.salePrice / lineItem.price) * 100) }}%
+								-{{ ((lineItem.salePrice / lineItem.price)|round(2) * 100) }}%
 							</span>
 							<span class="text-lg font-semibold">{{ lineItem.totalAsCurrency }}</span>
 						</p>
