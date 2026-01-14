@@ -1,7 +1,7 @@
 {% set minQty = lineItem.purchasable.minQty %}
 {% set maxQty = lineItem.purchasable.maxQty %}
 {% set stock = lineItem.purchasable.stock %}
-{% set unlimitedStock = lineItem.purchasable.hasUnlimitedStock ? 1 : 0 %}
+{% set unlimitedStock = (lineItem.purchasable.hasUnlimitedStock or lineItem.purchasable.allowOutOfStockPurchases) ? 1 : 0 %}
 
 {% set hasImage = true %}
 {% set imageSrcSet = null %}
