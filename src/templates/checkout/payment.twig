@@ -478,7 +478,7 @@
 																<div class="{{ manualColumns ? 'sm:grid-cols-' ~ manualColumns }}">
 																	{# Only namespace additional custom fields if they exist #}
 																	{% if manualFields|length %}
-																		{% namespace gateway.handle|commercePaymentFormNamespace %}
+																		{# {% namespace gateway.handle|commercePaymentFormNamespace %} #}
 																			{% for field in manualFields %}
 																				<div class="sm:col-span-{{ field.columns ?: 'full' }}">
 																					{% switch field.type %}
@@ -490,7 +490,7 @@
 																						context: '',
 																						label: field.label,
 																						id: field.id ?? field.handle,
-																						name: field.name ?? field.handle,
+																						name: 'fields[' ~ (field.name ?? field.handle) ~ ']',
 																						type: field.type,
 																						placeholder: field.placeholder,
 																						errors: [],
@@ -504,7 +504,7 @@
 																					} %}
 																				</div>
 																			{% endfor %}
-																		{% endnamespace %}
+																		{# {% endnamespace %} #}
 																	{% endif %}
 
 																	<button
