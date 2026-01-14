@@ -1,7 +1,7 @@
 {% set minQty = lineItem.purchasable.minQty %}
 {% set maxQty = lineItem.purchasable.maxQty %}
 {% set stock = lineItem.purchasable.stock %}
-{% set unlimitedStock = lineItem.purchasable.hasUnlimitedStock ? 1 : 0 %}
+{% set unlimitedStock = (lineItem.purchasable.hasUnlimitedStock or lineItem.purchasable.allowOutOfStockPurchases) ? 1 : 0 %}
 
 {% set hasImage = true %}
 {% set imageSrcSet = null %}
@@ -205,7 +205,7 @@
 								{{ 'summary.onSaleLabel'|t('foster-checkout') }}
 							</span><br>
 							<span class="text-sm text-[var(--brandColor)]">
-								-{{ ((lineItem.salePrice / lineItem.price) * 100) }}%
+								-{{ ((lineItem.salePrice / lineItem.price)|round(2) * 100) }}%
 							</span>
 							<span class="text-lg font-semibold">{{ lineItem.totalAsCurrency }}</span>
 						</p>
@@ -220,7 +220,7 @@
 		</div>
 
 		<footer class="hidden md:block flex flex-col justify-between items-start gap-3">
-			{% if not lineItem.purchasable.hasUnlimitedStock %}
+			{% if not lineItem.purchasable.hasUnlimitedStock and not lineItem.purchasable.allowOutOfStockPurchases %}
 				<p class="text-sm font-medium text-gray-500">
 					{{ 'cart.lineItem.limitedStock'|t('foster-checkout', params = { qty: lineItem.purchasable.stock }) }}
 				</p>
