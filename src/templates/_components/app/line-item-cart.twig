@@ -76,7 +76,7 @@
 				<h3 class="font-semibold">{{ lineItem.description }}</h3>
 				<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.sku }}</p>
 				{% if lineItem.lineItemStatus %}
-					<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.lineItemStatus }}</p>
+					<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.lineItemStatus.name|t('foster-checkout') }}</p>
 				{% endif %}
 
 				{# Line item options #}

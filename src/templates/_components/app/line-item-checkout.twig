@@ -50,7 +50,7 @@
 			<h3 class="font-semibold leading-snug">{{ lineItem.description }}</h3>
 			<p class="text-sm uppercase text-gray-500">{{ 'Qty'|t('foster-checkout') }}: {{ lineItem.qty }}</p>
 			{% if lineItem.lineItemStatus %}
-				<p class="text-sm uppercase text-gray-500">{{ lineItem.lineItemStatus }}</p>
+				<p class="text-sm uppercase text-gray-500">{{ lineItem.lineItemStatus.name|t('foster-checkout') }}</p>
 			{% endif %}
 		</div>
 		<h4 class="font-semibold text-right leading-snug">
