@@ -75,6 +75,11 @@
 			<div class="pr-4">
 				<h3 class="font-semibold">{{ lineItem.description }}</h3>
 				<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.sku }}</p>
+				{% if lineItem.lineItemStatus %}
+					<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.lineItemStatus }}</p>
+				{% endif %}
+
+				{# Line item options #}
 
 				{% for option in craft.fostercheckout.getLineItemOptions(lineItem) %}
 					<p class="mt-3 text-sm uppercase text-gray-500">{{ option.name }}: {{ option.value }}</p>
