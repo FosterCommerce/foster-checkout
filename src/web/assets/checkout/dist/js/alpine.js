@@ -129,15 +129,36 @@ const SearchableSelect = (props) => {
 		get filteredOptions() {
 			if (!this.search) return this.options;
 			const q = this.search.toLowerCase();
-			return this.options.filter((o) =>
-				String(o.label).toLowerCase().includes(q)
-			);
+
+			return this.options
+				.filter(o => String(o.label).toLowerCase().includes(q))
+				.sort((a, b) => {
+					const aLabel = String(a.label).toLowerCase();
+					const bLabel = String(b.label).toLowerCase();
+
+					const aExact = aLabel === q;
+					const bExact = bLabel === q;
+
+					const aStarts = aLabel.startsWith(q);
+					const bStarts = bLabel.startsWith(q);
+
+					// 1) Exact match first
+					if (aExact && !bExact) return -1;
+					if (!aExact && bExact) return 1;
+
+					// 2) Starts-with next
+					if (aStarts && !bStarts) return -1;
+					if (!aStarts && bStarts) return 1;
+
+					// 3) Otherwise, both just "includes" and alphabetical
+					return aLabel.localeCompare(bLabel);
+				});
 		},
 
 		get hasOptions() {
 			return this.filteredOptions.length > 0;
 		},
-		
+
 		isLastPinned(option) {
 			const pinned = this.filteredOptions.filter(o => o.pinned)
 			return pinned.length && pinned[pinned.length - 1] === option
@@ -154,7 +175,7 @@ const SearchableSelect = (props) => {
 		listboxId() {
 			return `${this.id}-listbox`;
 		},
-		
+
 		errorId() {
 			return `${this.id}-error`;
 		},
