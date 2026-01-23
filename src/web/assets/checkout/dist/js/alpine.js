@@ -90,6 +90,12 @@ const SearchableSelect = (props) => {
 		selectedOption: null,
 
 		init() {
+			// Remove the fallback select element
+			const fallbackSelect = this.$refs.fallback;
+			if (fallbackSelect) {
+				fallbackSelect.remove();
+			}
+
 			// Initial sync from modelValue/props to selectedOption
 			if (this.modelValue != null) {
 				const match = this.options.find(
@@ -160,8 +166,8 @@ const SearchableSelect = (props) => {
 		},
 
 		isLastPinned(option) {
-			const pinned = this.filteredOptions.filter(o => o.pinned)
-			return pinned.length && pinned[pinned.length - 1] === option
+			const pinned = this.filteredOptions.filter(o => o.pinned);
+			return pinned.length && pinned[pinned.length - 1] === option;
 		},
 
 		labelId() {
