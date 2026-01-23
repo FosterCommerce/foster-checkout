@@ -136,6 +136,10 @@
 			}
 		}
 	</style>
+
+	{# Host site head include block #}
+	{% block includeHead %}
+	{% endblock %}
 </head>
 
 <body style="--brandColor: {{ craft.fostercheckout.settings.branding.color ?? '#1F2937' }}; --headerBgColor: {{ craft.fostercheckout.settings.branding.headerBgColor ?? '#F3F3F3' }};">
@@ -162,6 +166,8 @@
 {# Inject the javascript bundle #}
 <script src="{{ craft.fostercheckout.jsBundle }}" type="module"></script>
 
-
+{# Host site body include block #}
+{% block includeBody %}
+{% endblock %}
 </body>
 </html>

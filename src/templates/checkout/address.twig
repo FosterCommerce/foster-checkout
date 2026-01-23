@@ -9,15 +9,28 @@
 	</title>
 {% endblock %}
 
+{% block includeHead %}
+	{% set headInclude = craft.fostercheckout.settings.includes.head %}
+	{% if headInclude|default %}
+		{% include headInclude with {
+			context: 'checkout',
+			location: 'head',
+			step: 'shipping-address',
+			cart: cart
+		} %}
+	{% endif %}
+{% endblock %}
+
 {% block body %}
 	{# If a user address was chosen, Commerce sets cart.sourceShippingAddressId to that address-book id. #}
 	{# If "new address" was chosen, sourceShippingAddressId is null but cart.shippingAddressId exists. #}
 	{% set _sourceId = cart.sourceShippingAddressId ?? null %}
 	{% set _hasCartShip = cart.shippingAddressId is not empty %}
 	{% set _hasBookAddresses = currentUser and addresses|length %}
-	{# New address when: using a cart address OR there are no saved addresses #}
+	{# Treat as "new address" if no source ID and either a cart address exists or user has no saved addresses #}
 	{% set _isNew = (_sourceId is null) and (_hasCartShip or not _hasBookAddresses) %}
-	{% set _initialRadio = _isNew ? 0 : (_sourceId ?? 0) %}
+	{# Default to first saved address if available, otherwise source ID, otherwise new address (0) #}
+	{% set _initialRadio = _isNew ? 0 : (_sourceId ?? (addresses|length ? addresses|first.id : 0)) %}
 
 	<div class="mt-10 pb-28 lg:pb-32">
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
@@ -70,7 +83,7 @@
 									{% if currentUser and addresses|length %}
 										{% for address in addresses %}
 											<div class="p-4 border-b border-gray-250"
-												 :class="{ 'bg-gray-100': (parseInt(shippingAddressId) === {{ address.id }} && useNewAddress === 0) }">
+													 :class="{ 'bg-gray-100': (parseInt(shippingAddressId) === {{ address.id }} && useNewAddress === 0) }">
 												<div class="flex justify-between items-center gap-4 radio">
 													<input
 														x-model.number="shippingAddressId"
@@ -139,7 +152,7 @@
 											</label>
 										</div>
 
-										{# Save-to-book checkbox block. You can keep this exactly as before. #}
+										{# Save-to-book checkbox and new address form #}
 										{%- set initialSaveParam = craft.app.request.getParam('saveShippingAddressOnOrderComplete') -%}
 										{%- set initialSaveChecked = initialSaveParam is not empty and initialSaveParam|trim != '0' -%}
 
@@ -148,21 +161,19 @@
 												saveToBook: (sessionStorage.getItem('saveShip') !== null)
 												  ? JSON.parse(sessionStorage.getItem('saveShip'))
 												  : {{ initialSaveChecked ? 'true' : 'false' }},
-											  }"
+											}"
 											x-init="$watch('saveToBook', v => sessionStorage.setItem('saveShip', JSON.stringify(v)))"
 										>
 											<template x-if="useNewAddress" x-cloak>
 												<div class="p-4">
 													{% set address = null %}
-													{% if currentUser and cart.sourceShippingAddressId is not null %}
-														{% set address = craft.addresses().owner(currentUser).id(cart.sourceShippingAddressId).one() %}
-													{% elseif cart.shippingAddressId is not null %}
+													{% if cart.shippingAddressId is not null and cart.sourceShippingAddressId is null %}
 														{% set address = craft.addresses().id(cart.shippingAddressId).one() %}
 													{% endif %}
 
 													{% include 'foster-checkout/_components/app/address-fields' with {
 														context: 'shippingAddress',
-														address: null,
+														address: address,
 													} %}
 
 													{% if currentUser %}
@@ -245,4 +256,15 @@
 			</aside>
 		</div>
 	</div>
+{% endblock %}
+
+{% block includeBody %}
+	{% set bodyInclude = craft.fostercheckout.settings.includes.body %}
+	{% if bodyInclude|default %}
+		{% include bodyInclude with {
+			context: 'checkout',
+			location: 'body',
+			step: 'shipping-address'
+		} %}
+	{% endif %}
 {% endblock %}

@@ -42,12 +42,6 @@ return [
 		// Whether to show the line item options
 		'enableLineItemOptions' => '_',
 
-		// The label to display for the estimated tax on the cart summary
-		'estimatedTaxLabel' => 'Estimated tax',
-
-		// The label to display for the tax on the cart summary
-		'taxLabel' => 'Tax',
-
 		// The Klaviyo list ID to subscribe the customer to
 		'klaviyoListId' => null,
 
@@ -119,6 +113,21 @@ return [
 		// The path the user should be taken to if they cancel the checkout process
 		// (ex. '/')
 		'cancel' => '',
+	],
+
+	/*	Custom Includes
+		Paths to twig includes/partials in your templates directory which will be injected into
+		the cart and checkout pages. Within these includes the following variables will be available :
+		context : Either "cart" or "checkout"
+		location : Either "head" or "body"
+		step : Either "email", "shipping-address", "shipping-method", "payment", "confirmation" or an empty string
+		cart : The current Commerce cart/order
+	*/
+	'includes' => [
+		// Relative path to the include in your template directory that will be injected into the document <head>
+		'head' => '',
+		// Relative path to the include in your template directory that will be injected before the end </body> tag
+		'body' => '',
 	],
 
 	/*	Extra supplementary links

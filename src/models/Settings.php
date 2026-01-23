@@ -12,6 +12,8 @@ class Settings extends Model
 
 	public PathConfig $paths;
 
+	public IncludesConfig $includes;
+
 	/**
 	 * Add for each product type using the product type handle, to define the field handles used for the
 	 * product and/or variant preview image to display in the cart view
@@ -70,6 +72,10 @@ class Settings extends Model
 			$this->paths = new PathConfig();
 		}
 
+		if (! isset($this->includes)) {
+			$this->includes = new IncludesConfig();
+		}
+
 		if (! isset($this->notes)) {
 			$this->notes = new NotesConfig();
 		}
@@ -95,6 +101,10 @@ class Settings extends Model
 
 		if (array_key_exists('paths', $values)) {
 			$values['paths'] = new PathConfig($values['paths']);
+		}
+
+		if (array_key_exists('includes', $values)) {
+			$values['includes'] = new IncludesConfig($values['includes']);
 		}
 
 		if (array_key_exists('products', $values)) {
@@ -124,7 +134,6 @@ class Settings extends Model
 
 			$values['links'] = new LinksConfig($values['links']);
 		}
-
 
 		parent::setAttributes($values, $safeOnly);
 	}

@@ -11,7 +11,31 @@
 	</title>
 {% endblock %}
 
+{% block includeHead %}
+	{% set headInclude = craft.fostercheckout.settings.includes.head %}
+	{% if headInclude|default %}
+		{% include headInclude with {
+			context: 'checkout',
+			location: 'head',
+			step: 'email',
+			cart: cart
+		} %}
+	{% endif %}
+{% endblock %}
+
 {% block body %}
+
+	{% set site = craft.app.sites.currentSite %}
+	{% set parts = [
+		'fc_subscribe',
+		craft.app.request.hostName,
+		site.id,
+		site.language,
+		cart.number
+	]|join('_') %}
+	{% js at head %}
+		window.FC_SUBSCRIBE_KEY = {{ parts|json_encode|raw }};
+	{% endjs %}
 
 	<div class="mt-10 pb-28 lg:pb-32">
 
@@ -35,19 +59,20 @@
 						<div class="p-4">
 							<form class="mt-2" method="post" accept-charset="UTF-8">
 								{{ csrfInput() }}
+
+								{% set subscribeText = craft.fostercheckout.settings.options.subscribe|striptags|trim %}
+								{% set klaviyoListId = craft.fostercheckout.settings.options.klaviyoListId %}
+
 								{% if craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
 									{{ actionInput('klaviyo-connect-plus/api/track') }}
 									{{ hiddenInput('event[name]', 'Started Checkout') }}
 									{{ hiddenInput('event[trackOrder]', '1') }}
 									{{ hiddenInput('event[orderId]', cart.id) }}
 									{{ hiddenInput('forward', '/commerce/cart/update-cart') }}
-									{% set klaviyoListId = craft.fostercheckout.settings.options.klaviyoListId %}
-									{% if klaviyoListId %}
-										{{ hiddenInput('list', klaviyoListId) }}
-									{% endif %}
 								{% else %}
 									{{ actionInput('commerce/cart/update-cart') }}
 								{% endif %}
+
 								{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address') }}
 
 								<fieldset class="grid grid-cols-1 gap-6" x-data="{ createAccount: '{{ cart.registerUserOnOrderComplete }}' }">
@@ -86,28 +111,30 @@
 									</div>
 
 								</fieldset>
-								{% if klaviyoListId is defined %}
-									{% set subscribe = craft.fostercheckout.settings.options.subscribe|raw %}
-									{% if subscribe is not empty and subscribe != '' %}
-										{% set isChecked = craft.app.request.getBodyParam('subscribe') is not null
-											? (craft.app.request.getBodyParam('subscribe') == '1')
-											: true %}
-										<div
-											x-data="{
-											subscribe: JSON.parse(localStorage.getItem('fc_subscribe') ?? 'true'),
-											init() { this.$watch('subscribe', v => localStorage.setItem('fc_subscribe', JSON.stringify(v))) }
-										  }"
-											class="mt-4 p4 checkbox"
-										>
-											<input type="hidden" name="subscribe" :value="subscribe ? 1 : 0">
-											<input type="checkbox" id="subscribe" class="sr-only" x-model="subscribe">
-											<label for="subscribe" class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500">
-												{{ craft.fostercheckout.settings.options.subscribe|raw }}
-											</label>
-										</div>
 
-									{% endif %}
+								{% if klaviyoListId and subscribeText %}
+									<div
+										x-data="{
+											subscribe: JSON.parse(localStorage.getItem(window.FC_SUBSCRIBE_KEY) ?? 'false'),
+											init() {
+												this.$watch('subscribe', v => localStorage.setItem(window.FC_SUBSCRIBE_KEY, JSON.stringify(v)))
+											}
+										}"
+										class="mt-4 p4 checkbox"
+									>
+										<input type="hidden" name="subscribe" :value="subscribe ? 1 : 0">
+
+										<template x-if="subscribe">
+											<input type="hidden" name="list" value="{{ klaviyoListId }}">
+										</template>
+
+										<input type="checkbox" id="subscribe" class="sr-only" x-model="subscribe">
+										<label for="subscribe" class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500">
+											{{ craft.fostercheckout.settings.options.subscribe|raw }}
+										</label>
+									</div>
 								{% endif %}
+
 								{% set note = craft.fostercheckout.note('email') %}
 								{% if note %}
 									<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
@@ -157,7 +184,7 @@
 								{{ 'summary.itemsTitle'|t('foster-checkout') }}
 							</h2>
 							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
-							   class="inline-block text-[var(--brandColor)] underline">
+								 class="inline-block text-[var(--brandColor)] underline">
 								{{ 'misc.edit'|t('foster-checkout') }}
 							</a>
 						</div>
@@ -185,16 +212,16 @@
 		</div>
 	</div>
 
-	{% set site = craft.app.sites.currentSite %}
-	{% set parts = [
-		'fc_subscribe',
-		craft.app.request.hostName,
-		site.id,
-		site.language,
-		cart.number
-	]|join('_') %}
-	{% js at head %}
-		window.FC_SUBSCRIBE_KEY = {{ parts|json_encode|raw }};
-	{% endjs %}
+{% endblock %}
 
+{% block includeBody %}
+	{% set bodyInclude = craft.fostercheckout.settings.includes.body %}
+	{% if bodyInclude|default %}
+		{% include bodyInclude with {
+			context: 'checkout',
+			location: 'body',
+			step: 'email',
+			cart: cart
+		} %}
+	{% endif %}
 {% endblock %}

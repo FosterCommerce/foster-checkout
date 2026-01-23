@@ -12,6 +12,18 @@
 	</title>
 {% endblock %}
 
+{% block includeHead %}
+	{% set headInclude = craft.fostercheckout.settings.includes.head %}
+	{% if headInclude|default %}
+		{% include headInclude with {
+			context: 'checkout',
+			location: 'head',
+			step: 'confirmation',
+			cart: order
+		} %}
+	{% endif %}
+{% endblock %}
+
 {% block body %}
 
 	<div
@@ -162,7 +174,7 @@
 
 				{% if order[craft.fostercheckout.settings.notes.customersOrderNotes.fieldHandle] %}
 					<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
-					<h2 class="text-lg font-medium text-gray-700">Customer Note</h2>
+						<h2 class="text-lg font-medium text-gray-700">Customer Note</h2>
 						{{ order[craft.fostercheckout.settings.notes.customersOrderNotes.fieldHandle]|nl2br }}
 					</div>
 				{% endif %}
@@ -218,7 +230,22 @@
 	</div>
 
 	{% js %}
-		try { localStorage.removeItem('fc_subscribe'); } catch (_) {}
+		try {
+		localStorage.removeItem('fc_subscribe');
+		sessionStorage.removeItem('saveShip');
+		} catch (_) {}
 	{% endjs %}
 
+{% endblock %}
+
+{% block includeBody %}
+	{% set bodyInclude = craft.fostercheckout.settings.includes.body %}
+	{% if bodyInclude|default %}
+		{% include bodyInclude with {
+			context: 'checkout',
+			location: 'body',
+			step: 'confirmation',
+			cart: order
+		} %}
+	{% endif %}
 {% endblock %}
