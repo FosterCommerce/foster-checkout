@@ -210,8 +210,8 @@ return [
 	// Each gateway contains an array of fields that are custom fields additional information that specific gateway can store on the order
 	// in the Craft. A field definition consists of an array key which is the field handle from Craft and an array of
 	// [label(string), placeholder(string), type (text, number), min(number), max(number), required (bool)].
-	'paymentGateways' => [
-	],
+	// An additional note can be added to the gateway which will be displayed below the gateway fields.
+	'paymentGateways' => [],
 
 	// A comma delimited list of handles for the gateways that should handle Zero value orders
 	'zeroValueGatewayHandle' => '',
