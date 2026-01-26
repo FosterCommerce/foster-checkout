@@ -243,8 +243,7 @@ return [
 			]
 		]
 	*/
-	'paymentGateways' => [
-	],
+	'paymentGateways' => [],
 
 	// A comma delimited list of handles for the gateways that should handle Zero value orders
 	'zeroValueGatewayHandle' => '',

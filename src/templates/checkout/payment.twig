@@ -474,6 +474,15 @@
 															{% set manualColumns = craft.fostercheckout.getManualGatewayColumns(gateway.handle) ?: 3 %}
 															{% set isManualGateway = (gatewayClass == 'craft\\commerce\\gateways\\Manual') %}
 
+															{# Gateway note #}
+															{% set gatewayNote = craft.fostercheckout.getGatewayNote(gateway.handle) %}
+
+															{% if gatewayNote %}
+																<div class="mb-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
+																	{{ gatewayNote|raw }}
+																</div>
+															{% endif %}
+
 															{% if isManualGateway or manualFields|length %}
 																<div class="{{ manualColumns ? 'grid sm:grid-cols-' ~ manualColumns }}">
 																	{# Only namespace additional custom fields if they exist #}
