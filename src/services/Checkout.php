@@ -242,11 +242,7 @@ class Checkout extends Component
 		if (array_key_exists($gateway, $this->settings()->paymentGateways)) {
 			$note = $this->settings()->paymentGateways[$gateway]->note;
 
-			try {
-				return (string) $note;
-			} catch (InvalidFieldException) {
-				return null;
-			}
+			return (string) $note;
 		}
 
 		return null;
