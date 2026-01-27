@@ -148,7 +148,9 @@
 					{% include 'foster-checkout/_components/app/steps-uncompleted' with { step: 'shipping' } %}
 				</div>
 
-				{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+				<div class="hidden lg:block">
+					{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+				</div>
 
 			</main>
 
@@ -177,6 +179,10 @@
 				</div>
 
 				{% include 'foster-checkout/_components/app/global-checkout-note' %}
+
+				<div class="lg:hidden">
+					{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+				</div>
 			</aside>
 
 		</div>
