@@ -236,4 +236,15 @@ class Checkout extends Component
 
 		return null;
 	}
+
+	public function getGatewayNote(String $gateway): string|null
+	{
+		if (array_key_exists($gateway, $this->settings()->paymentGateways)) {
+			$note = $this->settings()->paymentGateways[$gateway]->note;
+
+			return (string) $note;
+		}
+
+		return null;
+	}
 }

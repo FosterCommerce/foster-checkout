@@ -13,6 +13,8 @@ class PaymentGatewayConfig extends Model
 	 */
 	public array $fields = [];
 
+	public ValueConfig $note;
+
 	/**
 	 * @var int|null number of columns in this layout
 	 */
@@ -31,6 +33,10 @@ class PaymentGatewayConfig extends Model
 			foreach ($config['fields'] as $fieldHandle => $field) {
 				$this->fields[] = new PaymentGatewayFieldConfig($fieldHandle, $field);
 			}
+		}
+
+		if (! isset($this->note)) {
+			$this->note = new ValueConfig();
 		}
 	}
 }
