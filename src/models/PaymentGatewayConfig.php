@@ -13,7 +13,7 @@ class PaymentGatewayConfig extends Model
 	 */
 	public array $fields = [];
 
-	public ValueConfig|array $note;
+	public ValueConfig $note;
 
 	/**
 	 * @var int|null number of columns in this layout
