@@ -13,11 +13,7 @@ class PaymentGatewayConfig extends Model
 	 */
 	public array $fields = [];
 
-	/**
-	 * Note to be displayed for this specific gateway
-	 * @var array<ValueConfig>
-	 */
-	public array $note = [];
+	public ValueConfig|array $note;
 
 	/**
 	 * @var int|null number of columns in this layout
@@ -40,7 +36,7 @@ class PaymentGatewayConfig extends Model
 		}
 
 		if (! isset($this->note)) {
-			$this->note = [];
+			$this->note = new ValueConfig();
 		}
 	}
 }
