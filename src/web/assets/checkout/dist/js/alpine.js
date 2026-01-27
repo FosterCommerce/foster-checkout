@@ -79,7 +79,7 @@ const SearchableSelect = (props) => {
 		id: props.id || `ss-${Math.random().toString(36).slice(2)}`,
 		name: props.name || 'select',
 		placeholder: props.placeholder || 'Select',
-		options: props.options || [],
+		options: props.options,
 		required: props.required || false,
 		errors: props.errors || [],
 		success: props.success || [],

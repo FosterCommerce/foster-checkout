@@ -15,10 +15,11 @@
 		id: '{{ fieldId }}',
 		name: '{{ fieldName }}',
 		placeholder: '{{ placeholder }}',
-		options: {{ options|json_encode }},
+		options: {{ options is iterable ? options|json_encode : options }},
 		{% if required|default %}
 			required: {{ required ? 'true' : 'false' }},
 		{% endif %}
+		value: '{{ value|default('') }}',
 		errors: {{ errors|default([])|json_encode }},
 		success: {{ success|default([])|json_encode }}
 	})"
@@ -35,9 +36,11 @@
 			{{ label ~ (required|default ? '*' : '') }}
 		</label>
 		<select id="{{ fieldId }}" name="{{ fieldName }}">
-			{% for option in options %}
-				<option value="{{ option.value }}">{{ option.label }}</option>
-			{% endfor %}
+			{% if options is iterable %}
+				{% for option in options %}
+					<option value="{{ option.value }}">{{ option.label }}</option>
+				{% endfor %}
+			{% endif %}
 		</select>
 	</div>
 
@@ -91,11 +94,10 @@
 		<!-- Dropdown -->
 		<div
 			x-show="open"
-			x-transition.origin.top
 			class="relative"
 		>
 			<div
-				class="absolute z-10 mt-1 w-full rounded-lg bg-white shadow-lg border border-gray-200"
+				class="absolute z-50 mt-1 w-full rounded-lg bg-white shadow-lg border border-gray-200"
 			>
 				<!-- Search box inside dropdown -->
 				<div class="p-2 border-b border-gray-100">
