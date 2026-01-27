@@ -72,7 +72,7 @@
 						{{ 'cart.continueShopping'|t('foster-checkout') }}
 					</a>
 
-					<div class="md:ml-7">
+					<div class="hidden lg:block">
 						{% include 'foster-checkout/_components/app/checkout-footer-links' %}
 					</div>
 				</div>
@@ -106,7 +106,10 @@
 						</a>
 					{% endif %}
 
+				</div>
 
+				<div class="lg:hidden">
+					{% include 'foster-checkout/_components/app/checkout-footer-links' %}
 				</div>
 			</aside>
 
