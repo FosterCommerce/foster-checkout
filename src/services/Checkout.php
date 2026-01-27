@@ -240,17 +240,10 @@ class Checkout extends Component
 	public function getGatewayNote(String $gateway): string|null
 	{
 		if (array_key_exists($gateway, $this->settings()->paymentGateways)) {
-			/** @var ?ValueConfig $note */
-			$note = ValueConfig::fromConfig(
-				'note',
-				$this->settings()->paymentGateways[$gateway]->toArray()
-			);
+			$note = $this->settings()->paymentGateways[$gateway]->note;
 
 			try {
-				if ($note instanceof ValueConfig) {
-					/** @throws InvalidFieldException */
-					return (string) $note;
-				}
+				return (string) $note;
 			} catch (InvalidFieldException) {
 				return null;
 			}
