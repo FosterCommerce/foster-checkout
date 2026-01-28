@@ -124,7 +124,9 @@
 			>
 				<!-- Search box inside dropdown -->
 				<div class="p-2 border-b border-gray-100">
-					<label class="sr-only" :for="`${id}-search`">Search options</label>
+					<label class="sr-only" :for="`${id}-search`">
+						{{ 'addressFields.searchOptions'|t('foster-checkout') }}
+					</label>
 					<input
 						:id="`${id}-search`"
 						x-ref="search"
@@ -133,7 +135,7 @@
 						role="searchbox"
 						:aria-controls="listboxId()"
 						:aria-activedescendant="open && hasOptions ? optionId(activeIndex) : null"
-						placeholder="Type to search…"
+						placeholder="{{ 'addressFields.typeToSearch'|t('foster-checkout') }}…"
 						class="w-full rounded-md border border-gray-300 bg-white h-12 px-4 focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
 						@keydown.arrow-down.prevent="moveActive(1)"
 						@keydown.arrow-up.prevent="moveActive(-1)"
@@ -153,7 +155,7 @@
 				>
 					<!-- No results -->
 					<li x-show="!hasOptions" class="px-4 py-3 text-gray-500">
-						No results found
+						{{ 'addressFields.noResultsFound'|t('foster-checkout') }}
 					</li>
 
 					<!-- Options -->
