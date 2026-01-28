@@ -1,4 +1,6 @@
 {% set context = context ?? '' %}
+{% set address = address ?? null %}
+{% set errors = address ? address.getErrors : {} %}
 
 {% set countriesAndRegionsRaw = craft.commerce.stores.currentStore.settings.getAdministrativeAreasListByCountryCode() %}
 {% set countriesAndRegions = {} %}
@@ -35,22 +37,6 @@
 						required: true,
 						value: address ? address.administrativeArea : '',
 						errors: errors.administrativeArea ?? []
-					} %}
-				</div>
-			</template>
-
-			<template x-if="selectedRegion.length === 0">
-				<div>
-					{% include 'foster-checkout/_components/base/input-text-clearable' with {
-						context: context,
-						label: 'addressFields.stateLabel'|t('foster-checkout'),
-						id: 'administrativeArea',
-						name: 'administrativeArea',
-						type: 'text',
-						autocomplete: 'address-level1',
-						placeholder: 'addressFields.statePlaceholder'|t('foster-checkout'),
-						value: address ? address.administrativeArea|e('js') : '',
-						errors: errors.locality ?? []
 					} %}
 				</div>
 			</template>

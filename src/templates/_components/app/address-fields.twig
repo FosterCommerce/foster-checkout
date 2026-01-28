@@ -105,6 +105,7 @@ since the array key will be the same #}
 			autocomplete: 'address-line1',
 			placeholder: 'addressFields.addressPlaceholder'|t('foster-checkout'),
 			value: address ? address.addressLine1|e('js') : '',
+			required: true,
 			errors: errors.addressLine1 ?? []
 		} %}
 
@@ -145,6 +146,7 @@ since the array key will be the same #}
 			autocomplete: 'address-level2',
 			placeholder: 'addressFields.cityPlaceholder'|t('foster-checkout'),
 			value: address ? address.locality|e('js') : '',
+			required: true,
 			errors: errors.locality ?? []
 		} %}
 	</div>
@@ -166,6 +168,7 @@ since the array key will be the same #}
 			autocomplete: 'postal-code',
 			placeholder: 'addressFields.postcodePlaceholder'|t('foster-checkout'),
 			value: address ? address.postalCode|e('js') : '',
+			required: true,
 			errors: errors.postalCode ?? []
 		} %}
 	</div>
