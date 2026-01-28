@@ -196,10 +196,6 @@
 				</div>
 			{% endif %}
 
-			<div class="hidden lg:block">
-				{% include 'foster-checkout/_components/app/checkout-footer-links' %}
-			</div>
-
 		</main>
 
 		<aside>
@@ -228,12 +224,12 @@
 
 			</div>
 
-			<div class="lg:hidden">
-				{% include 'foster-checkout/_components/app/checkout-footer-links' %}
-			</div>
 		</aside>
 
 	</div>
+
+	{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+
 
 	{% js %}
 		try {

@@ -475,11 +475,11 @@
 															{% set isManualGateway = (gatewayClass == 'craft\\commerce\\gateways\\Manual') %}
 
 															{% if isManualGateway or manualFields|length %}
-																<div class="{{ manualColumns ? 'sm:grid-cols-' ~ manualColumns }}">
+																<div class="{{ manualColumns ? 'grid sm:grid-cols-' ~ manualColumns }}">
 																	{# Only namespace additional custom fields if they exist #}
 																	{% if manualFields|length %}
 																			{% for field in manualFields %}
-																				<div class="sm:col-span-{{ field.columns ?: 'full' }}">
+																				<div class="sm:col-span-{{ field.columns ?: '1' }}">
 																					{% switch field.type %}
 																					{% case 'select' %}{% set fieldTemplate = 'input-select' %}
 																					{% default %}{% set fieldTemplate = 'input-text-clearable' %}
@@ -504,14 +504,14 @@
 																				</div>
 																			{% endfor %}
 																	{% endif %}
-
-																	<button
-																		type="submit"
-																		class="justify-between items-center gap-4 w-full px-4 py-3 mt-6 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
-																	>
-																		{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
-																	</button>
 																</div>
+
+																<button
+																	type="submit"
+																	class="justify-between items-center gap-4 w-full px-4 py-3 mt-6 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+																>
+																	{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
+																</button>
 															{% else %}
 																{# Native gateway fields #}
 																{% namespace gateway.handle|commercePaymentFormNamespace %}
@@ -529,11 +529,6 @@
 						</div>
 					</div>
 				</div>
-
-				<div class="hidden lg:block">
-					{% include 'foster-checkout/_components/app/checkout-footer-links' %}
-				</div>
-
 			</main>
 
 			<aside>
@@ -562,11 +557,11 @@
 
 				{% include 'foster-checkout/_components/app/global-checkout-note' %}
 
-				<div class="lg:hidden">
-					{% include 'foster-checkout/_components/app/checkout-footer-links' %}
-				</div>
 			</aside>
 		</div>
+
+		{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+
 	</div>
 
 	{% js %}
