@@ -208,8 +208,41 @@ return [
 	],
 	// Payment Gateways: each gateway should be defined with the key matching the configured payment gateway handle in Craft Commerce setup.
 	// Each gateway contains an array of fields that are custom fields additional information that specific gateway can store on the order
-	// in the Craft. A field definition consists of an array key which is the field handle from Craft and an array of
-	// [label(string), placeholder(string), type (text, number), min(number), max(number), required (bool)].
+	// in the Craft. A gateway definition consists of an array key which is the field handle from Craft and an array of
+	// columns, fields, notes
+	// If columns is specified, then each field will span 1 column.
+	// With each field you may also specify the number of columns which each field will span to override this
+	// Example:
+	/*
+		'myGatewayHandle' => [
+			'columns' => 3, // number of columns in the layout for this gateway
+			'fields' => [
+				'accountNumber' => [
+					'label' => 'Account number',
+					'placeholder' => 'Enter your 10 digit account number',
+					'required' => true,
+					'minLength' => 10,
+					'maxLength' => 10,
+					'columns' => 2, // optional span, will default to 1
+				],
+				'otherField' => [
+					'label' => 'Another field',
+					'placeholder' => 'Some placeholder text',
+					'required' => true,
+				],
+				'fullWidthField' => [
+					'label' => 'Another field',
+					'placeholder' => 'Some placeholder text',
+					'required' => true,
+					'columns' => 3
+				],
+			],
+			'note' => [
+				'elementHandle' => 'customGlobalHandle',
+				'fieldHandle' => 'myFieldHandle'
+			]
+		]
+	*/
 	'paymentGateways' => [
 	],
 
