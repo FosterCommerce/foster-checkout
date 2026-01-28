@@ -17,6 +17,11 @@
 	{% endif %}
 {% endfor %}
 
+{% set fallbackOptions = null %}
+{% if address.countryCode|default %}
+	{% set fallbackOptions = countriesAndRegions[address.countryCode] %}
+{% endif %}
+
 <div
 	x-data="{ regions: {{ countriesAndRegions|json_encode }}, selectedRegion: [], load: true }"
 	x-init="selectedRegion = regions[countryCode]"
@@ -32,6 +37,7 @@
 						model: 'administrativeArea',
 						name: 'administrativeArea',
 						options: 'selectedRegion',
+						fallbackOptions: fallbackOptions,
 						label: 'addressFields.stateLabel'|t('foster-checkout'),
 						placeholder: 'addressFields.select'|t('foster-checkout'),
 						required: true,

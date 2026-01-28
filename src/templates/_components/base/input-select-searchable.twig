@@ -10,6 +10,14 @@
 {% set options = options ?? [] %}
 {% set placeholder = placeholder ?? 'Select' %}
 
+{% set fallbackOptions = fallbackOptions|default ? fallbackOptions : options %}
+{% set fallbackClasses = ['w-full h-12 px-4 bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300'] %}
+{% if errors|default %}
+	{% set fallbackClasses = fallbackClasses|merge(['border-red-500 focus:border-red-500']) %}
+{% else %}
+	{% set fallbackClasses = fallbackClasses|merge(['border-gray-250 focus:border-black']) %}
+{% endif %}
+
 <div
 	x-data="SearchableSelect({
 		id: '{{ fieldId }}',
@@ -30,15 +38,30 @@
 	@click.outside="closeListbox()"
 >
 
-	<!-- No JS Fallback (standard select element) -->
+	<!-- No JS Fallback (standard select element styled to match) -->
 	<div x-ref="fallback">
 		<label for="{{ fieldId }}" class="block mb-2 font-medium text-gray-500">
 			{{ label ~ (required|default ? '*' : '') }}
 		</label>
-		<select id="{{ fieldId }}" name="{{ fieldName }}">
-			{% if options is iterable %}
-				{% for option in options %}
-					<option value="{{ option.value }}">{{ option.label }}</option>
+		<select
+			id="{{ fieldId }}"
+			name="{{ fieldName }}"
+			class="{{ fallbackClasses|join(' ') }}"
+			{% if required|default %}
+				required
+			{% endif %}
+		>
+			<option value="" disabled>{{ 'addressFields.select'|t('foster-checkout') }}</option>
+			{% if fallbackOptions is iterable %}
+				{% for option in fallbackOptions %}
+					<option
+						value="{{ option.value }}"
+						{% if option.value == value|default('') %}
+							selected
+						{% endif %}
+					>
+						{{ option.label }}
+					</option>
 				{% endfor %}
 			{% endif %}
 		</select>
@@ -76,10 +99,10 @@
 		>
 			<span class="block truncate" x-text="buttonLabel"></span>
 			<span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-			<svg class="h-6 w-6" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-				<path stroke='#6B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'></path>
-			</svg>
-		</span>
+				<svg class="h-6 w-6" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+					<path stroke='#6B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'></path>
+				</svg>
+			</span>
 		</button>
 
 		<!-- Hidden input for form submission (server sees just the value/code) -->
