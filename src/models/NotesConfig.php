@@ -31,7 +31,7 @@ class NotesConfig extends Model
 	public ValueConfig $mistakeText;
 
 	/**
-	 * @param array<mixed, mixed> $config
+	 * @param array<string, mixed> $config
 	 */
 	public function __construct($config = [])
 	{

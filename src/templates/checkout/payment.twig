@@ -529,11 +529,6 @@
 						</div>
 					</div>
 				</div>
-
-				<div class="hidden lg:block">
-					{% include 'foster-checkout/_components/app/checkout-footer-links' %}
-				</div>
-
 			</main>
 
 			<aside>
@@ -562,11 +557,11 @@
 
 				{% include 'foster-checkout/_components/app/global-checkout-note' %}
 
-				<div class="lg:hidden">
-					{% include 'foster-checkout/_components/app/checkout-footer-links' %}
-				</div>
 			</aside>
 		</div>
+
+		{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+
 	</div>
 
 	{% js %}
