@@ -1,0 +1,51 @@
+{% set context = context ?? '' %}
+{% set address = address ?? null %}
+{% set errors = address ? address.getErrors : {} %}
+
+{% set countriesAndRegionsRaw = craft.commerce.stores.currentStore.settings.getAdministrativeAreasListByCountryCode() %}
+{% set countriesAndRegions = {} %}
+
+{% for countryCode, regions in countriesAndRegionsRaw %}
+	{% if regions is empty %}
+		{% set countriesAndRegions = countriesAndRegions|merge({ (countryCode): [] }) %}
+	{% else %}
+		{% set options = [] %}
+		{% for value, label in regions %}
+			{% set options = options|merge([{ label: label, value: value }]) %}
+		{% endfor %}
+		{% set countriesAndRegions = countriesAndRegions|merge({ (countryCode): options }) %}
+	{% endif %}
+{% endfor %}
+
+{% set fallbackOptions = null %}
+{% if address.countryCode|default %}
+	{% set fallbackOptions = countriesAndRegions[address.countryCode] %}
+{% endif %}
+
+<div
+	x-data="{ regions: {{ countriesAndRegions|json_encode }}, selectedRegion: [], load: true }"
+	x-init="selectedRegion = regions[countryCode]"
+	@selected.window="if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') { selectedRegion = regions[$event.detail.value]; load = false; setTimeout(() => { load = true }, 0); }"
+>
+	<template x-if="load">
+		<div>
+			<template x-if="selectedRegion.length > 0">
+				<div>
+					{% include 'foster-checkout/_components/base/input-select-searchable' with {
+						context: context,
+						id: 'administrativeArea',
+						model: 'administrativeArea',
+						name: 'administrativeArea',
+						options: 'selectedRegion',
+						fallbackOptions: fallbackOptions,
+						label: 'addressFields.stateLabel'|t('foster-checkout'),
+						placeholder: 'addressFields.select'|t('foster-checkout'),
+						required: true,
+						value: address ? address.administrativeArea : '',
+						errors: errors.administrativeArea ?? []
+					} %}
+				</div>
+			</template>
+		</div>
+	</template>
+</div>

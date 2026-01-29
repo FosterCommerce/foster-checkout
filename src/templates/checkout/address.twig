@@ -72,13 +72,13 @@
 							</div>
 						</template>
 
-						<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
+						<div class="border border-gray-250 rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 							<h2 class="p-4 font-semibold bg-gray-200">
 								{{ 'address.stepName'|t('foster-checkout') }}
 							</h2>
 
 							<div class="p-4">
-								<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+								<div class="xl:border xl:border-gray-250 xl:rounded-lg">
 
 									{% if currentUser and addresses|length %}
 										{% for address in addresses %}
