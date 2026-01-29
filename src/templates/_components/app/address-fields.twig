@@ -20,13 +20,29 @@ since the array key will be the same #}
 		{% set pinnedCountries = pinnedCountries|merge({(code): countries[code]}) %}
 	{% endif %}
 {% endfor %}
-{% if pinnedCountries|length > 0 %}
-	{% set pinnedCountries = pinnedCountries|merge({' ': '──────────'}) %}
-{% endif %}
-
 
 {% for countryCode, _country in countries %}
 	{% set requiredFields = requiredFields|merge({(countryCode): craft.app.addresses.getAddressFormatRepository().get(countryCode).getRequiredFields()}) %}
+{% endfor %}
+
+{% if pinnedCountries|length > 0 %}
+	{% set countries = countries|filter((value, key) => key not in pinnedCountries|keys) %}
+{% endif %}
+
+{% set countriesArr = [] %}
+{% for key, name in pinnedCountries %}
+	{% set countriesArr = countriesArr|merge([{
+		value: key,
+		label: name,
+		pinned: true
+	}]) %}
+{% endfor %}
+{% for key, name in countries %}
+	{% set countriesArr = countriesArr|merge([{
+		value: key,
+		label: name,
+		pinned: false
+	}]) %}
 {% endfor %}
 
 <div
@@ -37,38 +53,24 @@ since the array key will be the same #}
 		countries: {{ countries|json_encode }},
 		pinnedCountries: {{ pinnedCountries|json_encode }},
 		requiredFields() { return JSON.parse('{{ requiredFields|default({})|json_encode|e('js') }}'); },
-		regions: {{ craft.commerce.stores.currentStore.settings.getAdministrativeAreasListByCountryCode()|json_encode }},
 		errors: {{ errors|json_encode }},
 	}"
 	class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-3"
+	@selected.window="if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') { administrativeArea = '' }"
 >
 	<div class="sm:col-span-3">
-		<label for="{{ 'countryCode'|namespaceInputId(context) }}" class="block mb-2 font-medium text-gray-500">
-			{{ 'addressFields.countryLabel'|t('foster-checkout') }}*
-		</label>
-		<select
-			x-model="countryCode"
-			id="{{ 'countryCode'|namespaceInputId(context) }}"
-			name="{{ context ? 'countryCode'|namespaceInputName(context) : 'countryCode' }}"
-			autocomplete="country-name"
-			class="w-full h-12 px-4 bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
-			:class="'countryCode' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-250 focus:border-black'"
-			:aria-invalid="'countryCode' in errors"
-			aria-errormessage="{{ 'countryCode'|namespaceInputId(context) }}-error"
-			@change="administrativeArea = ''; if ($el.value) delete errors.countryCode"
-			required
-		>
-			<option value="" disabled>{{ 'addressFields.select'|t('foster-checkout') }}</option>
-			<template x-for="(country, key) in pinnedCountries" :key="key">
-				<option x-text="country" :value="key" :selected="countryCode == key" :disabled="key === ' ' ? true : false">
-				</option>
-			</template>
-			<template x-for="(country, key) in countries" :key="key">
-				<option x-text="country" :value="key" :selected="countryCode == key" :disabled="key === ' '">
-				</option>
-			</template>
-
-		</select>
+		{% include 'foster-checkout/_components/base/input-select-searchable' with {
+			context: context,
+			id: 'countryCode',
+			model: 'countryCode',
+			name: 'countryCode',
+			options: countriesArr,
+			label: 'addressFields.countryLabel'|t('foster-checkout'),
+			placeholder: 'addressFields.select'|t('foster-checkout'),
+			required: true,
+			value: address ? address.countryCode : '',
+			errors: errors.countryCode ?? []
+		} %}
 		<template x-if="'countryCode' in errors">
 			<div
 				id="{{ 'countryCode'|namespaceInputId(context) }}-error"
@@ -103,6 +105,7 @@ since the array key will be the same #}
 			autocomplete: 'address-line1',
 			placeholder: 'addressFields.addressPlaceholder'|t('foster-checkout'),
 			value: address ? address.addressLine1|e('js') : '',
+			required: true,
 			errors: errors.addressLine1 ?? []
 		} %}
 
@@ -128,8 +131,8 @@ since the array key will be the same #}
 			type: 'text',
 			autocomplete: 'address-line3',
 			placeholder: '',
-			value: address ? address.addressLine2|e('js') : '',
-			errors: errors.addressLine2 ?? []
+			value: address ? address.addressLine3|e('js') : '',
+			errors: errors.addressLine3 ?? []
 		} %}
 	</div>
 
@@ -143,54 +146,16 @@ since the array key will be the same #}
 			autocomplete: 'address-level2',
 			placeholder: 'addressFields.cityPlaceholder'|t('foster-checkout'),
 			value: address ? address.locality|e('js') : '',
+			required: true,
 			errors: errors.locality ?? []
 		} %}
 	</div>
 
 	<div class="sm:col-span-1">
-		<template x-if="regions[countryCode] && !Array.isArray(regions[countryCode])">
-			<div>
-				<label for="{{ 'administrativeArea'|namespaceInputId(context) }}"
-							 class="block mb-2 font-medium text-gray-500">
-					{{ 'addressFields.stateLabel'|t('foster-checkout') }}<span x-text="`${ requiredFields()[countryCode].includes('administrativeArea') ? '*' : '' }`"></span>
-				</label>
-				<select
-					x-model="administrativeArea"
-					id="{{ 'administrativeArea'|namespaceInputId(context) }}"
-					name="{{ context ? 'administrativeArea'|namespaceInputName(context) : 'administrativeArea' }}"
-					autocomplete="address-level1"
-					class="w-full h-12 px-4 bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
-					:class="'administrativeArea' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
-					:aria-invalid="'administrativeArea' in errors"
-					aria-errormessage="{{ 'administrativeArea'|namespaceInputId(context) }}-error"
-					@change="if ($el.value) delete errors.administrativeArea"
-					:required="requiredFields()[countryCode].includes('administrativeArea')"
-				>
-					<option value="" disabled>{{ 'addressFields.select'|t('foster-checkout') }}</option>
-					<template x-for="(region, key) in regions[countryCode]" :key="key">
-						<option :value="key" :selected="key === administrativeArea" x-text="`${region}`">
-						</option>
-					</template>
-				</select>
-			</div>
-		</template>
-
-		<template x-if="regions[countryCode] === false || Array.isArray(regions[countryCode]) ">
-			<div >
-				{% include 'foster-checkout/_components/base/input-text-clearable' with {
-					context: context,
-					label: 'addressFields.stateLabel'|t('foster-checkout'),
-					id: 'administrativeArea',
-					name: 'administrativeArea',
-					type: 'text',
-					autocomplete: 'address-level1',
-					placeholder: 'addressFields.statePlaceholder'|t('foster-checkout'),
-					value: address ? address.locality|e('js') : '',
-					errors: errors.locality ?? []
-				} %}
-			</div>
-		</template>
-
+		{% include 'foster-checkout/_components/app/address-region-field' with {
+			context: context,
+			address: address
+		} %}
 	</div>
 
 	<div class="sm:col-span-1">
@@ -203,6 +168,7 @@ since the array key will be the same #}
 			autocomplete: 'postal-code',
 			placeholder: 'addressFields.postcodePlaceholder'|t('foster-checkout'),
 			value: address ? address.postalCode|e('js') : '',
+			required: true,
 			errors: errors.postalCode ?? []
 		} %}
 	</div>

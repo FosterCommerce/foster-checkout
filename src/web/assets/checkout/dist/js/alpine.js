@@ -71,8 +71,216 @@ const ClearableInput = (props) => {
 				return false;
 			}
 		}
-	}
+	};
 };
+
+const SearchableSelect = (props) => {
+	return {
+		id: props.id || `ss-${Math.random().toString(36).slice(2)}`,
+		name: props.name || 'select',
+		placeholder: props.placeholder || 'Select',
+		options: props.options,
+		required: props.required || false,
+		errors: props.errors || [],
+		success: props.success || [],
+		modelValue: props.value || null,
+		open: false,
+		search: '',
+		activeIndex: 0,
+		selectedOption: null,
+
+		init() {
+			// Remove the fallback select element
+			const fallbackSelect = this.$refs.fallback;
+			if (fallbackSelect) {
+				fallbackSelect.remove();
+			}
+
+			// Initial sync from modelValue/props to selectedOption
+			if (this.modelValue != null) {
+				const match = this.options.find(
+					(o) => o.value === this.modelValue || o === this.modelValue
+				);
+				if (match) this.selectedOption = match;
+			}
+
+			// parent -> child
+			this.$watch('modelValue', (value) => {
+				if (value == null) {
+					this.selectedOption = null;
+					return;
+				}
+				const match = this.options.find(
+					(o) => o.value === value || o === value
+				);
+				if (match && this.selectedOption !== match) {
+					this.selectedOption = match;
+				}
+			});
+
+			// child -> parent
+			this.$watch('selectedOption', (option) => {
+				const next = option ? option.value : null;
+				if (this.modelValue !== next) {
+					this.modelValue = next;
+					this.$dispatch('selected', { name: this.name, value: next });
+				}
+			});
+		},
+
+		get buttonLabel() {
+			return this.selectedOption ? this.selectedOption.label : this.placeholder;
+		},
+
+		get filteredOptions() {
+			if (!this.search) return this.options;
+			const q = this.search.toLowerCase();
+
+			return this.options
+				.filter(o => String(o.label).toLowerCase().includes(q))
+				.sort((a, b) => {
+					const aLabel = String(a.label).toLowerCase();
+					const bLabel = String(b.label).toLowerCase();
+
+					const aExact = aLabel === q;
+					const bExact = bLabel === q;
+
+					const aStarts = aLabel.startsWith(q);
+					const bStarts = bLabel.startsWith(q);
+
+					// 1) Exact match first
+					if (aExact && !bExact) return -1;
+					if (!aExact && bExact) return 1;
+
+					// 2) Starts-with next
+					if (aStarts && !bStarts) return -1;
+					if (!aStarts && bStarts) return 1;
+
+					// 3) Otherwise, both just "includes" and alphabetical
+					return aLabel.localeCompare(bLabel);
+				});
+		},
+
+		get hasOptions() {
+			return this.filteredOptions.length > 0;
+		},
+
+		isLastPinned(option) {
+			const pinned = this.filteredOptions.filter(o => o.pinned);
+			return pinned.length && pinned[pinned.length - 1] === option;
+		},
+
+		labelId() {
+			return `${this.id}-label`;
+		},
+
+		buttonId() {
+			return `${this.id}-button`;
+		},
+
+		listboxId() {
+			return `${this.id}-listbox`;
+		},
+
+		errorId() {
+			return `${this.id}-error`;
+		},
+
+		optionId(index) {
+			return `${this.id}-option-${index}`;
+		},
+
+		openListbox() {
+			if (this.open) return;
+			this.open = true;
+			this.resetActiveIndex();
+			this.$nextTick(() => {
+				if (this.$refs.search) {
+					this.$refs.search.focus();
+					this.$refs.search.select();
+				}
+			});
+		},
+
+		closeListbox() {
+			if (!this.open) return;
+			this.open = false;
+			this.search = '';
+		},
+
+		toggleListbox() {
+			if (this.open) {
+				this.closeListbox();
+			} else {
+				this.openListbox();
+			}
+		},
+
+		closeAndFocusButton() {
+			this.closeListbox();
+			this.$nextTick(() => {
+				this.$refs.button.focus();
+			});
+		},
+
+		resetActiveIndex() {
+			if (!this.hasOptions) {
+				this.activeIndex = 0;
+				return;
+			}
+			const selectedIdx = this.filteredOptions.findIndex((o) =>
+				this.isSelected(o)
+			);
+			this.activeIndex = selectedIdx === -1 ? 0 : selectedIdx;
+		},
+
+		moveActive(step) {
+			if (!this.hasOptions) return;
+			let next = this.activeIndex + step;
+			const max = this.filteredOptions.length - 1;
+			if (next < 0) next = max;
+			if (next > max) next = 0;
+			this.activeIndex = next;
+			this.scrollActiveIntoView();
+		},
+
+		scrollActiveIntoView() {
+			this.$nextTick(() => {
+				const list = this.$refs.listbox;
+				const active = document.getElementById(this.optionId(this.activeIndex));
+				if (!list || !active) return;
+
+				const listRect = list.getBoundingClientRect();
+				const activeRect = active.getBoundingClientRect();
+
+				if (activeRect.top < listRect.top) {
+					list.scrollTop -= listRect.top - activeRect.top;
+				} else if (activeRect.bottom > listRect.bottom) {
+					list.scrollTop += activeRect.bottom - listRect.bottom;
+				}
+			});
+		},
+
+		selectActiveOption() {
+			if (!this.hasOptions) return;
+			const option = this.filteredOptions[this.activeIndex];
+			if (option) this.selectOption(option);
+		},
+
+		// --- selection ---
+		selectOption(option) {
+			this.selectedOption = option; // watcher will push value into modelValue
+			this.closeAndFocusButton();
+		},
+
+		isSelected(option) {
+			return (
+				this.selectedOption && this.selectedOption.value === option.value
+			);
+		},
+	};
+};
+
 const LineItem = (props) => {
 	return {
 		id: props.lineItemId,
@@ -195,7 +403,7 @@ const LineItem = (props) => {
 				}
 			}
 		}
-	}
+	};
 };
 
 const Payment = (props) => {
@@ -229,11 +437,12 @@ const Payment = (props) => {
 				new FormData(document.querySelector(`#addressBookForm`))
 			);
 		},
-	}
+	};
 };
 
 Alpine.plugin(focus);
 Alpine.data('ClearableInput', ClearableInput);
+Alpine.data('SearchableSelect', SearchableSelect);
 Alpine.data('LineItem', LineItem);
 Alpine.data('Payment', Payment);
 

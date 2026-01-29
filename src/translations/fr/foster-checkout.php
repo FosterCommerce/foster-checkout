@@ -91,8 +91,11 @@ return [
 	'address.nextStep' => 'Étape suivante',
 
 	// Address form
-	'addressFields.countryLabel' => 'Pays',
 	'addressFields.select' => 'Sélectionner',
+	'addressFields.typeToSearch' => 'Tapez pour rechercher',
+	'addressFields.searchOptions' => 'Options de recherche',
+	'addressFields.noResultsFound' => 'Aucun résultat trouvé',
+	'addressFields.countryLabel' => 'Pays',
 	'addressFields.fullnameLabel' => 'Nom complet',
 	'addressFields.fullnamePlaceholder' => 'Entre ton nom',
 	'addressFields.addressLabel' => 'Adresse',
