@@ -9,7 +9,7 @@ class PaymentGatewayConfig extends Model
 	/**
 	 * The fields to be rendered for this specific gateway
 	 *
-	 * @var array<PaymentGatewayFieldConfig>
+	 * @var PaymentGatewayFieldConfig[]
 	 */
 	public array $fields = [];
 

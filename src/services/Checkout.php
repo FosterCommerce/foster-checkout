@@ -12,6 +12,7 @@ use craft\elements\db\AssetQuery;
 use craft\errors\InvalidFieldException;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\DeliveryDate;
+use fostercommerce\fostercheckout\models\PaymentGatewayConfig;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\models\ValueConfig;
 use yii\base\Component;
@@ -216,35 +217,8 @@ class Checkout extends Component
 		]);
 	}
 
-	/**
-	 * @return array<mixed>|false
-	 */
-	public function getManualGatewayFields(String $gateway): false | array
+	public function getManualGatewayConfig(string $gateway): ?PaymentGatewayConfig
 	{
-		if (array_key_exists($gateway, $this->settings()->paymentGateways)) {
-			return $this->settings()->paymentGateways[$gateway]->fields;
-		}
-
-		return false;
-	}
-
-	public function getManualGatewayColumns(String $gateway): int|null
-	{
-		if (array_key_exists($gateway, $this->settings()->paymentGateways)) {
-			return $this->settings()->paymentGateways[$gateway]->columns;
-		}
-
-		return null;
-	}
-
-	public function getGatewayNote(String $gateway): string|null
-	{
-		if (array_key_exists($gateway, $this->settings()->paymentGateways)) {
-			$note = $this->settings()->paymentGateways[$gateway]->note;
-
-			return (string) $note;
-		}
-
-		return null;
+		return $this->settings()->paymentGateways[$gateway] ?? null;
 	}
 }

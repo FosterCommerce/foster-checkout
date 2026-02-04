@@ -9,7 +9,7 @@ class LinksConfig extends Model
 	public ValueConfig $footerLinks;
 
 	/**
-	 * @param array<string, mixed> $config
+	 * @param array<non-empty-string, mixed> $config
 	 */
 	public function __construct($config = [])
 	{

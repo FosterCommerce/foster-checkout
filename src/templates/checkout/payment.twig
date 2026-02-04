@@ -470,12 +470,13 @@
 															{% endif %}
 
 															{# Manual vs native gateway rendering #}
-															{% set manualFields  = craft.fostercheckout.getManualGatewayFields(gateway.handle) ?? [] %}
-															{% set manualColumns = craft.fostercheckout.getManualGatewayColumns(gateway.handle) ?: 3 %}
+															{% set manualGatewayConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
+															{% set manualFields  = manualGatewayConfig.fields ?? [] %}
+															{% set manualColumns = manualGatewayConfig.columns ?: 3 %}
 															{% set isManualGateway = (gatewayClass == 'craft\\commerce\\gateways\\Manual') %}
 
 															{# Gateway note #}
-															{% set gatewayNote = craft.fostercheckout.getGatewayNote(gateway.handle) %}
+															{% set gatewayNote = manualGatewayConfig.note %}
 
 															{% if gatewayNote %}
 																<div class="mb-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
