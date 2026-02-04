@@ -63,11 +63,8 @@ class PaymentGatewayFieldConfig extends Model
 	 */
 	public function __construct(
 		public string $handle,
-		$config = []
+		array $config = []
 	) {
 		parent::__construct($config);
-		//		if (array_key_exists('type', $config)) {
-		//			$this->type = $config['type'];
-		//		}
 	}
 }

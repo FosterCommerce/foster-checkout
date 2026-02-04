@@ -123,15 +123,12 @@ class Settings extends Model
 
 		if (array_key_exists('paymentGateways', $values)) {
 			foreach ($values['paymentGateways'] as $gatewayHandle => $paymentGateway) {
-				$fields = $values['paymentGateways'][$gatewayHandle]['fields'] ?? [];
-				$note = $values['paymentGateways'][$gatewayHandle]['note'] ?? [];
-				$columns = $values['paymentGateways'][$gatewayHandle]['columns'] ?? null;
 				$values['paymentGateways'][$gatewayHandle] = new PaymentGatewayConfig(
 					$gatewayHandle,
 					[
-						'fields' => $fields,
-						'note' => new ValueConfig($note),
-						'columns' => $columns,
+						...$paymentGateway,
+						'fields' => $paymentGateway['fields'] ?? [],
+						'note' => new ValueConfig($paymentGateway['note'] ?? []),
 					]
 				);
 			}
