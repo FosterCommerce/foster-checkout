@@ -364,6 +364,9 @@
 											{% set gatewayClass = className(gateway) %}
 											{% set zeroValueGatewayHandles = craft.fostercheckout.settings.zeroValueGatewayHandles %}
 											{% set shouldRender = true %}
+											{% set isManualGateway = false %}
+											{% set gatewayNote = null %}
+											{% set manualFields = [] %}
 
 											{% if cart.total != 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual' and gateway.getOnlyAllowForZeroPriceOrders() %}
 												{% set shouldRender = false %}
@@ -467,18 +470,16 @@
 																} %}
 															{% elseif gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
 																{% set params = { currency: cart.paymentCurrency } %}
+															{% elseif gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
+																{% set manualGatewayConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
+																{% set manualFields  = manualGatewayConfig.fields ?? [] %}
+																{% set manualColumns = manualGatewayConfig.columns ?: 3 %}
+																{% set isManualGateway = true %}
+																{% set gatewayNote = manualGatewayConfig.note %}
 															{% endif %}
 
-															{# Manual vs native gateway rendering #}
-															{% set manualGatewayConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
-															{% set manualFields  = manualGatewayConfig.fields ?? [] %}
-															{% set manualColumns = manualGatewayConfig.columns ?: 3 %}
-															{% set isManualGateway = (gatewayClass == 'craft\\commerce\\gateways\\Manual') %}
 
-															{# Gateway note #}
-															{% set gatewayNote = manualGatewayConfig.note %}
-
-															{% if gatewayNote %}
+															{% if gatewayNote is defined %}
 																<div class="mb-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
 																	{{ gatewayNote|raw }}
 																</div>
