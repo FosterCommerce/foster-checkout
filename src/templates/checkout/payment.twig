@@ -472,10 +472,10 @@
 																{% set params = { currency: cart.paymentCurrency } %}
 															{% elseif gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
 																{% set manualGatewayConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
-																{% set manualFields  = manualGatewayConfig.fields ?? [] %}
-																{% set manualColumns = manualGatewayConfig.columns ?: 3 %}
 																{% set isManualGateway = true %}
-																{% set gatewayNote = manualGatewayConfig.note %}
+																{% set manualFields  = manualGatewayConfig.fields|default([]) %}
+																{% set manualColumns = manualGatewayConfig.columns|default(3) %}
+																{% set gatewayNote = manualGatewayConfig.note|default(null) %}
 															{% endif %}
 
 
