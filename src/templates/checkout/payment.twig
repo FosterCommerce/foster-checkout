@@ -141,7 +141,7 @@
 										{% for address in addresses %}
 											{% if _shippingId is not defined or address.id != _shippingId %}
 												<div class="p-4 border-t"
-													 :class="{ 'bg-gray-100': parseInt(billingAddressId) === {{ address.id }} && !billingSameAsShipping }">
+														 :class="{ 'bg-gray-100': parseInt(billingAddressId) === {{ address.id }} && !billingSameAsShipping }">
 													<div class="flex justify-between items-center gap-4 radio">
 														<input
 															id="bill_addr_{{ address.id }}"
@@ -365,8 +365,6 @@
 											{% set zeroValueGatewayHandles = craft.fostercheckout.settings.zeroValueGatewayHandles %}
 											{% set shouldRender = true %}
 											{% set isManualGateway = false %}
-											{% set gatewayNote = null %}
-											{% set manualFields = [] %}
 
 											{% if cart.total != 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual' and gateway.getOnlyAllowForZeroPriceOrders() %}
 												{% set shouldRender = false %}
@@ -376,7 +374,7 @@
 
 											{% if shouldRender %}
 												<div class="p-4 border-b border-gray-250"
-													:class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
+														 :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
 													<div class="relative flex justify-between items-center gap-4 radio">
 														<input
 															id="gateway_{{ gateway.id }}"
@@ -479,43 +477,43 @@
 															{% endif %}
 
 
-															{% if gatewayNote is defined %}
+															{% if gatewayNote|default %}
 																<div class="mb-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
 																	{{ gatewayNote|raw }}
 																</div>
 															{% endif %}
 
-															{% if isManualGateway or manualFields|length %}
-																<div class="{{ manualColumns ? 'grid sm:grid-cols-' ~ manualColumns }}">
-																	{# Only namespace additional custom fields if they exist #}
-																	{% if manualFields|length %}
-																			{% for field in manualFields %}
-																				<div class="sm:col-span-{{ field.columns ?: '1' }}">
-																					{% switch field.type %}
-																					{% case 'select' %}{% set fieldTemplate = 'input-select' %}
-																					{% default %}{% set fieldTemplate = 'input-text-clearable' %}
-																					{% endswitch %}
+															{% if isManualGateway %}
+																{% if manualFields|length %}
+																	<div class="{{ manualColumns ? 'grid sm:grid-cols-' ~ manualColumns }}">
+																		{# Only namespace additional custom fields if they exist #}
+																		{% for field in manualFields %}
+																			<div class="sm:col-span-{{ field.columns ?: '1' }}">
+																				{% switch field.type %}
+																				{% case 'select' %}{% set fieldTemplate = 'input-select' %}
+																				{% default %}{% set fieldTemplate = 'input-text-clearable' %}
+																				{% endswitch %}
 
-																					{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
-																						context: '',
-																						label: field.label,
-																						id: field.id ?? field.handle,
-																						name: 'fields[' ~ (field.name ?? field.handle) ~ ']',
-																						type: field.type,
-																						placeholder: field.placeholder,
-																						errors: [],
-																						minLength: field.minLength,
-																						maxLength: field.maxLength,
-																						min: field.min,
-																						max: field.max,
-																						required: field.required ?? false,
-																						options: field.options ?? [],
-																						gatewayId: gateway.id,
-																					} %}
-																				</div>
-																			{% endfor %}
-																	{% endif %}
-																</div>
+																				{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
+																					context: '',
+																					label: field.label,
+																					id: field.id ?? field.handle,
+																					name: 'fields[' ~ (field.name ?? field.handle) ~ ']',
+																					type: field.type,
+																					placeholder: field.placeholder,
+																					errors: [],
+																					minLength: field.minLength,
+																					maxLength: field.maxLength,
+																					min: field.min,
+																					max: field.max,
+																					required: field.required ?? false,
+																					options: field.options ?? [],
+																					gatewayId: gateway.id,
+																				} %}
+																			</div>
+																		{% endfor %}
+																	</div>
+																{% endif %}
 
 																<button
 																	type="submit"
@@ -576,23 +574,23 @@
 	</div>
 
 	{% js %}
-		var $paymentForms = document.querySelectorAll('.paymentForm');
+	var $paymentForms = document.querySelectorAll('.paymentForm');
 
-		if ($paymentForms.length) {
-			$paymentForms.forEach(($paymentForm) => {
+	if ($paymentForms.length) {
+		$paymentForms.forEach(($paymentForm) => {
 
-				// Only allow the payment form submit to be triggered once.
-				$paymentForm.addEventListener('submit', function(ev) {
+			// Only allow the payment form submit to be triggered once.
+			$paymentForm.addEventListener('submit', function(ev) {
 
-					if ($paymentForm.dataset.processing) {
-						ev.preventDefault();
-						return false;
-					}
+				if ($paymentForm.dataset.processing) {
+					ev.preventDefault();
+					return false;
+				}
 
-					$paymentForm.dataset.processing = true;
-				});
+				$paymentForm.dataset.processing = true;
 			});
-		}
+		});
+	}
 	{% endjs %}
 {% endblock %}
 
