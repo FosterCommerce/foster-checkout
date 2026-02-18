@@ -119,7 +119,7 @@
 									<p>{{ 'shipping.noMethodAvailable'|t('foster-checkout') }}.</p>
 								{% endif %}
 
-								{% set note = craft.fostercheckout.note('shipping') %}
+								{% set note = craft.fostercheckout.note('shipping', {cart}) %}
 								{% if note %}
 									<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
 										{{ note|raw }}

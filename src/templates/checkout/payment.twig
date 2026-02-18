@@ -75,7 +75,7 @@
 						<div class="grid grid-cols-1 gap-5 xl:gap-6 p-4">
 
 							{# Optional note #}
-							{% set note = craft.fostercheckout.note('payment') %}
+							{% set note = craft.fostercheckout.note('payment', {cart}) %}
 							{% if note %}
 								<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
 									{{ note|raw }}
@@ -473,9 +473,8 @@
 																{% set isManualGateway = true %}
 																{% set manualFields  = manualGatewayConfig.fields|default([]) %}
 																{% set manualColumns = manualGatewayConfig.columns|default(3) %}
-																{% set gatewayNote = manualGatewayConfig.note|default(null) %}
+																{% set gatewayNote = manualGatewayConfig.note.toStringWithContext({cart})|default(null) %}
 															{% endif %}
-
 
 															{% if gatewayNote|default %}
 																<div class="mb-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">

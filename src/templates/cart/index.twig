@@ -59,7 +59,7 @@
 
 				</div>
 
-				{% set note = craft.fostercheckout.note('cart') %}
+				{% set note = craft.fostercheckout.note('cart', {cart}) %}
 				{% if note %}
 					<div class="mt-4 p-4 border border-gray-250 text-sm text-gray-500 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? '' : 'lg:rounded-lg' }} [&_a]:underline [&_a:hover]:decoration-current">
 						{{ note|raw }}
@@ -126,7 +126,7 @@
 			<div class="text-center">
 				<h2 class="font-semibold text-xl text-black">{{ 'cart.isEmpty'|t('foster-checkout') }}</h2>
 				<div class="mt-3 mx-auto text-gray-500 prose prose-a:text-black [&_a]:underline [&_a:hover]:decoration-current">
-					{% set note = craft.fostercheckout.note('emptyCart') %}
+					{% set note = craft.fostercheckout.note('emptyCart', {cart}) %}
 					{% if note %}
 						{{ note|raw }}
 					{% else %}

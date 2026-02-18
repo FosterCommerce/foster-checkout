@@ -39,11 +39,11 @@ class Checkout extends Component
 		return $settings;
 	}
 
-	/*
+	/**
 	 * Gets the 'dist' javascript asset bundle from the plugin
 	 * Note: We are getting it this way as running view.registerAssetBundle() in the template does not output the
 	 * script tag with type="module" attribute
-	*/
+	 */
 	public function jsBundle(): string
 	{
 		/** @var string $bundleUrl */
@@ -75,10 +75,12 @@ class Checkout extends Component
 		return null;
 	}
 
-	/*
+	/**
 	 * Gets the custom note data based on the template page we are on
-	*/
-	public function note(string $field): string|null
+	 *
+	 * @param array<non-empty-string, mixed> $context additional context to pass to the callable or twig template
+	 */
+	public function note(string $field, array $context = []): string|null
 	{
 		$notes = $this->settings()->notes;
 
@@ -87,8 +89,7 @@ class Checkout extends Component
 
 		try {
 			if ($note instanceof ValueConfig) {
-				/** @throws InvalidFieldException */
-				return (string) $note;
+				return $note->toStringWithContext($context);
 			}
 		} catch (InvalidFieldException) {
 			return null;

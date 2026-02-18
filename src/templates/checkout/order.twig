@@ -35,7 +35,7 @@
 					{{ 'order.stepName'|t('foster-checkout') }}
 				</h1>
 
-				{% set note = craft.fostercheckout.note('order') %}
+				{% set note = craft.fostercheckout.note('order', {order}) %}
 				{% if note %}
 					<div class="mt-4 [&_a]:underline [&_a:hover]:decoration-current">
 						{{ note|raw }}
@@ -182,8 +182,8 @@
 			</div>
 
 			{% if craft.fostercheckout.settings.options.enableMadeAMistake %}
-				{% set mistakeHeading = craft.fostercheckout.note('mistakeHeading') %}
-				{% set mistakeText = craft.fostercheckout.note('mistakeText') %}
+				{% set mistakeHeading = craft.fostercheckout.note('mistakeHeading', {order}) %}
+				{% set mistakeText = craft.fostercheckout.note('mistakeText', {order}) %}
 				<div class="hidden lg:block">
 					{% if mistakeHeading %}
 						<h3 class="font-semibold text-2xl">{{ mistakeHeading }}</h3>

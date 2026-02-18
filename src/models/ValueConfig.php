@@ -54,7 +54,15 @@ class ValueConfig extends Model implements Stringable
 	 */
 	public function __toString(): string
 	{
-		$value = $this->getValue();
+		return $this->toStringWithContext();
+	}
+
+	/**
+	 * @param array<non-empty-string, mixed> $context additional context to pass to the callable or twig template
+	 */
+	public function toStringWithContext(array $context = []): string
+	{
+		$value = $this->getValue($context);
 
 		if (is_string($value)) {
 			return $value;
@@ -90,7 +98,7 @@ class ValueConfig extends Model implements Stringable
 		} elseif (is_array($this->value)) {
 			$this->fieldData = $this->parseArrayValue($this->value);
 		} elseif ($this->elementHandle !== null && $this->fieldHandle !== null) {
-			// If it's and element and field handle, then we get the field value
+			// If it's an element and field handle, then we get the field value
 			$elementHandle = trim($this->elementHandle);
 			$fieldHandle = trim($this->fieldHandle);
 
