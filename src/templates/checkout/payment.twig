@@ -20,7 +20,7 @@
 {% endblock %}
 
 {% block body %}
-	{% set gateways = craft.commerce.gateways.getAllCustomerEnabledGateways %}
+	{% set gateways = cart.getAvailableGateways() %}
 	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
 
 	{# ---- Billing state from cart (truth table) ---- #}
