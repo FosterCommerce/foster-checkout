@@ -270,7 +270,7 @@ const SearchableSelect = (props) => {
 		// --- selection ---
 		selectOption(option) {
 			this.selectedOption = option; // watcher will push value into modelValue
-			this.closeAndFocusButton();
+			this.closeListbox();
 		},
 
 		isSelected(option) {
@@ -278,6 +278,10 @@ const SearchableSelect = (props) => {
 				this.selectedOption && this.selectedOption.value === option.value
 			);
 		},
+
+		updateSelect(value) {
+			this.selectedOption = this.options.find(o => o.label === value) || null;
+		}
 	};
 };
 

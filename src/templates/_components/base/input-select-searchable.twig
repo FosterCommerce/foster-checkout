@@ -85,7 +85,7 @@
 			type="button"
 			x-ref="button"
 			:id="buttonId()"
-			@click="toggleListbox()"
+			@focus="toggleListbox()"
 			@keydown.arrow-down.prevent="openListbox()"
 			@keydown.arrow-up.prevent="openListbox()"
 			@keydown.enter.prevent="toggleListbox()"
@@ -96,6 +96,7 @@
 			:aria-expanded="open ? 'true' : 'false'"
 			:aria-labelledby="labelId()"
 			:aria-controls="listboxId()"
+			tabindex="0"
 		>
 			<span class="block truncate" x-text="buttonLabel"></span>
 			<span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -107,11 +108,13 @@
 
 		<!-- Hidden input for form submission (server sees just the value/code) -->
 		<input
-			type="hidden"
+			type="text"
+			class="w-0 h-0 opacity-0 absolute pointer-events-none"
 			:name="name"
 			:value="modelValue ?? ''"
 			:aria-invalid="errors.length ? true : false"
 			:aria-errormessage="errorId()"
+			@input="updateSelect($event.target.value)"
 		/>
 
 		<!-- Dropdown -->
