@@ -18,6 +18,7 @@
 {% endblock %}
 
 {% block body %}
+	{{ include('foster-checkout/_components/app/flash-message') }}
 
 	{% if cart.lineItems|length > 0 %}
 

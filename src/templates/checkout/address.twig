@@ -50,6 +50,8 @@
 				<div class="grid grid-cols-1 gap-4 xl:gap-6 ">
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'address' } %}
 
+					{{ include('foster-checkout/_components/app/flash-message') }}
+
 					<form method="post">
 						{{ csrfInput() }}
 

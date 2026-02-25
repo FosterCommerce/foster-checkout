@@ -46,6 +46,8 @@
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'shipping' } %}
 
+					{{ include('foster-checkout/_components/app/flash-message') }}
+
 					<form method="post" x-data x-ref="shippingForm" x-on:submit="$el.querySelector('[data-next]')?.setAttribute('disabled','disabled')">
 						{# --- CSRF, not namespaced for the auto-submit version below --- #}
 						<input type="hidden" name="{{ craft.app.config.general.csrfTokenName }}" value="{{ craft.app.request.csrfToken }}">
