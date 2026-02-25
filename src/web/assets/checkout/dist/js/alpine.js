@@ -278,6 +278,10 @@ const SearchableSelect = (props) => {
 				this.selectedOption && this.selectedOption.value === option.value
 			);
 		},
+
+		updateSelect(value) {
+			this.selectedOption = this.options.find(o => o.label === value) || null;
+		}
 	};
 };
 

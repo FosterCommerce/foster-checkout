@@ -107,11 +107,13 @@
 
 		<!-- Hidden input for form submission (server sees just the value/code) -->
 		<input
-			type="hidden"
+			type="text"
+			class="w-0 h-0 opacity-0 absolute pointer-events-none"
 			:name="name"
 			:value="modelValue ?? ''"
 			:aria-invalid="errors.length ? true : false"
 			:aria-errormessage="errorId()"
+			@input="updateSelect($event.target.value)"
 		/>
 
 		<!-- Dropdown -->
