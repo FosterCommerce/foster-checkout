@@ -1,6 +1,8 @@
 {% set flashError = craft.app.session.getFlash('error') %}
 {% set flashSuccess = craft.app.session.getFlash('success') %}
 
+{{ dump(craft.app.session.getFlash())}}
+
 {% if flashError %}
 	<div class="p-4 text-sm text-red-700 bg-red-100 border border-red-300 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'flat' : 'rounded-lg' }}">
 		{{ flashError }}
@@ -8,7 +10,6 @@
 {% endif %}
 
 {% if flashSuccess %}
-	{{ dump(flashSuccess) }}
 	<div class="p-4 text-sm text-green-700 bg-green-100 border border-green-300 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'flat' : 'rounded-lg' }}">
 		{{ flashSuccess }}
 	</div>
