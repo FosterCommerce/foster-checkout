@@ -1,0 +1,8 @@
+{% set flashError = craft.app.session.getFlash('error') %}
+
+{% if flashError %}
+	<div class="p-4 text-sm text-red-700 bg-red-100 border border-red-300 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'flat' : 'rounded-lg' }}">
+		{{ flashError }}
+	</div>
+{% endif %}
+
