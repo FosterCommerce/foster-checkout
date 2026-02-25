@@ -18,7 +18,6 @@
 {% endblock %}
 
 {% block body %}
-	{{ include('foster-checkout/_components/app/flash-message') }}
 
 	{% if cart.lineItems|length > 0 %}
 
@@ -39,6 +38,9 @@
 								({{ cart.totalQty }})
 							</p>
 						</div>
+
+						{{ include('foster-checkout/_components/app/flash-message') }}
+
 						<form method="post">
 							{{ csrfInput() }}
 							{{ actionInput('commerce/cart/forget-cart') }}
