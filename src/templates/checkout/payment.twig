@@ -67,6 +67,8 @@
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'payment' } %}
 
+					{{ include('foster-checkout/_components/app/flash-message') }}
+
 					<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 						<h2 class="p-4 font-semibold bg-gray-200">
 							{{ 'payment.stepName'|t('foster-checkout') }}
@@ -324,9 +326,6 @@
 								<h3 class="px-4 mb-4 font-semibold xl:px-0">
 									{{ 'payment.paymentMethod'|t('foster-checkout') }}
 								</h3>
-
-
-								{{ include('foster-checkout/_components/app/flash-message') }}
 
 								<form method="POST" class="grid gap-y-4 gap-x-4" id="paymentForm">
 									{{ csrfInput() }}
