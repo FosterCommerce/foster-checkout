@@ -6,6 +6,7 @@ use Craft;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
+use craft\commerce\enums\LineItemType;
 use craft\commerce\models\LineItem;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
@@ -132,8 +133,12 @@ class Checkout extends Component
 	 */
 	public function lineItemImage(LineItem $lineItem): ?Asset
 	{
-		$sku = $lineItem->getSku();
-		$variant = Variant::find()->sku($sku)->one();
+		if ($lineItem->type === LineItemType::Custom) {
+			return null;
+		}
+
+		/** @var ?Variant $variant */
+		$variant = $lineItem->getPurchasable();
 		if (! $variant instanceof Variant) {
 			return null;
 		}
@@ -147,11 +152,12 @@ class Checkout extends Component
 		$fieldInfo = $this->lineItemImageField($productTypeHandle);
 
 		if ($fieldInfo !== null) {
+			/** @var AssetQuery<array-key, Asset> $query */
 			$query = $fieldInfo['level'] === 'variant' ? $variant->{$fieldInfo['handle']} : $product->{$fieldInfo['handle']};
 
-			/** @var AssetQuery $query */
 			/** @var ?Asset $image */
 			$image = $query->one();
+
 			return $image;
 		}
 
