@@ -270,7 +270,7 @@ const SearchableSelect = (props) => {
 		// --- selection ---
 		selectOption(option) {
 			this.selectedOption = option; // watcher will push value into modelValue
-			this.closeAndFocusButton();
+			this.closeListbox();
 		},
 
 		isSelected(option) {
