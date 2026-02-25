@@ -39,8 +39,6 @@
 							</p>
 						</div>
 
-						{{ include('foster-checkout/_components/app/flash-message') }}
-
 						<form method="post">
 							{{ csrfInput() }}
 							{{ actionInput('commerce/cart/forget-cart') }}
@@ -49,6 +47,8 @@
 											class="font-medium text-[var(--brandColor)]">{{ 'cart.clearCart'|t('foster-checkout') }}</button>
 						</form>
 					</header>
+
+					{{ include('foster-checkout/_components/app/flash-message') }}
 
 					<ul class="grid grid-cols-1 gap-4 lg:gap-6">
 						{% for lineItem in cart.lineItems %}
