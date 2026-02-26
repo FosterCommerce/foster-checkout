@@ -143,6 +143,9 @@ return [
 	'order.payment' => 'Zahlung',
 	'order.giftCard' => 'Geschenkkarte',
 	'order.dateChargedLabel' => 'Abbuchungsdatum',
+	'order.totalPaidLabel' => 'Gesamtbetrag bezahlt:',
+	'order.balanceLabel' => 'Saldo:',
+	'order.balanceDueLabel' => 'Fälligkeitsdatum des Saldos:',
 	'order.billingAddress' => 'Rechnungsadresse',
 
 	// Steps

@@ -106,7 +106,7 @@
 
 					<div class="grid grid-cols-1 content-start">
 						<!-- Payment Information -->
-						<div>
+						<div class="flex flex-col gap-1">
 							<h2 class="text-lg font-medium text-gray-700">{{ 'order.payment'|t('foster-checkout') }}</h2>
 							{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
 								{# Check for applied / redeemed gift card vouchers in orders #}
@@ -135,6 +135,7 @@
 									{% endif %}
 								{% endif %}
 							{% endif %}
+
 							{% set transaction = order.transactions|last %}
 							{% if transaction %}
 								{% set paymentResponse = (transaction.response ?? null)|json_decode %}
@@ -154,10 +155,26 @@
 										{{ cardBrand ? cardBrand|capitalize ~ ' ' : '' }}{{ cardLast4 ? '**** ' ~ cardLast4 : '' }}
 									</p>
 								{% endif %}
+							{% endif %}
 
-								<p class="mt-1">
-									{{ transaction.paymentAmount|float|currency(order.paymentCurrency) }}
-									({{ 'order.dateChargedLabel'|t('foster-checkout') }} {{ order.dateOrdered|date }})
+							{# Total Paid #}
+							<p>
+								{{ 'order.totalPaidLabel'|t('foster-checkout') }}
+								{{ order.getTotalPaid()|currency(order.paymentCurrency) }}
+							</p>
+
+							{# Balance #}
+							<p>
+								{{ 'order.balanceLabel'|t('foster-checkout') }}
+								{{ order.getOutstandingBalance()|currency(order.paymentCurrency) }}
+							</p>
+
+							{# Balance Due Date #}
+							{% set paymentDueDateFieldHandle = craft.fostercheckout.settings.options.paymentDueDateFieldHandle %}
+							{% if not order.getIsPaid() and paymentDueDateFieldHandle and order[paymentDueDateFieldHandle] is defined and order[paymentDueDateFieldHandle] %}
+								<p>
+									{{ 'order.balanceDueLabel'|t('foster-checkout') }}
+									{{ order[paymentDueDateFieldHandle]|date }}
 								</p>
 							{% endif %}
 						</div>

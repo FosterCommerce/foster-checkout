@@ -67,6 +67,11 @@ class OptionConfig extends Model
 	public DeliveryDateConfig $deliveryDate;
 
 	/**
+	 * An optional field handle for a field on Orders which will contain the payment due date
+	 */
+	public ?string $paymentDueDateFieldHandle = null;
+
+	/**
 	 * @var ?array<non-empty-string, mixed>
 	 */
 	public ?array $imagerXConfig = null;

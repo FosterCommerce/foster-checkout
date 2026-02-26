@@ -58,6 +58,10 @@ return [
 			'display' => true, // closure, twig or a boolean
 		],
 
+		// The field handle on the Order element that will contain the payment due date.
+		// When the due date is set, and the order is not fully paid, the order confirmation page will show the payment due date.
+		'paymentDueDateFieldHandle' => null,
+
 		'imagerXConfig' => null,
 	],
 	// Branding Settings

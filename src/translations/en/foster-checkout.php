@@ -143,6 +143,9 @@ return [
 	'order.payment' => 'Payment',
 	'order.giftCard' => 'Gift card',
 	'order.dateChargedLabel' => 'Date charged',
+	'order.totalPaidLabel' => 'Total paid:',
+	'order.balanceLabel' => 'Balance:',
+	'order.balanceDueLabel' => 'Balance due:',
 	'order.billingAddress' => 'Billing Address',
 
 	// Steps

@@ -144,6 +144,9 @@ return [
 	'order.payment' => 'Pago',
 	'order.giftCard' => 'Cupón',
 	'order.dateChargedLabel' => 'Fecha de cargo',
+	'order.totalPaidLabel' => 'Total pagado:',
+	'order.balanceLabel' => 'Saldo:',
+	'order.balanceDueLabel' => 'Saldo pendiente:',
 	'order.billingAddress' => 'Dirección de facturación',
 
 	// Steps
