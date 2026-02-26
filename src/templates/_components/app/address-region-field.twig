@@ -29,7 +29,7 @@
 >
 	<template x-if="load">
 		<div>
-			<template x-if="selectedRegion.length > 0">
+			<template x-if="selectedRegion && selectedRegion.length > 0">
 				<div>
 					{% include 'foster-checkout/_components/base/input-select-searchable' with {
 						context: context,
