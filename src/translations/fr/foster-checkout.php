@@ -141,6 +141,8 @@ return [
 	'order.shippingAddress' => 'Adresse de livraison',
 	'order.shippingMethod' => 'Méthode de livraison',
 	'order.payment' => 'Paiement',
+	'order.gateway' => 'Méthode:',
+	'order.card' => 'Carte:',
 	'order.giftCard' => 'Carte-cadeau',
 	'order.dateChargedLabel' => 'Date du paiement',
 	'order.totalPaidLabel' => 'Total payé :',

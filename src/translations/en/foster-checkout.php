@@ -141,6 +141,8 @@ return [
 	'order.shippingAddress' => 'Shipping Address',
 	'order.shippingMethod' => 'Shipping Method',
 	'order.payment' => 'Payment',
+	'order.gateway' => 'Method:',
+	'order.card' => 'Card:',
 	'order.giftCard' => 'Gift card',
 	'order.dateChargedLabel' => 'Date charged',
 	'order.totalPaidLabel' => 'Total paid:',

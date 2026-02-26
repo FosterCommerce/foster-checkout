@@ -108,6 +108,7 @@
 						<!-- Payment Information -->
 						<div class="flex flex-col gap-1">
 							<h2 class="text-lg font-medium text-gray-700">{{ 'order.payment'|t('foster-checkout') }}</h2>
+							<p>{{ 'order.gateway'|t('foster-checkout') }} {{ order.gateway.name }}</p>
 							{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
 								{# Check for applied / redeemed gift card vouchers in orders #}
 
@@ -152,7 +153,7 @@
 
 								{% if cardBrand or cardLast4 %}
 									<p class="mt-1">
-										{{ cardBrand ? cardBrand|capitalize ~ ' ' : '' }}{{ cardLast4 ? '**** ' ~ cardLast4 : '' }}
+										{{ 'order.card'|t('foster-checkout') }} {{ cardBrand ? cardBrand|capitalize ~ ' ' : '' }}{{ cardLast4 ? '**** ' ~ cardLast4 : '' }}
 									</p>
 								{% endif %}
 							{% endif %}
