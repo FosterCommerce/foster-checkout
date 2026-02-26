@@ -281,6 +281,9 @@ const SearchableSelect = (props) => {
 
 		updateSelect(value) {
 			this.selectedOption = this.options.find(o => o.label === value) || null;
+			if(this.selectedOption === null) {
+				this.selectedOption = this.options.find(o => o.value === value) || null;
+			}
 		}
 	};
 };

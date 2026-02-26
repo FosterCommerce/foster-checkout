@@ -23,7 +23,7 @@
 {% endif %}
 
 <div
-	x-data="{ regions: {{ countriesAndRegions|json_encode }}, selectedRegion: [], load: true }"
+	x-data="{ regions: {{ countriesAndRegions|json_encode }} ?? {}, selectedRegion: [], load: true }"
 	x-init="selectedRegion = regions[countryCode] ?? []"
 	@selected.window="if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') { selectedRegion = regions[$event.detail.value]; load = false; setTimeout(() => { load = true }, 0); }"
 >
