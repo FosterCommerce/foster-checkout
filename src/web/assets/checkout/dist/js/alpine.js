@@ -280,12 +280,10 @@ const SearchableSelect = (props) => {
 		},
 
 		updateSelect(value) {
-			this.$nextTick(() => {
-				this.selectedOption = this.options.find(o => o.label.toLowerCase() === value.toLowerCase()) || null;
-				if(this.selectedOption === null) {
-					this.selectedOption = this.options.find(o => o.value.toLowerCase() === value.toLowerCase()) || null;
-				}
-			});
+			this.selectedOption = this.options.find(o => o.label.toLowerCase() === value.toLowerCase()) || null;
+			if(this.selectedOption === null) {
+				this.selectedOption = this.options.find(o => o.value.toLowerCase() === value.toLowerCase()) || null;
+			}
 		}
 	};
 };
