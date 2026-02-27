@@ -46,6 +46,19 @@
 					} %}
 				</div>
 			</template>
+			<template x-if="!selectedRegion || selectedRegion.length === 0;">
+				<div>
+					{% include 'foster-checkout/_components/base/input-text-clearable' with {
+						context: context,
+						id: 'administrativeArea',
+						name: 'administrativeArea',
+						label: 'addressFields.stateLabel'|t('foster-checkout'),
+						required: true,
+						value: address ? address.administrativeArea : '',
+						errors: errors.administrativeArea ?? []
+					} %}
+				</div>
+			</template>
 		</div>
 	</template>
 </div>
