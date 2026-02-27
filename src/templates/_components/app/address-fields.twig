@@ -34,7 +34,8 @@ since the array key will be the same #}
 	{% set countriesArr = countriesArr|merge([{
 		value: key,
 		label: name,
-		pinned: true
+		pinned: true,
+		isLastPinned: loop.last
 	}]) %}
 {% endfor %}
 {% for key, name in countries %}
