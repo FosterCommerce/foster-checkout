@@ -176,7 +176,7 @@
 							'bg-gray-800 text-white': index === activeIndex,
 							'text-gray-800': index !== activeIndex && !isSelected(option),
 							'text-gray-800 bg-gray-200': isSelected(option) && index !== activeIndex,
-							'border-b border-gray-300': isLastPinned(option),
+							'border-b border-gray-300': option.isLastPinned,
 						}"
 						>
 						<span
