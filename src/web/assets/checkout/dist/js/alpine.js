@@ -88,6 +88,7 @@ const SearchableSelect = (props) => {
 		search: '',
 		activeIndex: 0,
 		selectedOption: null,
+		lastPinned: null,
 
 		init() {
 			// Remove the fallback select element
@@ -200,12 +201,16 @@ const SearchableSelect = (props) => {
 					this.$refs.search.select();
 				}
 			});
+			this.lastPinned = this.options.find(o => o.isLastPinned === true);
 		},
 
 		closeListbox() {
 			if (!this.open) return;
 			this.open = false;
 			this.search = '';
+			if (this.lastPinned) {
+				this.lastPinned.isLastPinned = true;
+			}
 		},
 
 		toggleListbox() {
@@ -281,6 +286,17 @@ const SearchableSelect = (props) => {
 
 		updateSelect(value) {
 			this.selectedOption = this.options.find(o => o.label === value) || null;
+		},
+
+		removePinnedOnSearch(event) {
+			const lastPinned = this.options.find(o => o.isLastPinned === true);
+			if ((event.key === 'Backspace' || event.key === 'Delete') && this.search === '' && this.lastPinned) {
+				this.lastPinned.isLastPinned = true;
+			} else {
+				if (lastPinned) {
+					lastPinned.isLastPinned = false;
+				}
+			}
 		}
 	};
 };
