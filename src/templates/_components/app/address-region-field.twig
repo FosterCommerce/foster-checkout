@@ -23,20 +23,25 @@
 {% endif %}
 
 <div
-	x-data="{ regions: {{ countriesAndRegions|json_encode }}, selectedRegion: [], load: true }"
-	x-init="selectedRegion = regions[countryCode]"
-	@selected.window="if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') { selectedRegion = regions[$event.detail.value]; load = false; setTimeout(() => { load = true }, 0); }"
+	x-data="{
+		regions: {{ countriesAndRegions|json_encode }},
+		initialRegions: [],
+	}"
+	x-init="initialRegions = regions[countryCode] ?? []"
+	@selected.window="
+		if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') {
+			$dispatch('addressregions', regions[$event.detail.value]);
+		}
+	"
 >
-	<template x-if="load">
-		<div>
-			<template x-if="selectedRegion.length > 0">
 				<div>
 					{% include 'foster-checkout/_components/base/input-select-searchable' with {
 						context: context,
 						id: 'administrativeArea',
 						model: 'administrativeArea',
 						name: 'administrativeArea',
-						options: 'selectedRegion',
+						options: 'initialRegions',
+						eventName: 'addressregions',
 						fallbackOptions: fallbackOptions,
 						label: 'addressFields.stateLabel'|t('foster-checkout'),
 						placeholder: 'addressFields.select'|t('foster-checkout'),
@@ -45,7 +50,4 @@
 						errors: errors.administrativeArea ?? []
 					} %}
 				</div>
-			</template>
-		</div>
-	</template>
 </div>

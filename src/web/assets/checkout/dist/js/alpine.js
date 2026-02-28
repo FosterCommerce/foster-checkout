@@ -79,11 +79,12 @@ const SearchableSelect = (props) => {
 		id: props.id || `ss-${Math.random().toString(36).slice(2)}`,
 		name: props.name || 'select',
 		placeholder: props.placeholder || 'Select',
-		options: props.options,
+		options: props.options ?? [],
 		required: props.required || false,
 		errors: props.errors || [],
 		success: props.success || [],
 		modelValue: props.value || null,
+		tmpInputEventValue: null, // This is set when the hidden input's input event fires
 		open: false,
 		search: '',
 		activeIndex: 0,
@@ -103,6 +104,17 @@ const SearchableSelect = (props) => {
 				);
 				if (match) this.selectedOption = match;
 			}
+
+			this.$watch('options', (o) => {
+				this.selectedOption = null;
+
+				if (this.tmpInputEventValue) {
+					const value = this.tmpInputEventValue;
+					this.tmpInputEventValue = null;
+
+					this.selectedOption = this.options.find(option => option.label === value || option.value === value) || null;
+				}
+			});
 
 			// parent -> child
 			this.$watch('modelValue', (value) => {
@@ -133,7 +145,9 @@ const SearchableSelect = (props) => {
 		},
 
 		get filteredOptions() {
-			if (!this.search) return this.options;
+			if (!this.search) {
+				return this.options ?? [];
+			}
 			const q = this.search.toLowerCase();
 
 			return this.options
@@ -162,12 +176,13 @@ const SearchableSelect = (props) => {
 		},
 
 		get hasOptions() {
-			return this.filteredOptions.length > 0;
+			// TODO This fires multiple times when a component is initialized, and it also fires whenever a listitem is hovered over
+			return (this.filteredOptions?.length ?? 0) > 0;
 		},
 
 		isLastPinned(option) {
 			const pinned = this.filteredOptions.filter(o => o.pinned);
-			return pinned.length && pinned[pinned.length - 1] === option;
+			return pinned?.length && pinned[pinned.length - 1] === option;
 		},
 
 		labelId() {
@@ -235,7 +250,10 @@ const SearchableSelect = (props) => {
 		},
 
 		moveActive(step) {
-			if (!this.hasOptions) return;
+			if (!this.hasOptions) {
+				return;
+			}
+
 			let next = this.activeIndex + step;
 			const max = this.filteredOptions.length - 1;
 			if (next < 0) next = max;
@@ -262,7 +280,10 @@ const SearchableSelect = (props) => {
 		},
 
 		selectActiveOption() {
-			if (!this.hasOptions) return;
+			if (!this.hasOptions) {
+				return;
+			}
+
 			const option = this.filteredOptions[this.activeIndex];
 			if (option) this.selectOption(option);
 		},
@@ -279,8 +300,20 @@ const SearchableSelect = (props) => {
 			);
 		},
 
-		updateSelect(value) {
-			this.selectedOption = this.options.find(o => o.label === value) || null;
+		handleHiddenInputChange(value) {
+			// This fires when the hidden input has its value set by the browser, likely from auto-complete.
+
+			// When the form is autofilled, we can't assume the options will be immediately available if they've
+			// been changed based on some other field's value. So we set a temporary value if we don't match
+			// anything at this point.
+			this.tmpInputEventValue = value;
+			const selectedOption = this.options.find(option => option.label === value || option.value === value) || null;
+
+			if (selectedOption) {
+				// If we found the option, we can clear this value
+				this.tmpInputEventValue = null;
+				this.selectedOption = selectedOption;
+			}
 		}
 	};
 };
