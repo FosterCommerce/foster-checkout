@@ -113,7 +113,7 @@ const SearchableSelect = (props) => {
 					const value = this.tmpInputEventValue;
 					this.tmpInputEventValue = null;
 
-					this.selectedOption = this.options.find(option => option.label === value || option.value === value) || null;
+					this.selectedOption = this.options.find(matchOptionByValue(value)) || null;
 				}
 			});
 
@@ -311,7 +311,7 @@ const SearchableSelect = (props) => {
 			// been changed based on some other field's value. So we set a temporary value if we don't match
 			// anything at this point.
 			this.tmpInputEventValue = value;
-			const selectedOption = this.options.find(option => option.label === value || option.value === value) || null;
+			const selectedOption = this.options.find(matchOptionByValue(value)) || null;
 
 			if (selectedOption) {
 				// If we found the option, we can clear this value
@@ -331,6 +331,12 @@ const SearchableSelect = (props) => {
 		},
 	};
 };
+
+const matchOptionByValue = (value) => {
+	const lowercaseValue = value.toLowerCase();
+	return (option) => option.label.toLowerCase() === lowercaseValue
+		|| option.value.toLowerCase() === lowercaseValue;
+}
 
 const LineItem = (props) => {
 	return {
