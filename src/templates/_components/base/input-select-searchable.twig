@@ -112,9 +112,9 @@
 			type="text"
 			class="w-0 h-0 opacity-0 absolute pointer-events-none"
 			:name="name"
-			:value="modelValue"
 			:aria-invalid="errors.length ? true : false"
 			:aria-errormessage="errorId()"
+			x-ref="hiddenValue"
 			@input="handleHiddenInputChange($event.target.value)"
 		/>
 

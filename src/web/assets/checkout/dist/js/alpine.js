@@ -118,15 +118,27 @@ const SearchableSelect = (props) => {
 
 			// parent -> child
 			this.$watch('modelValue', (value) => {
-				if (value == null) {
+				if (!value) {
+					this.$nextTick(() => {
+						this.$refs.hiddenValue.value = '';
+					})
 					this.selectedOption = null;
 					return;
 				}
+
 				const match = this.options.find(
 					(o) => o.value === value || o === value
 				);
 				if (match && this.selectedOption !== match) {
 					this.selectedOption = match;
+				}
+
+				if (this.selectedOption) {
+					this.$nextTick(() => {
+						// Make sure that the value is set on the hidden input in the next tick so that everything else
+						// in the current tick has completed.
+						this.$refs.hiddenValue.value = this.selectedOption.value;
+					})
 				}
 			});
 
