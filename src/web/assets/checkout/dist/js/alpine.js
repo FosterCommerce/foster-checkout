@@ -118,28 +118,9 @@ const SearchableSelect = (props) => {
 			});
 
 			// parent -> child
-			this.$watch('modelValue', (value) => {
-				if (!value) {
-					this.$nextTick(() => {
-						this.$refs.hiddenValue.value = '';
-					})
-					this.selectedOption = null;
-					return;
-				}
-
-				const match = this.options.find(
-					(o) => o.value === value || o === value
-				);
-				if (match && this.selectedOption !== match) {
-					this.selectedOption = match;
-				}
-
-				if (this.selectedOption) {
-					this.$nextTick(() => {
-						// Make sure that the value is set on the hidden input in the next tick so that everything else
-						// in the current tick has completed.
-						this.$refs.hiddenValue.value = this.selectedOption.value;
-					})
+			this.$watch('modelValue', (newValue, oldValue) => {
+				if (newValue !== oldValue && this.selectedOption?.value !== newValue) {
+					this.selectByValue(newValue);
 				}
 			});
 
@@ -149,6 +130,14 @@ const SearchableSelect = (props) => {
 				if (this.modelValue !== next) {
 					this.modelValue = next;
 					this.$dispatch('selected', { name: this.name, value: next });
+				}
+
+				if (this.selectedOption) {
+					this.$nextTick(() => {
+						// Make sure that the value is set on the hidden input in the next tick so that everything else
+						// in the current tick has completed.
+						this.$refs.hiddenValue.value = this.selectedOption.value;
+					})
 				}
 			});
 		},
@@ -317,9 +306,7 @@ const SearchableSelect = (props) => {
 			);
 		},
 
-		handleHiddenInputChange(value) {
-			// This fires when the hidden input has its value set by the browser, likely from auto-complete.
-
+		selectByValue(value) {
 			// When the form is autofilled, we can't assume the options will be immediately available if they've
 			// been changed based on some other field's value. So we set a temporary value if we don't match
 			// anything at this point.
@@ -333,13 +320,12 @@ const SearchableSelect = (props) => {
 			}
 		},
 
-		removePinnedOnSearch(event) {
-			const lastPinned = this.options.find(o => o.isLastPinned === true);
-			if ((event.key === 'Backspace' || event.key === 'Delete') && this.search === '' && this.lastPinned) {
-				this.lastPinned.isLastPinned = true;
-			} else {
-				if (lastPinned) {
-					lastPinned.isLastPinned = false;
+		updateLastPinned(event) {
+			if (this.lastPinned) {
+				if (event.target.value === '') {
+					this.lastPinned.isLastPinned = true;
+				} else {
+					this.lastPinned.isLastPinned = false;
 				}
 			}
 		},
