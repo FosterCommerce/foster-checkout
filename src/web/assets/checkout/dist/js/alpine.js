@@ -143,15 +143,6 @@ const SearchableSelect = (props) => {
 				// Keep the visible trigger input in sync with the selected label
 				this.syncTriggerDisplay();
 			});
-
-			// Watch search input for autofill (browsers sometimes target it despite autocomplete="off")
-			this.$watch('search', (val) => {
-				if (val && !this.open) {
-					if (this.selectByValue(val)) {
-						this.search = '';
-					}
-				}
-			});
 		},
 
 		/**
