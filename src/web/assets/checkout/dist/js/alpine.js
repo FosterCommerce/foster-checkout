@@ -84,7 +84,7 @@ const SearchableSelect = (props) => {
 		errors: props.errors || [],
 		success: props.success || [],
 		modelValue: props.value || null,
-		_pendingValue: null, // Stores autofill value when options aren't loaded yet
+		tmpInputEventValue: null, // This is set when the hidden input's input event fires
 		open: false,
 		search: '',
 		activeIndex: 0,
@@ -106,14 +106,13 @@ const SearchableSelect = (props) => {
 				if (match) this.selectedOption = match;
 			}
 
-			// When options change (e.g. region list updates after country change),
-			// try to match any pending autofill value against the new options
 			this.$watch('options', (o) => {
 				this.selectedOption = null;
 
-				if (this._pendingValue) {
-					const value = this._pendingValue;
-					this._pendingValue = null;
+				if (this.tmpInputEventValue) {
+					const value = this.tmpInputEventValue;
+					this.tmpInputEventValue = null;
+
 					this.selectByValue(value);
 				}
 			});
@@ -208,7 +207,7 @@ const SearchableSelect = (props) => {
 			if (this.selectByValue(val)) return;
 
 			// If value was stored as pending (options not loaded yet), don't open dropdown
-			if (this._pendingValue) return;
+			if (this.tmpInputEventValue) return;
 
 			// Not an autofill match — user is typing.
 			// Open the dropdown and forward their text into the search field.
@@ -421,14 +420,14 @@ const SearchableSelect = (props) => {
 			if (!match) match = this.options.find(o => String(o.label).toLowerCase().includes(q));
 
 			if (match) {
-				this._pendingValue = null;
+				this.tmpInputEventValue = null;
 				this.selectedOption = match;
 				return match;
 			}
 
 			// No match — store as pending for when options load (e.g. state autofilled before country)
 			if (q) {
-				this._pendingValue = value;
+				this.tmpInputEventValue = value;
 			}
 			return null;
 		},
