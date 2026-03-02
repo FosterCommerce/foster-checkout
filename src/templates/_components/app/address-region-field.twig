@@ -41,23 +41,21 @@
        }
     "
 >
-	<template x-if="currentRegions.length > 0">
-		<div>
-			{% include 'foster-checkout/_components/base/input-select-searchable' with {
-				context: context,
-				id: 'administrativeArea',
-				model: 'administrativeArea',
-				name: 'administrativeArea',
-				options: 'initialRegions',
-				eventName: 'addressregions',
-				fallbackOptions: fallbackOptions,
-				label: 'addressFields.stateLabel'|t('foster-checkout'),
-				placeholder: 'addressFields.select'|t('foster-checkout'),
-				required: true,
-				value: address ? address.administrativeArea : '',
-				errors: errors.administrativeArea ?? [],
-				autocomplete: 'address-level1'
-			} %}
-		</div>
-	</template>
+	<div x-show="currentRegions.length > 0">
+		{% include 'foster-checkout/_components/base/input-select-searchable' with {
+			context: context,
+			id: 'administrativeArea',
+			model: 'administrativeArea',
+			name: 'administrativeArea',
+			options: 'initialRegions',
+			eventName: 'addressregions',
+			fallbackOptions: fallbackOptions,
+			label: 'addressFields.stateLabel'|t('foster-checkout'),
+			placeholder: 'addressFields.select'|t('foster-checkout'),
+			required: true,
+			value: address ? address.administrativeArea : '',
+			errors: errors.administrativeArea ?? [],
+			autocomplete: 'address-level1'
+		} %}
+	</div>
 </div>

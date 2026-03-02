@@ -115,6 +115,13 @@ const SearchableSelect = (props) => {
 
 					this.selectByValue(value);
 				}
+
+				this.$nextTick(() => {
+					const input = this.$refs.button;
+					if (input && input.value && !this.selectedOption) {
+						this.selectByValue(input.value);
+					}
+				});
 			});
 
 			// parent -> child
