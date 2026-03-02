@@ -211,12 +211,6 @@ const SearchableSelect = (props) => {
 			if (this.open) return;
 			this.open = true;
 			this.resetActiveIndex();
-			setTimeout(() => {
-				if (this.$refs.search) {
-					this.$refs.search.focus();
-					this.$refs.search.select();
-				}
-			}, 50);
 			this.lastPinned = this.options.find(o => o.isLastPinned === true);
 		},
 
