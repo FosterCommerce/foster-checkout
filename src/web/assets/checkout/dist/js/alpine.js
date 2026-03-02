@@ -144,9 +144,6 @@ const SearchableSelect = (props) => {
 				this.syncTriggerDisplay();
 			});
 
-			// Poll for browser autofill (some browsers don't fire input events)
-			this.watchForAutofill();
-
 			// Watch search input for autofill (browsers sometimes target it despite autocomplete="nope")
 			this.$watch('search', (val) => {
 				if (val && !this.open) {
@@ -155,31 +152,6 @@ const SearchableSelect = (props) => {
 					}
 				}
 			});
-		},
-
-		/**
-		 * Poll the visible trigger input for value changes that weren't
-		 * captured by input events (e.g. Safari autofill).
-		 */
-		watchForAutofill() {
-			const input = this.$refs.button;
-			if (!input || input.tagName !== 'INPUT') return;
-
-			// Check immediately — the browser may have already autofilled before Alpine mounted
-			if (input.value && !this.selectedOption) {
-				this.selectByValue(input.value);
-			}
-
-			let lastValue = input.value;
-			const check = () => {
-				if (input.value !== lastValue) {
-					lastValue = input.value;
-					this.selectByValue(input.value);
-				}
-			};
-			// Check periodically for the first 5 seconds after mount
-			const interval = setInterval(check, 200);
-			setTimeout(() => clearInterval(interval), 5000);
 		},
 
 		/**
@@ -419,16 +391,29 @@ const SearchableSelect = (props) => {
 		 * Returns the matched option, or null if no match found.
 		 */
 		selectByValue(value) {
-			if (!value) return null;
+			if (!value) {
+				return null;
+			}
+
 			const q = value.toLowerCase().trim();
 
-			// Exact match on label or value/code
+			// Exact match on label
 			let match = this.options.find(o => String(o.label).toLowerCase() === q);
-			if (!match) match = this.options.find(o => String(o.value).toLowerCase() === q);
+
+			// Exact match on value/code (e.g. "CA", "US")
+			if (!match) {
+				match = this.options.find(o => String(o.value).toLowerCase() === q);
+			}
+
 			// Fuzzy: starts-with on label
-			if (!match) match = this.options.find(o => String(o.label).toLowerCase().startsWith(q));
+			if (!match) {
+				match = this.options.find(o => String(o.label).toLowerCase().startsWith(q));
+			}
+
 			// Fuzzy: includes on label
-			if (!match) match = this.options.find(o => String(o.label).toLowerCase().includes(q));
+			if (!match) {
+				match = this.options.find(o => String(o.label).toLowerCase().includes(q));
+			}
 
 			if (match) {
 				this.tmpInputEventValue = null;
@@ -440,6 +425,7 @@ const SearchableSelect = (props) => {
 			if (q) {
 				this.tmpInputEventValue = value;
 			}
+
 			return null;
 		},
 
