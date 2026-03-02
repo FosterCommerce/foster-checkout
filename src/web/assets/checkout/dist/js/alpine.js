@@ -84,6 +84,7 @@ const SearchableSelect = (props) => {
 		errors: props.errors || [],
 		success: props.success || [],
 		modelValue: props.value || null,
+		autocomplete: props.autocomplete || 'off',
 		tmpInputEventValue: null, // This is set when the hidden input's input event fires
 		open: false,
 		search: '',
@@ -139,7 +140,144 @@ const SearchableSelect = (props) => {
 						this.$refs.hiddenValue.value = this.selectedOption.value;
 					})
 				}
+
+				// Keep the visible trigger input in sync with the selected label
+				this.syncTriggerDisplay();
 			});
+
+			// Poll for browser autofill (some browsers don't fire input events)
+			this.watchForAutofill();
+
+			// Watch search input for autofill (browsers sometimes target it despite autocomplete="nope")
+			this.$watch('search', (val) => {
+				if (val && !this.open) {
+					const matched = this.matchAutofillValue(val);
+					if (matched) {
+						this.search = '';
+					}
+				}
+			});
+		},
+
+		/**
+		 * Poll the visible trigger input for value changes that weren't
+		 * captured by input events (e.g. Safari autofill).
+		 */
+		watchForAutofill() {
+			const input = this.$refs.button;
+			if (!input || input.tagName !== 'INPUT') return;
+
+			// Check immediately — the browser may have already autofilled before Alpine mounted
+			if (input.value && !this.selectedOption) {
+				this.matchAutofillValue(input.value);
+			}
+
+			let lastValue = input.value;
+			const check = () => {
+				if (input.value !== lastValue) {
+					lastValue = input.value;
+					this.matchAutofillValue(input.value);
+				}
+			};
+			// Check periodically for the first 5 seconds after mount
+			const interval = setInterval(check, 200);
+			setTimeout(() => clearInterval(interval), 5000);
+		},
+
+		/**
+		 * Try to match a text value (from autofill or typing) to an option.
+		 * Matches against both label and value (code) for robustness,
+		 * since browsers may send "California" or "CA".
+		 */
+		matchAutofillValue(text) {
+			if (!text) return null;
+			const q = text.toLowerCase().trim();
+
+			let match = this.options.find(o => String(o.label).toLowerCase() === q);
+			if (!match) match = this.options.find(o => String(o.value).toLowerCase() === q);
+			if (!match) match = this.options.find(o => String(o.label).toLowerCase().startsWith(q));
+			if (!match) match = this.options.find(o => String(o.label).toLowerCase().includes(q));
+
+			if (match) {
+				this._autofillJustMatched = true;
+				this.selectOption(match);
+				return match;
+			}
+			return null;
+		},
+
+		/**
+		 * Called when the parent signals that options have been updated
+		 * (e.g. region list changed after country selection).
+		 * Matches a pending autofill value against the new options without stealing focus.
+		 */
+		onOptionsUpdated(pendingValue) {
+			if (!pendingValue) return;
+			setTimeout(() => {
+				const q = pendingValue.toLowerCase().trim();
+				let match = this.options.find(o => String(o.label).toLowerCase() === q);
+				if (!match) match = this.options.find(o => String(o.value).toLowerCase() === q);
+				if (match) {
+					this.selectedOption = match;
+					this.search = '';
+					this.closeListbox();
+				}
+			}, 50);
+		},
+
+		/**
+		 * Keep the visible trigger input text in sync with the selected option label.
+		 */
+		syncTriggerDisplay() {
+			this.$nextTick(() => {
+				const input = this.$refs.button;
+				if (input && input.tagName === 'INPUT') {
+					input.value = this.selectedOption ? this.selectedOption.label : '';
+				}
+			});
+		},
+
+		/**
+		 * Called when the trigger input receives an `input` event.
+		 * Handles two scenarios:
+		 *   a) Browser autofill just set the value — match it to an option
+		 *   b) User is typing directly — open dropdown and pipe text into search
+		 */
+		onTriggerInput(event) {
+			const val = event.target.value;
+
+			// Try autofill match first
+			const matched = this.matchAutofillValue(val);
+			if (matched) return;
+
+			// Not an autofill match — user is typing.
+			// Open the dropdown and forward their text into the search field.
+			if (!this.open) {
+				this.open = true;
+				this.resetActiveIndex();
+			}
+
+			this.$nextTick(() => {
+				if (this.$refs.search) {
+					this.$refs.search.value = val;
+					this.search = val;
+					this.$refs.search.focus();
+				}
+				// Reset the trigger input to the current selection
+				event.target.value = this.selectedOption ? this.selectedOption.label : '';
+			});
+		},
+
+		/**
+		 * When the user presses a printable key on the trigger input,
+		 * open the dropdown so typing flows into the search field.
+		 */
+		onTriggerKeydown(event) {
+			if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+				if (!this.open) {
+					this.openListbox();
+				}
+			}
 		},
 
 		get buttonLabel() {
@@ -290,8 +428,13 @@ const SearchableSelect = (props) => {
 
 		// --- selection ---
 		selectOption(option) {
+			const wasOpen = this.open;
 			this.selectedOption = option; // watcher will push value into modelValue
-			this.closeListbox();
+			if (wasOpen) {
+				this.closeAndFocusButton();
+			} else {
+				this.closeListbox();
+			}
 		},
 
 		isSelected(option) {

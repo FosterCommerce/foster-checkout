@@ -70,7 +70,8 @@ since the array key will be the same #}
 			placeholder: 'addressFields.select'|t('foster-checkout'),
 			required: true,
 			value: address ? address.countryCode : '',
-			errors: errors.countryCode ?? []
+			errors: errors.countryCode ?? [],
+			autocomplete: 'country-name'
 		} %}
 		<template x-if="'countryCode' in errors">
 			<div

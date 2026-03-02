@@ -30,7 +30,18 @@
 	x-init="initialRegions = regions[countryCode] ?? []"
 	@selected.window="
 		if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') {
+			let pendingValue = null;
+			const triggerInput = $el.querySelector('input[autocomplete=address-level1]');
+			if (triggerInput && triggerInput.value) pendingValue = triggerInput.value;
 			$dispatch('addressregions', regions[$event.detail.value]);
+			if (pendingValue) {
+				setTimeout(() => {
+					$dispatch('options-updated', {
+						name: '{{ context|default ? (context ~ "[administrativeArea]") : "administrativeArea" }}',
+						pendingValue: pendingValue
+					});
+				}, 100);
+			}
 		}
 	"
 >
@@ -47,7 +58,8 @@
 						placeholder: 'addressFields.select'|t('foster-checkout'),
 						required: true,
 						value: address ? address.administrativeArea : '',
-						errors: errors.administrativeArea ?? []
+						errors: errors.administrativeArea ?? [],
+						autocomplete: 'address-level1'
 					} %}
 				</div>
 </div>
