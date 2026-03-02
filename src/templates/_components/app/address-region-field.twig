@@ -30,36 +30,25 @@
 	x-init="initialRegions = regions[countryCode] ?? []"
 	@selected.window="
 		if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') {
-			let pendingValue = null;
-			const triggerInput = $el.querySelector('input[autocomplete=address-level1]');
-			if (triggerInput && triggerInput.value) pendingValue = triggerInput.value;
 			$dispatch('addressregions', regions[$event.detail.value]);
-			if (pendingValue) {
-				setTimeout(() => {
-					$dispatch('options-updated', {
-						name: '{{ context|default ? (context ~ "[administrativeArea]") : "administrativeArea" }}',
-						pendingValue: pendingValue
-					});
-				}, 100);
-			}
 		}
 	"
 >
-				<div>
-					{% include 'foster-checkout/_components/base/input-select-searchable' with {
-						context: context,
-						id: 'administrativeArea',
-						model: 'administrativeArea',
-						name: 'administrativeArea',
-						options: 'initialRegions',
-						eventName: 'addressregions',
-						fallbackOptions: fallbackOptions,
-						label: 'addressFields.stateLabel'|t('foster-checkout'),
-						placeholder: 'addressFields.select'|t('foster-checkout'),
-						required: true,
-						value: address ? address.administrativeArea : '',
-						errors: errors.administrativeArea ?? [],
-						autocomplete: 'address-level1'
-					} %}
-				</div>
+	<div>
+		{% include 'foster-checkout/_components/base/input-select-searchable' with {
+			context: context,
+			id: 'administrativeArea',
+			model: 'administrativeArea',
+			name: 'administrativeArea',
+			options: 'initialRegions',
+			eventName: 'addressregions',
+			fallbackOptions: fallbackOptions,
+			label: 'addressFields.stateLabel'|t('foster-checkout'),
+			placeholder: 'addressFields.select'|t('foster-checkout'),
+			required: true,
+			value: address ? address.administrativeArea : '',
+			errors: errors.administrativeArea ?? [],
+			autocomplete: 'address-level1'
+		} %}
+	</div>
 </div>

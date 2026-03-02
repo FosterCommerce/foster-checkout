@@ -84,8 +84,7 @@ const SearchableSelect = (props) => {
 		errors: props.errors || [],
 		success: props.success || [],
 		modelValue: props.value || null,
-		autocomplete: props.autocomplete || 'off',
-		tmpInputEventValue: null, // This is set when the hidden input's input event fires
+		_pendingValue: null, // Stores autofill value when options aren't loaded yet
 		open: false,
 		search: '',
 		activeIndex: 0,
@@ -107,14 +106,15 @@ const SearchableSelect = (props) => {
 				if (match) this.selectedOption = match;
 			}
 
+			// When options change (e.g. region list updates after country change),
+			// try to match any pending autofill value against the new options
 			this.$watch('options', (o) => {
 				this.selectedOption = null;
 
-				if (this.tmpInputEventValue) {
-					const value = this.tmpInputEventValue;
-					this.tmpInputEventValue = null;
-
-					this.selectedOption = this.options.find(matchOptionByValue(value)) || null;
+				if (this._pendingValue) {
+					const value = this._pendingValue;
+					this._pendingValue = null;
+					this.selectByValue(value);
 				}
 			});
 
@@ -151,8 +151,7 @@ const SearchableSelect = (props) => {
 			// Watch search input for autofill (browsers sometimes target it despite autocomplete="nope")
 			this.$watch('search', (val) => {
 				if (val && !this.open) {
-					const matched = this.matchAutofillValue(val);
-					if (matched) {
+					if (this.selectByValue(val)) {
 						this.search = '';
 					}
 				}
@@ -169,60 +168,19 @@ const SearchableSelect = (props) => {
 
 			// Check immediately — the browser may have already autofilled before Alpine mounted
 			if (input.value && !this.selectedOption) {
-				this.matchAutofillValue(input.value);
+				this.selectByValue(input.value);
 			}
 
 			let lastValue = input.value;
 			const check = () => {
 				if (input.value !== lastValue) {
 					lastValue = input.value;
-					this.matchAutofillValue(input.value);
+					this.selectByValue(input.value);
 				}
 			};
 			// Check periodically for the first 5 seconds after mount
 			const interval = setInterval(check, 200);
 			setTimeout(() => clearInterval(interval), 5000);
-		},
-
-		/**
-		 * Try to match a text value (from autofill or typing) to an option.
-		 * Matches against both label and value (code) for robustness,
-		 * since browsers may send "California" or "CA".
-		 */
-		matchAutofillValue(text) {
-			if (!text) return null;
-			const q = text.toLowerCase().trim();
-
-			let match = this.options.find(o => String(o.label).toLowerCase() === q);
-			if (!match) match = this.options.find(o => String(o.value).toLowerCase() === q);
-			if (!match) match = this.options.find(o => String(o.label).toLowerCase().startsWith(q));
-			if (!match) match = this.options.find(o => String(o.label).toLowerCase().includes(q));
-
-			if (match) {
-				this._autofillJustMatched = true;
-				this.selectOption(match);
-				return match;
-			}
-			return null;
-		},
-
-		/**
-		 * Called when the parent signals that options have been updated
-		 * (e.g. region list changed after country selection).
-		 * Matches a pending autofill value against the new options without stealing focus.
-		 */
-		onOptionsUpdated(pendingValue) {
-			if (!pendingValue) return;
-			setTimeout(() => {
-				const q = pendingValue.toLowerCase().trim();
-				let match = this.options.find(o => String(o.label).toLowerCase() === q);
-				if (!match) match = this.options.find(o => String(o.value).toLowerCase() === q);
-				if (match) {
-					this.selectedOption = match;
-					this.search = '';
-					this.closeListbox();
-				}
-			}, 50);
 		},
 
 		/**
@@ -247,8 +205,7 @@ const SearchableSelect = (props) => {
 			const val = event.target.value;
 
 			// Try autofill match first
-			const matched = this.matchAutofillValue(val);
-			if (matched) return;
+			if (this.selectByValue(val)) return;
 
 			// Not an autofill match — user is typing.
 			// Open the dropdown and forward their text into the search field.
@@ -443,18 +400,34 @@ const SearchableSelect = (props) => {
 			);
 		},
 
+		/**
+		 * Match a value (label, code, or fuzzy) to an option and select it.
+		 * If no options are loaded yet, stores the value as pending for when they arrive.
+		 * Returns the matched option, or null if no match found.
+		 */
 		selectByValue(value) {
-			// When the form is autofilled, we can't assume the options will be immediately available if they've
-			// been changed based on some other field's value. So we set a temporary value if we don't match
-			// anything at this point.
-			this.tmpInputEventValue = value;
-			const selectedOption = this.options.find(matchOptionByValue(value)) || null;
+			if (!value) return null;
+			const q = value.toLowerCase().trim();
 
-			if (selectedOption) {
-				// If we found the option, we can clear this value
-				this.tmpInputEventValue = null;
-				this.selectedOption = selectedOption;
+			// Exact match on label or value/code
+			let match = this.options.find(o => String(o.label).toLowerCase() === q);
+			if (!match) match = this.options.find(o => String(o.value).toLowerCase() === q);
+			// Fuzzy: starts-with on label
+			if (!match) match = this.options.find(o => String(o.label).toLowerCase().startsWith(q));
+			// Fuzzy: includes on label
+			if (!match) match = this.options.find(o => String(o.label).toLowerCase().includes(q));
+
+			if (match) {
+				this._pendingValue = null;
+				this.selectedOption = match;
+				return match;
 			}
+
+			// No match — store as pending for when options load (e.g. state autofilled before country)
+			if (q) {
+				this._pendingValue = value;
+			}
+			return null;
 		},
 
 		updateLastPinned(event) {
@@ -468,12 +441,6 @@ const SearchableSelect = (props) => {
 		},
 	};
 };
-
-const matchOptionByValue = (value) => {
-	const lowercaseValue = value.toLowerCase();
-	return (option) => option.label.toLowerCase() === lowercaseValue
-		|| option.value.toLowerCase() === lowercaseValue;
-}
 
 const LineItem = (props) => {
 	return {

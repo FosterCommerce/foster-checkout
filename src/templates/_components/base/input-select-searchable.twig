@@ -38,7 +38,6 @@
 	@keydown.escape.stop.prevent="closeAndFocusButton()"
 	@click.outside="closeListbox()"
 	{% if eventName is defined %}@{{ eventName }}.window="options = $event.detail;"{% endif %}
-	@options-updated.window="if ($event.detail.name === name) { onOptionsUpdated($event.detail.pendingValue) }"
 >
 
 	<!-- No JS Fallback (standard select element styled to match) -->
@@ -92,7 +91,7 @@
 				:name="`${name}_display`"
 				:value="buttonLabel === placeholder ? '' : buttonLabel"
 				:placeholder="placeholder"
-				autocomplete="{{ autocomplete ?? 'off' }}"
+				autocomplete="{{ autocomplete }}"
 				@click="toggleListbox()"
 				@keydown.arrow-down.prevent="openListbox()"
 				@keydown.arrow-up.prevent="openListbox()"
