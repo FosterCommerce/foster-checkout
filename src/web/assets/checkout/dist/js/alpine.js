@@ -201,6 +201,12 @@ const SearchableSelect = (props) => {
 		 *   b) User is typing directly — open dropdown and pipe text into search
 		 */
 		onTriggerInput(event) {
+			if (this._keydownHandled) {
+				this._keydownHandled = false;
+				event.target.value = this.selectedOption ? this.selectedOption.label : '';
+				return;
+			}
+
 			const val = event.target.value;
 
 			// Try autofill match first
@@ -233,7 +239,16 @@ const SearchableSelect = (props) => {
 		onTriggerKeydown(event) {
 			if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
 				if (!this.open) {
+					this._keydownHandled = true;
 					this.openListbox();
+					setTimeout(() => {
+						if (this.$refs.search) {
+							this.$refs.search.value = event.key;
+							this.search = event.key;
+							const len = this.$refs.search.value.length;
+							this.$refs.search.setSelectionRange(len, len);
+						}
+					}, 50);
 				}
 			}
 		},
