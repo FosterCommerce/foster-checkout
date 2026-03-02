@@ -144,7 +144,7 @@ const SearchableSelect = (props) => {
 				this.syncTriggerDisplay();
 			});
 
-			// Watch search input for autofill (browsers sometimes target it despite autocomplete="nope")
+			// Watch search input for autofill (browsers sometimes target it despite autocomplete="off")
 			this.$watch('search', (val) => {
 				if (val && !this.open) {
 					if (this.selectByValue(val)) {
