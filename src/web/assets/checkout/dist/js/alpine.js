@@ -385,12 +385,10 @@ const SearchableSelect = (props) => {
 			);
 		},
 
-		/**
-		 * Match a value (label, code, or fuzzy) to an option and select it.
-		 * If no options are loaded yet, stores the value as pending for when they arrive.
-		 * Returns the matched option, or null if no match found.
-		 */
 		selectByValue(value) {
+			// When the form is autofilled, we can't assume the options will be immediately available if they've
+			// been changed based on some other field's value. So we set a temporary value if we don't match
+			// anything at this point.
 			if (!value) {
 				return null;
 			}
@@ -398,27 +396,27 @@ const SearchableSelect = (props) => {
 			const q = value.toLowerCase().trim();
 
 			// Exact match on label
-			let match = this.options.find(o => String(o.label).toLowerCase() === q);
+			let selectedOption = this.options.find(o => String(o.label).toLowerCase() === q);
 
 			// Exact match on value/code (e.g. "CA", "US")
-			if (!match) {
-				match = this.options.find(o => String(o.value).toLowerCase() === q);
+			if (!selectedOption) {
+				selectedOption = this.options.find(o => String(o.value).toLowerCase() === q);
 			}
 
 			// Fuzzy: starts-with on label
-			if (!match) {
-				match = this.options.find(o => String(o.label).toLowerCase().startsWith(q));
+			if (!selectedOption) {
+				selectedOption = this.options.find(o => String(o.label).toLowerCase().startsWith(q));
 			}
 
 			// Fuzzy: includes on label
-			if (!match) {
-				match = this.options.find(o => String(o.label).toLowerCase().includes(q));
+			if (!selectedOption) {
+				selectedOption = this.options.find(o => String(o.label).toLowerCase().includes(q));
 			}
 
-			if (match) {
+			if (selectedOption) {
 				this.tmpInputEventValue = null;
-				this.selectedOption = match;
-				return match;
+				this.selectedOption = selectedOption;
+				return selectedOption;
 			}
 
 			// No match — store as pending for when options load (e.g. state autofilled before country)
