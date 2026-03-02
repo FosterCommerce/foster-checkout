@@ -141,21 +141,21 @@ const SearchableSelect = (props) => {
 				}
 
 				// Keep the visible trigger input in sync with the selected label
-				this.syncTriggerDisplay();
+				// this.syncTriggerDisplay();
 			});
 		},
 
 		/**
 		 * Keep the visible trigger input text in sync with the selected option label.
 		 */
-		syncTriggerDisplay() {
-			this.$nextTick(() => {
-				const input = this.$refs.button;
-				if (input && input.tagName === 'INPUT') {
-					input.value = this.selectedOption ? this.selectedOption.label : '';
-				}
-			});
-		},
+		// syncTriggerDisplay() {
+		// 	this.$nextTick(() => {
+		// 		const input = this.$refs.button;
+		// 		if (input && input.tagName === 'INPUT') {
+		// 			input.value = this.selectedOption ? this.selectedOption.label : '';
+		// 		}
+		// 	});
+		// },
 
 		/**
 		 * Called when the trigger input receives an `input` event.
