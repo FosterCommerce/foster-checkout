@@ -139,23 +139,8 @@ const SearchableSelect = (props) => {
 						this.$refs.hiddenValue.value = this.selectedOption.value;
 					})
 				}
-
-				// Keep the visible trigger input in sync with the selected label
-				// this.syncTriggerDisplay();
 			});
 		},
-
-		/**
-		 * Keep the visible trigger input text in sync with the selected option label.
-		 */
-		// syncTriggerDisplay() {
-		// 	this.$nextTick(() => {
-		// 		const input = this.$refs.button;
-		// 		if (input && input.tagName === 'INPUT') {
-		// 			input.value = this.selectedOption ? this.selectedOption.label : '';
-		// 		}
-		// 	});
-		// },
 
 		/**
 		 * Called when the trigger input receives an `input` event.
@@ -412,9 +397,7 @@ const SearchableSelect = (props) => {
 			}
 
 			// No match — store as pending for when options load (e.g. state autofilled before country)
-			if (q) {
-				this.tmpInputEventValue = value;
-			}
+			this.tmpInputEventValue = value;
 
 			return null;
 		},
