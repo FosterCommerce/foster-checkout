@@ -414,6 +414,7 @@ const SearchableSelect = (props) => {
 			}
 
 			if (selectedOption) {
+				// If we found the option, we can clear this value
 				this.tmpInputEventValue = null;
 				this.selectedOption = selectedOption;
 				return selectedOption;
