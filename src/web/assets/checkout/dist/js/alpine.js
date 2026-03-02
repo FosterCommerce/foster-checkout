@@ -207,6 +207,9 @@ const SearchableSelect = (props) => {
 			// Try autofill match first
 			if (this.selectByValue(val)) return;
 
+			// If value was stored as pending (options not loaded yet), don't open dropdown
+			if (this._pendingValue) return;
+
 			// Not an autofill match — user is typing.
 			// Open the dropdown and forward their text into the search field.
 			if (!this.open) {
