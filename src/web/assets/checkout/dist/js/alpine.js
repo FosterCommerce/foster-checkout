@@ -220,7 +220,6 @@ const SearchableSelect = (props) => {
 				if (this.$refs.search) {
 					this.$refs.search.value = val;
 					this.search = val;
-					this.$refs.search.focus();
 				}
 				// Reset the trigger input to the current selection
 				event.target.value = this.selectedOption ? this.selectedOption.label : '';
@@ -330,9 +329,6 @@ const SearchableSelect = (props) => {
 
 		closeAndFocusButton() {
 			this.closeListbox();
-			this.$nextTick(() => {
-				this.$refs.button.focus();
-			});
 		},
 
 		resetActiveIndex() {
