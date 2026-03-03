@@ -70,7 +70,8 @@ since the array key will be the same #}
 			placeholder: 'addressFields.select'|t('foster-checkout'),
 			required: true,
 			value: address ? address.countryCode : '',
-			errors: errors.countryCode ?? []
+			errors: errors.countryCode ?? [],
+			autocomplete: 'country-name'
 		} %}
 		<template x-if="'countryCode' in errors">
 			<div
@@ -181,7 +182,7 @@ since the array key will be the same #}
 			{% if customField.multiline %}
 
 				<label for="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}"
-							 class="block text-sm font-medium text-gray-700">
+					   class="block text-sm font-medium text-gray-700">
 					{{ customField.name|t('foster-checkout') }}{% if customField.required %}*{% endif %}
 				</label>
 

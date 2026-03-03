@@ -24,30 +24,38 @@
 
 <div
 	x-data="{
-		regions: {{ countriesAndRegions|json_encode }},
-		initialRegions: [],
-	}"
-	x-init="initialRegions = regions[countryCode] ?? []"
+       regions: {{ countriesAndRegions|json_encode }},
+       initialRegions: [],
+       currentRegions: [],
+    }"
+	x-init="
+       initialRegions = regions[countryCode] ?? [];
+       currentRegions = initialRegions;
+    "
 	@selected.window="
-		if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') {
-			$dispatch('addressregions', regions[$event.detail.value]);
-		}
-	"
+       if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') {
+          currentRegions = regions[$event.detail.value] ?? [];
+          $nextTick(() => {
+             $dispatch('addressregions', currentRegions);
+          });
+       }
+    "
 >
-				<div>
-					{% include 'foster-checkout/_components/base/input-select-searchable' with {
-						context: context,
-						id: 'administrativeArea',
-						model: 'administrativeArea',
-						name: 'administrativeArea',
-						options: 'initialRegions',
-						eventName: 'addressregions',
-						fallbackOptions: fallbackOptions,
-						label: 'addressFields.stateLabel'|t('foster-checkout'),
-						placeholder: 'addressFields.select'|t('foster-checkout'),
-						required: true,
-						value: address ? address.administrativeArea : '',
-						errors: errors.administrativeArea ?? []
-					} %}
-				</div>
+	<div x-show="currentRegions.length > 0">
+		{% include 'foster-checkout/_components/base/input-select-searchable' with {
+			context: context,
+			id: 'administrativeArea',
+			model: 'administrativeArea',
+			name: 'administrativeArea',
+			options: 'initialRegions',
+			eventName: 'addressregions',
+			fallbackOptions: fallbackOptions,
+			label: 'addressFields.stateLabel'|t('foster-checkout'),
+			placeholder: 'addressFields.select'|t('foster-checkout'),
+			required: true,
+			value: address ? address.administrativeArea : '',
+			errors: errors.administrativeArea ?? [],
+			autocomplete: 'address-level1'
+		} %}
+	</div>
 </div>

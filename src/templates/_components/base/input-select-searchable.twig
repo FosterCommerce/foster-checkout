@@ -9,6 +9,7 @@
 {% set model = model ?? '' %}
 {% set options = options ?? [] %}
 {% set placeholder = placeholder ?? 'Select' %}
+{% set autocomplete = autocomplete ?? 'off' %}
 
 {% set fallbackOptions = fallbackOptions|default ? fallbackOptions : options %}
 {% set fallbackClasses = ['w-full h-12 px-4 bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300'] %}
@@ -81,47 +82,51 @@
 			</label>
 		{% endif %}
 
-		<!-- Button that behaves like a native select -->
-		<button
-			type="button"
-			x-ref="button"
-			:id="buttonId()"
-			@focus="toggleListbox()"
-			@keydown.arrow-down.prevent="openListbox()"
-			@keydown.arrow-up.prevent="openListbox()"
-			@keydown.enter.prevent="toggleListbox()"
-			@keydown.space.prevent="toggleListbox()"
-			class="relative w-full py-[11px] pl-3 pr-10 rounded-lg cursor-default border bg-white text-left focus:!ring-0 focus:!outline-none transition-color duration-300"
-			:class="errors.length ? 'border-red-500 focus:border-red-500' : 'border-gray-250 focus:border-black'"
-			aria-haspopup="listbox"
-			:aria-expanded="open ? 'true' : 'false'"
-			:aria-labelledby="labelId()"
-			:aria-controls="listboxId()"
-			tabindex="0"
-		>
-			<span class="block truncate" x-text="buttonLabel"></span>
+		<!-- Text input trigger — visible to browsers for autofill, styled like a select -->
+		<div class="relative">
+			<input
+				type="text"
+				x-ref="button"
+				:id="buttonId()"
+				:name="`${name}_display`"
+				:required="required && options.length > 0"
+				:value="buttonLabel === placeholder ? '' : buttonLabel"
+				:placeholder="placeholder"
+				autocomplete="{{ autocomplete }}"
+				@click="toggleListbox()"
+				@keydown.arrow-down.prevent="openListbox()"
+				@keydown.arrow-up.prevent="openListbox()"
+				@keydown.enter.prevent="open ? selectActiveOption() : toggleListbox()"
+				@keydown="onTriggerKeydown($event)"
+				@input="onTriggerInput($event)"
+				class="w-full py-[11px] pl-3 pr-10 rounded-lg cursor-default border bg-white text-left focus:!ring-0 focus:!outline-none transition-color duration-300 caret-transparent"
+				:class="errors.length ? 'border-red-500 focus:border-red-500' : 'border-gray-250 focus:border-black'"
+				aria-haspopup="listbox"
+				:aria-expanded="open ? 'true' : 'false'"
+				:aria-labelledby="labelId()"
+				:aria-controls="listboxId()"
+			/>
 			<span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
 				<svg class="h-6 w-6" viewBox="0 0 20 20" fill="none" aria-hidden="true">
 					<path stroke='#6B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'></path>
 				</svg>
 			</span>
-		</button>
+		</div>
 
 		<!-- Hidden input for form submission (server sees just the value/code) -->
 		<input
-			type="text"
-			class="w-0 h-0 opacity-0 absolute pointer-events-none"
+			type="hidden"
 			:name="name"
+			:value="modelValue ?? ''"
 			:aria-invalid="errors.length ? true : false"
 			:aria-errormessage="errorId()"
 			x-ref="hiddenValue"
-			@input="selectByValue($event.target.value)"
 		/>
 
 		<!-- Dropdown -->
 		<div
 			x-show="open"
-			x-trap.inert.noreturn="open"
+			x-trap.inert="open"
 			class="relative"
 		>
 			<div
@@ -137,6 +142,7 @@
 						x-ref="search"
 						type="text"
 						x-model="search"
+						autocomplete="off"
 						role="searchbox"
 						:aria-controls="listboxId()"
 						:aria-activedescendant="open && hasOptions ? optionId(activeIndex) : null"

@@ -113,8 +113,15 @@ const SearchableSelect = (props) => {
 					const value = this.tmpInputEventValue;
 					this.tmpInputEventValue = null;
 
-					this.selectedOption = this.options.find(matchOptionByValue(value)) || null;
+					this.selectByValue(value);
 				}
+
+				this.$nextTick(() => {
+					const input = this.$refs.button;
+					if (input && input.value && !this.selectedOption) {
+						this.selectByValue(input.value);
+					}
+				});
 			});
 
 			// parent -> child
@@ -140,6 +147,65 @@ const SearchableSelect = (props) => {
 					})
 				}
 			});
+		},
+
+		/**
+		 * Called when the trigger input receives an `input` event.
+		 * Handles two scenarios:
+		 *   a) Browser autofill just set the value — match it to an option
+		 *   b) User is typing directly — open dropdown and pipe text into search
+		 */
+		onTriggerInput(event) {
+			if (this._keydownHandled) {
+				this._keydownHandled = false;
+				event.target.value = this.selectedOption ? this.selectedOption.label : '';
+				return;
+			}
+
+			const val = event.target.value;
+
+			// Try autofill match first
+			if (this.selectByValue(val)) return;
+
+			// If value was stored as pending (options not loaded yet), don't open dropdown
+			if (this.tmpInputEventValue) return;
+
+			// Not an autofill match — user is typing.
+			// Open the dropdown and forward their text into the search field.
+			if (!this.open) {
+				this.open = true;
+				this.resetActiveIndex();
+			}
+
+			this.$nextTick(() => {
+				if (this.$refs.search) {
+					this.$refs.search.value = val;
+					this.search = val;
+				}
+				// Reset the trigger input to the current selection
+				event.target.value = this.selectedOption ? this.selectedOption.label : '';
+			});
+		},
+
+		/**
+		 * When the user presses a printable key on the trigger input,
+		 * open the dropdown so typing flows into the search field.
+		 */
+		onTriggerKeydown(event) {
+			if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+				if (!this.open) {
+					this._keydownHandled = true;
+					this.openListbox();
+					setTimeout(() => {
+						if (this.$refs.search) {
+							this.$refs.search.value = event.key;
+							this.search = event.key;
+							const len = this.$refs.search.value.length;
+							this.$refs.search.setSelectionRange(len, len);
+						}
+					}, 50);
+				}
+			}
 		},
 
 		get buttonLabel() {
@@ -233,9 +299,6 @@ const SearchableSelect = (props) => {
 
 		closeAndFocusButton() {
 			this.closeListbox();
-			this.$nextTick(() => {
-				this.$refs.button.focus();
-			});
 		},
 
 		resetActiveIndex() {
@@ -290,8 +353,13 @@ const SearchableSelect = (props) => {
 
 		// --- selection ---
 		selectOption(option) {
+			const wasOpen = this.open;
 			this.selectedOption = option; // watcher will push value into modelValue
-			this.closeListbox();
+			if (wasOpen) {
+				this.closeAndFocusButton();
+			} else {
+				this.closeListbox();
+			}
 		},
 
 		isSelected(option) {
@@ -304,14 +372,41 @@ const SearchableSelect = (props) => {
 			// When the form is autofilled, we can't assume the options will be immediately available if they've
 			// been changed based on some other field's value. So we set a temporary value if we don't match
 			// anything at this point.
-			this.tmpInputEventValue = value;
-			const selectedOption = this.options.find(matchOptionByValue(value)) || null;
+			if (!value) {
+				return null;
+			}
+
+			const q = value.toLowerCase().trim();
+
+			// Exact match on label
+			let selectedOption = this.options.find(o => String(o.label).toLowerCase() === q);
+
+			// Exact match on value/code (e.g. "CA", "US")
+			if (!selectedOption) {
+				selectedOption = this.options.find(o => String(o.value).toLowerCase() === q);
+			}
+
+			// Fuzzy: starts-with on label
+			if (!selectedOption) {
+				selectedOption = this.options.find(o => String(o.label).toLowerCase().startsWith(q));
+			}
+
+			// Fuzzy: includes on label
+			if (!selectedOption) {
+				selectedOption = this.options.find(o => String(o.label).toLowerCase().includes(q));
+			}
 
 			if (selectedOption) {
 				// If we found the option, we can clear this value
 				this.tmpInputEventValue = null;
 				this.selectedOption = selectedOption;
+				return selectedOption;
 			}
+
+			// No match — store as pending for when options load (e.g. state autofilled before country)
+			this.tmpInputEventValue = value;
+
+			return null;
 		},
 
 		updateLastPinned(event) {
@@ -325,12 +420,6 @@ const SearchableSelect = (props) => {
 		},
 	};
 };
-
-const matchOptionByValue = (value) => {
-	const lowercaseValue = value.toLowerCase();
-	return (option) => option.label.toLowerCase() === lowercaseValue
-		|| option.value.toLowerCase() === lowercaseValue;
-}
 
 const LineItem = (props) => {
 	return {
