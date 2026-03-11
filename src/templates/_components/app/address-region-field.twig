@@ -27,6 +27,7 @@
        regions: {{ countriesAndRegions|json_encode }},
        initialRegions: [],
        currentRegions: [],
+       autofillValue: '',
     }"
 	x-init="
        initialRegions = regions[countryCode] ?? [];
@@ -41,6 +42,27 @@
        }
     "
 >
+	{# Autofill catcher: always in the DOM (never display:none) so Chrome mobile can autofill it.
+	   The main searchable select input is inside an x-show div that's hidden until a country is
+	   selected, and Chrome mobile skips autofilling hidden inputs. This off-screen input captures
+	   the autofilled state value so we can apply it once options load. #}
+	{% if context|default %}
+		{% set regionCatcherId = ('administrativeArea')|namespaceInputId(context) ~ '-autofill-catcher' %}
+	{% else %}
+		{% set regionCatcherId = 'administrativeArea-autofill-catcher' %}
+	{% endif %}
+	<input
+		type="text"
+		id="{{ regionCatcherId }}"
+		autocomplete="address-level1"
+		aria-hidden="true"
+		tabindex="-1"
+		class="sr-only"
+		style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;"
+		@input="autofillValue = $event.target.value"
+		@change="autofillValue = $event.target.value"
+	/>
+
 	<div x-show="currentRegions.length > 0">
 		{% include 'foster-checkout/_components/base/input-select-searchable' with {
 			context: context,

@@ -99,6 +99,7 @@
 				@keydown.enter.prevent="open ? selectActiveOption() : toggleListbox()"
 				@keydown="onTriggerKeydown($event)"
 				@input="onTriggerInput($event)"
+				@change="onTriggerInput($event)"
 				class="w-full py-[11px] pl-3 pr-10 rounded-lg cursor-default border bg-white text-left focus:!ring-0 focus:!outline-none transition-color duration-300 caret-transparent"
 				:class="errors.length ? 'border-red-500 focus:border-red-500' : 'border-gray-250 focus:border-black'"
 				aria-haspopup="listbox"

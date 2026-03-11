@@ -121,6 +121,24 @@ const SearchableSelect = (props) => {
 					if (input && input.value && !this.selectedOption) {
 						this.selectByValue(input.value);
 					}
+
+					// Check for autofill catcher value (mobile Chrome workaround).
+					// The catcher input sits outside the x-show wrapper so it's always
+					// visible to the browser's autofill engine. Walk past our own x-data
+					// to find the parent region-field wrapper.
+					if (!this.selectedOption) {
+						const catcher = this.$el.parentElement?.closest('[x-data]')?.querySelector('[id$="-autofill-catcher"]');
+						if (catcher && catcher.value) {
+							if (this.selectByValue(catcher.value)) {
+								catcher.value = '';
+							}
+						}
+					}
+
+					// Auto-select if there's only one option
+					if (!this.selectedOption && o.length === 1) {
+						this.selectedOption = o[0];
+					}
 				});
 			});
 
@@ -145,6 +163,13 @@ const SearchableSelect = (props) => {
 						// in the current tick has completed.
 						this.$refs.hiddenValue.value = this.selectedOption.value;
 					})
+				}
+			});
+
+			// Auto-select if there's only one option (deferred so watchers are active)
+			this.$nextTick(() => {
+				if (!this.selectedOption && this.options.length === 1) {
+					this.selectedOption = this.options[0];
 				}
 			});
 		},
