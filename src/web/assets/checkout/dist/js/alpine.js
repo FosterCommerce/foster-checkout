@@ -122,19 +122,6 @@ const SearchableSelect = (props) => {
 						this.selectByValue(input.value);
 					}
 
-					// Check for autofill catcher value (mobile Chrome workaround).
-					// The catcher input sits outside the x-show wrapper so it's always
-					// visible to the browser's autofill engine. Walk past our own x-data
-					// to find the parent region-field wrapper.
-					if (!this.selectedOption) {
-						const catcher = this.$el.parentElement?.closest('[x-data]')?.querySelector('[id$="-autofill-catcher"]');
-						if (catcher && catcher.value) {
-							if (this.selectByValue(catcher.value)) {
-								catcher.value = '';
-							}
-						}
-					}
-
 					// Auto-select if there's only one option
 					if (!this.selectedOption && o.length === 1) {
 						this.selectedOption = o[0];
