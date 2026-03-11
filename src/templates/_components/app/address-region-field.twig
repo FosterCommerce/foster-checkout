@@ -40,22 +40,24 @@
           });
        }
     "
+	{# Use h-0/overflow-hidden instead of x-show (display:none) or invisible (visibility:hidden)
+	   so Chrome mobile can still autofill the input inside — it skips both display:none and
+	   visibility:hidden inputs. #}
+	:class="currentRegions.length > 0 ? '' : 'h-0 overflow-hidden'"
 >
-	<div x-show="currentRegions.length > 0">
-		{% include 'foster-checkout/_components/base/input-select-searchable' with {
-			context: context,
-			id: 'administrativeArea',
-			model: 'administrativeArea',
-			name: 'administrativeArea',
-			options: 'initialRegions',
-			eventName: 'addressregions',
-			fallbackOptions: fallbackOptions,
-			label: 'addressFields.stateLabel'|t('foster-checkout'),
-			placeholder: 'addressFields.select'|t('foster-checkout'),
-			required: true,
-			value: address ? address.administrativeArea : '',
-			errors: errors.administrativeArea ?? [],
-			autocomplete: 'address-level1'
-		} %}
-	</div>
+	{% include 'foster-checkout/_components/base/input-select-searchable' with {
+		context: context,
+		id: 'administrativeArea',
+		model: 'administrativeArea',
+		name: 'administrativeArea',
+		options: 'initialRegions',
+		eventName: 'addressregions',
+		fallbackOptions: fallbackOptions,
+		label: 'addressFields.stateLabel'|t('foster-checkout'),
+		placeholder: 'addressFields.select'|t('foster-checkout'),
+		required: true,
+		value: address ? address.administrativeArea : '',
+		errors: errors.administrativeArea ?? [],
+		autocomplete: 'address-level1'
+	} %}
 </div>

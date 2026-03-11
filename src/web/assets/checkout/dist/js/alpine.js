@@ -121,6 +121,11 @@ const SearchableSelect = (props) => {
 					if (input && input.value && !this.selectedOption) {
 						this.selectByValue(input.value);
 					}
+
+					// Auto-select if there's only one option
+					if (!this.selectedOption && o.length === 1) {
+						this.selectedOption = o[0];
+					}
 				});
 			});
 
@@ -145,6 +150,13 @@ const SearchableSelect = (props) => {
 						// in the current tick has completed.
 						this.$refs.hiddenValue.value = this.selectedOption.value;
 					})
+				}
+			});
+
+			// Auto-select if there's only one option (deferred so watchers are active)
+			this.$nextTick(() => {
+				if (!this.selectedOption && this.options.length === 1) {
+					this.selectedOption = this.options[0];
 				}
 			});
 		},
