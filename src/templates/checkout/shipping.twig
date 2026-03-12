@@ -40,7 +40,6 @@
 
 			<main
 				x-data="{ shippingMethodHandle: '{{ _initialHandle|e('js') }}' }"
-				x-effect="$refs.postShipMethod.value = shippingMethodHandle"
 				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0"
 			>
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
@@ -63,13 +62,6 @@
 						{% else %}
 							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/shipping') }}
 						{% endif %}
-
-						{# Auto-submit if only one option and cart not already set #}
-						{# Hidden until we decide if this is how we want to handle these types of carts
-						{% if optionCount == 1 and not _hasCartHandle %}
-							<div x-init="$nextTick(() => $refs.shippingForm?.requestSubmit())"></div>
-						{% endif %}
-						#}
 
 						<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 							<h2 class="p-4 font-semibold bg-gray-200">
