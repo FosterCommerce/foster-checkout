@@ -1,11 +1,11 @@
-import Alpine from "https://esm.sh/alpinejs@3";
-import focus from "https://esm.sh/@alpinejs/focus";
+import Alpine from 'https://esm.sh/alpinejs@3';
+import focus from 'https://esm.sh/@alpinejs/focus';
 
 async function callAction(url, body = {}, method = 'POST') {
 	return await fetch(url, {
 		headers: {
-			'Accept': 'application/json',
-			'X-Requested-With': 'XMLHttpRequest'
+			Accept: 'application/json',
+			'X-Requested-With': 'XMLHttpRequest',
 		},
 		method,
 		body,
@@ -32,7 +32,8 @@ const ClearableInput = (props) => {
 			this.showButton = this.value !== '';
 		},
 		blur() {
-			this.showButton = (this.$refs.button === document.activeElement) && (this.value !== '');
+			this.showButton =
+				this.$refs.button === document.activeElement && this.value !== '';
 		},
 		clear() {
 			this.value = '';
@@ -47,7 +48,10 @@ const ClearableInput = (props) => {
 
 			// If its a string, then we check if that value is in the requiredFields object
 			if (typeof this.required === 'string') {
-				return this.requiredFields()[this.countryCode()]?.includes(this.required) ?? false;
+				return (
+					this.requiredFields()[this.countryCode()]?.includes(this.required) ??
+					false
+				);
 			}
 
 			if (!this.requiredFields) {
@@ -70,7 +74,7 @@ const ClearableInput = (props) => {
 				// This is a temporary fix to prevent the error log - no functionality is broken.
 				return false;
 			}
-		}
+		},
 	};
 };
 
@@ -101,12 +105,15 @@ const SearchableSelect = (props) => {
 			// Initial sync from modelValue/props to selectedOption
 			if (this.modelValue != null) {
 				const match = this.options.find(
-					(o) => o.value === this.modelValue || o === this.modelValue
+					(option) =>
+						option.value === this.modelValue || option === this.modelValue
 				);
-				if (match) this.selectedOption = match;
+				if (match) {
+					this.selectedOption = match;
+				}
 			}
 
-			this.$watch('options', (o) => {
+			this.$watch('options', (updatedOptions) => {
 				this.selectedOption = null;
 
 				if (this.tmpInputEventValue) {
@@ -123,8 +130,8 @@ const SearchableSelect = (props) => {
 					}
 
 					// Auto-select if there's only one option
-					if (!this.selectedOption && o.length === 1) {
-						this.selectedOption = o[0];
+					if (!this.selectedOption && updatedOptions.length === 1) {
+						this.selectedOption = updatedOptions[0];
 					}
 				});
 			});
@@ -149,7 +156,7 @@ const SearchableSelect = (props) => {
 						// Make sure that the value is set on the hidden input in the next tick so that everything else
 						// in the current tick has completed.
 						this.$refs.hiddenValue.value = this.selectedOption.value;
-					})
+					});
 				}
 			});
 
@@ -170,17 +177,23 @@ const SearchableSelect = (props) => {
 		onTriggerInput(event) {
 			if (this._keydownHandled) {
 				this._keydownHandled = false;
-				event.target.value = this.selectedOption ? this.selectedOption.label : '';
+				event.target.value = this.selectedOption
+					? this.selectedOption.label
+					: '';
 				return;
 			}
 
 			const val = event.target.value;
 
 			// Try autofill match first
-			if (this.selectByValue(val)) return;
+			if (this.selectByValue(val)) {
+				return;
+			}
 
 			// If value was stored as pending (options not loaded yet), don't open dropdown
-			if (this.tmpInputEventValue) return;
+			if (this.tmpInputEventValue) {
+				return;
+			}
 
 			// Not an autofill match — user is typing.
 			// Open the dropdown and forward their text into the search field.
@@ -195,7 +208,9 @@ const SearchableSelect = (props) => {
 					this.search = val;
 				}
 				// Reset the trigger input to the current selection
-				event.target.value = this.selectedOption ? this.selectedOption.label : '';
+				event.target.value = this.selectedOption
+					? this.selectedOption.label
+					: '';
 			});
 		},
 
@@ -204,7 +219,12 @@ const SearchableSelect = (props) => {
 		 * open the dropdown so typing flows into the search field.
 		 */
 		onTriggerKeydown(event) {
-			if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+			if (
+				event.key.length === 1 &&
+				!event.ctrlKey &&
+				!event.metaKey &&
+				!event.altKey
+			) {
 				if (!this.open) {
 					this._keydownHandled = true;
 					this.openListbox();
@@ -228,30 +248,38 @@ const SearchableSelect = (props) => {
 			if (!this.search) {
 				return this.options ?? [];
 			}
-			const q = this.search.toLowerCase();
+			const query = this.search.toLowerCase();
 
 			return this.options
-				.filter(o => String(o.label).toLowerCase().includes(q))
-				.sort((a, b) => {
-					const aLabel = String(a.label).toLowerCase();
-					const bLabel = String(b.label).toLowerCase();
+				.filter((option) => String(option.label).toLowerCase().includes(query))
+				.sort((optionA, optionB) => {
+					const labelA = String(optionA.label).toLowerCase();
+					const labelB = String(optionB.label).toLowerCase();
 
-					const aExact = aLabel === q;
-					const bExact = bLabel === q;
+					const exactA = labelA === query;
+					const exactB = labelB === query;
 
-					const aStarts = aLabel.startsWith(q);
-					const bStarts = bLabel.startsWith(q);
+					const startsA = labelA.startsWith(query);
+					const startsB = labelB.startsWith(query);
 
 					// 1) Exact match first
-					if (aExact && !bExact) return -1;
-					if (!aExact && bExact) return 1;
+					if (exactA && !exactB) {
+						return -1;
+					}
+					if (!exactA && exactB) {
+						return 1;
+					}
 
 					// 2) Starts-with next
-					if (aStarts && !bStarts) return -1;
-					if (!aStarts && bStarts) return 1;
+					if (startsA && !startsB) {
+						return -1;
+					}
+					if (!startsA && startsB) {
+						return 1;
+					}
 
 					// 3) Otherwise, both just "includes" and alphabetical
-					return aLabel.localeCompare(bLabel);
+					return labelA.localeCompare(labelB);
 				});
 		},
 
@@ -261,7 +289,7 @@ const SearchableSelect = (props) => {
 		},
 
 		isLastPinned(option) {
-			const pinned = this.filteredOptions.filter(o => o.pinned);
+			const pinned = this.filteredOptions.filter((option) => option.pinned);
 			return pinned?.length && pinned[pinned.length - 1] === option;
 		},
 
@@ -286,14 +314,20 @@ const SearchableSelect = (props) => {
 		},
 
 		openListbox() {
-			if (this.open) return;
+			if (this.open) {
+				return;
+			}
 			this.open = true;
 			this.resetActiveIndex();
-			this.lastPinned = this.options.find(o => o.isLastPinned === true);
+			this.lastPinned = this.options.find(
+				(option) => option.isLastPinned === true
+			);
 		},
 
 		closeListbox() {
-			if (!this.open) return;
+			if (!this.open) {
+				return;
+			}
 			this.open = false;
 			this.search = '';
 			if (this.lastPinned) {
@@ -318,8 +352,8 @@ const SearchableSelect = (props) => {
 				this.activeIndex = 0;
 				return;
 			}
-			const selectedIdx = this.filteredOptions.findIndex((o) =>
-				this.isSelected(o)
+			const selectedIdx = this.filteredOptions.findIndex((option) =>
+				this.isSelected(option)
 			);
 			this.activeIndex = selectedIdx === -1 ? 0 : selectedIdx;
 		},
@@ -331,8 +365,12 @@ const SearchableSelect = (props) => {
 
 			let next = this.activeIndex + step;
 			const max = this.filteredOptions.length - 1;
-			if (next < 0) next = max;
-			if (next > max) next = 0;
+			if (next < 0) {
+				next = max;
+			}
+			if (next > max) {
+				next = 0;
+			}
 			this.activeIndex = next;
 			this.scrollActiveIntoView();
 		},
@@ -341,7 +379,9 @@ const SearchableSelect = (props) => {
 			this.$nextTick(() => {
 				const list = this.$refs.listbox;
 				const active = document.getElementById(this.optionId(this.activeIndex));
-				if (!list || !active) return;
+				if (!list || !active) {
+					return;
+				}
 
 				const listRect = list.getBoundingClientRect();
 				const activeRect = active.getBoundingClientRect();
@@ -360,7 +400,9 @@ const SearchableSelect = (props) => {
 			}
 
 			const option = this.filteredOptions[this.activeIndex];
-			if (option) this.selectOption(option);
+			if (option) {
+				this.selectOption(option);
+			}
 		},
 
 		// --- selection ---
@@ -375,9 +417,7 @@ const SearchableSelect = (props) => {
 		},
 
 		isSelected(option) {
-			return (
-				this.selectedOption && this.selectedOption.value === option.value
-			);
+			return this.selectedOption && this.selectedOption.value === option.value;
 		},
 
 		selectByValue(value) {
@@ -388,24 +428,32 @@ const SearchableSelect = (props) => {
 				return null;
 			}
 
-			const q = value.toLowerCase().trim();
+			const searchValue = value.toLowerCase().trim();
 
 			// Exact match on label
-			let selectedOption = this.options.find(o => String(o.label).toLowerCase() === q);
+			let selectedOption = this.options.find(
+				(option) => String(option.label).toLowerCase() === searchValue
+			);
 
 			// Exact match on value/code (e.g. "CA", "US")
 			if (!selectedOption) {
-				selectedOption = this.options.find(o => String(o.value).toLowerCase() === q);
+				selectedOption = this.options.find(
+					(option) => String(option.value).toLowerCase() === searchValue
+				);
 			}
 
 			// Fuzzy: starts-with on label
 			if (!selectedOption) {
-				selectedOption = this.options.find(o => String(o.label).toLowerCase().startsWith(q));
+				selectedOption = this.options.find((option) =>
+					String(option.label).toLowerCase().startsWith(searchValue)
+				);
 			}
 
 			// Fuzzy: includes on label
 			if (!selectedOption) {
-				selectedOption = this.options.find(o => String(o.label).toLowerCase().includes(q));
+				selectedOption = this.options.find((option) =>
+					String(option.label).toLowerCase().includes(searchValue)
+				);
 			}
 
 			if (selectedOption) {
@@ -448,14 +496,13 @@ const LineItem = (props) => {
 		sending: false,
 
 		input() {
-			let q =  this.qty.toString();
-			q = q.replace(/\D/g, '');;
-			this.qty = q;
+			let sanitized = this.qty.toString();
+			sanitized = sanitized.replace(/\D/g, '');
+			this.qty = sanitized;
 
-			if(this.qty) {
+			if (this.qty) {
 				this.updateQty();
 			}
-
 		},
 		increment() {
 			this.removeMessages();
@@ -467,13 +514,13 @@ const LineItem = (props) => {
 			if (this.qty === 1) {
 				this.remove();
 			} else {
-				this.qty = this.qty > 1 ? (this.qty - 1) : 1;
+				this.qty = this.qty > 1 ? this.qty - 1 : 1;
 				this.updateQty();
 			}
 		},
 		async remove() {
 			const form = document.querySelector(`#lineItemQty-${props.id}`);
-			const formData = new FormData(form)
+			const formData = new FormData(form);
 			formData.set(`lineItems[${props.id}][remove]`, true);
 			this.action = 'remove';
 			this.sending = true;
@@ -482,8 +529,8 @@ const LineItem = (props) => {
 				const response = await fetch('/actions/commerce/cart/update-cart', {
 					method: 'POST',
 					headers: {
-						'Accept': 'application/json',
-						'X-Requested-With': 'XMLHttpRequest'
+						Accept: 'application/json',
+						'X-Requested-With': 'XMLHttpRequest',
 					},
 					body: formData,
 				});
@@ -502,7 +549,6 @@ const LineItem = (props) => {
 				const container = form.closest('article');
 				container.remove();
 				*/
-
 			} catch (error) {
 				console.error('Error:', error);
 			}
@@ -529,7 +575,7 @@ const LineItem = (props) => {
 				props.qty = this.qty;
 
 				const form = document.querySelector(`#lineItemQty-${props.id}`);
-				const formData = new FormData(form)
+				const formData = new FormData(form);
 				formData.set(`lineItems[${props.id}][qty]`, props.qty);
 				this.action = 'update';
 				this.sending = true;
@@ -538,8 +584,8 @@ const LineItem = (props) => {
 					const response = await fetch('/actions/commerce/cart/update-cart', {
 						method: 'POST',
 						headers: {
-							'Accept': 'application/json',
-							'X-Requested-With': 'XMLHttpRequest'
+							Accept: 'application/json',
+							'X-Requested-With': 'XMLHttpRequest',
 						},
 						body: formData,
 					});
@@ -550,11 +596,11 @@ const LineItem = (props) => {
 
 					const data = await response.json();
 					location.reload();
-				} catch (error){
+				} catch (error) {
 					console.error('Error:', error);
 				}
 			}
-		}
+		},
 	};
 };
 

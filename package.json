@@ -1,0 +1,30 @@
+{
+	"name": "foster-checkout",
+	"private": true,
+	"version": "1.0.0",
+	"main": "index.js",
+	"scripts": {
+		"lint:check": "eslint",
+		"lint:fix": "eslint --fix",
+		"format:check": "prettier --check src/web/assets/checkout/**/alpine.js",
+		"format:fix": "prettier --write src/web/assets/checkout/**/alpine.js",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/FosterCommerce/foster-checkout.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"type": "module",
+	"bugs": {
+		"url": "https://github.com/FosterCommerce/foster-checkout/issues"
+	},
+	"homepage": "https://github.com/FosterCommerce/foster-checkout#readme",
+	"devDependencies": {
+		"@stylistic/eslint-plugin": "^5.10.0",
+		"eslint": "^10.0.3",
+		"prettier": "^3.8.1"
+	}
+}

@@ -8,6 +8,38 @@ on:
   pull_request:
 
 jobs:
+  format:
+    name: Format JS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: "package-lock.json"
+      - run: npm ci
+      - name: Run format:check
+        run: |
+          npm run format:check
+  lint:
+    name: Lint JS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: "package-lock.json"
+      - run: npm ci
+      - name: Run lint:check
+        run: |
+          npm run lint:check
   ecs:
     name: ECS Check
     runs-on: ubuntu-latest
