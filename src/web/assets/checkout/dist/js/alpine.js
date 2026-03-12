@@ -160,12 +160,11 @@ const SearchableSelect = (props) => {
 				}
 			});
 
-			// Auto-select if there's only one option (deferred so watchers are active)
-			this.$nextTick(() => {
-				if (!this.selectedOption && this.options.length === 1) {
-					this.selectedOption = this.options[0];
-				}
-			});
+			if (!this.selectedOption && this.options.length === 1) {
+				// Once the watchers have all been initialized...
+				// If there is only a single available option, then select it automatically
+				this.selectedOption = this.options[0];
+			}
 		},
 
 		/**
@@ -220,6 +219,7 @@ const SearchableSelect = (props) => {
 		 */
 		onTriggerKeydown(event) {
 			if (
+				event instanceof KeyboardEvent &&
 				event.key.length === 1 &&
 				!event.ctrlKey &&
 				!event.metaKey &&
