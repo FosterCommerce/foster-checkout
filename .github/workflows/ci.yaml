@@ -12,10 +12,10 @@ jobs:
     name: Format JS
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
@@ -28,10 +28,10 @@ jobs:
     name: Lint JS
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
@@ -46,7 +46,7 @@ jobs:
     env:
       DEFAULT_COMPOSER_FLAGS: "--no-interaction --no-ansi --no-progress"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
@@ -60,7 +60,7 @@ jobs:
     env:
       DEFAULT_COMPOSER_FLAGS: "--no-interaction --no-ansi --no-progress"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
@@ -74,7 +74,7 @@ jobs:
     env:
       DEFAULT_COMPOSER_FLAGS: "--no-interaction --no-ansi --no-progress"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
