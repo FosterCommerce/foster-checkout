@@ -153,12 +153,10 @@ since the array key will be the same #}
 		} %}
 	</div>
 
-	<div class="sm:col-span-1">
-		{% include 'foster-checkout/_components/app/address-region-field' with {
-			context: context,
-			address: address
-		} %}
-	</div>
+	{% include 'foster-checkout/_components/app/address-region-field' with {
+		context: context,
+		address: address
+	} %}
 
 	<div class="sm:col-span-1">
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {

@@ -40,10 +40,11 @@
           });
        }
     "
+	class="sm:col-span-1"
 	{# Use h-0/overflow-hidden instead of x-show (display:none) or invisible (visibility:hidden)
 	   so Chrome mobile can still autofill the input inside — it skips both display:none and
 	   visibility:hidden inputs. #}
-	:class="currentRegions.length > 0 ? '' : 'h-0 overflow-hidden'"
+	:class="currentRegions.length > 0 ? '' : 'h-0 overflow-hidden absolute'"
 >
 	{% include 'foster-checkout/_components/base/input-select-searchable' with {
 		context: context,
