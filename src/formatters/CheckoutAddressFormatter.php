@@ -9,6 +9,8 @@ use craft\elements\Address;
 
 class CheckoutAddressFormatter extends DefaultFormatter
 {
+	private static ?self $instance = null;
+
 	/**
 	 * @param array<mixed, mixed> $options
 	 */
@@ -36,5 +38,20 @@ class CheckoutAddressFormatter extends DefaultFormatter
 		$addressLines[] = $address->getCountry()->getName();
 
 		return implode(', ', array_filter($addressLines));
+	}
+
+	public static function instance(): self
+	{
+		if (! self::$instance instanceof self) {
+			$addressService = Craft::$app->getAddresses();
+			self::$instance = new self(
+				$addressService->getAddressFormatRepository(),
+				$addressService->getCountryRepository(),
+				$addressService->getSubdivisionRepository(),
+			);
+		}
+
+
+		return self::$instance;
 	}
 }

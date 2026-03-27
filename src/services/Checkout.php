@@ -11,6 +11,7 @@ use craft\commerce\models\LineItem;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
 use craft\errors\InvalidFieldException;
+use fostercommerce\fostercheckout\formatters\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\DeliveryDate;
 use fostercommerce\fostercheckout\models\PaymentGatewayConfig;
@@ -32,6 +33,11 @@ use yii\base\InvalidConfigException;
  */
 class Checkout extends Component
 {
+	public function addressFormatter(): CheckoutAddressFormatter
+	{
+		return CheckoutAddressFormatter::instance();
+	}
+
 	public function settings(): Settings
 	{
 		/** @var Settings $settings */

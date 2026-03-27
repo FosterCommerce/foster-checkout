@@ -1,16 +1,8 @@
 {% set address = address ?? null %}
 {% if address %}
-	{% set addressService = craft.app.getAddresses() %}
-	{% set customFormatter = create(
-		'fostercommerce\\fostercheckout\\formatters\\CheckoutAddressFormatter',
-		[
-			addressService.getAddressFormatRepository(),
-			addressService.getCountryRepository(),
-			addressService.getSubdivisionRepository(),
-		]
-	) %}
+	{% set formatter = craft.fostercheckout.addressFormatter() %}
 	<p>
-		<span class="block">{{ address.fullName }}, {{ address|address({ }, customFormatter) }}</span>
+		<span class="block">{{ address.fullName }}, {{ address|address({ }, formatter) }}</span>
 	</p>
 {% else %}
 	<p>{{ 'misc.noAddress'|t('foster-checkout') }}</p>
