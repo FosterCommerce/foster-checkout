@@ -42,25 +42,9 @@
 	<div
 		class="mt-10 pb-28 lg:pb-32"
 		x-data="{
-		  // billing selection
-		  billingSameAsShipping: {{ _initialBillingSame }},
-		  billingAddressId: {{ _initialBillingAddressId is not null ? _initialBillingAddressId : 'null' }},
-		  newBillingAddress: {{ _initialNewBilling }},
-		  editBillingAddressId: 0,
-
 		  // gateway
 		  gatewayId: {{ _initialGatewayId ?: 'null' }},
-
-		  // mirrors for posting
-		  syncHidden() {
-			if (this.$refs.postBillingSame) this.$refs.postBillingSame.value = this.billingSameAsShipping ? 1 : 0;
-			if (this.$refs.postBillingId) this.$refs.postBillingId.value = this.billingAddressId ?? '';
-			if (this.$refs.postNewBilling) this.$refs.postNewBilling.value = this.newBillingAddress ? 1 : 0;
-			if (this.$refs.postGateway) this.$refs.postGateway.value = this.gatewayId ?? '';
-		  }
 		}"
-		x-init="syncHidden()"
-		x-effect="syncHidden()"
 	>
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 			<main class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
