@@ -156,14 +156,16 @@
 																{% include 'foster-checkout/_components/app/formatted-address' with { address: address } %}
 															</label>
 
-															<button
-																type="button"
-																class="text-[var(--brandColor)] underline"
-																@click="editBillingAddressId = parseInt(editBillingAddressId) === {{ address.id }} ? 0 : {{ address.id }}"
-															>
-																<template x-if="parseInt(editBillingAddressId) === {{ address.id }}"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
-																<template x-if="parseInt(editBillingAddressId) !== {{ address.id }}"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
-															</button>
+															<template x-if="parseInt(billingAddressId) === {{ address.id }}">
+																<button
+																	type="button"
+																	class="text-[var(--brandColor)] underline"
+																	@click="editBillingAddressId = parseInt(editBillingAddressId) === {{ address.id }} ? 0 : {{ address.id }}"
+																>
+																	<template x-if="parseInt(editBillingAddressId) === {{ address.id }}"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
+																	<template x-if="parseInt(editBillingAddressId) !== {{ address.id }}"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
+																</button>
+															</template>
 														</div>
 
 														<template x-if="parseInt(editBillingAddressId) === {{ address.id }}">
