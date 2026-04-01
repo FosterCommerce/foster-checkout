@@ -1,0 +1,323 @@
+{% extends 'foster-checkout/_layouts/default' %}
+
+{% block head %}
+	<title>
+		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }}
+		| {{ 'misc.checkoutTitle'|t('foster-checkout') }} : {{ 'billing.stepTitle'|t('foster-checkout') }}
+	</title>
+{% endblock %}
+
+{% block includeHead %}
+	{% set headInclude = craft.fostercheckout.settings.includes.head %}
+	{% if headInclude|default %}
+		{% include headInclude with {
+			context: 'checkout',
+			location: 'head',
+			step: 'billing',
+			cart: cart
+		} %}
+	{% endif %}
+{% endblock %}
+
+{% block body %}
+	{% set gateways = cart.getAvailableGateways() %}
+	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
+
+	{# ---- Billing state from cart (truth table) ---- #}
+	{% set _sourceBillId = cart.sourceBillingAddressId ?? null %}
+	{% set _shippingId = cart.sourceShippingAddressId ?? null %}
+	{% set _hasMatch = cart.hasMatchingAddresses() %}
+	{% set _hasBillingRecord = cart.billingAddressId is not empty %}
+	{% set _isNewBilling = (not _hasMatch) and (_sourceBillId is null) and _hasBillingRecord %}
+	{% set _initialBillingSame = _hasMatch ? 1 : 0 %}
+	{% set _initialBillingAddressId = _sourceBillId ?? null %}
+	{% set _initialNewBilling = _isNewBilling ? 1 : 0 %}
+
+	{# ---- Gateway cart-truthy init ---- #}
+	{% set _cartGatewayId = cart.gatewayId ?? (gateways|length ? gateways[0].id : null) %}
+	{% set _gatewayIds = gateways|map(g => g.id) %}
+	{% set _hasGateway = _cartGatewayId and (_cartGatewayId in _gatewayIds) %}
+	{% set _initialGatewayId = _hasGateway ? _cartGatewayId : (gateways|length ? gateways[0].id : null) %}
+
+	<div class="mt-10 pb-28 lg:pb-32">
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+			<main
+				x-data="{
+				// billing selection
+				billingSameAsShipping: {{ _initialBillingSame }},
+				billingAddressId: {{ _initialBillingAddressId is not null ? _initialBillingAddressId : 'null' }},
+				newBillingAddress: {{ _initialNewBilling }},
+				editBillingAddressId: 0,
+
+				// gateway
+				gatewayId: {{ _initialGatewayId ?: 'null' }},
+
+				// mirrors for posting
+				syncHidden() {
+					if (this.$refs.postBillingSame) this.$refs.postBillingSame.value = this.billingSameAsShipping ? 1 : 0;
+					if (this.$refs.postBillingId) this.$refs.postBillingId.value = this.billingAddressId ?? '';
+					if (this.$refs.postNewBilling) this.$refs.postNewBilling.value = this.newBillingAddress ? 1 : 0;
+					if (this.$refs.postGateway) this.$refs.postGateway.value = this.gatewayId ?? '';
+				}
+				}"
+				x-init="syncHidden()"
+				x-effect="syncHidden()"
+				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
+
+
+				<div class="grid grid-cols-1 gap-4 xl:gap-6">
+					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'billing' } %}
+
+					{{ include('foster-checkout/_components/app/flash-message') }}
+
+					<form method="post" x-data x-on:submit="$el.querySelector('[data-bill-submit]')?.setAttribute('disabled','disabled')">
+						{{ csrfInput() }}
+
+						<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
+							<h2 class="p-4 font-semibold bg-gray-200">
+								{{ 'billing.stepName'|t('foster-checkout') }}
+							</h2>
+
+							<div class="grid grid-cols-1 gap-5 xl:gap-6 p-4">
+
+
+
+								{# ===================== BILLING ADDRESS SECTION ===================== #}
+								<section>
+
+
+									<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+										{# Single form to update cart billing choice and address book edits. No nested forms. #}
+
+
+											{# Action switches depending on whether editing an address or just updating cart #}
+											<template x-if="parseInt(editBillingAddressId) === 0">
+												<div>
+													{{ actionInput('commerce/cart/update-cart') }}
+													{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/payment') }}
+												</div>
+											</template>
+											<template x-if="parseInt(editBillingAddressId) !== 0">
+												<div>
+													{{ actionInput('users/save-address') }}
+													{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/billing') }}
+													<input type="hidden" name="addressId" :value="editBillingAddressId">
+												</div>
+											</template>
+
+											{# Hidden mirrors for posting the chosen billing mode #}
+											<input type="hidden" x-ref="postBillingSame" name="billingAddressSameAsShipping" value="">
+											<input type="hidden" x-ref="postBillingId" name="billingAddressId" value="">
+											<input type="hidden" x-ref="postNewBilling" name="useNewBillingAddress" value="">
+
+											{# Same as shipping #}
+											<div class="p-4" :class="{ 'bg-gray-100': parseInt(billingSameAsShipping) === 1 }">
+												<div class="radio">
+													<input
+														id="billingSameAsShipping_1"
+														type="radio"
+														class="absolute opacity-0 w-px h-px"
+														x-model.number="billingSameAsShipping"
+														value="1"
+														@change="newBillingAddress = 0; billingAddressId = null; editBillingAddressId = 0"
+													>
+													<label for="billingSameAsShipping_1" class="flex justify-start items-center gap-4 cursor-pointer">
+														<span class="block">
+															<span class="block" :class="{ 'font-medium text-black': parseInt(billingSameAsShipping) === 1 }">
+															{{ 'billing.sameAsShippingAddress'|t('foster-checkout') }}
+															</span>
+															<span class="block mt-2 text-gray-500">
+															{% include 'foster-checkout/_components/app/formatted-address' with { address: cart.shippingAddress } %}
+															</span>
+														</span>
+													</label>
+												</div>
+											</div>
+
+											{# Address book choices (exclude the shipping source id so the first option is meaningfully different) #}
+											{% for address in addresses %}
+												{% if _shippingId is not defined or address.id != _shippingId %}
+													<div class="p-4 border-t"
+															:class="{ 'bg-gray-100': parseInt(billingAddressId) === {{ address.id }} && !billingSameAsShipping }">
+														<div class="flex justify-between items-center gap-4 radio">
+															<input
+																id="bill_addr_{{ address.id }}"
+																type="radio"
+																class="absolute opacity-0 w-px h-px"
+																name="billingAddressId_radio"
+																x-model.number="billingAddressId"
+																value="{{ address.id }}"
+																@change="billingSameAsShipping = 0; newBillingAddress = 0; editBillingAddressId = 0"
+															>
+															<label
+																for="bill_addr_{{ address.id }}"
+																class="inline-flex justify-start items-center gap-4 cursor-pointer"
+																:class="{ 'font-medium text-black': parseInt(billingAddressId) === {{ address.id }} && !billingSameAsShipping }"
+															>
+																{% include 'foster-checkout/_components/app/formatted-address' with { address: address } %}
+															</label>
+
+															<button
+																type="button"
+																class="text-[var(--brandColor)] underline"
+																@click="editBillingAddressId = parseInt(editBillingAddressId) === {{ address.id }} ? 0 : {{ address.id }}"
+															>
+																<template x-if="parseInt(editBillingAddressId) === {{ address.id }}"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
+																<template x-if="parseInt(editBillingAddressId) !== {{ address.id }}"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
+															</button>
+														</div>
+
+														<template x-if="parseInt(editBillingAddressId) === {{ address.id }}">
+															<div class="pt-8">
+																{% include 'foster-checkout/_components/app/address-fields' %}
+																<div class="flex justify-start items-center gap-6 mt-8 pt-4 border-gray-250 border-t">
+																	<button type="submit" data-bill-submit class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]">
+																		{{ 'misc.save'|t('foster-checkout') }}
+																	</button>
+																	<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]" @click="editBillingAddressId = 0">
+																		{{ 'misc.cancel'|t('foster-checkout') }}
+																	</button>
+																</div>
+															</div>
+														</template>
+													</div>
+												{% endif %}
+											{% endfor %}
+
+											{# New billing address #}
+											<div class="border-t border-gray-250" :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }">
+												<div class="p-4 radio">
+													<input
+														id="newBillingAddress"
+														type="radio"
+														class="absolute opacity-0 w-px h-px"
+														x-model.number="newBillingAddress"
+														value="1"
+														@change="billingSameAsShipping = 0; billingAddressId = null; editBillingAddressId = 0"
+													>
+													<label
+														for="newBillingAddress"
+														class="inline-flex justify-start items-center gap-4 cursor-pointer"
+														:class="{ 'font-medium text-black': parseInt(newBillingAddress) === 1 }"
+													>
+														{{ 'billing.useDifferentBillingAddress'|t('foster-checkout') }}
+													</label>
+												</div>
+
+												<template x-if="parseInt(newBillingAddress) === 1" x-cloak>
+													<div class="p-4">
+														{# When newBillingAddress is chosen, just post to update-cart with the address fields #}
+														{% include 'foster-checkout/_components/app/address-fields' with {
+															context: 'billingAddress',
+															address: cart.billingAddress ?? null,
+														} %}
+
+														{% if currentUser %}
+															<div class="mt-4 p4 checkbox">
+																{# You can switch this to a cart custom field if you want cart-truth only #}
+																<input type="checkbox" class="absolute opacity-0 w-px h-px" id="saveBillingAddressOnOrderComplete" name="saveBillingAddressOnOrderComplete" value="1">
+																<label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveBillingAddressOnOrderComplete">
+																	{{ 'billing.saveToAddressBook'|t('foster-checkout') }}
+																</label>
+															</div>
+														{% endif %}
+
+
+													</div>
+												</template>
+
+											</div>
+
+									</div>
+
+									{% set note = craft.fostercheckout.note('billing', {cart}) %}
+									{% if note %}
+										<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
+											{{ note|raw }}
+										</div>
+									{% endif %}
+								</section>
+
+								<div class="mt-6 grid grid-cols-1 gap-4 md:flex md:justify-end md:items-center md:gap-6">
+									<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}" class="hidden md:block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg">
+										{{ 'misc.returnToCart'|t('foster-checkout') }}
+									</a>
+									<button type="submit" class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg">
+										{{ 'address.nextStep'|t('foster-checkout') }}
+									</button>
+								</div>
+
+							</div>
+						</div>
+					</form>
+
+					{% include 'foster-checkout/_components/app/steps-uncompleted' with { step: 'billing' } %}
+
+				</div>
+			</main>
+
+			<aside>
+				<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
+					<div class="grid grid-cols-1 gap-6">
+						<div class="flex justify-between items-center gap-4">
+							<h2 class="text-xl font-bold text-gray-800 leading-snug">
+								{{ 'summary.itemsTitle'|t('foster-checkout') }}
+							</h2>
+							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}" class="inline-block text-[var(--brandColor)] underline">
+								{{ 'misc.edit'|t('foster-checkout') }}
+							</a>
+						</div>
+
+						<ul class="grid grid-cols-1 gap-4">
+							{% for lineItem in cart.lineItems %}
+								<li>
+									{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem } %}
+								</li>
+							{% endfor %}
+						</ul>
+					</div>
+
+					{% include 'foster-checkout/_components/app/summary-cart' with { estimatedTax: false } %}
+				</div>
+
+				{% include 'foster-checkout/_components/app/global-checkout-note' %}
+
+			</aside>
+		</div>
+
+		{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+
+	</div>
+
+	{% js %}
+	var $paymentForms = document.querySelectorAll('.paymentForm');
+
+	if ($paymentForms.length) {
+		$paymentForms.forEach(($paymentForm) => {
+
+			// Only allow the payment form submit to be triggered once.
+			$paymentForm.addEventListener('submit', function(ev) {
+
+				if ($paymentForm.dataset.processing) {
+					ev.preventDefault();
+					return false;
+				}
+
+				$paymentForm.dataset.processing = true;
+			});
+		});
+	}
+	{% endjs %}
+{% endblock %}
+
+{% block includeBody %}
+	{% set bodyInclude = craft.fostercheckout.settings.includes.body %}
+	{% if bodyInclude|default %}
+		{% include bodyInclude with {
+			context: 'checkout',
+			location: 'body',
+			step: 'payment',
+			cart: cart
+		} %}
+	{% endif %}
+{% endblock %}

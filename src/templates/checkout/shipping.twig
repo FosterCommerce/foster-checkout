@@ -58,7 +58,7 @@
 
 						{# Redirects #}
 						{% if optionCount >= 1 %}
-							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/payment') }}
+							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/billing') }}
 						{% else %}
 							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/shipping') }}
 						{% endif %}

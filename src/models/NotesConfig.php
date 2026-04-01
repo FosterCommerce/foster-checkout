@@ -18,6 +18,8 @@ class NotesConfig extends Model
 
 	public ValueConfig $shipping;
 
+	public ValueConfig $billing;
+
 	public ValueConfig $payment;
 
 	public ValueConfig $order;

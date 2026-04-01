@@ -2,8 +2,8 @@
 
 	<dl class="grid grid-cols-1 gap-4 xl:gap-6 p-4 bg-gray-200 rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 
-		{% if step == 'address' or step == 'shipping' or step == 'payment' %}
-			<div class="sm:grid sm:grid-cols-[125px_1fr] sm:gap-6">
+		{% if step == 'address' or step == 'shipping' or step == 'billing' or step == 'payment' %}
+			<div class="sm:grid sm:grid-cols-[140px_1fr] sm:gap-6">
 				<dt class="flex justify-between items-start gap-4">
 					<span class="inline-block font-semibold text-black">
 						{{ 'steps.contact'|t('foster-checkout') }}
@@ -39,8 +39,8 @@
 			</div>
 		{% endif %}
 
-		{% if step == 'shipping' or step == 'payment' %}
-			<div class="sm:grid sm:grid-cols-[125px_1fr] sm:gap-6">
+		{% if step == 'shipping' or step == 'billing' or step == 'payment' %}
+			<div class="sm:grid sm:grid-cols-[140px_1fr] sm:gap-6">
 				<dt class="flex justify-between items-start gap-4">
 					<span class="inline-block font-semibold text-black">
 						{{ 'steps.shipTo'|t('foster-checkout') }}
@@ -60,14 +60,14 @@
 			</div>
 		{% endif %}
 
-		{% if step == 'payment' %}
+		{% if step == 'billing' or step == 'payment' %}
 			{% set options = cart.availableShippingMethodOptions ?? [] %}
 			{% set hasSelectedMethod = (cart.shippingMethodHandle ?? null)
 				or (cart.shippingMethod ?? null)
 				or ((cart.shippingMethodName ?? '')|length) %}
 
 			{% if hasSelectedMethod %}
-				<div class="sm:grid sm:grid-cols-[125px_1fr] sm:gap-6">
+				<div class="sm:grid sm:grid-cols-[140px_1fr] sm:gap-6">
 					<dt class="flex justify-between items-start gap-4">
 						<span class="inline-block font-semibold text-black">
 						  {{ 'steps.shippingMethod'|t('foster-checkout') }}
@@ -96,6 +96,28 @@
 					</dd>
 				</div>
 			{% endif %}
+		{% endif %}
+
+
+		{% if step == 'payment' %}
+			<div class="sm:grid sm:grid-cols-[140px_1fr] sm:gap-6">
+				<dt class="flex justify-between items-start gap-4">
+					<span class="inline-block font-semibold text-black">
+						{{ 'steps.billTo'|t('foster-checkout') }}
+					</span>
+					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/billing' }}"
+						 class="inline-block underline text-[var(--brandColor)] sm:hidden">
+						{{ 'misc.change'|t('foster-checkout') }}
+					</a>
+				</dt>
+				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
+					{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.billingAddress} %}
+					<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]"
+						 href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/billing' }}">
+						{{ 'misc.change'|t('foster-checkout') }}
+					</a>
+				</dd>
+			</div>
 		{% endif %}
 
 	</dl>

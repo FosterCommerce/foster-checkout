@@ -21,6 +21,14 @@
 		{% if step == 'email' or step == 'address' or step == 'shipping' %}
 			<div class="p-4 bg-gray-200 rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 				<h2 class="font-semibold text-gray-500">
+					{{ 'steps.billing'|t('foster-checkout') }}
+				</h2>
+			</div>
+		{% endif %}
+
+		{% if step == 'email' or step == 'address' or step == 'shipping' or step == 'billing' %}
+			<div class="p-4 bg-gray-200 rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
+				<h2 class="font-semibold text-gray-500">
 					{{ 'steps.payment'|t('foster-checkout') }}
 				</h2>
 			</div>

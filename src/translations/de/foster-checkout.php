@@ -114,14 +114,19 @@ return [
 	'shipping.noMethodAvailable' => 'Keine Versandoptionen verfügbar',
 	'shipping.nextStep' => 'Nächster Schritt',
 
+	// Billing Address page
+	'billing.stepTitle' => 'Rechnungsadresse',
+	'billing.stepName' => 'Rechnungsadresse',
+	'billing.sameAsShippingAddress' => 'Identisch mit der Lieferadresse',
+	'billing.useDifferentBillingAddress' => 'Andere Rechnungsadresse verwenden',
+	'billing.newAddress' => 'Neue Rechnungsadresse',
+	'billing.saveToAddressBook' => 'Im Adressbuch speichern',
+	'billing.nextStep' => 'Nächster Schritt',
+
 	// Payment page
 	'payment.stepTitle' => 'Zahlung',
 	'payment.stepName' => 'Zahlung',
 	'payment.paymentMethod' => 'Zahlungsart',
-	'payment.billingAddress' => 'Rechnungsadresse',
-	'payment.sameAsShippingAddress' => 'Identisch mit der Lieferadresse',
-	'payment.useDifferentBillingAddress' => 'Andere Rechnungsadresse verwenden',
-	'payment.saveToAddressBook' => 'Im Adressbuch speichern',
 	'payment.payButtonText' => 'Bezahlen',
 	'payment.voucherApplied' => 'Gutschein/Geschenkkarte angewendet',
 
@@ -155,6 +160,8 @@ return [
 	'steps.shipping' => 'Lieferadresse',
 	'steps.shipTo' => 'Lieferung an',
 	'steps.shippingMethod' => 'Versandart',
+	'steps.billing' => 'Rechnungsadresse',
+	'steps.billTo' => 'Rechnung an',
 	'steps.payment' => 'Zahlung',
 
 	// Miscellaneous

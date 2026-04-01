@@ -185,6 +185,10 @@ return [
 			'elementHandle' => '',
 			'fieldHandle' => '',
 		],
+		'billing' => [
+			'elementHandle' => '',
+			'fieldHandle' => '',
+		],
 		'payment' => [
 			'elementHandle' => '',
 			'fieldHandle' => '',
