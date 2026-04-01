@@ -49,8 +49,7 @@
 				newBillingAddress: {{ _initialNewBilling }},
 				editBillingAddressId: 0,
 
-				// gateway
-				gatewayId: {{ _initialGatewayId ?: 'null' }},
+
 
 				// mirrors for posting
 				syncHidden() {
@@ -70,7 +69,7 @@
 
 					{{ include('foster-checkout/_components/app/flash-message') }}
 
-					<form method="post" x-data x-on:submit="$el.querySelector('[data-bill-submit]')?.setAttribute('disabled','disabled')">
+					<form method="post">
 						{{ csrfInput() }}
 
 						<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
