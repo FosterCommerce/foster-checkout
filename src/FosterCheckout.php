@@ -111,6 +111,9 @@ class FosterCheckout extends Plugin
 				$event->rules[$checkoutPath . '/shipping'] = [
 					'template' => 'foster-checkout/checkout/shipping',
 				];
+				$event->rules[$checkoutPath . '/billing'] = [
+					'template' => 'foster-checkout/checkout/billing',
+				];
 				$event->rules[$checkoutPath . '/payment'] = [
 					'template' => 'foster-checkout/checkout/payment',
 				];

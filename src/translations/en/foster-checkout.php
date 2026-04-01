@@ -114,14 +114,19 @@ return [
 	'shipping.noMethodAvailable' => 'No shipping options available',
 	'shipping.nextStep' => 'Next step',
 
+	// Billing Address page
+	'billing.stepTitle' => 'Billing Address',
+	'billing.stepName' => 'Billing address',
+	'billing.sameAsShippingAddress' => 'Same as shipping address',
+	'billing.useDifferentBillingAddress' => 'Use a different billing address',
+	'billing.newAddress' => 'New billing address',
+	'billing.saveToAddressBook' => 'Save to address book',
+	'billing.nextStep' => 'Next step',
+
 	// Payment page
 	'payment.stepTitle' => 'Payment',
 	'payment.stepName' => 'Payment',
 	'payment.paymentMethod' => 'Payment method',
-	'payment.billingAddress' => 'Billing address',
-	'payment.sameAsShippingAddress' => 'Same as shipping address',
-	'payment.useDifferentBillingAddress' => 'Use a different billing address',
-	'payment.saveToAddressBook' => 'Save to address book',
 	'payment.payButtonText' => 'Pay',
 	'payment.voucherApplied' => 'Voucher/Gift card applied',
 
@@ -155,6 +160,8 @@ return [
 	'steps.shipping' => 'Shipping address',
 	'steps.shipTo' => 'Ship to',
 	'steps.shippingMethod' => 'Shipping method',
+	'steps.billing' => 'Billing address',
+	'steps.billTo' => 'Bill to',
 	'steps.payment' => 'Payment',
 
 	// Miscellaneous
