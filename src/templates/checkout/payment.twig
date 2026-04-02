@@ -23,16 +23,6 @@
 	{% set gateways = cart.getAvailableGateways() %}
 	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
 
-	{# ---- Billing state from cart (truth table) ---- #}
-	{% set _sourceBillId = cart.sourceBillingAddressId ?? null %}
-	{% set _shippingId = cart.sourceShippingAddressId ?? null %}
-	{% set _hasMatch = cart.hasMatchingAddresses() %}
-	{% set _hasBillingRecord = cart.billingAddressId is not empty %}
-	{% set _isNewBilling = (not _hasMatch) and (_sourceBillId is null) and _hasBillingRecord %}
-	{% set _initialBillingSame = _hasMatch ? 1 : 0 %}
-	{% set _initialBillingAddressId = _sourceBillId ?? null %}
-	{% set _initialNewBilling = _isNewBilling ? 1 : 0 %}
-
 	{# ---- Gateway cart-truthy init ---- #}
 	{% set _cartGatewayId = cart.gatewayId ?? (gateways|length ? gateways[0].id : null) %}
 	{% set _gatewayIds = gateways|map(g => g.id) %}
