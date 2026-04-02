@@ -20,7 +20,6 @@
 {% endblock %}
 
 {% block body %}
-	{% set gateways = cart.getAvailableGateways() %}
 	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
 
 	{# ---- Billing state from cart (truth table) ---- #}
@@ -33,11 +32,6 @@
 	{% set _initialBillingAddressId = _sourceBillId ?? null %}
 	{% set _initialNewBilling = _isNewBilling ? 1 : 0 %}
 
-	{# ---- Gateway cart-truthy init ---- #}
-	{% set _cartGatewayId = cart.gatewayId ?? (gateways|length ? gateways[0].id : null) %}
-	{% set _gatewayIds = gateways|map(g => g.id) %}
-	{% set _hasGateway = _cartGatewayId and (_cartGatewayId in _gatewayIds) %}
-	{% set _initialGatewayId = _hasGateway ? _cartGatewayId : (gateways|length ? gateways[0].id : null) %}
 
 	<div class="mt-10 pb-28 lg:pb-32">
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
@@ -290,25 +284,6 @@
 
 	</div>
 
-	{% js %}
-	var $paymentForms = document.querySelectorAll('.paymentForm');
-
-	if ($paymentForms.length) {
-		$paymentForms.forEach(($paymentForm) => {
-
-			// Only allow the payment form submit to be triggered once.
-			$paymentForm.addEventListener('submit', function(ev) {
-
-				if ($paymentForm.dataset.processing) {
-					ev.preventDefault();
-					return false;
-				}
-
-				$paymentForm.dataset.processing = true;
-			});
-		});
-	}
-	{% endjs %}
 {% endblock %}
 
 {% block includeBody %}
