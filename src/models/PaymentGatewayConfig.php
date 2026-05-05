@@ -21,6 +21,13 @@ class PaymentGatewayConfig extends Model
 	public null|int $columns = 3;
 
 	/**
+	 * Extra params merged into the gateway's payment form params (e.g. PayPal SDK options like `disable-funding`)
+	 *
+	 * @var array<string, mixed>
+	 */
+	public array $params = [];
+
+	/**
 	 * @param array<array-key, mixed> $config
 	 */
 	public function __construct(

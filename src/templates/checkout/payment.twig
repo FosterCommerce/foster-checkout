@@ -265,7 +265,8 @@
 																	submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block'
 																} %}
 															{% elseif gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
-																{% set params = { currency: cart.paymentCurrency } %}
+																{% set gatewayConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
+																{% set params = { currency: cart.paymentCurrency }|merge(gatewayConfig.params ?? {}) %}
 															{% elseif gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
 																{% set manualGatewayConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
 																{% set isManualGateway = true %}
