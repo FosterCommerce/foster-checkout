@@ -217,7 +217,7 @@ return [
 	// Payment Gateways: each gateway should be defined with the key matching the configured payment gateway handle in Craft Commerce setup.
 	// Each gateway contains an array of fields that are custom fields additional information that specific gateway can store on the order
 	// in the Craft. A gateway definition consists of an array key which is the field handle from Craft and an array of
-	// columns, fields, notes
+	// columns, fields, notes, params
 	// If columns is specified, then each field will span 1 column.
 	// With each field you may also specify the number of columns which each field will span to override this
 	// Example:
@@ -248,7 +248,12 @@ return [
 			'note' => [
 				'elementHandle' => 'customGlobalHandle',
 				'fieldHandle' => 'myFieldHandle'
-			]
+			],
+			'params' => [
+				// Extra params merged into the gateway's payment form params.
+				// For PayPal Checkout, these become PayPal SDK URL options (e.g. disable-funding, enable-funding, intent).
+				// 'disable-funding' => 'paylater,credit',
+			],
 		]
 	*/
 	'paymentGateways' => [],
