@@ -50,6 +50,8 @@
 
 					{{ include('foster-checkout/_components/app/flash-message') }}
 
+					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
+
 					<ul class="grid grid-cols-1 gap-4 lg:gap-6">
 						{% for lineItem in cart.lineItems %}
 							<li>
