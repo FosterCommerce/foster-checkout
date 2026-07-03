@@ -11,6 +11,7 @@ use craft\commerce\models\LineItem;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
 use craft\errors\InvalidFieldException;
+use DateTime;
 use fostercommerce\fostercheckout\formatters\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\DeliveryDate;
@@ -219,7 +220,7 @@ class Checkout extends Component
 		if (is_string($estimate) || is_int($estimate)) {
 			$intValue = filter_var($estimate, FILTER_VALIDATE_INT);
 			if ($intValue !== false) {
-				$estimate = $order->dateOrdered?->modify("+{$intValue} days");
+				$estimate = $order->dateOrdered instanceof DateTime ? (clone $order->dateOrdered)->modify("+{$intValue} days") : null;
 			}
 		}
 
