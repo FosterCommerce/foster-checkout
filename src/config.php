@@ -258,8 +258,8 @@ return [
 	*/
 	'paymentGateways' => [],
 
-	// A comma delimited list of handles for the gateways that should handle Zero value orders
-	'zeroValueGatewayHandle' => '',
+	// An array of gateway handles that should handle zero value orders
+	'zeroValueGatewayHandles' => [],
 
 	// An array of country codes that will be shown first in the country select dropdowns
 	'priorityCountries' => [],
