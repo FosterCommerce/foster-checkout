@@ -21,13 +21,6 @@
 			<dd class="font-semibold text-right text-black">{{ (order.itemSubtotal + lineItemDiscount)|commerceCurrency }}</dd>
 		</div>
 
-		{% for adjustment in orderDiscountAdjustments %}
-			<div class="flex justify-between items-center gap-4">
-				<dt class="text-gray-500">{{ adjustment.name }}</dt>
-				<dd class="text-right text-red-500">{{ adjustment.amount|commerceCurrency }}</dd>
-			</div>
-		{% endfor %}
-
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">{{ 'summary.shippingLabel'|t('foster-checkout') }}</dt>
 			<dd class="text-right text-black">{{ order.totalShippingCostAsCurrency }}</dd>
@@ -37,6 +30,13 @@
 			<dt class="text-gray-500">{{ 'summary.taxLabel'|t('foster-checkout') }}</dt>
 			<dd class="text-right text-black">{{ order.totalTaxAsCurrency }}</dd>
 		</div>
+
+		{% for adjustment in orderDiscountAdjustments %}
+			<div class="flex justify-between items-center gap-4">
+				<dt class="text-gray-500">{{ adjustment.name }}</dt>
+				<dd class="text-right text-red-500">{{ adjustment.amount|commerceCurrency }}</dd>
+			</div>
+		{% endfor %}
 
 		{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
 			{% set voucherAdjustments = order.adjustments|filter(adjustment => adjustment.type == 'voucher') %}

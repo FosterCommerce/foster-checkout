@@ -21,13 +21,6 @@
 			<dd class="text-right text-black">{{ (cart.itemSubtotal + lineItemDiscount)|commerceCurrency }}</dd>
 		</div>
 
-		{% for adjustment in orderDiscountAdjustments %}
-			<div class="flex justify-between items-center gap-4">
-				<dt class="text-gray-500">{{ adjustment.name }}</dt>
-				<dd class="text-right text-red-500">{{ adjustment.amount|commerceCurrency }}</dd>
-			</div>
-		{% endfor %}
-
 		{% if not cart.shippingAddressId %}
 			{% if craft.fostercheckout.settings.options.enableEstimatedShipping %}
 				{% include 'foster-checkout/_components/app/estimated-shipping' %}
@@ -58,6 +51,13 @@
 			{% endif %}
 			<dd class="text-right text-black">{{ cart.totalTaxAsCurrency }}</dd>
 		</div>
+
+		{% for adjustment in orderDiscountAdjustments %}
+			<div class="flex justify-between items-center gap-4">
+				<dt class="text-gray-500">{{ adjustment.name }}</dt>
+				<dd class="text-right text-red-500">{{ adjustment.amount|commerceCurrency }}</dd>
+			</div>
+		{% endfor %}
 
 		{% include 'foster-checkout/_components/app/coupon-code' %}
 
