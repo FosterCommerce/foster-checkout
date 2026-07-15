@@ -40,7 +40,7 @@ return [
 	'summary.shippingLabel' => 'Shipping & handling',
 	'summary.estimatedTaxLabel' => 'Estimated tax',
 	'summary.taxLabel' => 'Tax',
-	'summary.couponCodeLabel' => 'Coupon code',
+	'summary.couponCodeLabel' => 'Discount code',
 	'summary.couponCodeAdded' => 'Coupon code added',
 	'summary.couponCode' => 'Coupon code',
 	'summary.couponCodeRemoved' => 'Coupon code removed',

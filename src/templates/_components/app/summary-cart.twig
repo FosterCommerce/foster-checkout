@@ -1,7 +1,5 @@
 <article>
 
-	<h2 class="mb-6 text-xl font-bold text-gray-800 leading-snug">{{ 'summary.title'|t('foster-checkout') }}</h2>
-
 	{% set lineItemDiscount = 0 %}
 	{% set orderDiscountAdjustments = [] %}
 	{% for adjustment in cart.adjustments %}
@@ -13,6 +11,10 @@
 			{% endif %}
 		{% endif %}
 	{% endfor %}
+
+	<div class="mb-6">
+		{% include 'foster-checkout/_components/app/coupon-code' %}
+	</div>
 
 	<dl class="grid grid-cols-1 gap-4">
 
@@ -58,8 +60,6 @@
 				<dd class="text-right text-red-500">{{ adjustment.amount|commerceCurrency }}</dd>
 			</div>
 		{% endfor %}
-
-		{% include 'foster-checkout/_components/app/coupon-code' %}
 
 		{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
 			{# Check for applied / redeemed gift card vouchers in orders #}
