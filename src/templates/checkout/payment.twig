@@ -43,6 +43,8 @@
 
 					{{ include('foster-checkout/_components/app/flash-message') }}
 
+					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
+
 					<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 						<h2 class="p-4 font-semibold bg-gray-200">
 							{{ 'payment.stepName'|t('foster-checkout') }}
