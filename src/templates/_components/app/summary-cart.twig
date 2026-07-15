@@ -2,19 +2,31 @@
 
 	<h2 class="mb-6 text-xl font-bold text-gray-800 leading-snug">{{ 'summary.title'|t('foster-checkout') }}</h2>
 
+	{% set lineItemDiscount = 0 %}
+	{% set orderDiscountAdjustments = [] %}
+	{% for adjustment in cart.adjustments %}
+		{% if adjustment.type == 'discount' %}
+			{% if adjustment.lineItemId %}
+				{% set lineItemDiscount = lineItemDiscount + adjustment.amount %}
+			{% else %}
+				{% set orderDiscountAdjustments = orderDiscountAdjustments|merge([adjustment]) %}
+			{% endif %}
+		{% endif %}
+	{% endfor %}
+
 	<dl class="grid grid-cols-1 gap-4">
 
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">{{ 'summary.itemsLabel'|t('foster-checkout') }}</dt>
-			<dd class="text-right text-black">{{ cart.itemSubtotalAsCurrency }}</dd>
+			<dd class="text-right text-black">{{ (cart.itemSubtotal + lineItemDiscount)|commerceCurrency }}</dd>
 		</div>
 
-		{% if cart.totalDiscount != 0 %}
+		{% for adjustment in orderDiscountAdjustments %}
 			<div class="flex justify-between items-center gap-4">
-				<dt class="text-gray-500">{{ 'summary.discountLabel'|t('foster-checkout') }}</dt>
-				<dd class="text-right text-red-500">{{ cart.totalDiscountAsCurrency }}</dd>
+				<dt class="text-gray-500">{{ adjustment.name }}</dt>
+				<dd class="text-right text-red-500">{{ adjustment.amount|commerceCurrency }}</dd>
 			</div>
-		{% endif %}
+		{% endfor %}
 
 		{% if not cart.shippingAddressId %}
 			{% if craft.fostercheckout.settings.options.enableEstimatedShipping %}
