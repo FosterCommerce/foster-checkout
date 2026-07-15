@@ -1,6 +1,8 @@
-{% set message = craft.advancedDiscounts.getMessage(cart) ?? null %}
-{% if message %}
-	<div class="p-4 text-sm text-yellow-900 bg-yellow-100 border border-yellow-400 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'flat' : 'rounded-lg' }}">
-		<p>{{ message }}</p>
-	</div>
+{% if craft.app.plugins.isPluginEnabled('advanced-discounts') %}
+	{% set message = craft.advancedDiscounts.getMessage(cart) ?? null %}
+	{% if message %}
+		<div class="p-4 text-sm text-yellow-900 bg-yellow-100 border border-yellow-400 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'flat' : 'rounded-lg' }}">
+			<p>{{ message }}</p>
+		</div>
+	{% endif %}
 {% endif %}
