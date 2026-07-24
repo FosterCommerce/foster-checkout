@@ -53,8 +53,9 @@
 					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
 
 					{# Collected once per cart so each line item can check membership without rescanning adjustments #}
+					{# Coupon-gated discounts are excluded so a redeemed code doesn't read as a sale #}
 					{% set discountedPurchasableIds = [] %}
-					{% for adjustment in cart.adjustments|filter(adjustment => adjustment.type == 'discount') %}
+					{% for adjustment in cart.adjustments|filter(adjustment => adjustment.type == 'discount' and not (adjustment.sourceSnapshot.requireCouponCode ?? false)) %}
 						{% set discountedPurchasableIds = discountedPurchasableIds|merge(adjustment.sourceSnapshot.discountedPurchasableIds ?? []) %}
 					{% endfor %}
 
