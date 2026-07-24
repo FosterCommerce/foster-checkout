@@ -23,6 +23,7 @@ return [
 	'cart.lineItem.maxQtyMessage' => 'You can only purchase up to {qty} of this item',
 	'cart.lineItem.limitedStock' => 'Only {qty} in stock',
 	'cart.lineItem.saveForLater' => 'Save for later',
+	'cart.lineItem.saleTag' => 'Sale',
 	'cart.lineItem.noImage' => 'No Image',
 	'cart.lineItem.imageOf' => 'Image of',
 	'cart.seePreviousItemsMessage' => 'to see items you might have added previously',

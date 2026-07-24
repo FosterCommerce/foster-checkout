@@ -3,6 +3,8 @@
 {% set stock = lineItem.purchasable.stock %}
 {% set unlimitedStock = (lineItem.purchasable.hasUnlimitedStock or lineItem.purchasable.allowOutOfStockPurchases) ? 1 : 0 %}
 
+{% set onSale = lineItem.onPromotion or lineItem.purchasableId in discountedPurchasableIds|default([]) %}
+
 {% set hasImage = true %}
 {% set imageSrcSet = null %}
 {% set previewImage = craft.fostercheckout.lineItemImage(lineItem) %}
@@ -55,7 +57,7 @@
 
 	{% if hasImage %}
 		<div class="hidden sm:block w-[80px] min-w-[80px] max-w-[80px] md:w-[200px] md:min-w-[200px] md:max-w-[200px] flex-grow">
-			<figure class="rounded-lg overflow-hidden min-w-full">
+			<figure class="relative rounded-lg overflow-hidden min-w-full">
 				<img
 					srcset="{{ imageSrcSet }}"
 					sizes="(min-width: 768px) 200px, 80px"
@@ -64,6 +66,11 @@
 					class="min-w-full"
 					alt="{{ 'misc.imageOf'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
 				/>
+				{% if onSale %}
+					<figcaption class="absolute bottom-0 left-0 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-white bg-[var(--brandColor)]">
+						{{ 'cart.lineItem.saleTag'|t('foster-checkout') }}
+					</figcaption>
+				{% endif %}
 			</figure>
 		</div>
 	{% endif %}
@@ -74,6 +81,12 @@
 
 			<div class="pr-4">
 				<h3 class="font-semibold">{{ lineItem.description }}</h3>
+				{% if onSale %}
+					{# Image is hidden below sm and absent entirely when the line item has none, so the badge repeats here #}
+					<span class="{{ hasImage ? 'sm:hidden ' }}inline-block mt-1 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-white bg-[var(--brandColor)] rounded">
+						{{ 'cart.lineItem.saleTag'|t('foster-checkout') }}
+					</span>
+				{% endif %}
 				<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.sku }}</p>
 				{% if lineItem.lineItemStatus %}
 					<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.lineItemStatus.name|t('foster-checkout') }}</p>
