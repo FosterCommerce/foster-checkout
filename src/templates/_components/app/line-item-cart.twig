@@ -67,7 +67,7 @@
 					alt="{{ 'misc.imageOf'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
 				/>
 				{% if onSale %}
-					<figcaption class="absolute bottom-0 left-0 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-white bg-[var(--brandColor)]">
+					<figcaption class="absolute px-2 py-1 text-xs font-semibold uppercase tracking-wide text-white bg-[var(--brandColor)] {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'bottom-0 left-0' : 'bottom-2 left-2 rounded' }}">
 						{{ 'cart.lineItem.saleTag'|t('foster-checkout') }}
 					</figcaption>
 				{% endif %}
