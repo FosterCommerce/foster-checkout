@@ -1,0 +1,51 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set title = 'nav.content'|t('foster-checkout') %}
+{% set docTitle = title %}
+{% set selectedSubnavItem = 'content' %}
+
+{% if showSiteMenu %}
+	{% set crumbs = [{
+		id: 'site-crumb',
+		icon: 'world',
+		label: contentSite.name|t('site'),
+		menu: {
+			items: siteMenuItems(null, contentSite),
+			label: 'Select site'|t('app'),
+		},
+	}] %}
+{% endif %}
+
+{% if readOnly %}
+	{% set contentNotice = readOnlyNotice() %}
+{% endif %}
+
+{% block content %}
+	<form action="" method="post" accept-charset="UTF-8"{% if not readOnly %} data-saveshortcut{% endif %}>
+		{{ actionInput('foster-checkout/content/save') }}
+		{{ redirectInput('foster-checkout/content' ~ (showSiteMenu ? '?site=' ~ contentSite.handle : '')) }}
+		{% if showSiteMenu %}{{ hiddenInput('site', contentSite.handle) }}{% endif %}
+		{{ csrfInput() }}
+
+		<p>{{ 'content.intro'|t('foster-checkout') }}</p>
+
+		{% for noteKey in noteKeys %}
+			{{ forms.textareaField({
+				label: "content.#{noteKey}"|t('foster-checkout'),
+				instructions: "content.#{noteKey}Help"|t('foster-checkout'),
+				id: "note-#{noteKey}",
+				name: "notes[#{noteKey}]",
+				value: notes[noteKey] ?? '',
+				rows: 4,
+				disabled: readOnly,
+			}) }}
+		{% endfor %}
+
+		{% if not readOnly %}
+			<div class="buttons">
+				<button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
+			</div>
+		{% endif %}
+	</form>
+{% endblock %}

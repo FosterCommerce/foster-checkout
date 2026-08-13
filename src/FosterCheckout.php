@@ -35,6 +35,10 @@ class FosterCheckout extends Plugin
 {
 	public const HANDLE = 'foster-checkout';
 
+	public const PERMISSION_VIEW_CONTENT = 'foster-checkout-viewContent';
+
+	public const PERMISSION_EDIT_CONTENT = 'foster-checkout-editContent';
+
 	public const PERMISSION_MANAGE_APPEARANCE = 'foster-checkout-manageAppearance';
 
 	public const PERMISSION_MANAGE_FEATURES = 'foster-checkout-manageFeatures';
@@ -253,6 +257,13 @@ class FosterCheckout extends Plugin
 
 		$userSession = Craft::$app->getUser();
 
+		if ($userSession->checkPermission(self::PERMISSION_VIEW_CONTENT)) {
+			$navItem['subnav']['content'] = [
+				'label' => Craft::t(self::HANDLE, 'nav.content'),
+				'url' => self::HANDLE . '/content',
+			];
+		}
+
 		foreach (array_keys(self::SETTINGS_SECTIONS) as $section) {
 			if (! $userSession->checkPermission(self::settingsPermission($section))) {
 				continue;
@@ -337,6 +348,15 @@ class FosterCheckout extends Plugin
 				$event->permissions[] = [
 					'heading' => Craft::t(self::HANDLE, 'nav.checkout'),
 					'permissions' => [
+						self::PERMISSION_VIEW_CONTENT => [
+							'label' => Craft::t(self::HANDLE, 'permission.viewContent'),
+							'nested' => [
+								self::PERMISSION_EDIT_CONTENT => [
+									'label' => Craft::t(self::HANDLE, 'permission.editContent'),
+									'warning' => Craft::t(self::HANDLE, 'permission.editContentWarning'),
+								],
+							],
+						],
 						self::PERMISSION_MANAGE_APPEARANCE => [
 							'label' => Craft::t(self::HANDLE, 'permission.manageAppearance'),
 						],
@@ -355,7 +375,8 @@ class FosterCheckout extends Plugin
 			UrlManager::class,
 			UrlManager::EVENT_REGISTER_CP_URL_RULES,
 			static function (RegisterUrlRulesEvent $event): void {
-				$event->rules[self::HANDLE] = self::HANDLE . '/settings/appearance';
+				$event->rules[self::HANDLE] = self::HANDLE . '/content/edit';
+				$event->rules[self::HANDLE . '/content'] = self::HANDLE . '/content/edit';
 
 				foreach (array_keys(self::SETTINGS_SECTIONS) as $section) {
 					$event->rules[self::HANDLE . "/settings/{$section}"] = self::HANDLE . "/settings/{$section}";
