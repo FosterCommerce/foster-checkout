@@ -30,7 +30,7 @@ class FosterCheckout extends Plugin
 	/**
 	 * @var array<string, string>
 	 */
-	private const CHECKOUT_ROUTES = [
+	private const array CHECKOUT_ROUTES = [
 		'' => 'foster-checkout/checkout/index',
 		'/email' => 'foster-checkout/checkout/email',
 		'/address' => 'foster-checkout/checkout/address',
@@ -45,7 +45,7 @@ class FosterCheckout extends Plugin
 	/**
 	 * @var array<string, string>
 	 */
-	private const UK_COUNTIES = [
+	private const array UK_COUNTIES = [
 		'' => 'N/A',
 		'Aberdeenshire' => 'Aberdeenshire',
 		'Angus' => 'Angus',
@@ -165,6 +165,7 @@ class FosterCheckout extends Plugin
 		'Worcestershire' => 'Worcestershire',
 	];
 
+	#[\Override]
 	public function init(): void
 	{
 		parent::init();
@@ -186,11 +187,13 @@ class FosterCheckout extends Plugin
 		];
 	}
 
+	#[\Override]
 	protected function createSettingsModel(): ?Model
 	{
 		return new Settings();
 	}
 
+	#[\Override]
 	protected function settingsHtml(): ?string
 	{
 		return Craft::$app->view->renderTemplate('foster-checkout/_plugin/settings.twig', [

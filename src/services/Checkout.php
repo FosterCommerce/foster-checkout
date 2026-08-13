@@ -36,7 +36,7 @@ class Checkout extends Component
 
 	public function addressFormatter(): CheckoutAddressFormatter
 	{
-		return CheckoutAddressFormatter::instance();
+		return new CheckoutAddressFormatter();
 	}
 
 	/**

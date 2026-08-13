@@ -89,6 +89,7 @@ class Settings extends Model
 	 * @param array<mixed, mixed> $values
 	 * @param bool $safeOnly
 	 */
+	#[\Override]
 	public function setAttributes($values, $safeOnly = true): void
 	{
 		if (array_key_exists('options', $values)) {
