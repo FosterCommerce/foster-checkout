@@ -20,10 +20,12 @@ use craft\web\UrlManager;
 use craft\web\View;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\services\Checkout;
+use fostercommerce\fostercheckout\services\Content;
 use yii\base\Event;
 
 /**
  * @property-read Checkout $checkout
+ * @property-read Content $content
  */
 class FosterCheckout extends Plugin
 {
@@ -206,6 +208,7 @@ class FosterCheckout extends Plugin
 	{
 		$this->setComponents([
 			'checkout' => Checkout::class,
+			'content' => Content::class,
 		]);
 	}
 
