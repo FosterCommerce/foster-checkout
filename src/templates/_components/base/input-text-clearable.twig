@@ -16,8 +16,12 @@
 	x-data="ClearableInput({
 		name: '{{ name|default('') }}',
 		value: '{{ value|default('') }}',
-		countryCode: () => countryCode,
-		requiredFields: () => requiredFields(),
+		{# These closures resolve against the address form's scope, so only address fields may pass them. #}
+		{% if addressScope|default(false) %}
+			addressScope: true,
+			countryCode: () => countryCode,
+			requiredFields: () => requiredFields(),
+		{% endif %}
 		{% if required is defined %}
 			required: {{ required ? 'true' : 'false' }},
 		{% endif %}

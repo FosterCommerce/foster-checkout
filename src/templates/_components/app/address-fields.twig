@@ -84,6 +84,7 @@ since the array key will be the same #}
 
 	<div class="sm:col-span-3">
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+			addressScope: true,
 			context: context,
 			label: 'addressFields.fullnameLabel'|t('foster-checkout'),
 			id: 'fullName',
@@ -99,6 +100,7 @@ since the array key will be the same #}
 
 	<div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:col-span-3">
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+			addressScope: true,
 			context: context,
 			label: 'addressFields.addressLabel'|t('foster-checkout'),
 			id: 'addressLine1',
@@ -112,6 +114,7 @@ since the array key will be the same #}
 		} %}
 
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+			addressScope: true,
 			context: context,
 			label: 'addressFields.address2Label'|t('foster-checkout'),
 			hideLabel: true,
@@ -125,6 +128,7 @@ since the array key will be the same #}
 		} %}
 
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+			addressScope: true,
 			context: context,
 			label: 'Line 3',
 			hideLabel: true,
@@ -140,6 +144,7 @@ since the array key will be the same #}
 
 	<div class="sm:col-span-1">
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+			addressScope: true,
 			context: context,
 			label: 'addressFields.cityLabel'|t('foster-checkout'),
 			id: 'locality',
@@ -160,6 +165,7 @@ since the array key will be the same #}
 
 	<div class="sm:col-span-1">
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+			addressScope: true,
 			context: context,
 			label: 'addressFields.postcodeLabel'|t('foster-checkout'),
 			id: 'postalCode',
@@ -213,6 +219,7 @@ since the array key will be the same #}
 
 			{% else %}
 				{% include 'foster-checkout/_components/base/input-text-clearable' with {
+					addressScope: true,
 					context: context,
 					label: customField.name|t('foster-checkout'),
 					id: 'custom-field-' ~ customField.handle,

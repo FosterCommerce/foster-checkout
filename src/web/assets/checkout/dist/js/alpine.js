@@ -1,23 +1,13 @@
 import Alpine from 'https://esm.sh/alpinejs@3';
 import focus from 'https://esm.sh/@alpinejs/focus';
 
-async function callAction(url, body = {}, method = 'POST') {
-	return await fetch(url, {
-		headers: {
-			Accept: 'application/json',
-			'X-Requested-With': 'XMLHttpRequest',
-		},
-		method,
-		body,
-	});
-}
-
 const ClearableInput = (props) => {
 	return {
 		name: props.name,
 		value: props.value,
 		countryCode: props.countryCode,
 		requiredFields: props.requiredFields,
+		addressScope: props.addressScope ?? false,
 		required: props.required,
 		errors: props.errors,
 		success: props.success,
@@ -41,39 +31,18 @@ const ClearableInput = (props) => {
 			this.$refs.input.focus();
 		},
 		isRequired() {
-			// If its a boolean, then we return that, not what the address formatter indicates.
 			if (typeof this.required === 'boolean') {
 				return this.required;
 			}
 
-			// If its a string, then we check if that value is in the requiredFields object
-			if (typeof this.required === 'string') {
-				return (
-					this.requiredFields()[this.countryCode()]?.includes(this.required) ??
-					false
-				);
-			}
-
-			if (!this.requiredFields) {
+			// Only address forms render the country-keyed map these closures read.
+			if (!this.addressScope) {
 				return false;
 			}
 
-			try {
-				let countryCode = this.countryCode() ?? '';
-				let requiredFields = this.requiredFields() ?? {};
-
-				// Check if countryCode and requiredFields are defined
-				if (!countryCode || !requiredFields) {
-					return false;
-				}
-
-				// Otherwise we check if the field name is in the requiredFields object
-				return requiredFields[countryCode]?.includes(this.name) ?? false;
-			} catch (error) {
-				// Somehow there is a moment where the countryCode and requiredFields are not defined
-				// This is a temporary fix to prevent the error log - no functionality is broken.
-				return false;
-			}
+			return (
+				this.requiredFields()[this.countryCode()]?.includes(this.name) ?? false
+			);
 		},
 	};
 };
@@ -228,12 +197,14 @@ const SearchableSelect = (props) => {
 				if (!this.open) {
 					this._keydownHandled = true;
 					this.openListbox();
+					// x-trap activates on a 15ms timer, so focus only reaches the search
+					// box after that; seeding it any sooner loses the opening keystroke.
 					setTimeout(() => {
 						if (this.$refs.search) {
 							this.$refs.search.value = event.key;
 							this.search = event.key;
-							const len = this.$refs.search.value.length;
-							this.$refs.search.setSelectionRange(len, len);
+							const caret = this.$refs.search.value.length;
+							this.$refs.search.setSelectionRange(caret, caret);
 						}
 					}, 50);
 				}
@@ -345,6 +316,7 @@ const SearchableSelect = (props) => {
 
 		closeAndFocusButton() {
 			this.closeListbox();
+			this.$refs.button.focus();
 		},
 
 		resetActiveIndex() {
@@ -481,159 +453,109 @@ const SearchableSelect = (props) => {
 	};
 };
 
-const LineItem = (props) => {
+const LineItem = (options) => {
 	return {
-		id: props.lineItemId,
-		qty: props.qty,
-		min: props.min,
-		max: props.max,
-		stock: props.stock,
-		unlimitedStock: props.unlimitedStock,
-		showErrorMaxMessage: props.showErrorMaxMessage,
-		showErrorMinMessage: props.showErrorMinMessage,
-		showErrorStockMessage: props.showErrorStockMessage,
-		action: '',
+		...options,
 		sending: false,
+		action: 'update',
+		postTimer: null,
+		justClickedButton: false,
+
+		get maxAllowed() {
+			const hardCap = this.max || Infinity;
+			if (this.unlimitedStock) {
+				return hardCap;
+			}
+
+			return Math.min(hardCap, this.stock ?? 0);
+		},
+
+		// Keep qty within min, max and stock, and flag which limit was hit
+		clamp(value) {
+			let quantity = Number.isFinite(+value) ? +value : this.min || 1;
+
+			this.showErrorMinMessage = !!(this.min && quantity < this.min);
+			if (this.showErrorMinMessage) {
+				quantity = this.min;
+			}
+
+			const limit = this.maxAllowed;
+			this.showErrorMaxMessage = Number.isFinite(limit) && quantity > limit;
+			if (this.showErrorMaxMessage) {
+				quantity = limit;
+			}
+
+			this.showErrorStockMessage =
+				!this.unlimitedStock && quantity > (this.stock ?? 0);
+
+			return quantity;
+		},
+
+		// Left control removes the item at qty 1, otherwise decrements
+		leftClick() {
+			if (this.qty <= 1) {
+				this.remove();
+				return;
+			}
+
+			this.qty = this.clamp(this.qty - 1);
+			this.schedulePost();
+		},
+
+		increment() {
+			this.qty = this.clamp(this.qty + 1);
+			this.schedulePost();
+		},
 
 		input() {
-			let sanitized = this.qty.toString();
-			sanitized = sanitized.replace(/\D/g, '');
-			this.qty = sanitized;
-
-			if (this.qty) {
-				this.updateQty();
-			}
+			this.qty = this.clamp(this.qty);
 		},
-		increment() {
-			this.removeMessages();
-			this.qty++;
-			this.updateQty();
-		},
-		decrement() {
-			this.removeMessages();
-			if (this.qty === 1) {
-				this.remove();
-			} else {
-				this.qty = this.qty > 1 ? this.qty - 1 : 1;
-				this.updateQty();
-			}
-		},
-		async remove() {
-			const form = document.querySelector(`#lineItemQty-${props.id}`);
-			const formData = new FormData(form);
-			formData.set(`lineItems[${props.id}][remove]`, true);
-			this.action = 'remove';
-			this.sending = true;
 
-			try {
-				const response = await fetch('/actions/commerce/cart/update-cart', {
-					method: 'POST',
-					headers: {
-						Accept: 'application/json',
-						'X-Requested-With': 'XMLHttpRequest',
-					},
-					body: formData,
-				});
-
-				if (!response.ok) {
-					throw new Error('Network response was not ok');
-				}
-
-				const data = await response.json();
-
-				// TEMP: Reloading here to refresh the cart page instead of updating the data via ajax
-				location.reload();
-
-				/*
-				// we should only do this if the ajax operation was successful
-				const container = form.closest('article');
-				container.remove();
-				*/
-			} catch (error) {
-				console.error('Error:', error);
-			}
-		},
 		blur() {
-			this.qty = this.qty === '' ? 0 : this.qty;
-		},
-		removeMessages() {
-			this.showErrorMaxMessage = false;
-			this.showErrorMinMessage = false;
-			this.showErrorStockMessage = false;
-		},
-		async updateQty() {
-			if (this.unlimitedStock === 0 && this.qty > this.stock) {
-				this.qty = this.stock;
-				this.showErrorStockMessage = true;
-			} else if (this.qty < this.min && this.min !== 0) {
-				this.qty = this.min;
-				this.showErrorMinMessage = true;
-			} else if (this.unlimitedStock && this.max && this.qty > this.max) {
-				this.qty = this.max;
-				this.showErrorMaxMessage = true;
-			} else {
-				props.qty = this.qty;
-
-				const form = document.querySelector(`#lineItemQty-${props.id}`);
-				const formData = new FormData(form);
-				formData.set(`lineItems[${props.id}][qty]`, props.qty);
-				this.action = 'update';
-				this.sending = true;
-
-				try {
-					const response = await fetch('/actions/commerce/cart/update-cart', {
-						method: 'POST',
-						headers: {
-							Accept: 'application/json',
-							'X-Requested-With': 'XMLHttpRequest',
-						},
-						body: formData,
-					});
-
-					if (!response.ok) {
-						throw new Error('Network response was not ok');
-					}
-
-					const data = await response.json();
-					location.reload();
-				} catch (error) {
-					console.error('Error:', error);
-				}
+			if (this.justClickedButton) {
+				this.justClickedButton = false;
+				return;
 			}
+
+			this.clearPending();
+			this.qty = this.clamp(this.qty);
+			this.post('update');
 		},
-	};
-};
 
-const Payment = (props) => {
-	return {
-		gatewayId: props.gatewayId,
-		billingSameAsShipping: props.billingSameAsShipping,
-		addressBookBillingAddress: props.addressBookBillingAddress,
-		newBillingAddress: props.newBillingAddress,
-		billingAddressId: props.billingAddressId,
-		editAddress: props.editAddress,
-		async selectSameAsShipping() {
-			this.editAddress = 0;
-			this.newBillingAddress = 0;
-			this.billingSameAsShipping = 1;
-			this.addressBookBillingAddress = 0;
-			this.billingAddressId = null;
-
-			callAction(
-				'/actions/commerce/cart/update-cart',
-				new FormData(document.querySelector(`#sameAsShippingForm`))
-			);
+		onButtonMouseDown() {
+			this.justClickedButton = true;
 		},
-		async selectAddress() {
-			this.editAddress = 0;
-			this.newBillingAddress = 0;
-			this.billingSameAsShipping = 0;
-			this.addressBookBillingAddress = 1;
 
-			callAction(
-				'/actions/commerce/cart/update-cart',
-				new FormData(document.querySelector(`#addressBookForm`))
-			);
+		remove() {
+			this.clearPending();
+			this.qty = 0;
+			this.post('remove');
+		},
+
+		// Button presses land in bursts, so only the final quantity is posted
+		schedulePost(delay = 500) {
+			this.clearPending();
+			this.postTimer = setTimeout(() => this.post('update'), delay);
+		},
+
+		clearPending() {
+			if (!this.postTimer) {
+				return;
+			}
+
+			clearTimeout(this.postTimer);
+			this.postTimer = null;
+		},
+
+		post(actionType) {
+			this.action = actionType;
+			this.$nextTick(() => {
+				const quantityInput = this.$root.querySelector(
+					`input[name="lineItems[${this.id}][qty]"]`
+				);
+				quantityInput.value = this.qty;
+				this.$root.querySelector('form').requestSubmit();
+			});
 		},
 	};
 };
@@ -642,7 +564,6 @@ Alpine.plugin(focus);
 Alpine.data('ClearableInput', ClearableInput);
 Alpine.data('SearchableSelect', SearchableSelect);
 Alpine.data('LineItem', LineItem);
-Alpine.data('Payment', Payment);
 
 window.Alpine = Alpine;
 Alpine.start();
