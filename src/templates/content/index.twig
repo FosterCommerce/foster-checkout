@@ -42,6 +42,25 @@
 			}) }}
 		{% endfor %}
 
+		<hr>
+
+		{{ forms.editableTableField({
+			label: 'content.footerLinks'|t('foster-checkout'),
+			instructions: 'content.footerLinksHelp'|t('foster-checkout'),
+			id: 'footer-links',
+			name: 'links[footerLinks]',
+			cols: {
+				text: { heading: 'content.footerLinkText'|t('foster-checkout'), type: 'singleline' },
+				url: { heading: 'content.footerLinkUrl'|t('foster-checkout'), type: 'singleline' },
+			},
+			rows: footerLinks,
+			addRowLabel: 'content.addFooterLink'|t('foster-checkout'),
+			allowAdd: true,
+			allowDelete: true,
+			allowReorder: true,
+			static: readOnly,
+		}) }}
+
 		{% if not readOnly %}
 			<div class="buttons">
 				<button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>

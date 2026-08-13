@@ -60,6 +60,7 @@ class ContentController extends Controller
 			'showSiteMenu' => $this->showSiteMenu(),
 			'noteKeys' => $this->availableNoteKeys(),
 			'notes' => $plugin->content->get('notes') ?? [],
+			'footerLinks' => $plugin->content->get('links.footerLinks') ?? [],
 			'readOnly' => ! Craft::$app->getUser()->checkPermission(FosterCheckout::PERMISSION_EDIT_CONTENT),
 		]);
 	}
@@ -91,7 +92,11 @@ class ContentController extends Controller
 			$storedNotes[$noteKey] = (string) ($postedNotes[$noteKey] ?? '');
 		}
 
+		$storedLinks = is_array($content['links'] ?? null) ? $content['links'] : [];
+		$storedLinks['footerLinks'] = $this->postedFooterLinks();
+
 		$content['notes'] = $storedNotes;
+		$content['links'] = $storedLinks;
 
 		if (! $plugin->content->save($content)) {
 			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'content.saveFailed'));
@@ -102,6 +107,37 @@ class ContentController extends Controller
 		$this->setSuccessFlash(Craft::t(FosterCheckout::HANDLE, 'content.saved'));
 
 		return $this->redirectToPostedUrl();
+	}
+
+	/**
+	 * Rows missing either column are dropped, so the storefront never renders a link with no
+	 * destination or no label.
+	 *
+	 * @return array<int, array{text: string, url: string}>
+	 */
+	private function postedFooterLinks(): array
+	{
+		$postedRows = $this->request->getBodyParam('links.footerLinks', []);
+
+		if (! is_array($postedRows)) {
+			return [];
+		}
+
+		$footerLinks = [];
+
+		foreach ($postedRows as $postedRow) {
+			$text = is_array($postedRow) ? trim((string) ($postedRow['text'] ?? '')) : '';
+			$url = is_array($postedRow) ? trim((string) ($postedRow['url'] ?? '')) : '';
+
+			if ($text !== '' && $url !== '') {
+				$footerLinks[] = [
+					'text' => $text,
+					'url' => $url,
+				];
+			}
+		}
+
+		return $footerLinks;
 	}
 
 	/**

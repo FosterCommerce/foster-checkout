@@ -228,6 +228,12 @@ return [
 	'content.globalCheckoutHelp' => 'Shown on every checkout step.',
 	'content.mistakeHeading' => '“Made a mistake” heading',
 	'content.mistakeHeadingHelp' => 'Heading for the “made a mistake” block on the order confirmation page.',
+	'content.footerLinks' => 'Footer links',
+	'content.footerLinksHelp' => 'Links shown in the footer of the cart and checkout pages. Rows missing a label or URL are ignored.',
+	'content.footerLinkText' => 'Label',
+	'content.footerLinkUrl' => 'URL',
+	'content.addFooterLink' => 'Add a link',
+
 	'content.mistakeText' => '“Made a mistake” text',
 	'content.mistakeTextHelp' => 'Body text for the “made a mistake” block on the order confirmation page.',
 
