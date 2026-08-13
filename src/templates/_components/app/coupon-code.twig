@@ -1,8 +1,8 @@
-{% set couponCodeError = cart.getFirstNotice(null, 'couponCode') ?? null %}
+{% set couponCodeError = craft.app.session.getFlash('couponCodeError') %}
 {% set couponCodeSuccess = craft.app.session.getFlash('success') ?? null %}
 
 {% if couponCodeError %}
-	{% set couponMessage = couponCodeError.message %}
+	{% set couponMessage = couponCodeError %}
 {% else %}
 	{% if couponCodeSuccess
 		and couponCodeSuccess == 'summary.couponCodeAdded'|t('foster-checkout')
@@ -126,9 +126,3 @@
 	{% endif %}
 	</div>
 </div>
-
-{% if couponCodeError %}
-	{# Only update the cart if there was an error previously #}
-	{% do cart.clearNotices(null, 'couponCode') %}
-	{% do craft.app.elements.saveElement(cart) %}
-{% endif %}

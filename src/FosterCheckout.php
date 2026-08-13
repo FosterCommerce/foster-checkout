@@ -6,6 +6,8 @@ use CommerceGuys\Addressing\AddressFormat\AddressField;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
+use craft\commerce\elements\Order;
+use craft\commerce\events\OrderNoticeEvent;
 use craft\events\DefineAddressFieldLabelEvent;
 use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
@@ -278,6 +280,21 @@ class FosterCheckout extends Plugin
 				) {
 					$event->label = 'County';
 				}
+			}
+		);
+
+		// Commerce persists a coupon notice on the order, so the cart page would have to write
+		// on a GET to make it appear only once. A flash survives the redirect and expires itself.
+		Event::on(
+			Order::class,
+			Order::EVENT_BEFORE_APPLY_ADD_NOTICE,
+			static function (OrderNoticeEvent $event): void {
+				if (! Craft::$app->getRequest()->getIsSiteRequest() || $event->orderNotice->attribute !== 'couponCode') {
+					return;
+				}
+
+				Craft::$app->getSession()->setFlash('couponCodeError', $event->orderNotice->message);
+				$event->isValid = false;
 			}
 		);
 

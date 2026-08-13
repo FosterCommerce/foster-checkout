@@ -91,7 +91,7 @@
 											placeholder: 'email.emailPlaceholder'|t('foster-checkout'),
 											value: cart ? cart.email : '',
 											required: true,
-											errors: [],
+											errors: cart.getErrors('email'),
 											action: '$nextTick(() => { $refs.input.focus() });'
 										} %}
 									</div>
