@@ -8,6 +8,7 @@ use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
 use craft\commerce\enums\LineItemType;
 use craft\commerce\models\LineItem;
+use craft\commerce\Plugin as Commerce;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
 use craft\errors\InvalidFieldException;
@@ -28,9 +29,49 @@ use yii\base\InvalidConfigException;
  */
 class Checkout extends Component
 {
+	/**
+	 * @var array<string, array<int, string>>|null
+	 */
+	private ?array $addressRequiredFields = null;
+
 	public function addressFormatter(): CheckoutAddressFormatter
 	{
 		return CheckoutAddressFormatter::instance();
+	}
+
+	/**
+	 * Required address fields for every country the store sells to, keyed by country code.
+	 *
+	 * @return array<string, array<int, string>>
+	 */
+	public function addressRequiredFields(): array
+	{
+		if ($this->addressRequiredFields !== null) {
+			return $this->addressRequiredFields;
+		}
+
+		$addressFormatRepository = Craft::$app->getAddresses()->getAddressFormatRepository();
+		$requiredFields = [];
+
+		foreach (array_keys($this->storeCountries()) as $countryCode) {
+			// AddressField is a class of string constants, so these are the property names themselves.
+			/** @var array<int, string> $countryRequiredFields */
+			$countryRequiredFields = $addressFormatRepository->get($countryCode)->getRequiredFields();
+			$requiredFields[$countryCode] = $countryRequiredFields;
+		}
+
+		return $this->addressRequiredFields = $requiredFields;
+	}
+
+	/**
+	 * @return array<string, string>
+	 */
+	public function storeCountries(): array
+	{
+		/** @var Commerce $commerce */
+		$commerce = Commerce::getInstance();
+
+		return $commerce->getStores()->getCurrentStore()->getSettings()->getCountriesList();
 	}
 
 	public function settings(): Settings
