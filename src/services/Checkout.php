@@ -11,14 +11,12 @@ use craft\commerce\models\LineItem;
 use craft\commerce\Plugin as Commerce;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
-use craft\errors\InvalidFieldException;
 use DateTime;
 use fostercommerce\fostercheckout\formatters\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\DeliveryDate;
 use fostercommerce\fostercheckout\models\PaymentGatewayConfig;
 use fostercommerce\fostercheckout\models\Settings;
-use fostercommerce\fostercheckout\models\ValueConfig;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 
@@ -74,6 +72,14 @@ class Checkout extends Component
 		return $commerce->getStores()->getCurrentStore()->getSettings()->getCountriesList();
 	}
 
+	public function content(): Content
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $plugin->content;
+	}
+
 	public function settings(): Settings
 	{
 		/** @var FosterCheckout $plugin */
@@ -103,45 +109,38 @@ class Checkout extends Component
 	 */
 	public function links(string $field): ?array
 	{
-		$links = $this->settings()->links;
+		$links = $this->content()->get("links.{$field}");
 
-		/** @var ?ValueConfig $links */
-		$link = $links->{$field} ?? null;
-
-		try {
-			if ($link instanceof ValueConfig) {
-				/** @var LinksTable $value */
-				$value = $link->getValue();
-				return $value;
-			}
-		} catch (InvalidFieldException) {
+		if (! is_array($links)) {
 			return null;
 		}
 
-		return null;
+		// A half-filled row would otherwise reach Twig as a missing attribute and fatal the page.
+		$complete = array_filter(
+			$links,
+			static fn ($link): bool => is_array($link) && ($link['text'] ?? '') !== '' && ($link['url'] ?? '') !== ''
+		);
+
+		/** @var LinksTable $completeLinks */
+		$completeLinks = array_values($complete);
+
+		return $completeLinks;
 	}
 
 	/**
-	 * Gets the custom note data based on the template page we are on
+	 * Stored copy is rendered as a Twig template, so a note can reference the cart or order.
 	 *
-	 * @param array<non-empty-string, mixed> $context additional context to pass to the callable or twig template
+	 * @param array<non-empty-string, mixed> $context additional context to pass to the twig template
 	 */
-	public function note(string $field, array $context = []): string|null
+	public function note(string $field, array $context = []): ?string
 	{
-		$notes = $this->settings()->notes;
+		$note = $this->content()->get("notes.{$field}");
 
-		/** @var ?ValueConfig $note */
-		$note = $notes->{$field} ?? null;
-
-		try {
-			if ($note instanceof ValueConfig) {
-				return $note->toStringWithContext($context);
-			}
-		} catch (InvalidFieldException) {
+		if (! is_string($note)) {
 			return null;
 		}
 
-		return null;
+		return Craft::$app->getView()->renderString($note, $context);
 	}
 
 	/**

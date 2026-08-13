@@ -7,7 +7,8 @@ use fostercommerce\fostercheckout\db\Table;
 
 /**
  * @property int $id
- * @property ?string $content
+ * @property string $translationKey
+ * @property array<string, mixed>|null $content
  * @property string $dateCreated
  * @property string $dateUpdated
  * @property string $uid

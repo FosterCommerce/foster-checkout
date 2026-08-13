@@ -2,10 +2,18 @@
 
 namespace fostercommerce\fostercheckout\models;
 
+use craft\base\Field;
 use craft\base\Model;
 
 class Settings extends Model
 {
+	/**
+	 * How checkout content varies across sites, using Craft's field translation methods:
+	 * `none` for one shared copy, `site` for a copy per site, or `language` to share a copy
+	 * between sites speaking the same language.
+	 */
+	public string $contentTranslationMethod = Field::TRANSLATION_METHOD_SITE;
+
 	public OptionConfig $options;
 
 	public BrandingConfig $branding;

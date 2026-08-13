@@ -2,42 +2,40 @@
 
 namespace fostercommerce\fostercheckout\services;
 
+use Craft;
+use craft\base\Field;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
+use fostercommerce\fostercheckout\FosterCheckout;
+use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\records\Content as ContentRecord;
 use yii\base\Component;
 
 /**
  * Checkout copy that store admins edit in the control panel.
  *
- * Held as a single JSON row rather than a row per key, so adding a key needs no migration.
+ * Held as a JSON blob per translation key rather than a row per key, so adding a key needs no migration.
  */
 class Content extends Component
 {
 	/**
-	 * @var array<string, mixed>|null
+	 * @var array<string, array<string, mixed>>
 	 */
-	private ?array $content = null;
+	private array $content = [];
 
 	/**
 	 * @return array<string, mixed>
 	 */
 	public function all(): array
 	{
-		if ($this->content !== null) {
-			return $this->content;
+		$translationKey = $this->translationKey();
+
+		if (! isset($this->content[$translationKey])) {
+			$storedContent = $this->record()->content;
+
+			$this->content[$translationKey] = $storedContent ?? [];
 		}
 
-		$storedContent = $this->record()->content;
-
-		if ($storedContent === null) {
-			return $this->content = [];
-		}
-
-		/** @var array<string, mixed> $decoded */
-		$decoded = Json::decode($storedContent);
-
-		return $this->content = $decoded;
+		return $this->content[$translationKey];
 	}
 
 	/**
@@ -54,21 +52,56 @@ class Content extends Component
 	public function save(array $content): bool
 	{
 		$record = $this->record();
-		$record->content = Json::encode($content);
+		// Craft encodes values bound to a json column, so assigning the array avoids double-encoding.
+		$record->content = $content;
 
 		if (! $record->save()) {
 			return false;
 		}
 
-		$this->content = $content;
+		$this->content[$this->translationKey()] = $content;
 
 		return true;
 	}
 
+	/**
+	 * Mirrors `ElementHelper::translationKey()`, which content cannot call directly without an element.
+	 */
+	public function translationKey(): string
+	{
+		$site = Craft::$app->getSites()->getCurrentSite();
+
+		return match ($this->settings()->contentTranslationMethod) {
+			Field::TRANSLATION_METHOD_NONE => '1',
+			Field::TRANSLATION_METHOD_LANGUAGE => $site->language,
+			// Craft falls back to a supported method rather than erroring on an unknown one.
+			default => (string) $site->id,
+		};
+	}
+
 	private function record(): ContentRecord
 	{
-		$record = ContentRecord::find()->one();
+		$translationKey = $this->translationKey();
 
-		return $record instanceof ContentRecord ? $record : new ContentRecord();
+		$record = ContentRecord::find()
+			->where([
+				'translationKey' => $translationKey,
+			])
+			->one();
+
+		return $record instanceof ContentRecord ? $record : new ContentRecord([
+			'translationKey' => $translationKey,
+		]);
+	}
+
+	private function settings(): Settings
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		/** @var Settings $settings */
+		$settings = $plugin->getSettings();
+
+		return $settings;
 	}
 }

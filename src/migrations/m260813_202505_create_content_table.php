@@ -15,11 +15,14 @@ class m260813_202505_create_content_table extends Migration
 	{
 		$this->createTable(Table::CONTENT, [
 			'id' => $this->primaryKey(),
+			'translationKey' => $this->string()->notNull(),
 			'content' => $this->json(),
 			'dateCreated' => $this->dateTime()->notNull(),
 			'dateUpdated' => $this->dateTime()->notNull(),
 			'uid' => $this->uid(),
 		]);
+
+		$this->createIndex(null, Table::CONTENT, ['translationKey'], true);
 
 		return true;
 	}

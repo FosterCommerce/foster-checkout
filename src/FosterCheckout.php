@@ -167,6 +167,9 @@ class FosterCheckout extends Plugin
 		'Worcestershire' => 'Worcestershire',
 	];
 
+	// Craft only runs pending migrations when this is greater than the version it has stored.
+	public string $schemaVersion = '1.1.0';
+
 	#[\Override]
 	public function init(): void
 	{

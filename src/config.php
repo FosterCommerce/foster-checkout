@@ -17,6 +17,12 @@
 use craft\commerce\elements\Order;
 
 return [
+	// How the checkout content edited in the control panel varies across sites.
+	// 'none'     - one copy shared by every site
+	// 'site'     - a copy per site
+	// 'language' - sites speaking the same language share a copy
+	'contentTranslationMethod' => 'site', // none|site|language
+
 	// Plugin options
 	'options' => [
 		// Whether or not to show the "save for later" button
