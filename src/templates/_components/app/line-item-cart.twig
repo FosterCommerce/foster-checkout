@@ -43,7 +43,7 @@
 		qty: {{ lineItem.qty }},
 		min: {{ minQty ?? 0 }},
 		max: {{ maxQty ?? 0 }},
-		stock: {{ stock }},
+		stock: {{ stock ?? 0 }},
 		unlimitedStock: {{ unlimitedStock }},
 		removeLabel: '{{ 'cart.lineItem.removeFromCart'|t('foster-checkout')|e('js') }}',
 		decreaseLabel: '{{ 'cart.lineItem.decreaseQuantity'|t('foster-checkout')|e('js') }}',
