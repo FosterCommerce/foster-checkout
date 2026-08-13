@@ -25,12 +25,6 @@ use yii\base\InvalidConfigException;
  * Checkout service
  *
  * @phpstan-type LinksTable array<array-key, array{text: non-empty-string, url: non-empty-string}>
- *
- * @property-read array $gateways
- * @property-read array $regions
- * @property-read string $paymentForm
- * @property-read array $discounts
- * @property-read array $countries
  */
 class Checkout extends Component
 {
@@ -41,8 +35,11 @@ class Checkout extends Component
 
 	public function settings(): Settings
 	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
 		/** @var Settings $settings */
-		$settings = FosterCheckout::getInstance()?->getSettings();
+		$settings = $plugin->getSettings();
 
 		return $settings;
 	}

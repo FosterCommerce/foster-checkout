@@ -63,6 +63,10 @@ class NotesConfig extends Model
 			$this->shipping = new ValueConfig();
 		}
 
+		if (! isset($this->billing)) {
+			$this->billing = new ValueConfig();
+		}
+
 		if (! isset($this->payment)) {
 			$this->payment = new ValueConfig();
 		}
