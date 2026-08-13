@@ -222,9 +222,11 @@
 							<span class="text-sm text-gray-500">
 								{{ 'summary.onSaleLabel'|t('foster-checkout') }}
 							</span><br>
-							<span class="text-sm text-[var(--brandColor)]">
-								-{{ ((lineItem.salePrice / lineItem.price)|round(2) * 100) }}%
-							</span>
+							{% if lineItem.salePrice < lineItem.price %}
+								<span class="text-sm text-[var(--brandColor)]">
+									-{{ ((lineItem.price - lineItem.salePrice) / lineItem.price * 100)|round }}%
+								</span>
+							{% endif %}
 							<span class="text-lg font-semibold">{{ lineItem.totalAsCurrency }}</span>
 						</p>
 					{% else %}
