@@ -1,0 +1,101 @@
+{% extends "foster-checkout/_layouts/settings" %}
+{% import "_includes/forms" as forms %}
+
+{# @var settings \fostercommerce\fostercheckout\models\Settings #}
+
+{% set selectedItem = 'general' %}
+{% set title = 'nav.general'|t('foster-checkout') %}
+{% set docTitle = title %}
+
+{% set overridden = 'paths' in overriddenSettings %}
+{% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
+
+{% if overridden %}
+	{% set contentNotice = 'settings.overridden'|t('foster-checkout', { section: 'paths' }) %}
+{% elseif readOnly %}
+	{% set contentNotice = readOnlyNotice() %}
+{% endif %}
+
+{% block content %}
+	<form action="" method="post" accept-charset="UTF-8"{% if not readOnly %} data-saveshortcut{% endif %}>
+		{{ actionInput('foster-checkout/settings/save-settings') }}
+		{{ redirectInput('foster-checkout/settings/general') }}
+		{{ hiddenInput('section', 'general') }}
+		{{ csrfInput() }}
+
+		{{ forms.textField({
+			label: 'settings.general.cart'|t('foster-checkout'),
+			instructions: 'settings.general.cartHelp'|t('foster-checkout'),
+			id: 'paths-cart',
+			name: 'settings[paths][cart]',
+			value: settings.paths.cart,
+			placeholder: 'cart',
+			disabled: readOnly,
+		}) }}
+
+		{{ forms.textField({
+			label: 'settings.general.checkout'|t('foster-checkout'),
+			instructions: 'settings.general.checkoutHelp'|t('foster-checkout'),
+			id: 'paths-checkout',
+			name: 'settings[paths][checkout]',
+			value: settings.paths.checkout,
+			placeholder: 'checkout',
+			disabled: readOnly,
+		}) }}
+
+		{{ forms.textField({
+			label: 'settings.general.account'|t('foster-checkout'),
+			instructions: 'settings.general.accountHelp'|t('foster-checkout'),
+			id: 'paths-account',
+			name: 'settings[paths][account]',
+			value: settings.paths.account,
+			placeholder: 'account',
+			disabled: readOnly,
+		}) }}
+
+		{{ forms.textField({
+			label: 'settings.general.cancel'|t('foster-checkout'),
+			instructions: 'settings.general.cancelHelp'|t('foster-checkout'),
+			id: 'paths-cancel',
+			name: 'settings[paths][cancel]',
+			value: settings.paths.cancel,
+			placeholder: '/',
+			disabled: readOnly,
+		}) }}
+
+		{{ forms.lightswitchField({
+			label: 'settings.general.useCartTemplate'|t('foster-checkout'),
+			instructions: 'settings.general.useCartTemplateHelp'|t('foster-checkout'),
+			id: 'paths-use-cart-template',
+			name: 'settings[paths][useCartTemplate]',
+			on: settings.paths.useCartTemplate,
+			disabled: readOnly,
+		}) }}
+
+		<hr>
+
+		{# Its own top-level config key, so it is overridden independently of the paths above. #}
+		{% set translationOverridden = 'contentTranslationMethod' in overriddenSettings %}
+
+		{{ forms.selectField({
+			label: 'settings.general.contentTranslationMethod'|t('foster-checkout'),
+			instructions: 'settings.general.contentTranslationMethodHelp'|t('foster-checkout'),
+			id: 'content-translation-method',
+			name: 'settings[contentTranslationMethod]',
+			value: settings.contentTranslationMethod,
+			options: [
+				{ label: 'settings.general.translationNone'|t('foster-checkout'), value: 'none' },
+				{ label: 'settings.general.translationSite'|t('foster-checkout'), value: 'site' },
+				{ label: 'settings.general.translationLanguage'|t('foster-checkout'), value: 'language' },
+			],
+			disabled: translationOverridden or not craft.app.config.general.allowAdminChanges,
+			warning: translationOverridden ? 'settings.overridden'|t('foster-checkout', { section: 'contentTranslationMethod' }),
+		}) }}
+
+		{% if not readOnly %}
+			<div class="buttons">
+				<button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
+			</div>
+		{% endif %}
+	</form>
+{% endblock %}

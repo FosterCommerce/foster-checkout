@@ -13,8 +13,12 @@ use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\events\RegisterUserPermissionsEvent;
+use craft\helpers\UrlHelper;
 use craft\i18n\PhpMessageSource;
 use craft\services\Addresses;
+use craft\services\UserPermissions;
+use craft\web\Response;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use craft\web\View;
@@ -29,6 +33,27 @@ use yii\base\Event;
  */
 class FosterCheckout extends Plugin
 {
+	public const HANDLE = 'foster-checkout';
+
+	public const PERMISSION_MANAGE_APPEARANCE = 'foster-checkout-manageAppearance';
+
+	public const PERMISSION_MANAGE_FEATURES = 'foster-checkout-manageFeatures';
+
+	public const PERMISSION_MANAGE_SETTINGS = 'foster-checkout-manageSettings';
+
+	/**
+	 * Settings pages, in sidebar order, mapped to the top-level config key each one edits.
+	 * A key listed in the site's config file cannot be edited here, since Craft merges the
+	 * file over stored settings on every request.
+	 *
+	 * @var array<string, string>
+	 */
+	private const array SETTINGS_SECTIONS = [
+		'appearance' => 'branding',
+		'features' => 'options',
+		'general' => 'paths',
+	];
+
 	/**
 	 * @var array<string, string>
 	 */
@@ -170,6 +195,10 @@ class FosterCheckout extends Plugin
 	// Craft only runs pending migrations when this is greater than the version it has stored.
 	public string $schemaVersion = '1.1.0';
 
+	public bool $hasCpSection = true;
+
+	public bool $hasCpSettings = true;
+
 	#[\Override]
 	public function init(): void
 	{
@@ -192,19 +221,82 @@ class FosterCheckout extends Plugin
 		];
 	}
 
+	/**
+	 * Top-level settings keys the site's config file sets. Craft shallow-merges that file over
+	 * stored settings, so a listed section is read-only in the control panel — and because the
+	 * merge is shallow, setting one key in the file overrides its whole section.
+	 *
+	 * @return array<int, string>
+	 */
+	public function getOverriddenSettings(): array
+	{
+		$fileConfig = Craft::$app->getConfig()->getConfigFromFile(self::HANDLE);
+
+		return is_array($fileConfig) ? array_keys($fileConfig) : [];
+	}
+
+	/**
+	 * @return ?array<string, mixed>
+	 */
+	#[\Override]
+	public function getCpNavItem(): ?array
+	{
+		$navItem = parent::getCpNavItem();
+
+		if (! is_array($navItem)) {
+			return null;
+		}
+
+		$navItem['label'] = Craft::t(self::HANDLE, 'nav.checkout');
+		// Bare handle so any subpath keeps the section highlighted; Craft matches on str_starts_with.
+		$navItem['url'] = self::HANDLE;
+
+		$userSession = Craft::$app->getUser();
+
+		foreach (array_keys(self::SETTINGS_SECTIONS) as $section) {
+			if (! $userSession->checkPermission(self::settingsPermission($section))) {
+				continue;
+			}
+
+			$navItem['subnav'][$section] = [
+				'label' => Craft::t(self::HANDLE, "nav.{$section}"),
+				'url' => self::HANDLE . "/settings/{$section}",
+			];
+		}
+
+		return $navItem['subnav'] === [] ? null : $navItem;
+	}
+
+	#[\Override]
+	public function getSettingsResponse(): mixed
+	{
+		/** @var Response $response */
+		$response = Craft::$app->getResponse();
+
+		return $response->redirect(UrlHelper::cpUrl(self::HANDLE . '/settings/appearance'));
+	}
+
+	/**
+	 * The top-level config key a settings page edits, or null if the section isn't one of ours.
+	 */
+	public static function settingsConfigKey(string $section): ?string
+	{
+		return self::SETTINGS_SECTIONS[$section] ?? null;
+	}
+
+	public static function settingsPermission(string $section): string
+	{
+		return match ($section) {
+			'appearance' => self::PERMISSION_MANAGE_APPEARANCE,
+			'features' => self::PERMISSION_MANAGE_FEATURES,
+			default => self::PERMISSION_MANAGE_SETTINGS,
+		};
+	}
+
 	#[\Override]
 	protected function createSettingsModel(): ?Model
 	{
 		return new Settings();
-	}
-
-	#[\Override]
-	protected function settingsHtml(): ?string
-	{
-		return Craft::$app->view->renderTemplate('foster-checkout/_plugin/settings.twig', [
-			'plugin' => $this,
-			'settings' => $this->getSettings(),
-		]);
 	}
 
 	private function registerComponents(): void
@@ -235,6 +327,39 @@ class FosterCheckout extends Plugin
 			View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
 			static function (RegisterTemplateRootsEvent $event): void {
 				$event->roots['foster-checkout'] = __DIR__ . '/templates';
+			}
+		);
+
+		Event::on(
+			UserPermissions::class,
+			UserPermissions::EVENT_REGISTER_PERMISSIONS,
+			static function (RegisterUserPermissionsEvent $event): void {
+				$event->permissions[] = [
+					'heading' => Craft::t(self::HANDLE, 'nav.checkout'),
+					'permissions' => [
+						self::PERMISSION_MANAGE_APPEARANCE => [
+							'label' => Craft::t(self::HANDLE, 'permission.manageAppearance'),
+						],
+						self::PERMISSION_MANAGE_FEATURES => [
+							'label' => Craft::t(self::HANDLE, 'permission.manageFeatures'),
+						],
+						self::PERMISSION_MANAGE_SETTINGS => [
+							'label' => Craft::t(self::HANDLE, 'permission.manageSettings'),
+						],
+					],
+				];
+			}
+		);
+
+		Event::on(
+			UrlManager::class,
+			UrlManager::EVENT_REGISTER_CP_URL_RULES,
+			static function (RegisterUrlRulesEvent $event): void {
+				$event->rules[self::HANDLE] = self::HANDLE . '/settings/appearance';
+
+				foreach (array_keys(self::SETTINGS_SECTIONS) as $section) {
+					$event->rules[self::HANDLE . "/settings/{$section}"] = self::HANDLE . "/settings/{$section}";
+				}
 			}
 		);
 

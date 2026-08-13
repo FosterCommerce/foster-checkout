@@ -1,0 +1,61 @@
+{% extends "foster-checkout/_layouts/settings" %}
+{% import "_includes/forms" as forms %}
+
+{# @var settings \fostercommerce\fostercheckout\models\Settings #}
+
+{% set selectedItem = 'features' %}
+{% set title = 'nav.features'|t('foster-checkout') %}
+{% set docTitle = title %}
+
+{% set overridden = 'options' in overriddenSettings %}
+{% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
+
+{% if overridden %}
+	{% set contentNotice = 'settings.overridden'|t('foster-checkout', { section: 'options' }) %}
+{% elseif readOnly %}
+	{% set contentNotice = readOnlyNotice() %}
+{% endif %}
+
+{% set switches = [
+	{ handle: 'enableSaveForLater', on: settings.options.enableSaveForLater },
+	{ handle: 'enableEstimatedShipping', on: settings.options.enableEstimatedShipping },
+	{ handle: 'enableFreeShippingMessage', on: settings.options.enableFreeShippingMessage },
+	{ handle: 'enablePlaceholderImages', on: settings.options.enablePlaceholderImages },
+	{ handle: 'enablePageTransitions', on: settings.options.enablePageTransitions },
+	{ handle: 'enableMadeAMistake', on: settings.options.enableMadeAMistake },
+] %}
+
+{% block content %}
+	<form action="" method="post" accept-charset="UTF-8"{% if not readOnly %} data-saveshortcut{% endif %}>
+		{{ actionInput('foster-checkout/settings/save-settings') }}
+		{{ redirectInput('foster-checkout/settings/features') }}
+		{{ hiddenInput('section', 'features') }}
+		{{ csrfInput() }}
+
+		{% for switch in switches %}
+			{{ forms.lightswitchField({
+				label: "settings.features.#{switch.handle}"|t('foster-checkout'),
+				instructions: "settings.features.#{switch.handle}Help"|t('foster-checkout'),
+				id: "options-#{switch.handle}",
+				name: "settings[options][#{switch.handle}]",
+				on: switch.on,
+				disabled: readOnly,
+			}) }}
+		{% endfor %}
+
+		{{ forms.textField({
+			label: 'settings.features.klaviyoListId'|t('foster-checkout'),
+			instructions: 'settings.features.klaviyoListIdHelp'|t('foster-checkout'),
+			id: 'options-klaviyo-list-id',
+			name: 'settings[options][klaviyoListId]',
+			value: settings.options.klaviyoListId,
+			disabled: readOnly,
+		}) }}
+
+		{% if not readOnly %}
+			<div class="buttons">
+				<button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
+			</div>
+		{% endif %}
+	</form>
+{% endblock %}

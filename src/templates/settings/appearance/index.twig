@@ -1,0 +1,91 @@
+{% extends "foster-checkout/_layouts/settings" %}
+{% import "_includes/forms" as forms %}
+
+{# @var settings \fostercommerce\fostercheckout\models\Settings #}
+
+{% set selectedItem = 'appearance' %}
+{% set title = 'nav.appearance'|t('foster-checkout') %}
+{% set docTitle = title %}
+
+{% set overridden = 'branding' in overriddenSettings %}
+{% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
+
+{% if overridden %}
+	{% set contentNotice = 'settings.overridden'|t('foster-checkout', { section: 'branding' }) %}
+{% elseif readOnly %}
+	{% set contentNotice = readOnlyNotice() %}
+{% endif %}
+
+{% block content %}
+	<form action="" method="post" accept-charset="UTF-8"{% if not readOnly %} data-saveshortcut{% endif %}>
+		{{ actionInput('foster-checkout/settings/save-settings') }}
+		{{ redirectInput('foster-checkout/settings/appearance') }}
+		{{ hiddenInput('section', 'appearance') }}
+		{{ csrfInput() }}
+
+		{{ forms.colorField({
+			label: 'settings.appearance.color'|t('foster-checkout'),
+			instructions: 'settings.appearance.colorHelp'|t('foster-checkout'),
+			id: 'branding-color',
+			name: 'settings[branding][color]',
+			value: settings.branding.color,
+			disabled: readOnly,
+		}) }}
+
+		{{ forms.colorField({
+			label: 'settings.appearance.headerBgColor'|t('foster-checkout'),
+			instructions: 'settings.appearance.headerBgColorHelp'|t('foster-checkout'),
+			id: 'branding-header-bg-color',
+			name: 'settings[branding][headerBgColor]',
+			value: settings.branding.headerBgColor,
+			disabled: readOnly,
+		}) }}
+
+		{{ forms.textField({
+			label: 'settings.appearance.font'|t('foster-checkout'),
+			instructions: 'settings.appearance.fontHelp'|t('foster-checkout'),
+			id: 'branding-font',
+			name: 'settings[branding][font]',
+			value: settings.branding.font,
+			disabled: readOnly,
+		}) }}
+
+		{{ forms.textField({
+			label: 'settings.appearance.logo'|t('foster-checkout'),
+			instructions: 'settings.appearance.logoHelp'|t('foster-checkout'),
+			id: 'branding-logo',
+			name: 'settings[branding][logo]',
+			value: settings.branding.logo,
+			placeholder: '/assets/images/logo.svg',
+			disabled: readOnly,
+		}) }}
+
+		{{ forms.selectField({
+			label: 'settings.appearance.style'|t('foster-checkout'),
+			instructions: 'settings.appearance.styleHelp'|t('foster-checkout'),
+			id: 'branding-style',
+			name: 'settings[branding][style]',
+			value: settings.branding.style,
+			options: [
+				{ label: 'settings.appearance.styleRounded'|t('foster-checkout'), value: 'rounded' },
+				{ label: 'settings.appearance.styleFlat'|t('foster-checkout'), value: 'flat' },
+			],
+			disabled: readOnly,
+		}) }}
+
+		{{ forms.textField({
+			label: 'settings.appearance.title'|t('foster-checkout'),
+			instructions: 'settings.appearance.titleHelp'|t('foster-checkout'),
+			id: 'branding-title',
+			name: 'settings[branding][title]',
+			value: settings.branding.title,
+			disabled: readOnly,
+		}) }}
+
+		{% if not readOnly %}
+			<div class="buttons">
+				<button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
+			</div>
+		{% endif %}
+	</form>
+{% endblock %}
