@@ -30,7 +30,7 @@
 	})">
 	{% if label|default %}
 		<label for="{{ fieldId }}" class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}" >
-			{{ label }}<span x-html="`${ isRequired() ? '*' : '' }`"></span>
+			{{ label }}<span x-text="isRequired() ? '*' : ''"></span>
 		</label>
 	{% endif %}
 
@@ -83,10 +83,10 @@
 	</div>
 
 	<template x-if="errors.length">
-		<p id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500" x-html="`${ errors.join(' ')}`"></p>
+		<p id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500" x-text="errors.join(' ')"></p>
 	</template>
 
 	<template x-if="success.length">
-		<p class="mt-1 text-sm text-green-500" x-html="`${ success.join(' ') } `"></p>
+		<p class="mt-1 text-sm text-green-500" x-text="success.join(' ')"></p>
 	</template>
 </div>
