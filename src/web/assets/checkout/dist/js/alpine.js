@@ -1,5 +1,5 @@
-import Alpine from 'https://esm.sh/alpinejs@3';
-import focus from 'https://esm.sh/@alpinejs/focus';
+import Alpine from 'https://esm.sh/alpinejs@3.16.1';
+import focus from 'https://esm.sh/@alpinejs/focus@3.16.1';
 
 const ClearableInput = (props) => {
 	return {
