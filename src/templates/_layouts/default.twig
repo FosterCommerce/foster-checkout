@@ -30,6 +30,9 @@
 
 	<link rel="preconnect" href="https://fonts.googleapis.com"/>
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+	{# The JS bundle is not parsed until the end of the body, so the browser would otherwise
+	   only discover esm.sh once Alpine is already needed. #}
+	<link rel="preconnect" href="https://esm.sh" crossorigin/>
 	<link
 		href="https://fonts.googleapis.com/css2?family={{ craft.fostercheckout.settings.branding.font|split(' ')|join('+') }}:wght@300;400;500;600;700&display=swap"
 		rel="stylesheet"
