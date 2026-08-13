@@ -6,6 +6,8 @@ use CommerceGuys\Addressing\AddressFormat\AddressField;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
+use craft\commerce\elements\Order;
+use craft\commerce\events\OrderNoticeEvent;
 use craft\events\DefineAddressFieldLabelEvent;
 use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
@@ -25,6 +27,145 @@ use yii\base\Event;
  */
 class FosterCheckout extends Plugin
 {
+	/**
+	 * @var array<string, string>
+	 */
+	private const array CHECKOUT_ROUTES = [
+		'' => 'foster-checkout/checkout/index',
+		'/email' => 'foster-checkout/checkout/email',
+		'/address' => 'foster-checkout/checkout/address',
+		'/shipping' => 'foster-checkout/checkout/shipping',
+		'/billing' => 'foster-checkout/checkout/billing',
+		'/payment' => 'foster-checkout/checkout/payment',
+		'/order' => 'foster-checkout/checkout/order',
+		'/login' => 'foster-checkout/account/login',
+		'/register' => 'foster-checkout/account/register',
+	];
+
+	/**
+	 * @var array<string, string>
+	 */
+	private const array UK_COUNTIES = [
+		'' => 'N/A',
+		'Aberdeenshire' => 'Aberdeenshire',
+		'Angus' => 'Angus',
+		'Argyll' => 'Argyll',
+		'Avon' => 'Avon',
+		'Ayrshire' => 'Ayrshire',
+		'Banffshire' => 'Banffshire',
+		'Bedfordshire' => 'Bedfordshire',
+		'Berkshire' => 'Berkshire',
+		'Berwickshire' => 'Berwickshire',
+		'Buckinghamshire' => 'Buckinghamshire',
+		'Caithness' => 'Caithness',
+		'Cambridgeshire' => 'Cambridgeshire',
+		'Cheshire' => 'Cheshire',
+		'Clackmannanshire' => 'Clackmannanshire',
+		'Cleveland' => 'Cleveland',
+		'Clwyd' => 'Clwyd',
+		'Cornwall' => 'Cornwall',
+		'County Antrim' => 'County Antrim',
+		'County Armagh' => 'County Armagh',
+		'County Down' => 'County Down',
+		'County Durham' => 'County Durham',
+		'County Fermanagh' => 'County Fermanagh',
+		'County Londonderry' => 'County Londonderry',
+		'County Tyrone' => 'County Tyrone',
+		'Cumbria' => 'Cumbria',
+		'Derbyshire' => 'Derbyshire',
+		'Devon' => 'Devon',
+		'Dorset' => 'Dorset',
+		'Dumfriesshire' => 'Dumfriesshire',
+		'Dunbartonshire' => 'Dunbartonshire',
+		'Dyfed' => 'Dyfed',
+		'East Lothian' => 'East Lothian',
+		'East Sussex' => 'East Sussex',
+		'Essex' => 'Essex',
+		'Fife' => 'Fife',
+		'Gloucestershire' => 'Gloucestershire',
+		'Gwent' => 'Gwent',
+		'Gwynedd' => 'Gwynedd',
+		'Hampshire' => 'Hampshire',
+		'Herefordshire' => 'Herefordshire',
+		'Hertfordshire' => 'Hertfordshire',
+		'Inverness-shire' => 'Inverness-shire',
+		'Isle of Arran' => 'Isle of Arran',
+		'Isle of Barra' => 'Isle of Barra',
+		'Isle of Benbecula' => 'Isle of Benbecula',
+		'Isle of Bute' => 'Isle of Bute',
+		'Isle of Canna' => 'Isle of Canna',
+		'Isle of Coll' => 'Isle of Coll',
+		'Isle of Colonsay' => 'Isle of Colonsay',
+		'Isle of Cumbrae' => 'Isle of Cumbrae',
+		'Isle of Eigg' => 'Isle of Eigg',
+		'Isle of Gigha' => 'Isle of Gigha',
+		'Isle of Harris' => 'Isle of Harris',
+		'Isle of Iona' => 'Isle of Iona',
+		'Isle of Islay' => 'Isle of Islay',
+		'Isle of Jura' => 'Isle of Jura',
+		'Isle of Lewis' => 'Isle of Lewis',
+		'Isle of Mull' => 'Isle of Mull',
+		'Isle of North Uist' => 'Isle of North Uist',
+		'Isle of Rhum' => 'Isle of Rhum',
+		'Isle of Scalpay' => 'Isle of Scalpay',
+		'Isle of Skye' => 'Isle of Skye',
+		'Isle of South Uist' => 'Isle of South Uist',
+		'Isle of Tiree' => 'Isle of Tiree',
+		'Isle of Wight' => 'Isle of Wight',
+		'Kent' => 'Kent',
+		'Kincardineshire' => 'Kincardineshire',
+		'Kinross-shire' => 'Kinross-shire',
+		'Kirkcudbrightshire' => 'Kirkcudbrightshire',
+		'Lanarkshire' => 'Lanarkshire',
+		'Lancashire' => 'Lancashire',
+		'Leicestershire' => 'Leicestershire',
+		'Lincolnshire' => 'Lincolnshire',
+		'London' => 'London',
+		'Merseyside' => 'Merseyside',
+		'Mid Glamorgan' => 'Mid Glamorgan',
+		'Middlesex' => 'Middlesex',
+		'Midlothian' => 'Midlothian',
+		'Morayshire' => 'Morayshire',
+		'Nairnshire' => 'Nairnshire',
+		'Norfolk' => 'Norfolk',
+		'North Humberside' => 'North Humberside',
+		'North Yorkshire' => 'North Yorkshire',
+		'Northamptonshire' => 'Northamptonshire',
+		'Northumberland' => 'Northumberland',
+		'Nottinghamshire' => 'Nottinghamshire',
+		'Orkney' => 'Orkney',
+		'Oxfordshire' => 'Oxfordshire',
+		'Peeblesshire' => 'Peeblesshire',
+		'Perthshire' => 'Perthshire',
+		'Powys' => 'Powys',
+		'Renfrewshire' => 'Renfrewshire',
+		'Ross-shire' => 'Ross-shire',
+		'Roxburghshire' => 'Roxburghshire',
+		'Selkirkshire' => 'Selkirkshire',
+		'Shetland' => 'Shetland',
+		'Shropshire' => 'Shropshire',
+		'Somerset' => 'Somerset',
+		'South Glamorgan' => 'South Glamorgan',
+		'South Humberside' => 'South Humberside',
+		'South Yorkshire' => 'South Yorkshire',
+		'Staffordshire' => 'Staffordshire',
+		'Stirlingshire' => 'Stirlingshire',
+		'Suffolk' => 'Suffolk',
+		'Surrey' => 'Surrey',
+		'Sutherland' => 'Sutherland',
+		'Tyne and Wear' => 'Tyne and Wear',
+		'Warwickshire' => 'Warwickshire',
+		'West Glamorgan' => 'West Glamorgan',
+		'West Lothian' => 'West Lothian',
+		'West Midlands' => 'West Midlands',
+		'West Sussex' => 'West Sussex',
+		'West Yorkshire' => 'West Yorkshire',
+		'Wigtownshire' => 'Wigtownshire',
+		'Wiltshire' => 'Wiltshire',
+		'Worcestershire' => 'Worcestershire',
+	];
+
+	#[\Override]
 	public function init(): void
 	{
 		parent::init();
@@ -46,11 +187,13 @@ class FosterCheckout extends Plugin
 		];
 	}
 
+	#[\Override]
 	protected function createSettingsModel(): ?Model
 	{
 		return new Settings();
 	}
 
+	#[\Override]
 	protected function settingsHtml(): ?string
 	{
 		return Craft::$app->view->renderTemplate('foster-checkout/_plugin/settings.twig', [
@@ -98,34 +241,11 @@ class FosterCheckout extends Plugin
 				$paths = $this->checkout->settings()->paths;
 				$checkoutPath = $paths->checkout;
 
-				// Define the site URL rules to route to our plugins templates
-				$event->rules[$checkoutPath] = [
-					'template' => 'foster-checkout/checkout/index',
-				];
-				$event->rules[$checkoutPath . '/email'] = [
-					'template' => 'foster-checkout/checkout/email',
-				];
-				$event->rules[$checkoutPath . '/address'] = [
-					'template' => 'foster-checkout/checkout/address',
-				];
-				$event->rules[$checkoutPath . '/shipping'] = [
-					'template' => 'foster-checkout/checkout/shipping',
-				];
-				$event->rules[$checkoutPath . '/billing'] = [
-					'template' => 'foster-checkout/checkout/billing',
-				];
-				$event->rules[$checkoutPath . '/payment'] = [
-					'template' => 'foster-checkout/checkout/payment',
-				];
-				$event->rules[$checkoutPath . '/order'] = [
-					'template' => 'foster-checkout/checkout/order',
-				];
-				$event->rules[$checkoutPath . '/login'] = [
-					'template' => 'foster-checkout/account/login',
-				];
-				$event->rules[$checkoutPath . '/register'] = [
-					'template' => 'foster-checkout/account/register',
-				];
+				foreach (self::CHECKOUT_ROUTES as $suffix => $template) {
+					$event->rules[$checkoutPath . $suffix] = [
+						'template' => $template,
+					];
+				}
 
 				if ($paths->useCartTemplate) {
 					$cartPath = $paths->cart;
@@ -166,131 +286,28 @@ class FosterCheckout extends Plugin
 			}
 		);
 
+		// Commerce persists a coupon notice on the order, so the cart page would have to write
+		// on a GET to make it appear only once. A flash survives the redirect and expires itself.
+		Event::on(
+			Order::class,
+			Order::EVENT_BEFORE_APPLY_ADD_NOTICE,
+			static function (OrderNoticeEvent $event): void {
+				if (! Craft::$app->getRequest()->getIsSiteRequest() || $event->orderNotice->attribute !== 'couponCode') {
+					return;
+				}
+
+				Craft::$app->getSession()->setFlash('couponCodeError', $event->orderNotice->message);
+				$event->isValid = false;
+			}
+		);
+
 		// A 'reasonable' list of UK county names
 		Event::on(
 			Addresses::class,
 			Addresses::EVENT_DEFINE_ADDRESS_SUBDIVISIONS,
 			static function (DefineAddressSubdivisionsEvent $event): void {
 				if (count($event->parents) === 1 && $event->parents[0] === 'GB') {
-					$event->subdivisions = [
-						'' => 'N/A',
-						'Aberdeenshire' => 'Aberdeenshire',
-						'Angus' => 'Angus',
-						'Argyll' => 'Argyll',
-						'Avon' => 'Avon',
-						'Ayrshire' => 'Ayrshire',
-						'Banffshire' => 'Banffshire',
-						'Bedfordshire' => 'Bedfordshire',
-						'Berkshire' => 'Berkshire',
-						'Berwickshire' => 'Berwickshire',
-						'Buckinghamshire' => 'Buckinghamshire',
-						'Caithness' => 'Caithness',
-						'Cambridgeshire' => 'Cambridgeshire',
-						'Cheshire' => 'Cheshire',
-						'Clackmannanshire' => 'Clackmannanshire',
-						'Cleveland' => 'Cleveland',
-						'Clwyd' => 'Clwyd',
-						'Cornwall' => 'Cornwall',
-						'County Antrim' => 'County Antrim',
-						'County Armagh' => 'County Armagh',
-						'County Down' => 'County Down',
-						'County Durham' => 'County Durham',
-						'County Fermanagh' => 'County Fermanagh',
-						'County Londonderry' => 'County Londonderry',
-						'County Tyrone' => 'County Tyrone',
-						'Cumbria' => 'Cumbria',
-						'Derbyshire' => 'Derbyshire',
-						'Devon' => 'Devon',
-						'Dorset' => 'Dorset',
-						'Dumfriesshire' => 'Dumfriesshire',
-						'Dunbartonshire' => 'Dunbartonshire',
-						'Dyfed' => 'Dyfed',
-						'East Lothian' => 'East Lothian',
-						'East Sussex' => 'East Sussex',
-						'Essex' => 'Essex',
-						'Fife' => 'Fife',
-						'Gloucestershire' => 'Gloucestershire',
-						'Gwent' => 'Gwent',
-						'Gwynedd' => 'Gwynedd',
-						'Hampshire' => 'Hampshire',
-						'Herefordshire' => 'Herefordshire',
-						'Hertfordshire' => 'Hertfordshire',
-						'Inverness-shire' => 'Inverness-shire',
-						'Isle of Arran' => 'Isle of Arran',
-						'Isle of Barra' => 'Isle of Barra',
-						'Isle of Benbecula' => 'Isle of Benbecula',
-						'Isle of Bute' => 'Isle of Bute',
-						'Isle of Canna' => 'Isle of Canna',
-						'Isle of Coll' => 'Isle of Coll',
-						'Isle of Colonsay' => 'Isle of Colonsay',
-						'Isle of Cumbrae' => 'Isle of Cumbrae',
-						'Isle of Eigg' => 'Isle of Eigg',
-						'Isle of Gigha' => 'Isle of Gigha',
-						'Isle of Harris' => 'Isle of Harris',
-						'Isle of Iona' => 'Isle of Iona',
-						'Isle of Islay' => 'Isle of Islay',
-						'Isle of Jura' => 'Isle of Jura',
-						'Isle of Lewis' => 'Isle of Lewis',
-						'Isle of Mull' => 'Isle of Mull',
-						'Isle of North Uist' => 'Isle of North Uist',
-						'Isle of Rhum' => 'Isle of Rhum',
-						'Isle of Scalpay' => 'Isle of Scalpay',
-						'Isle of Skye' => 'Isle of Skye',
-						'Isle of South Uist' => 'Isle of South Uist',
-						'Isle of Tiree' => 'Isle of Tiree',
-						'Isle of Wight' => 'Isle of Wight',
-						'Kent' => 'Kent',
-						'Kincardineshire' => 'Kincardineshire',
-						'Kinross-shire' => 'Kinross-shire',
-						'Kirkcudbrightshire' => 'Kirkcudbrightshire',
-						'Lanarkshire' => 'Lanarkshire',
-						'Lancashire' => 'Lancashire',
-						'Leicestershire' => 'Leicestershire',
-						'Lincolnshire' => 'Lincolnshire',
-						'London' => 'London',
-						'Merseyside' => 'Merseyside',
-						'Mid Glamorgan' => 'Mid Glamorgan',
-						'Middlesex' => 'Middlesex',
-						'Midlothian' => 'Midlothian',
-						'Morayshire' => 'Morayshire',
-						'Nairnshire' => 'Nairnshire',
-						'Norfolk' => 'Norfolk',
-						'North Humberside' => 'North Humberside',
-						'North Yorkshire' => 'North Yorkshire',
-						'Northamptonshire' => 'Northamptonshire',
-						'Northumberland' => 'Northumberland',
-						'Nottinghamshire' => 'Nottinghamshire',
-						'Orkney' => 'Orkney',
-						'Oxfordshire' => 'Oxfordshire',
-						'Peeblesshire' => 'Peeblesshire',
-						'Perthshire' => 'Perthshire',
-						'Powys' => 'Powys',
-						'Renfrewshire' => 'Renfrewshire',
-						'Ross-shire' => 'Ross-shire',
-						'Roxburghshire' => 'Roxburghshire',
-						'Selkirkshire' => 'Selkirkshire',
-						'Shetland' => 'Shetland',
-						'Shropshire' => 'Shropshire',
-						'Somerset' => 'Somerset',
-						'South Glamorgan' => 'South Glamorgan',
-						'South Humberside' => 'South Humberside',
-						'South Yorkshire' => 'South Yorkshire',
-						'Staffordshire' => 'Staffordshire',
-						'Stirlingshire' => 'Stirlingshire',
-						'Suffolk' => 'Suffolk',
-						'Surrey' => 'Surrey',
-						'Sutherland' => 'Sutherland',
-						'Tyne and Wear' => 'Tyne and Wear',
-						'Warwickshire' => 'Warwickshire',
-						'West Glamorgan' => 'West Glamorgan',
-						'West Lothian' => 'West Lothian',
-						'West Midlands' => 'West Midlands',
-						'West Sussex' => 'West Sussex',
-						'West Yorkshire' => 'West Yorkshire',
-						'Wigtownshire' => 'Wigtownshire',
-						'Wiltshire' => 'Wiltshire',
-						'Worcestershire' => 'Worcestershire',
-					];
+					$event->subdivisions = self::UK_COUNTIES;
 				}
 			}
 		);

@@ -32,10 +32,10 @@
 		{% endfor %}
 	</select>
 	<template x-if="errors.length" >
-		<p id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500" x-html="`${ errors.join(' ') }`"></p>
+		<p id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500" x-text="errors.join(' ')"></p>
 	</template>
 	<template x-if="success.length">
-		<p  class="mt-1 text-sm text-green-500" x-html="`${ success.join(' ') }`"></p>
+		<p  class="mt-1 text-sm text-green-500" x-text="success.join(' ')"></p>
 	</template>
 </div>
 

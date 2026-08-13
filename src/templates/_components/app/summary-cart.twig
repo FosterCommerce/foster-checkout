@@ -46,7 +46,7 @@
 
 
 		<div class="flex justify-between items-center gap-4">
-			{% if estimatedTax ?? true %}
+			{% if estimated ?? true %}
 				<dt class="text-gray-500">{{ 'summary.estimatedTaxLabel'|t('foster-checkout') }}</dt>
 			{% else %}
 				<dt class="text-gray-500">{{ 'summary.taxLabel'|t('foster-checkout') }}</dt>
@@ -106,7 +106,7 @@
 
 		{% endif %}
 
-		{% if step|default('') != 'payment' %}
+		{% if estimated ?? true %}
 			<div class="flex justify-between items-center gap-4">
 				<dt class="font-semibold text-black">{{ 'summary.estimatedTotal'|t('foster-checkout') }}</dt>
 				<dd class="font-semibold text-right text-black">{{ cart.totalPriceAsCurrency }}</dd>

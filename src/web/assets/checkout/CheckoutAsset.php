@@ -9,6 +9,7 @@ use craft\web\AssetBundle;
  */
 class CheckoutAsset extends AssetBundle
 {
+	#[\Override]
 	public function init(): void
 	{
 		$this->sourcePath = __DIR__ . '/dist';

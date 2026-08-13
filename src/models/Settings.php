@@ -89,6 +89,7 @@ class Settings extends Model
 	 * @param array<mixed, mixed> $values
 	 * @param bool $safeOnly
 	 */
+	#[\Override]
 	public function setAttributes($values, $safeOnly = true): void
 	{
 		if (array_key_exists('options', $values)) {
@@ -111,12 +112,16 @@ class Settings extends Model
 			foreach ($values['products'] as &$product) {
 				$product = new ProductConfig($product);
 			}
+
+			unset($product);
 		}
 
 		if (array_key_exists('notes', $values)) {
 			foreach ($values['notes'] as &$note) {
 				$note = new ValueConfig($note);
 			}
+
+			unset($note);
 
 			$values['notes'] = new NotesConfig($values['notes']);
 		}
@@ -138,6 +143,8 @@ class Settings extends Model
 			foreach ($values['links'] as &$link) {
 				$link = new ValueConfig($link);
 			}
+
+			unset($link);
 
 			$values['links'] = new LinksConfig($values['links']);
 		}

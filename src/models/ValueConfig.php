@@ -22,8 +22,6 @@ class ValueConfig extends Model implements Stringable
 	 */
 	public mixed $value = null;
 
-	private mixed $fieldData = null;
-
 	/**
 	 * @param string|array<array-key, mixed> $config
 	 */
@@ -52,6 +50,7 @@ class ValueConfig extends Model implements Stringable
 	/**
 	 * @throws InvalidFieldException
 	 */
+	#[\Override]
 	public function __toString(): string
 	{
 		return $this->toStringWithContext();
@@ -81,23 +80,23 @@ class ValueConfig extends Model implements Stringable
 	 */
 	public function getValue(array $context = []): mixed
 	{
-		if ($this->fieldData !== null) {
-			return $this->fieldData;
-		}
-
-		$this->fieldData = null;
-
 		if (is_string($this->value)) {
 			// If it's a string, then we render it as a twig template
-			$this->fieldData = Craft::$app->getView()->renderString($this->value, $context);
-		} elseif (is_callable($this->value)) {
+			return Craft::$app->getView()->renderString($this->value, $context);
+		}
+
+		if (is_callable($this->value)) {
 			// If it's a callable, then we call it with the context
 			$callable = $this->value;
 			// TODO we probably want to ensure that this is returning the correct data
-			$this->fieldData = $callable($context);
-		} elseif (is_array($this->value)) {
-			$this->fieldData = $this->parseArrayValue($this->value);
-		} elseif ($this->elementHandle !== null && $this->fieldHandle !== null) {
+			return $callable($context);
+		}
+
+		if (is_array($this->value)) {
+			return $this->parseArrayValue($this->value);
+		}
+
+		if ($this->elementHandle !== null && $this->fieldHandle !== null) {
 			// If it's an element and field handle, then we get the field value
 			$elementHandle = trim($this->elementHandle);
 			$fieldHandle = trim($this->fieldHandle);
@@ -112,12 +111,10 @@ class ValueConfig extends Model implements Stringable
 
 			// Get the content field data and parse it if necessary (for rich text fields like Redactor)
 			$fieldData = $element->getFieldValue($fieldHandle);
-			$this->fieldData = is_array($fieldData) ? $this->parseArrayValue($fieldData) : $fieldData;
-		} else {
-			$this->fieldData = $this->value;
+			return is_array($fieldData) ? $this->parseArrayValue($fieldData) : $fieldData;
 		}
 
-		return $this->fieldData;
+		return $this->value;
 	}
 
 	/**

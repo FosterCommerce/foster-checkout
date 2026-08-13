@@ -54,7 +54,7 @@ return [
 		'deliveryDate' => [
 			'label' => 'Expected delivery date',
 			'message' => 'Please note: Our support team is unable to investigate delivery issues until after the estimated delivery date has passed.',
-			'value' => '{{ order.dateOrdered|date_modify("+14 days")|date("M j, Y") }}', // closure, twig, string or null
+			'estimate' => '{{ order.dateOrdered|date_modify("+14 days")|date("M j, Y") }}', // closure, twig, string or null
 			'display' => true, // closure, twig or a boolean
 		],
 
@@ -103,6 +103,10 @@ return [
 
 	// Path Settings
 	'paths' => [
+		// The site relative path to the account page, linked from the completed checkout steps
+		// (ex. 'account')
+		'account' => '',
+
 		// The site relative path to where the cart should be accessible
 		// (ex. 'cart')
 		'cart' => '',
@@ -136,10 +140,10 @@ return [
 
 	/*	Extra supplementary links
 		Field should be a table field, with columns for 'text' and 'url'
-		checkoutFooter links are displayed at the bottom of each page in the checkout process
+		footerLinks are displayed at the bottom of each page in the checkout process
 	*/
 	'links' => [
-		'checkoutFooter' => [
+		'footerLinks' => [
 			'elementHandle' => '',
 			'fieldHandle' => '',
 		],

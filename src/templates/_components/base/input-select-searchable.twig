@@ -24,7 +24,13 @@
 		id: '{{ fieldId }}',
 		name: '{{ fieldName }}',
 		placeholder: '{{ placeholder }}',
-		options: {{ options is iterable ? options|json_encode : options }},
+		{# optionsFrom names a variable in the including component's scope, so the list stays
+		   live when that component replaces it. options passes a fixed list instead. #}
+		{% if optionsFrom|default %}
+			options: {{ optionsFrom }},
+		{% else %}
+			options: {{ options|json_encode }},
+		{% endif %}
 		{% if required|default %}
 			required: {{ required ? 'true' : 'false' }},
 		{% endif %}
@@ -207,11 +213,11 @@
 		</div>
 
 		<template x-if="errors.length">
-			<p :id="errorId()" class="mt-1 text-sm text-red-500" x-html="`${ errors.join(' ')}`"></p>
+			<p :id="errorId()" class="mt-1 text-sm text-red-500" x-text="errors.join(' ')"></p>
 		</template>
 
 		<template x-if="success.length">
-			<p class="mt-1 text-sm text-green-500" x-html="`${ success.join(' ') } `"></p>
+			<p class="mt-1 text-sm text-green-500" x-text="success.join(' ')"></p>
 		</template>
 	</div>
 </div>
