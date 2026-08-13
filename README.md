@@ -6,7 +6,7 @@ A companion plugin to the Foster Checkout Commerce templates.
 
 ## Requirements
 
-This plugin requires at least Craft CMS 5.0, Craft Commerce 5.0 or later, and PHP 8.2.
+This plugin requires at least Craft CMS 5.0, Craft Commerce 5.0 or later, and PHP 8.3.
 
 ## Installation
 
