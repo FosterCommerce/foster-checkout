@@ -11,15 +11,10 @@ use craft\models\FieldLayout;
 use yii\base\Component;
 
 /**
- * Owns a field layout per payment gateway, deciding which of the order's fields a customer fills
- * in when they pick that gateway.
+ * Field layouts service.
  *
- * Values save through the order's own field layout, so a layout here only ever selects from fields
- * the order already has, and is typed against the order to match.
- *
- * Layouts live in project config and are never written to the `fieldlayouts` table: Craft looks
- * layouts up there by element type, so a stored row would be liable to come back as the order's
- * own layout.
+ * Layouts are kept in project config, never in the `fieldlayouts` table, because Craft looks that
+ * table up by element type and a stored row could come back as the order's own layout.
  */
 class GatewayFieldLayouts extends Component
 {
@@ -44,27 +39,10 @@ class GatewayFieldLayouts extends Component
 		return $layout;
 	}
 
-	public function saveFieldLayout(string $gatewayHandle, FieldLayout $layout): bool
-	{
-		if (! $layout->validate()) {
-			return false;
-		}
-
-		$layout->uid ??= StringHelper::UUID();
-		$layout->type = Order::class;
-
-		Craft::$app->getProjectConfig()->set(self::CONFIG_KEY . '.' . $gatewayHandle, [
-			$layout->uid => $layout->getConfig() ?? [],
-		]);
-
-		return true;
-	}
-
 	/**
-	 * Fields a gateway asks for, flattened for the storefront so its templates never touch a layout.
+	 * Fields a gateway asks for, flattened for the storefront.
 	 *
-	 * The layout carries label, order, width and whether it is required; the input's type and its
-	 * bounds come from the Craft field, which is where those settings already live.
+	 * Type and bounds come from the Craft field, which a layout cannot express.
 	 *
 	 * @return array<int, array{handle: string, label: string, instructions: ?string, required: bool, width: int, type: string, placeholder: ?string, maxLength: ?int, min: ?int, max: ?int}>
 	 */
@@ -117,6 +95,22 @@ class GatewayFieldLayouts extends Component
 		}
 
 		return $handles;
+	}
+
+	public function saveFieldLayout(string $gatewayHandle, FieldLayout $layout): bool
+	{
+		if (! $layout->validate()) {
+			return false;
+		}
+
+		$layout->uid ??= StringHelper::UUID();
+		$layout->type = Order::class;
+
+		Craft::$app->getProjectConfig()->set(self::CONFIG_KEY . '.' . $gatewayHandle, [
+			$layout->uid => $layout->getConfig() ?? [],
+		]);
+
+		return true;
 	}
 
 	/**

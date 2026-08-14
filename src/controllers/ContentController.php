@@ -21,13 +21,8 @@ use yii\web\Response;
  */
 class ContentController extends Controller
 {
+	// `customersOrderNotes` is absent: it names an order field handle, so it is developer config.
 	/**
-	 * Note keys the screen exposes, each mapped to the option that must be enabled for the note
-	 * to appear on the storefront. A null option means the note always applies.
-	 *
-	 * `customersOrderNotes` is deliberately absent: it names an order field handle, so it is
-	 * developer config rather than copy.
-	 *
 	 * @var array<string, ?string>
 	 */
 	private const array NOTE_KEYS = [

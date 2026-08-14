@@ -162,9 +162,9 @@ class SettingsController extends Controller
 		}
 
 		// savePluginSettings() persists only the keys it is handed and replaces the whole settings
-		// node, so the posted section is merged over what is already stored. Merging the stored
-		// config rather than the settings model keeps values the model cannot round-trip — a
-		// gateway note defined as a PHP closure, for one — from being silently dropped.
+		// node, so the posted section is merged over what is already stored. The stored config is
+		// merged rather than the settings model, which cannot round-trip a gateway note defined as
+		// a PHP closure.
 		$storedSettings = ProjectConfigHelper::unpackAssociativeArrays(
 			(array) (Craft::$app->getProjectConfig()->get(ProjectConfig::PATH_PLUGINS . '.' . FosterCheckout::HANDLE . '.settings') ?? [])
 		);
@@ -229,8 +229,8 @@ class SettingsController extends Controller
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		// The field layout above lives outside plugin settings, so it stays editable; these two
-		// do not, and the config file wins over whatever is stored.
+		// The field layout lives outside plugin settings, so it stays editable. These two do not,
+		// and the config file overrides them.
 		if (in_array('paymentGateways', $plugin->getOverriddenSettings(), true)) {
 			return;
 		}
@@ -276,8 +276,8 @@ class SettingsController extends Controller
 	}
 
 	/**
-	 * Each gateway's stored config is kept and only the posted keys replaced, so a `note` — which
-	 * may be a PHP closure the control panel cannot represent — survives a settings save.
+	 * Each gateway's stored config is kept and only the posted keys replaced, so a `note` defined
+	 * as a PHP closure survives a settings save.
 	 *
 	 * @param array<array-key, mixed> $postedGateways
 	 * @param array<array-key, mixed> $storedGateways

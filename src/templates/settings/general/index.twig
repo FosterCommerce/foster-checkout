@@ -35,6 +35,15 @@
 			disabled: readOnly,
 		}) }}
 
+		{{ forms.lightswitchField({
+			label: 'settings.general.useCartTemplate'|t('foster-checkout'),
+			instructions: 'settings.general.useCartTemplateHelp'|t('foster-checkout'),
+			id: 'paths-use-cart-template',
+			name: 'settings[paths][useCartTemplate]',
+			on: settings.paths.useCartTemplate,
+			disabled: readOnly,
+		}) }}
+
 		{{ forms.textField({
 			label: 'settings.general.checkout'|t('foster-checkout'),
 			instructions: 'settings.general.checkoutHelp'|t('foster-checkout'),
@@ -62,15 +71,6 @@
 			name: 'settings[paths][cancel]',
 			value: settings.paths.cancel,
 			placeholder: '/',
-			disabled: readOnly,
-		}) }}
-
-		{{ forms.lightswitchField({
-			label: 'settings.general.useCartTemplate'|t('foster-checkout'),
-			instructions: 'settings.general.useCartTemplateHelp'|t('foster-checkout'),
-			id: 'paths-use-cart-template',
-			name: 'settings[paths][useCartTemplate]',
-			on: settings.paths.useCartTemplate,
 			disabled: readOnly,
 		}) }}
 

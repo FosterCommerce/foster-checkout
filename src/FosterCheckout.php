@@ -48,10 +48,6 @@ class FosterCheckout extends Plugin
 	public const PERMISSION_MANAGE_SETTINGS = 'foster-checkout-manageSettings';
 
 	/**
-	 * Settings pages, in sidebar order, mapped to the top-level config key each one edits.
-	 * A key listed in the site's config file cannot be edited here, since Craft merges the
-	 * file over stored settings on every request.
-	 *
 	 * @var array<string, string>
 	 */
 	private const array SETTINGS_SECTIONS = [
@@ -230,9 +226,10 @@ class FosterCheckout extends Plugin
 	}
 
 	/**
-	 * Top-level settings keys the site's config file sets. Craft shallow-merges that file over
-	 * stored settings, so a listed section is read-only in the control panel — and because the
-	 * merge is shallow, setting one key in the file overrides its whole section.
+	 * Top-level settings keys the site's config file sets.
+	 *
+	 * Craft shallow-merges the file over stored settings, so one key in the file overrides its
+	 * whole section.
 	 *
 	 * @return array<int, string>
 	 */
@@ -415,10 +412,8 @@ class FosterCheckout extends Plugin
 			}
 		);
 
-		// Although a county is not actually required for UK addresses (the postal service ignores it)
-		// it is normal in the UK to write addresses with a county
-		// with that said, UK counties are a minefield so we should not make the field required
-		// but simply provide it as an option with a reasonable list of county names
+		// The postal service ignores the county, but UK addresses are normally written with one.
+		// County names are inconsistent enough that the field stays optional.
 
 		// Adds the Administrative area to UK addresses
 		Event::on(

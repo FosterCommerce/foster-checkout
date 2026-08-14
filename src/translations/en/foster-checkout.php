@@ -204,7 +204,7 @@ return [
 	'settings.saveFailed' => 'Couldn’t save checkout settings.',
 	'settings.overridden' => 'This is being overridden by the `{setting}` setting in the `config/foster-checkout.php` file.',
 
-	'content.intro' => 'Copy shown on the cart and checkout pages. HTML is allowed, and each note is rendered as a Twig template, so it can reference the cart or order — for example {qty}.',
+	'content.intro' => 'Copy shown on the cart and checkout pages. HTML is allowed, and each note is rendered as a Twig template, so it can reference the cart or order, for example {qty}.',
 	'content.saved' => 'Content saved.',
 	'content.saveFailed' => 'Couldn’t save content.',
 

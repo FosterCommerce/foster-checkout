@@ -303,9 +303,10 @@ class Checkout extends Component
 	}
 
 	/**
-	 * Copy that moved into content storage still falls back to its config value, so an install that
-	 * has not run the migration keeps working — as does a value config can express but content
-	 * cannot, such as a gateway note defined as a PHP closure.
+	 * Reads copy from content storage, falling back to its config value.
+	 *
+	 * The fallback covers installs that have not run the migration, and values config can express
+	 * but content cannot, such as a gateway note defined as a PHP closure.
 	 *
 	 * @param array<non-empty-string, mixed> $context additional context to pass to the twig template
 	 */

@@ -139,8 +139,8 @@ const SearchableSelect = (props) => {
 		/**
 		 * Called when the trigger input receives an `input` event.
 		 * Handles two scenarios:
-		 *   a) Browser autofill just set the value — match it to an option
-		 *   b) User is typing directly — open dropdown and pipe text into search
+		 *   a) Browser autofill just set the value, so match it to an option
+		 *   b) User is typing directly, so open dropdown and pipe text into search
 		 */
 		onTriggerInput(event) {
 			if (this._keydownHandled) {
@@ -163,7 +163,7 @@ const SearchableSelect = (props) => {
 				return;
 			}
 
-			// Not an autofill match — user is typing.
+			// Not an autofill match, so the user is typing.
 			// Open the dropdown and forward their text into the search field.
 			if (!this.open) {
 				this.open = true;
@@ -435,7 +435,7 @@ const SearchableSelect = (props) => {
 				return selectedOption;
 			}
 
-			// No match — store as pending for when options load (e.g. state autofilled before country)
+			// No match, so store as pending for when options load (e.g. state autofilled before country)
 			this.tmpInputEventValue = value;
 
 			return null;
