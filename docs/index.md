@@ -13,6 +13,10 @@ A drop-in checkout for Craft Commerce, with its copy and settings managed from t
 - [Installation](./installation.md), requirements, install and first configuration
 - [Settings](./reference/settings.md), every setting, where it lives and what overrides what
 
+**Building on top of the checkout?** See the [developer guide](./dev-guide/):
+
+- [Custom includes](./dev-guide/custom-includes.md), injecting your own templates into every checkout page
+
 **Managing access?**
 
 - [Permissions](./reference/permissions.md), what each permission grants

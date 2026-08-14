@@ -35,10 +35,6 @@
 		{{ hiddenInput('section', 'products') }}
 		{{ csrfInput() }}
 
-		{% if overridden %}
-			{% include 'foster-checkout/_includes/config-warning' with { setting: 'products' } only %}
-		{% endif %}
-
 		<p>{{ 'settings.products.intro'|t('foster-checkout') }}</p>
 
 		{{ forms.editableTableField({
@@ -61,6 +57,7 @@
 			allowDelete: true,
 			allowReorder: true,
 			static: readOnly,
+			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'products' }),
 		}) }}
 
 		{% if not readOnly %}

@@ -35,8 +35,3 @@ One row per link, with a label and a URL. Rows are reorderable, and the order is
 
 Footer links are hidden on an empty cart.
 
-## Existing sites
-
-Sites that previously kept this copy in an entry or global set field, mapped through `notes` and `links` in `config/foster-checkout.php`, have it copied across automatically when the plugin updates. The migration fills only what has not already been entered in the control panel, so it is safe to run more than once.
-
-The old `notes` and `links` config keys are ignored after that. `notes.customersOrderNotes.fieldHandle` is the exception: it names an order field rather than holding copy, and is still read, though its home is now **Customer order notes field** under **Checkout -> General**.

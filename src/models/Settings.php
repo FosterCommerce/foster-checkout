@@ -112,7 +112,8 @@ class Settings extends Model
 				continue;
 			}
 
-			$this->addError($attribute, Craft::t('foster-checkout', 'settings.general.includeMissing', [
+			// Keyed per position so the error renders under the field that holds the bad path.
+			$this->addError("{$attribute}.{$position}", Craft::t('foster-checkout', 'settings.general.includeMissing', [
 				'path' => $templatePath,
 			]));
 		}

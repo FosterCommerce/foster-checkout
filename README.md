@@ -10,7 +10,7 @@ A drop-in **checkout** for Craft Commerce, with its copy and settings managed fr
 - Lets store admins edit checkout copy on production, with no custom fields to create and map, and no developer involvement.
 - Keeps copy per site or per language on multi-site installs, so each storefront reads its own wording.
 - Puts branding, feature switches, product image fields, payment gateway fields and paths on control panel screens, so a store can run without a config file.
-- Still accepts a `foster-checkout.php` config file, which overrides whatever is set in the control panel.
+- Accepts a `foster-checkout.php` config file for developer-managed sites, which overrides the control panel.
 - Adds extra fields to a payment method (an account number, for example) and shows a note when a customer selects it.
 
 ## Requirements
@@ -42,6 +42,12 @@ Appearance, features, products, payment gateways and paths each get a control pa
 
 See [`docs/reference/settings.md`](./docs/reference/settings.md).
 
+## Custom includes
+
+Two of your own templates can be injected into every cart and checkout page, one into the head and one before the closing body tag, for analytics, tracking pixels or support widgets. Each receives the current context, step and cart, so a single template can target one step or run across all of them.
+
+See [`docs/dev-guide/custom-includes.md`](./docs/dev-guide/custom-includes.md).
+
 ## Permissions
 
 - `foster-checkout-viewContent`: view the Content screen.
@@ -61,5 +67,7 @@ Proprietary.
 ## Documentation
 
 See [`docs/index.md`](./docs/index.md).
+
+## Credits
 
 Brought to you by [Foster Commerce](https://fostercommerce.com).

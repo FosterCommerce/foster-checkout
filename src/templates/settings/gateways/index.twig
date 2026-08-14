@@ -9,9 +9,6 @@
 {% set overridden = 'paymentGateways' in overriddenSettings %}
 
 {% block content %}
-	{% if overridden %}
-		{% include 'foster-checkout/_includes/config-warning' with { setting: 'paymentGateways' } only %}
-	{% endif %}
 
 	<p>{{ 'settings.gateways.intro'|t('foster-checkout') }}</p>
 

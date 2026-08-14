@@ -203,6 +203,10 @@ class FosterCheckout extends Plugin
 
 	public bool $hasCpSettings = true;
 
+	// Craft only infers this when getSettingsResponse() is not overridden, and without it the
+	// plugin drops out of Settings -> Plugins wherever admin changes are disallowed.
+	public bool $hasReadOnlyCpSettings = true;
+
 	#[\Override]
 	public function init(): void
 	{
@@ -286,6 +290,16 @@ class FosterCheckout extends Plugin
 		$response = Craft::$app->getResponse();
 
 		return $response->redirect(UrlHelper::cpUrl(self::HANDLE . '/settings/appearance'));
+	}
+
+	/**
+	 * Craft renders `settingsHtml()` here by default, which this plugin does not implement. The
+	 * settings screens disable their own fields when admin changes are off.
+	 */
+	#[\Override]
+	public function getReadOnlySettingsResponse(): mixed
+	{
+		return $this->getSettingsResponse();
 	}
 
 	/**

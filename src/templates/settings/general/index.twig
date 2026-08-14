@@ -21,10 +21,6 @@
 		{{ hiddenInput('section', 'general') }}
 		{{ csrfInput() }}
 
-		{% if overridden %}
-			{% include 'foster-checkout/_includes/config-warning' with { setting: 'paths' } only %}
-		{% endif %}
-
 		{{ forms.textField({
 			label: 'settings.general.cart'|t('foster-checkout'),
 			instructions: 'settings.general.cartHelp'|t('foster-checkout'),
@@ -33,6 +29,7 @@
 			value: settings.paths.cart,
 			placeholder: 'cart',
 			disabled: readOnly,
+			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		{{ forms.lightswitchField({
@@ -42,6 +39,7 @@
 			name: 'settings[paths][useCartTemplate]',
 			on: settings.paths.useCartTemplate,
 			disabled: readOnly,
+			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		{{ forms.textField({
@@ -52,6 +50,7 @@
 			value: settings.paths.checkout,
 			placeholder: 'checkout',
 			disabled: readOnly,
+			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		{{ forms.textField({
@@ -62,6 +61,7 @@
 			value: settings.paths.account,
 			placeholder: 'account',
 			disabled: readOnly,
+			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		{{ forms.textField({
@@ -72,6 +72,7 @@
 			value: settings.paths.cancel,
 			placeholder: '/',
 			disabled: readOnly,
+			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		<hr>
@@ -87,7 +88,7 @@
 			name: 'settings[includes][head]',
 			value: settings.includes.head,
 			disabled: includesOverridden or not adminChangesAllowed,
-			errors: settings.getErrors('includes'),
+			errors: settings.getErrors('includes.head'),
 			warning: includesOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'includes' }),
 		}) }}
 
@@ -98,6 +99,8 @@
 			name: 'settings[includes][body]',
 			value: settings.includes.body,
 			disabled: includesOverridden or not adminChangesAllowed,
+			errors: settings.getErrors('includes.body'),
+			warning: includesOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'includes' }),
 		}) }}
 
 		<hr>

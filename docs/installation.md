@@ -48,4 +48,4 @@ Sites that kept checkout copy in entry or global set fields, mapped through the 
 ./craft migrate/all
 ```
 
-Copy already entered in the control panel is left alone, so the migration is safe to run again. After it runs, remove `notes` and `links` from the config file. A gateway note defined as a PHP closure cannot be stored as content, so leave that one in place.
+Copy already entered in the control panel is left alone, so the migration is safe to run again. After it runs, remove `notes` and `links` from the config file. Two things stay: a gateway note defined as a PHP closure, which cannot be stored as content, and `notes.customersOrderNotes.fieldHandle`, which names an order field and is still read. Its home is now **Customer order notes field** under **Checkout -> General**.

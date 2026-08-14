@@ -13,13 +13,9 @@ Every user needs Craft's own `accessPlugin-foster-checkout` before any permissio
 | `foster-checkout-viewContent` | Read-only access to **Checkout -> Content** |
 | `foster-checkout-editContent` | Saving changes on that screen |
 
-`editContent` is nested under `viewContent`, so granting it implies both.
+`editContent` is nested under `viewContent` in the permissions screen, so it cannot be checked on its own there. Craft does not imply the parent at runtime, so a permission granted outside the control panel is checked on its own.
 
-### editContent grants code execution
-
-Checkout copy is rendered as a Twig template so it can reference the cart or order. A user who can edit copy can therefore run arbitrary Twig, which means running code on the server. Treat this permission as equivalent to template access, and grant it only to people you would trust with that.
-
-This is why the permission is assignable rather than fixed to admins: each build decides which groups or users get it. Make that decision deliberately.
+`editContent` grants code execution: checkout copy is rendered as Twig, so anyone who can edit it can run code on the server. Treat it as equivalent to template access. It is assignable rather than admin-only so each build can decide who gets it.
 
 ## Settings
 
@@ -31,6 +27,4 @@ This is why the permission is assignable rather than fixed to admins: each build
 
 Settings persist to project config, so they are editable only where `allowAdminChanges` is on. On production these screens are read-only regardless of permission.
 
-## Navigation visibility
-
-The **Checkout** item appears only when the user holds at least one of these permissions, and its subnav lists only the screens they can reach.
+The **Checkout** nav item appears only for users holding at least one of these permissions, and lists only the screens they can reach.

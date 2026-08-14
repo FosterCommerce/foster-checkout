@@ -45,9 +45,6 @@
 
 	<hr>
 
-	{% if optionsOverridden %}
-		{% include 'foster-checkout/_includes/config-warning' with { setting: 'paymentGateways' } only %}
-	{% endif %}
 
 	{{ forms.textField({
 		label: 'settings.gateways.columns'|t('foster-checkout'),
@@ -58,6 +55,7 @@
 		size: 3,
 		type: 'number',
 		disabled: readOnly or optionsOverridden,
+		warning: optionsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paymentGateways' }),
 	}) }}
 
 	{{ forms.editableTableField({
@@ -75,5 +73,6 @@
 		allowDelete: true,
 		allowReorder: true,
 		static: readOnly or optionsOverridden,
+		warning: optionsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paymentGateways' }),
 	}) }}
 {% endblock %}

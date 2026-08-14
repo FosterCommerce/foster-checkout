@@ -30,10 +30,6 @@
 		{{ hiddenInput('section', 'features') }}
 		{{ csrfInput() }}
 
-		{% if overridden %}
-			{% include 'foster-checkout/_includes/config-warning' with { setting: 'options' } only %}
-		{% endif %}
-
 		{% for switch in switches %}
 			{{ forms.lightswitchField({
 				label: "settings.features.#{switch.handle}"|t('foster-checkout'),
@@ -42,6 +38,7 @@
 				name: "settings[options][#{switch.handle}]",
 				on: switch.on,
 				disabled: readOnly,
+				warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'options' }),
 			}) }}
 		{% endfor %}
 
@@ -52,6 +49,7 @@
 			name: 'settings[options][klaviyoListId]',
 			value: settings.options.klaviyoListId,
 			disabled: readOnly,
+			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'options' }),
 		}) }}
 
 		{% if not readOnly %}
