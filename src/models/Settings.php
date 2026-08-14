@@ -2,8 +2,10 @@
 
 namespace fostercommerce\fostercheckout\models;
 
+use Craft;
 use craft\base\Field;
 use craft\base\Model;
+use craft\web\View;
 
 class Settings extends Model
 {
@@ -31,13 +33,9 @@ class Settings extends Model
 	public array $products = [];
 
 	/**
-	 * Notes that will appear in the cart, login, and checkout steps. Include the element handle (global or single)
-	 * and the field handle in that entry that contains the content you want to display. Fields can be either plain
-	 * text of rich text fields like Redactor or CKEditor
+	 * Handle of the field on Orders holding the note a customer leaves with their order.
 	 */
-	public NotesConfig $notes;
-
-	public LinksConfig $links;
+	public ?string $customerOrderNotesFieldHandle = null;
 
 	/**
 	 * For each payment gateway using the gateway handle, to define an array of fields to be rendered when
@@ -83,13 +81,40 @@ class Settings extends Model
 		if (! isset($this->includes)) {
 			$this->includes = new IncludesConfig();
 		}
+	}
 
-		if (! isset($this->notes)) {
-			$this->notes = new NotesConfig();
-		}
+	/**
+	 * @return array<int, array<int, string>>
+	 */
+	#[\Override]
+	public function rules(): array
+	{
+		return [
+			['includes', 'validateIncludes'],
+		];
+	}
 
-		if (! isset($this->links)) {
-			$this->links = new LinksConfig();
+	/**
+	 * An include pointing at a template that does not exist throws while rendering every cart and
+	 * checkout page, so it is rejected on save rather than taking the storefront down.
+	 */
+	public function validateIncludes(string $attribute): void
+	{
+		$view = Craft::$app->getView();
+
+		foreach (['head', 'body'] as $position) {
+			$templatePath = $this->includes->{$position};
+			if ($templatePath === '') {
+				continue;
+			}
+
+			if ($view->doesTemplateExist($templatePath, View::TEMPLATE_MODE_SITE)) {
+				continue;
+			}
+
+			$this->addError($attribute, Craft::t('foster-checkout', 'settings.general.includeMissing', [
+				'path' => $templatePath,
+			]));
 		}
 	}
 
@@ -124,15 +149,19 @@ class Settings extends Model
 			unset($product);
 		}
 
+		// `notes` and `links` moved to content storage so admins can edit them on production.
+		// The one developer setting they held is carried over, so existing config files keep working.
 		if (array_key_exists('notes', $values)) {
-			foreach ($values['notes'] as &$note) {
-				$note = new ValueConfig($note);
+			$fieldHandle = $values['notes']['customersOrderNotes']['fieldHandle'] ?? null;
+
+			if (is_string($fieldHandle) && ! isset($values['customerOrderNotesFieldHandle'])) {
+				$values['customerOrderNotesFieldHandle'] = $fieldHandle;
 			}
 
-			unset($note);
-
-			$values['notes'] = new NotesConfig($values['notes']);
+			unset($values['notes']);
 		}
+
+		unset($values['links']);
 
 		if (array_key_exists('paymentGateways', $values)) {
 			foreach ($values['paymentGateways'] as $gatewayHandle => $paymentGateway) {
@@ -145,16 +174,6 @@ class Settings extends Model
 					]
 				);
 			}
-		}
-
-		if (array_key_exists('links', $values)) {
-			foreach ($values['links'] as &$link) {
-				$link = new ValueConfig($link);
-			}
-
-			unset($link);
-
-			$values['links'] = new LinksConfig($values['links']);
 		}
 
 		parent::setAttributes($values, $safeOnly);

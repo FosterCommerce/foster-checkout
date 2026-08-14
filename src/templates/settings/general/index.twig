@@ -74,7 +74,87 @@
 
 		<hr>
 
+		{# Each of these is its own top-level config key, so each is overridden independently of the paths above. #}
+		{% set includesOverridden = 'includes' in overriddenSettings %}
+		{% set adminChangesAllowed = craft.app.config.general.allowAdminChanges %}
+
+		{{ forms.textField({
+			label: 'settings.general.includesHead'|t('foster-checkout'),
+			instructions: 'settings.general.includesHeadHelp'|t('foster-checkout'),
+			id: 'includes-head',
+			name: 'settings[includes][head]',
+			value: settings.includes.head,
+			disabled: includesOverridden or not adminChangesAllowed,
+			errors: settings.getErrors('includes'),
+			warning: includesOverridden ? 'settings.overridden'|t('foster-checkout', { section: 'includes' }),
+		}) }}
+
+		{{ forms.textField({
+			label: 'settings.general.includesBody'|t('foster-checkout'),
+			instructions: 'settings.general.includesBodyHelp'|t('foster-checkout'),
+			id: 'includes-body',
+			name: 'settings[includes][body]',
+			value: settings.includes.body,
+			disabled: includesOverridden or not adminChangesAllowed,
+		}) }}
+
+		<hr>
+
+		{% set countriesOverridden = 'priorityCountries' in overriddenSettings %}
+		{% set countryRows = [] %}
+		{% for countryCode in settings.priorityCountries %}
+			{% set countryRows = countryRows|merge([{ code: countryCode }]) %}
+		{% endfor %}
+
+		{{ forms.editableTableField({
+			label: 'settings.general.priorityCountries'|t('foster-checkout'),
+			instructions: 'settings.general.priorityCountriesHelp'|t('foster-checkout'),
+			id: 'priority-countries',
+			name: 'settings[priorityCountries]',
+			cols: {
+				code: { heading: 'settings.general.countryCode'|t('foster-checkout'), type: 'singleline' },
+			},
+			rows: countryRows,
+			addRowLabel: 'settings.general.addCountry'|t('foster-checkout'),
+			allowAdd: true,
+			allowDelete: true,
+			allowReorder: true,
+			static: countriesOverridden or not adminChangesAllowed,
+			warning: countriesOverridden ? 'settings.overridden'|t('foster-checkout', { section: 'priorityCountries' }),
+		}) }}
+
+		{% set gatewaysOverridden = 'zeroValueGatewayHandles' in overriddenSettings %}
+		{% set gatewayOptions = [] %}
+		{% for gateway in gateways %}
+			{% set gatewayOptions = gatewayOptions|merge([{ label: gateway.name, value: gateway.handle }]) %}
+		{% endfor %}
+
+		{{ forms.checkboxGroupField({
+			label: 'settings.general.zeroValueGateways'|t('foster-checkout'),
+			instructions: 'settings.general.zeroValueGatewaysHelp'|t('foster-checkout'),
+			id: 'zero-value-gateways',
+			name: 'settings[zeroValueGatewayHandles]',
+			options: gatewayOptions,
+			values: settings.zeroValueGatewayHandles,
+			disabled: gatewaysOverridden or not adminChangesAllowed,
+			warning: gatewaysOverridden ? 'settings.overridden'|t('foster-checkout', { section: 'zeroValueGatewayHandles' }),
+		}) }}
+
+		<hr>
+
 		{# Its own top-level config key, so it is overridden independently of the paths above. #}
+		{% set orderNotesOverridden = 'customerOrderNotesFieldHandle' in overriddenSettings %}
+
+		{{ forms.textField({
+			label: 'settings.general.customerOrderNotesFieldHandle'|t('foster-checkout'),
+			instructions: 'settings.general.customerOrderNotesFieldHandleHelp'|t('foster-checkout'),
+			id: 'customer-order-notes-field-handle',
+			name: 'settings[customerOrderNotesFieldHandle]',
+			value: settings.customerOrderNotesFieldHandle,
+			disabled: orderNotesOverridden or not craft.app.config.general.allowAdminChanges,
+			warning: orderNotesOverridden ? 'settings.overridden'|t('foster-checkout', { section: 'customerOrderNotesFieldHandle' }),
+		}) }}
+
 		{% set translationOverridden = 'contentTranslationMethod' in overriddenSettings %}
 
 		{{ forms.selectField({

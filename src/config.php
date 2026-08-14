@@ -144,16 +144,8 @@ return [
 		'body' => '',
 	],
 
-	/*	Extra supplementary links
-		Field should be a table field, with columns for 'text' and 'url'
-		footerLinks are displayed at the bottom of each page in the checkout process
-	*/
-	'links' => [
-		'footerLinks' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-	],
+	// The handle of the field on Orders holding the note a customer leaves with their order
+	'customerOrderNotesFieldHandle' => null,
 
 	// Product Settings
 	'products' => [
@@ -165,64 +157,6 @@ return [
 			variantImageHandle => 'variantPreviewImage',
 		]
 		*/
-	],
-
-	// Notes that will appear in the cart, login, and checkout steps. Include the element handle (global or single)
-	// and the field handle in that entry that contains the content you want to display. Fields can be either plain
-	// text of rich text fields like Redactor
-	'notes' => [
-		'cart' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'emptyCart' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'login' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'email' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'address' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'shipping' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'billing' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'payment' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'order' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'customersOrderNotes' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'globalCheckout' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'mistakeHeading' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
-		'mistakeText' => [
-			'elementHandle' => '',
-			'fieldHandle' => '',
-		],
 	],
 	// Payment Gateways: each gateway should be defined with the key matching the configured payment gateway handle in Craft Commerce setup.
 	// Each gateway contains an array of fields that are custom fields additional information that specific gateway can store on the order

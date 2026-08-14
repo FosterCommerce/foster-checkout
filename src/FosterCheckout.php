@@ -55,6 +55,8 @@ class FosterCheckout extends Plugin
 	private const array SETTINGS_SECTIONS = [
 		'appearance' => 'branding',
 		'features' => 'options',
+		'products' => 'products',
+		'gateways' => 'paymentGateways',
 		'general' => 'paths',
 	];
 
@@ -197,7 +199,7 @@ class FosterCheckout extends Plugin
 	];
 
 	// Craft only runs pending migrations when this is greater than the version it has stored.
-	public string $schemaVersion = '1.1.0';
+	public string $schemaVersion = '1.2.0';
 
 	public bool $hasCpSection = true;
 
