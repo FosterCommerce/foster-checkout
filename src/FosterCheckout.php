@@ -25,11 +25,13 @@ use craft\web\View;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\services\Checkout;
 use fostercommerce\fostercheckout\services\Content;
+use fostercommerce\fostercheckout\services\GatewayFieldLayouts;
 use yii\base\Event;
 
 /**
  * @property-read Checkout $checkout
  * @property-read Content $content
+ * @property-read GatewayFieldLayouts $gatewayFieldLayouts
  */
 class FosterCheckout extends Plugin
 {
@@ -199,7 +201,7 @@ class FosterCheckout extends Plugin
 	];
 
 	// Craft only runs pending migrations when this is greater than the version it has stored.
-	public string $schemaVersion = '1.2.0';
+	public string $schemaVersion = '1.3.0';
 
 	public bool $hasCpSection = true;
 
@@ -317,6 +319,7 @@ class FosterCheckout extends Plugin
 		$this->setComponents([
 			'checkout' => Checkout::class,
 			'content' => Content::class,
+			'gatewayFieldLayouts' => GatewayFieldLayouts::class,
 		]);
 	}
 
@@ -383,6 +386,8 @@ class FosterCheckout extends Plugin
 				foreach (array_keys(self::SETTINGS_SECTIONS) as $section) {
 					$event->rules[self::HANDLE . "/settings/{$section}"] = self::HANDLE . "/settings/{$section}";
 				}
+
+				$event->rules[self::HANDLE . '/settings/gateways/<gatewayHandle:{handle}>'] = self::HANDLE . '/settings/edit-gateway';
 			}
 		);
 

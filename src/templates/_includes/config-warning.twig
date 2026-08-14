@@ -1,0 +1,7 @@
+{# Mirrors the markup Craft's field warnings produce, so a section-level notice reads the same as
+   the per-field ones. `setting` is the config key that wins over this screen. #}
+<p class="warning has-icon">
+	<span class="icon" aria-hidden="true"></span>
+	<span class="visually-hidden">{{ 'Warning:'|t('app') }}</span>
+	<span>{{ 'settings.overridden'|t('foster-checkout', { setting: setting })|md(inlineOnly=true) }}</span>
+</p>

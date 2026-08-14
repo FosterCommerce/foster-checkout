@@ -42,6 +42,25 @@
 			}) }}
 		{% endfor %}
 
+		{% if gateways is not empty %}
+			<hr>
+
+			<h2>{{ 'content.gatewayNotes'|t('foster-checkout') }}</h2>
+			<p>{{ 'content.gatewayNotesHelp'|t('foster-checkout') }}</p>
+
+			{% for gateway in gateways %}
+				{{ forms.textareaField({
+					label: gateway.name,
+					instructions: gateway.handle,
+					id: "gateway-note-#{gateway.handle}",
+					name: "notes[gateways][#{gateway.handle}]",
+					value: gatewayNotes[gateway.handle] ?? '',
+					rows: 3,
+					disabled: readOnly,
+				}) }}
+			{% endfor %}
+		{% endif %}
+
 		<hr>
 
 		{{ forms.editableTableField({

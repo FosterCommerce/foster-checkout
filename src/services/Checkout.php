@@ -17,6 +17,7 @@ use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\DeliveryDate;
 use fostercommerce\fostercheckout\models\PaymentGatewayConfig;
 use fostercommerce\fostercheckout\models\Settings;
+use fostercommerce\fostercheckout\models\ValueConfig;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 
@@ -262,8 +263,8 @@ class Checkout extends Component
 		}
 
 		return new DeliveryDate([
-			'label' => $deliveryDateConfig->label->getValue($context),
-			'message' => $deliveryDateConfig->message->getValue($context),
+			'label' => $this->contentOrConfig('deliveryDateLabel', $deliveryDateConfig->label, $context),
+			'message' => $this->contentOrConfig('deliveryDateMessage', $deliveryDateConfig->message, $context),
 			'estimate' => $estimate,
 		]);
 	}
@@ -271,5 +272,51 @@ class Checkout extends Component
 	public function getManualGatewayConfig(string $gateway): ?PaymentGatewayConfig
 	{
 		return $this->settings()->paymentGateways[$gateway] ?? null;
+	}
+
+	/**
+	 * @return array<int, array{handle: string, label: string, instructions: ?string, required: bool, width: int}>
+	 */
+	public function gatewayFields(string $gatewayHandle): array
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $plugin->gatewayFieldLayouts->getRenderableFields($gatewayHandle);
+	}
+
+	/**
+	 * @param array<non-empty-string, mixed> $context additional context to pass to the twig template
+	 */
+	public function gatewayNote(string $gatewayHandle, array $context = []): ?string
+	{
+		return $this->contentOrConfig(
+			"gateways.{$gatewayHandle}",
+			$this->getManualGatewayConfig($gatewayHandle)?->note,
+			$context
+		);
+	}
+
+	public function subscribeText(): ?string
+	{
+		return $this->contentOrConfig('subscribe', $this->settings()->options->subscribe);
+	}
+
+	/**
+	 * Copy that moved into content storage still falls back to its config value, so an install that
+	 * has not run the migration keeps working — as does a value config can express but content
+	 * cannot, such as a gateway note defined as a PHP closure.
+	 *
+	 * @param array<non-empty-string, mixed> $context additional context to pass to the twig template
+	 */
+	private function contentOrConfig(string $field, ?ValueConfig $configValue, array $context = []): ?string
+	{
+		$note = $this->note($field, $context);
+
+		if ($note !== null && trim($note) !== '') {
+			return $note;
+		}
+
+		return $configValue instanceof ValueConfig ? $configValue->toStringWithContext($context) : null;
 	}
 }

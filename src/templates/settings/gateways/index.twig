@@ -1,126 +1,48 @@
 {% extends "foster-checkout/_layouts/settings" %}
-{% import "_includes/forms" as forms %}
 
 {# @var settings \fostercommerce\fostercheckout\models\Settings #}
 
-{% set selectedItem = 'gateways' %}
+{% set selectedSubnavItem = 'gateways' %}
 {% set title = 'nav.gateways'|t('foster-checkout') %}
 {% set docTitle = title %}
 
 {% set overridden = 'paymentGateways' in overriddenSettings %}
-{% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
-
-{% if overridden %}
-	{% set contentNotice = 'settings.overridden'|t('foster-checkout', { section: 'paymentGateways' }) %}
-{% elseif readOnly %}
-	{% set contentNotice = readOnlyNotice() %}
-{% endif %}
 
 {% block content %}
-	<form action="" method="post" accept-charset="UTF-8"{% if not readOnly %} data-saveshortcut{% endif %}>
-		{{ actionInput('foster-checkout/settings/save-settings') }}
-		{{ redirectInput('foster-checkout/settings/gateways') }}
-		{{ hiddenInput('section', 'gateways') }}
-		{{ csrfInput() }}
+	{% if overridden %}
+		{% include 'foster-checkout/_includes/config-warning' with { setting: 'paymentGateways' } only %}
+	{% endif %}
 
-		<p>{{ 'settings.gateways.intro'|t('foster-checkout') }}</p>
+	<p>{{ 'settings.gateways.intro'|t('foster-checkout') }}</p>
 
-		{% if gateways is empty %}
-			<p class="light">{{ 'settings.gateways.none'|t('foster-checkout') }}</p>
-		{% endif %}
-
-		{% for gateway in gateways %}
-			{% set gatewayConfig = settings.paymentGateways[gateway.handle] ?? null %}
-
-			{% set fieldRows = [] %}
-			{% for field in (gatewayConfig ? gatewayConfig.fields : []) %}
-				{% set fieldRows = fieldRows|merge([{
-					handle: field.handle,
-					label: field.label,
-					type: field.type,
-					placeholder: field.placeholder,
-					required: field.required,
-					minLength: field.minLength is same as(false) ? '' : field.minLength,
-					maxLength: field.maxLength is same as(false) ? '' : field.maxLength,
-					min: field.min is same as(false) ? '' : field.min,
-					max: field.max is same as(false) ? '' : field.max,
-					columns: field.columns,
-				}]) %}
-			{% endfor %}
-
-			{% set paramRows = [] %}
-			{% for paramKey, paramValue in (gatewayConfig ? gatewayConfig.params : {}) %}
-				{% set paramRows = paramRows|merge([{ key: paramKey, value: paramValue }]) %}
-			{% endfor %}
-
-			<hr>
-
-			<h2>{{ gateway.name }}</h2>
-			<p class="light code">{{ gateway.handle }}</p>
-
-			{{ forms.textField({
-				label: 'settings.gateways.columns'|t('foster-checkout'),
-				instructions: 'settings.gateways.columnsHelp'|t('foster-checkout'),
-				id: "gateway-#{gateway.handle}-columns",
-				name: "settings[paymentGateways][#{gateway.handle}][columns]",
-				value: gatewayConfig ? gatewayConfig.columns : '',
-				size: 3,
-				type: 'number',
-				disabled: readOnly,
-			}) }}
-
-			{{ forms.editableTableField({
-				label: 'settings.gateways.fields'|t('foster-checkout'),
-				instructions: 'settings.gateways.fieldsHelp'|t('foster-checkout'),
-				id: "gateway-#{gateway.handle}-fields",
-				name: "settings[paymentGateways][#{gateway.handle}][fields]",
-				cols: {
-					handle: { heading: 'settings.gateways.fieldHandle'|t('foster-checkout'), type: 'singleline', width: 140 },
-					label: { heading: 'settings.gateways.fieldLabel'|t('foster-checkout'), type: 'singleline' },
-					type: {
-						heading: 'settings.gateways.fieldType'|t('foster-checkout'),
-						type: 'select',
-						options: [{ label: 'Text', value: 'text' }, { label: 'Number', value: 'number' }],
-						width: 90,
-					},
-					placeholder: { heading: 'settings.gateways.fieldPlaceholder'|t('foster-checkout'), type: 'singleline' },
-					required: { heading: 'settings.gateways.fieldRequired'|t('foster-checkout'), type: 'lightswitch', width: 70 },
-					minLength: { heading: 'settings.gateways.fieldMinLength'|t('foster-checkout'), type: 'singleline', width: 60 },
-					maxLength: { heading: 'settings.gateways.fieldMaxLength'|t('foster-checkout'), type: 'singleline', width: 60 },
-					min: { heading: 'settings.gateways.fieldMin'|t('foster-checkout'), type: 'singleline', width: 60 },
-					max: { heading: 'settings.gateways.fieldMax'|t('foster-checkout'), type: 'singleline', width: 60 },
-					columns: { heading: 'settings.gateways.fieldColumns'|t('foster-checkout'), type: 'singleline', width: 60 },
-				},
-				rows: fieldRows,
-				addRowLabel: 'settings.gateways.addField'|t('foster-checkout'),
-				allowAdd: true,
-				allowDelete: true,
-				allowReorder: true,
-				static: readOnly,
-			}) }}
-
-			{{ forms.editableTableField({
-				label: 'settings.gateways.params'|t('foster-checkout'),
-				instructions: 'settings.gateways.paramsHelp'|t('foster-checkout'),
-				id: "gateway-#{gateway.handle}-params",
-				name: "settings[paymentGateways][#{gateway.handle}][params]",
-				cols: {
-					key: { heading: 'settings.gateways.paramKey'|t('foster-checkout'), type: 'singleline' },
-					value: { heading: 'settings.gateways.paramValue'|t('foster-checkout'), type: 'singleline' },
-				},
-				rows: paramRows,
-				addRowLabel: 'settings.gateways.addParam'|t('foster-checkout'),
-				allowAdd: true,
-				allowDelete: true,
-				allowReorder: true,
-				static: readOnly,
-			}) }}
-		{% endfor %}
-
-		{% if not readOnly and gateways is not empty %}
-			<div class="buttons">
-				<button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
-			</div>
-		{% endif %}
-	</form>
+	{% if gateways is empty %}
+		<p class="light">{{ 'settings.gateways.none'|t('foster-checkout') }}</p>
+	{% else %}
+		<table class="data fullwidth">
+			<thead>
+				<tr>
+					<th scope="col">{{ 'settings.gateways.gateway'|t('foster-checkout') }}</th>
+					<th scope="col">{{ 'settings.gateways.fields'|t('foster-checkout') }}</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for gateway in gateways %}
+					{% set gatewayFields = craft.fostercheckout.gatewayFields(gateway.handle) %}
+					<tr>
+						<th scope="row" data-title="{{ 'settings.gateways.gateway'|t('foster-checkout') }}">
+							<a href="{{ url('foster-checkout/settings/gateways/' ~ gateway.handle) }}">{{ gateway.name }}</a>
+							<span class="light code">{{ gateway.handle }}</span>
+						</th>
+						<td data-title="{{ 'settings.gateways.fields'|t('foster-checkout') }}">
+							{%- if gatewayFields|length -%}
+								{{ gatewayFields|column('label')|join(', ') }}
+							{%- else -%}
+								<span class="light">{{ 'settings.gateways.noFields'|t('foster-checkout') }}</span>
+							{%- endif -%}
+						</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	{% endif %}
 {% endblock %}

@@ -1,0 +1,79 @@
+{% extends "foster-checkout/_layouts/settings" %}
+{% import "_includes/forms" as forms %}
+
+{% set selectedSubnavItem = 'gateways' %}
+{% set title = gateway.name %}
+{% set docTitle = title %}
+
+{# The field layout is stored outside plugin settings, so a config file cannot override it.
+   Only the columns and params below come from settings. #}
+{% set optionsOverridden = 'paymentGateways' in overriddenSettings %}
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
+{% set fullPageForm = not readOnly %}
+
+{% if readOnly %}
+	{% set contentNotice = readOnlyNotice() %}
+{% endif %}
+
+{% set crumbs = [
+	{ label: 'Settings'|t('app'), url: url('settings') },
+	{ label: 'Plugins'|t('app'), url: url('settings/plugins') },
+	{ label: 'nav.checkout'|t('foster-checkout'), url: url('foster-checkout/settings/appearance') },
+	{ label: 'nav.gateways'|t('foster-checkout'), url: url('foster-checkout/settings/gateways') },
+] %}
+
+{% set paramRows = [] %}
+{% for paramKey, paramValue in (gatewayConfig ? gatewayConfig.params : {}) %}
+	{% set paramRows = paramRows|merge([{ key: paramKey, value: paramValue }]) %}
+{% endfor %}
+
+{% block content %}
+	{% if not readOnly %}
+		{{ actionInput('foster-checkout/settings/save-gateway') }}
+		{{ hiddenInput('gatewayHandle', gateway.handle) }}
+		{{ redirectInput('foster-checkout/settings/gateways') }}
+	{% endif %}
+
+	<p class="light code">{{ gateway.handle }}</p>
+
+	<p>{{ 'settings.gateways.fieldsHelp'|t('foster-checkout') }}</p>
+
+	{{ forms.fieldLayoutDesignerField({
+		fieldLayout: fieldLayout,
+		disabled: readOnly,
+	}) }}
+
+	<hr>
+
+	{% if optionsOverridden %}
+		{% include 'foster-checkout/_includes/config-warning' with { setting: 'paymentGateways' } only %}
+	{% endif %}
+
+	{{ forms.textField({
+		label: 'settings.gateways.columns'|t('foster-checkout'),
+		instructions: 'settings.gateways.columnsHelp'|t('foster-checkout'),
+		id: 'columns',
+		name: 'columns',
+		value: gatewayConfig ? gatewayConfig.columns : '',
+		size: 3,
+		type: 'number',
+		disabled: readOnly or optionsOverridden,
+	}) }}
+
+	{{ forms.editableTableField({
+		label: 'settings.gateways.params'|t('foster-checkout'),
+		instructions: 'settings.gateways.paramsHelp'|t('foster-checkout'),
+		id: 'params',
+		name: 'params',
+		cols: {
+			key: { heading: 'settings.gateways.paramKey'|t('foster-checkout'), type: 'singleline' },
+			value: { heading: 'settings.gateways.paramValue'|t('foster-checkout'), type: 'singleline' },
+		},
+		rows: paramRows,
+		addRowLabel: 'settings.gateways.addParam'|t('foster-checkout'),
+		allowAdd: true,
+		allowDelete: true,
+		allowReorder: true,
+		static: readOnly or optionsOverridden,
+	}) }}
+{% endblock %}

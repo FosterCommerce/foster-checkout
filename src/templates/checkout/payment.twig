@@ -272,9 +272,9 @@
 															{% elseif gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
 																{% set manualGatewayConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
 																{% set isManualGateway = true %}
-																{% set manualFields  = manualGatewayConfig.fields|default([]) %}
+																{% set manualFields  = craft.fostercheckout.gatewayFields(gateway.handle) %}
 																{% set manualColumns = manualGatewayConfig.columns|default(3) %}
-																{% set gatewayNote = manualGatewayConfig.note.toStringWithContext({cart})|default(null) %}
+																{% set gatewayNote = craft.fostercheckout.gatewayNote(gateway.handle, {cart}) %}
 															{% endif %}
 
 															{% if gatewayNote|default %}
@@ -288,26 +288,22 @@
 																	<div class="{{ manualColumns ? 'grid sm:grid-cols-' ~ manualColumns }}">
 																		{# Only namespace additional custom fields if they exist #}
 																		{% for field in manualFields %}
-																			<div class="sm:col-span-{{ field.columns ?: '1' }}">
-																				{% switch field.type %}
-																				{% case 'select' %}{% set fieldTemplate = 'input-select' %}
-																				{% default %}{% set fieldTemplate = 'input-text-clearable' %}
-																				{% endswitch %}
-
-																				{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
+																			{# The layout stores width as a percentage; the grid is in columns. #}
+																			<div class="sm:col-span-{{ max(1, (field.width / (100 / manualColumns))|round) }}">
+																				{% include 'foster-checkout/_components/base/input-text-clearable' with {
 																					context: '',
 																					label: field.label,
-																					id: field.id ?? field.handle,
-																					name: 'fields[' ~ (field.name ?? field.handle) ~ ']',
+																					id: field.handle,
+																					name: 'fields[' ~ field.handle ~ ']',
 																					type: field.type,
 																					placeholder: field.placeholder,
 																					errors: [],
-																					minLength: field.minLength,
-																					maxLength: field.maxLength,
-																					min: field.min,
-																					max: field.max,
-																					required: field.required ?? false,
-																					options: field.options ?? [],
+																					minLength: false,
+																					maxLength: field.maxLength ?? false,
+																					min: field.min ?? false,
+																					max: field.max ?? false,
+																					required: field.required,
+																					options: [],
 																					gatewayId: gateway.id,
 																				} %}
 																			</div>

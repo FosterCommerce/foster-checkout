@@ -3,16 +3,14 @@
 
 {# @var settings \fostercommerce\fostercheckout\models\Settings #}
 
-{% set selectedItem = 'features' %}
+{% set selectedSubnavItem = 'features' %}
 {% set title = 'nav.features'|t('foster-checkout') %}
 {% set docTitle = title %}
 
 {% set overridden = 'options' in overriddenSettings %}
 {% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
 
-{% if overridden %}
-	{% set contentNotice = 'settings.overridden'|t('foster-checkout', { section: 'options' }) %}
-{% elseif readOnly %}
+{% if readOnly %}
 	{% set contentNotice = readOnlyNotice() %}
 {% endif %}
 
@@ -31,6 +29,10 @@
 		{{ redirectInput('foster-checkout/settings/features') }}
 		{{ hiddenInput('section', 'features') }}
 		{{ csrfInput() }}
+
+		{% if overridden %}
+			{% include 'foster-checkout/_includes/config-warning' with { setting: 'options' } only %}
+		{% endif %}
 
 		{% for switch in switches %}
 			{{ forms.lightswitchField({

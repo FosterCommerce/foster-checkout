@@ -81,6 +81,9 @@ class m260813_234259_migrate_checkout_content extends Migration
 				}
 			}
 
+			$notes = $this->migrateOptionCopy($fileConfig, $notes);
+			$notes['gateways'] = $this->migrateGatewayNotes($fileConfig, is_array($notes['gateways'] ?? null) ? $notes['gateways'] : []);
+
 			if (! isset($links['footerLinks'])) {
 				$footerLinks = $this->resolveFooterLinks($linksConfig['footerLinks'] ?? null);
 
@@ -98,6 +101,73 @@ class m260813_234259_migrate_checkout_content extends Migration
 		$sitesService->setCurrentSite($originalSite);
 
 		return true;
+	}
+
+	/**
+	 * Copy that lived under `options` rather than `notes`.
+	 *
+	 * @param array<array-key, mixed> $fileConfig
+	 * @param array<string, mixed> $notes
+	 * @return array<string, mixed>
+	 */
+	private function migrateOptionCopy(array $fileConfig, array $notes): array
+	{
+		$options = is_array($fileConfig['options'] ?? null) ? $fileConfig['options'] : [];
+		$deliveryDate = is_array($options['deliveryDate'] ?? null) ? $options['deliveryDate'] : [];
+
+		$copySources = [
+			'subscribe' => $options['subscribe'] ?? null,
+			'deliveryDateLabel' => $deliveryDate['label'] ?? null,
+			'deliveryDateMessage' => $deliveryDate['message'] ?? null,
+		];
+
+		foreach ($copySources as $noteKey => $valueConfig) {
+			if (isset($notes[$noteKey])) {
+				continue;
+			}
+
+			$value = $this->resolveFieldValue($valueConfig);
+
+			if (is_string($value) && trim($value) !== '') {
+				$notes[$noteKey] = $value;
+			}
+		}
+
+		return $notes;
+	}
+
+	/**
+	 * A gateway note defined as a PHP closure is left in config, since content storage cannot hold it.
+	 *
+	 * @param array<array-key, mixed> $fileConfig
+	 * @param array<string, mixed> $gatewayNotes
+	 * @return array<string, mixed>
+	 */
+	private function migrateGatewayNotes(array $fileConfig, array $gatewayNotes): array
+	{
+		$gateways = is_array($fileConfig['paymentGateways'] ?? null) ? $fileConfig['paymentGateways'] : [];
+
+		foreach ($gateways as $gatewayHandle => $gateway) {
+			if (! is_string($gatewayHandle)) {
+				continue;
+			}
+
+			if (! is_array($gateway)) {
+				continue;
+			}
+
+			if (isset($gatewayNotes[$gatewayHandle])) {
+				continue;
+			}
+
+			$value = $this->resolveFieldValue($gateway['note'] ?? null);
+
+			if (is_string($value) && trim($value) !== '') {
+				$gatewayNotes[$gatewayHandle] = $value;
+			}
+		}
+
+		return $gatewayNotes;
 	}
 
 	/**

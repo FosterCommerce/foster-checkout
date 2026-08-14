@@ -3,16 +3,14 @@
 
 {# @var settings \fostercommerce\fostercheckout\models\Settings #}
 
-{% set selectedItem = 'appearance' %}
+{% set selectedSubnavItem = 'appearance' %}
 {% set title = 'nav.appearance'|t('foster-checkout') %}
 {% set docTitle = title %}
 
 {% set overridden = 'branding' in overriddenSettings %}
 {% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
 
-{% if overridden %}
-	{% set contentNotice = 'settings.overridden'|t('foster-checkout', { section: 'branding' }) %}
-{% elseif readOnly %}
+{% if readOnly %}
 	{% set contentNotice = readOnlyNotice() %}
 {% endif %}
 
@@ -22,6 +20,10 @@
 		{{ redirectInput('foster-checkout/settings/appearance') }}
 		{{ hiddenInput('section', 'appearance') }}
 		{{ csrfInput() }}
+
+		{% if overridden %}
+			{% include 'foster-checkout/_includes/config-warning' with { setting: 'branding' } only %}
+		{% endif %}
 
 		{{ forms.colorField({
 			label: 'settings.appearance.color'|t('foster-checkout'),

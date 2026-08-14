@@ -3,13 +3,17 @@
 namespace fostercommerce\fostercheckout\controllers;
 
 use Craft;
+use craft\commerce\base\GatewayInterface;
+use craft\commerce\elements\Order;
 use craft\commerce\Plugin as Commerce;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
+use craft\models\FieldLayout;
 use craft\services\ProjectConfig;
 use craft\web\Controller;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\Settings;
 use yii\web\ForbiddenHttpException;
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 /**
@@ -38,6 +42,83 @@ class SettingsController extends Controller
 	public function actionGateways(): Response
 	{
 		return $this->renderSection('gateways');
+	}
+
+	/**
+	 * @throws NotFoundHttpException
+	 */
+	public function actionEditGateway(string $gatewayHandle): Response
+	{
+		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_SETTINGS);
+
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+		$gateway = $this->gateway($gatewayHandle);
+
+		/** @var Settings $settings */
+		$settings = $plugin->getSettings();
+
+		return $this->renderTemplate('foster-checkout/settings/gateways/_edit', [
+			'gateway' => $gateway,
+			'settings' => $settings,
+			'gatewayConfig' => $settings->paymentGateways[$gatewayHandle] ?? null,
+			'fieldLayout' => $plugin->gatewayFieldLayouts->getFieldLayout($gatewayHandle),
+			'overriddenSettings' => $plugin->getOverriddenSettings(),
+		]);
+	}
+
+	/**
+	 * @throws ForbiddenHttpException
+	 * @throws NotFoundHttpException
+	 */
+	public function actionSaveGateway(): ?Response
+	{
+		$this->requirePostRequest();
+		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_SETTINGS);
+
+		if (! Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+			throw new ForbiddenHttpException(Craft::t(FosterCheckout::HANDLE, 'error.adminChangesDisallowed'));
+		}
+
+		$postedHandle = $this->request->getRequiredBodyParam('gatewayHandle');
+		$gatewayHandle = is_string($postedHandle) ? $postedHandle : '';
+		$this->gateway($gatewayHandle);
+
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+		$layout = Craft::$app->getFields()->assembleLayoutFromPost();
+		$layout->type = Order::class;
+
+		$unstorable = $this->unstorableFieldHandles($layout, $plugin->gatewayFieldLayouts->orderFieldHandles());
+
+		// An order only saves values for fields in its own layout, so anything else would render,
+		// accept what the customer types, and then be discarded without an error.
+		if ($unstorable !== []) {
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.gateways.unstorableFields', [
+				'fields' => implode(', ', $unstorable),
+			]));
+
+			Craft::$app->getUrlManager()->setRouteParams([
+				'fieldLayout' => $layout,
+			]);
+
+			return null;
+		}
+
+		if (! $plugin->gatewayFieldLayouts->saveFieldLayout($gatewayHandle, $layout)) {
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
+
+			Craft::$app->getUrlManager()->setRouteParams([
+				'fieldLayout' => $layout,
+			]);
+
+			return null;
+		}
+
+		$this->saveGatewayOptions($gatewayHandle);
+		$this->setSuccessFlash(Craft::t('app', 'Settings saved.'));
+
+		return $this->redirectToPostedUrl();
 	}
 
 	public function actionGeneral(): Response
@@ -105,6 +186,71 @@ class SettingsController extends Controller
 		$this->setSuccessFlash(Craft::t('app', 'Settings saved.'));
 
 		return $this->redirectToPostedUrl();
+	}
+
+	/**
+	 * @throws NotFoundHttpException
+	 */
+	private function gateway(string $gatewayHandle): GatewayInterface
+	{
+		$gateway = Commerce::getInstance()?->getGateways()->getGatewayByHandle($gatewayHandle);
+
+		if (! $gateway instanceof GatewayInterface) {
+			throw new NotFoundHttpException("No payment gateway with handle {$gatewayHandle}.");
+		}
+
+		return $gateway;
+	}
+
+	/**
+	 * @param array<int, string> $orderFieldHandles
+	 * @return array<int, string>
+	 */
+	private function unstorableFieldHandles(FieldLayout $layout, array $orderFieldHandles): array
+	{
+		$unstorable = [];
+
+		foreach ($layout->getCustomFieldElements() as $customField) {
+			$handle = $customField->getField()->handle;
+
+			if (is_string($handle) && ! in_array($handle, $orderFieldHandles, true)) {
+				$unstorable[] = $handle;
+			}
+		}
+
+		return $unstorable;
+	}
+
+	/**
+	 * Layout columns and payment form params sit alongside the field layout rather than in it.
+	 */
+	private function saveGatewayOptions(string $gatewayHandle): void
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		// The field layout above lives outside plugin settings, so it stays editable; these two
+		// do not, and the config file wins over whatever is stored.
+		if (in_array('paymentGateways', $plugin->getOverriddenSettings(), true)) {
+			return;
+		}
+
+		$storedSettings = ProjectConfigHelper::unpackAssociativeArrays(
+			(array) (Craft::$app->getProjectConfig()->get(ProjectConfig::PATH_PLUGINS . '.' . FosterCheckout::HANDLE . '.settings') ?? [])
+		);
+
+		$storedGateways = is_array($storedSettings['paymentGateways'] ?? null) ? $storedSettings['paymentGateways'] : [];
+		$gateway = is_array($storedGateways[$gatewayHandle] ?? null) ? $storedGateways[$gatewayHandle] : [];
+
+		$postedColumns = $this->request->getBodyParam('columns', '');
+		$columns = is_scalar($postedColumns) ? trim((string) $postedColumns) : '';
+		$gateway['columns'] = $columns === '' ? null : (int) $columns;
+		$gateway['params'] = $this->normalizeGatewayParams((array) $this->request->getBodyParam('params', []));
+
+		$storedGateways[$gatewayHandle] = $gateway;
+		$storedSettings['paymentGateways'] = $storedGateways;
+
+		Craft::$app->getPlugins()->savePluginSettings($plugin, $storedSettings);
 	}
 
 	/**

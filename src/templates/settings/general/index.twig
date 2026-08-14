@@ -3,16 +3,14 @@
 
 {# @var settings \fostercommerce\fostercheckout\models\Settings #}
 
-{% set selectedItem = 'general' %}
+{% set selectedSubnavItem = 'general' %}
 {% set title = 'nav.general'|t('foster-checkout') %}
 {% set docTitle = title %}
 
 {% set overridden = 'paths' in overriddenSettings %}
 {% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
 
-{% if overridden %}
-	{% set contentNotice = 'settings.overridden'|t('foster-checkout', { section: 'paths' }) %}
-{% elseif readOnly %}
+{% if readOnly %}
 	{% set contentNotice = readOnlyNotice() %}
 {% endif %}
 
@@ -22,6 +20,10 @@
 		{{ redirectInput('foster-checkout/settings/general') }}
 		{{ hiddenInput('section', 'general') }}
 		{{ csrfInput() }}
+
+		{% if overridden %}
+			{% include 'foster-checkout/_includes/config-warning' with { setting: 'paths' } only %}
+		{% endif %}
 
 		{{ forms.textField({
 			label: 'settings.general.cart'|t('foster-checkout'),
@@ -86,7 +88,7 @@
 			value: settings.includes.head,
 			disabled: includesOverridden or not adminChangesAllowed,
 			errors: settings.getErrors('includes'),
-			warning: includesOverridden ? 'settings.overridden'|t('foster-checkout', { section: 'includes' }),
+			warning: includesOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'includes' }),
 		}) }}
 
 		{{ forms.textField({
@@ -120,7 +122,7 @@
 			allowDelete: true,
 			allowReorder: true,
 			static: countriesOverridden or not adminChangesAllowed,
-			warning: countriesOverridden ? 'settings.overridden'|t('foster-checkout', { section: 'priorityCountries' }),
+			warning: countriesOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'priorityCountries' }),
 		}) }}
 
 		{% set gatewaysOverridden = 'zeroValueGatewayHandles' in overriddenSettings %}
@@ -137,7 +139,7 @@
 			options: gatewayOptions,
 			values: settings.zeroValueGatewayHandles,
 			disabled: gatewaysOverridden or not adminChangesAllowed,
-			warning: gatewaysOverridden ? 'settings.overridden'|t('foster-checkout', { section: 'zeroValueGatewayHandles' }),
+			warning: gatewaysOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'zeroValueGatewayHandles' }),
 		}) }}
 
 		<hr>
@@ -152,7 +154,7 @@
 			name: 'settings[customerOrderNotesFieldHandle]',
 			value: settings.customerOrderNotesFieldHandle,
 			disabled: orderNotesOverridden or not craft.app.config.general.allowAdminChanges,
-			warning: orderNotesOverridden ? 'settings.overridden'|t('foster-checkout', { section: 'customerOrderNotesFieldHandle' }),
+			warning: orderNotesOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'customerOrderNotesFieldHandle' }),
 		}) }}
 
 		{% set translationOverridden = 'contentTranslationMethod' in overriddenSettings %}
@@ -169,7 +171,7 @@
 				{ label: 'settings.general.translationLanguage'|t('foster-checkout'), value: 'language' },
 			],
 			disabled: translationOverridden or not craft.app.config.general.allowAdminChanges,
-			warning: translationOverridden ? 'settings.overridden'|t('foster-checkout', { section: 'contentTranslationMethod' }),
+			warning: translationOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'contentTranslationMethod' }),
 		}) }}
 
 		{% if not readOnly %}

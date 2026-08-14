@@ -64,7 +64,7 @@
 							<form class="mt-2" method="post" accept-charset="UTF-8">
 								{{ csrfInput() }}
 
-								{% set subscribeText = craft.fostercheckout.settings.options.subscribe|striptags|trim %}
+								{% set subscribeText = craft.fostercheckout.subscribeText()|striptags|trim %}
 								{% set klaviyoListId = craft.fostercheckout.settings.options.klaviyoListId %}
 
 								{% if craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}

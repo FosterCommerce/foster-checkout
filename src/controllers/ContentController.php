@@ -3,6 +3,8 @@
 namespace fostercommerce\fostercheckout\controllers;
 
 use Craft;
+use craft\commerce\base\GatewayInterface;
+use craft\commerce\Plugin as Commerce;
 use craft\models\Site;
 use craft\web\Controller;
 use fostercommerce\fostercheckout\FosterCheckout;
@@ -39,6 +41,9 @@ class ContentController extends Controller
 		'payment' => null,
 		'order' => null,
 		'globalCheckout' => null,
+		'subscribe' => null,
+		'deliveryDateLabel' => null,
+		'deliveryDateMessage' => null,
 		'mistakeHeading' => 'enableMadeAMistake',
 		'mistakeText' => 'enableMadeAMistake',
 	];
@@ -61,6 +66,8 @@ class ContentController extends Controller
 			'noteKeys' => $this->availableNoteKeys(),
 			'notes' => $plugin->content->get('notes') ?? [],
 			'footerLinks' => $plugin->content->get('links.footerLinks') ?? [],
+			'gateways' => Commerce::getInstance()?->getGateways()->getAllGateways() ?? [],
+			'gatewayNotes' => $plugin->content->get('notes.gateways') ?? [],
 			'readOnly' => ! Craft::$app->getUser()->checkPermission(FosterCheckout::PERMISSION_EDIT_CONTENT),
 		]);
 	}
@@ -91,6 +98,15 @@ class ContentController extends Controller
 		foreach ($this->availableNoteKeys() as $noteKey) {
 			$storedNotes[$noteKey] = (string) ($postedNotes[$noteKey] ?? '');
 		}
+
+		$postedGatewayNotes = is_array($postedNotes['gateways'] ?? null) ? $postedNotes['gateways'] : [];
+		$gatewayNotes = is_array($storedNotes['gateways'] ?? null) ? $storedNotes['gateways'] : [];
+
+		foreach ($this->gatewayHandles() as $gatewayHandle) {
+			$gatewayNotes[$gatewayHandle] = (string) ($postedGatewayNotes[$gatewayHandle] ?? '');
+		}
+
+		$storedNotes['gateways'] = $gatewayNotes;
 
 		$storedLinks = is_array($content['links'] ?? null) ? $content['links'] : [];
 		$storedLinks['footerLinks'] = $this->postedFooterLinks();
@@ -138,6 +154,30 @@ class ContentController extends Controller
 		}
 
 		return $footerLinks;
+	}
+
+	/**
+	 * @return array<int, string>
+	 */
+	private function gatewayHandles(): array
+	{
+		$gatewayHandles = [];
+
+		$commerce = Commerce::getInstance();
+
+		if (! $commerce instanceof Commerce) {
+			return [];
+		}
+
+		$gateways = $commerce->getGateways()->getAllGateways();
+
+		foreach ($gateways as $gateway) {
+			if ($gateway instanceof GatewayInterface && is_string($gateway->handle)) {
+				$gatewayHandles[] = $gateway->handle;
+			}
+		}
+
+		return $gatewayHandles;
 	}
 
 	/**
