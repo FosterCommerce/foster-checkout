@@ -15,6 +15,12 @@
 {% endif %}
 
 {% set switches = [
+	{
+		handle: 'enableSinglePageCheckout',
+		on: settings.options.enableSinglePageCheckout,
+		offLabel: 'settings.features.enableSinglePageCheckoutOff'|t('foster-checkout'),
+		onLabel: 'settings.features.enableSinglePageCheckoutOn'|t('foster-checkout'),
+	},
 	{ handle: 'enableSaveForLater', on: settings.options.enableSaveForLater },
 	{ handle: 'enableEstimatedShipping', on: settings.options.enableEstimatedShipping },
 	{ handle: 'enableFreeShippingMessage', on: settings.options.enableFreeShippingMessage },
@@ -31,7 +37,7 @@
 		{{ csrfInput() }}
 
 		{% for switch in switches %}
-			{{ forms.lightswitchField({
+			{% set lightswitch = {
 				label: "settings.features.#{switch.handle}"|t('foster-checkout'),
 				instructions: "settings.features.#{switch.handle}Help"|t('foster-checkout'),
 				id: "options-#{switch.handle}",
@@ -39,7 +45,14 @@
 				on: switch.on,
 				disabled: readOnly,
 				warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'options' }),
-			}) }}
+			} %}
+			{% if switch.onLabel is defined %}
+				{% set lightswitch = lightswitch|merge({
+					offLabel: switch.offLabel,
+					onLabel: switch.onLabel,
+				}) %}
+			{% endif %}
+			{{ forms.lightswitchField(lightswitch) }}
 		{% endfor %}
 
 		{{ forms.textField({

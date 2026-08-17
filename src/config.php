@@ -25,6 +25,9 @@ return [
 
 	// Plugin options
 	'options' => [
+		// Whether to serve the single-page checkout. Existing sites stay on multi-page until this is turned on.
+		'enableSinglePageCheckout' => false, // true|false
+
 		// Whether or not to show the "save for later" button
 		'enableSaveForLater' => false, // true|false
 

@@ -7,6 +7,11 @@ use craft\base\Model;
 class OptionConfig extends Model
 {
 	/**
+	 * Whether to serve the single-page checkout. Existing sites stay on the stepped flow until this is turned on.
+	 */
+	public bool $enableSinglePageCheckout = false;
+
+	/**
 	 * Whether to show the "save for later" button
 	 */
 	public bool $enableSaveForLater = false;
@@ -99,5 +104,10 @@ class OptionConfig extends Model
 		}
 
 		parent::__construct($config);
+	}
+
+	public function isSinglePageCheckout(): bool
+	{
+		return $this->enableSinglePageCheckout;
 	}
 }
