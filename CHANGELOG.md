@@ -4,6 +4,7 @@
 
 ### Added
 
+- `enableSinglePageCheckout` setting on **Checkout -> Features** (`Checkout page layout format`). Off is multi-page, on is single-page.
 - Checkout copy is now edited at **Checkout -> Content**, stored in the plugin's own table so it stays editable on production. Covers step notes, the newsletter checkbox label, delivery date copy, payment method notes and footer links.
 - Copy is stored per site or per language, set by the new `contentTranslationMethod` setting.
 - Control panel screens for appearance, features, products, payment gateways and general settings, so a store can run without a config file.

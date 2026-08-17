@@ -264,6 +264,10 @@ return [
 	'settings.appearance.title' => 'Title prefix',
 	'settings.appearance.titleHelp' => 'First part of the page title. Leave blank to use the site name.',
 
+	'settings.features.enableSinglePageCheckout' => 'Checkout page layout format',
+	'settings.features.enableSinglePageCheckoutHelp' => 'Multi-page (default) splits the checkout steps into distinct pages. Single-page collapses the steps to one page.',
+	'settings.features.enableSinglePageCheckoutOff' => 'Multi-page',
+	'settings.features.enableSinglePageCheckoutOn' => 'Single-page',
 	'settings.features.enableSaveForLater' => 'Save for later',
 	'settings.features.enableSaveForLaterHelp' => 'Show the “save for later” button on cart line items.',
 	'settings.features.enableEstimatedShipping' => 'Shipping estimator',
