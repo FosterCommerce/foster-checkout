@@ -31,7 +31,7 @@
 					errors: cart.getErrors('email'),
 				} %}
 
-				<div class="checkbox">
+				<div class="checkbox" x-data="{ createAccount: {{ cart.registerUserOnOrderComplete ? 'true' : 'false' }} }">
 					<input type="hidden" name="registerUserOnOrderComplete" :value="createAccount ? 1 : 0">
 					<input
 						type="checkbox"
@@ -51,7 +51,15 @@
 			</div>
 
 			{% if klaviyoListId and subscribeText %}
-				<div class="mt-4 checkbox">
+				<div
+					x-data="{
+						subscribe: JSON.parse(localStorage.getItem(window.FC_SUBSCRIBE_KEY) ?? 'false'),
+						init() {
+							this.$watch('subscribe', v => localStorage.setItem(window.FC_SUBSCRIBE_KEY, JSON.stringify(v)))
+						}
+					}"
+					class="mt-4 checkbox"
+				>
 					<input type="hidden" name="subscribe" :value="subscribe ? 1 : 0">
 					<template x-if="subscribe">
 						<input type="hidden" name="list" value="{{ klaviyoListId }}">

@@ -564,37 +564,17 @@ const SinglePageCheckout = (props) => {
 	return {
 		loggedIn: props.loggedIn,
 		email: props.email ?? '',
-		createAccount: props.createAccount ?? false,
-		subscribe: props.subscribe ?? false,
-		klaviyoListId: props.klaviyoListId ?? '',
 		shippingAddressId: props.shippingAddressId,
 		useNewAddress: props.useNewAddress ?? false,
 		shippingMethodHandle: props.shippingMethodHandle ?? '',
-		shippingMethods: props.shippingMethods ?? [],
 		requireShippingMethod: props.requireShippingMethod ?? false,
+		hasShippingMethods: props.hasShippingMethods ?? false,
 		billingSameAsShipping: props.billingSameAsShipping ?? true,
 		billingAddressId: props.billingAddressId,
 		useNewBillingAddress: props.useNewBillingAddress ?? false,
-		itemSubtotal: props.itemSubtotal ?? '',
-		shippingTotal: props.shippingTotal ?? '',
-		taxTotal: props.taxTotal ?? '',
-		total: props.total ?? '',
-		hasShippingAddress: props.hasShippingAddress ?? false,
-		discounts: props.discounts ?? [],
-		couponCode: props.couponCode ?? '',
-		couponInput: props.couponCode ?? '',
-		couponOpen: Boolean(props.couponCode),
-		vouchers: props.vouchers ?? [],
-		voucherInput: '',
 		editExistingAddress: 0,
 		editBillingAddressId: 0,
-		notesHandle: props.notesHandle ?? '',
-		notesValue: props.notesValue ?? '',
 		gatewayId: props.gatewayId,
-		payLabelPrefix: props.payLabelPrefix,
-		payIncompleteLabel: props.payIncompleteLabel,
-		status: '',
-		statusTone: 'idle',
 
 		init() {
 			this.$watch('email', () => this.syncPayButtons());
@@ -616,11 +596,11 @@ const SinglePageCheckout = (props) => {
 		},
 
 		hasShippingMethod() {
-			if (!this.requireShippingMethod && this.shippingMethods.length === 0) {
+			if (!this.requireShippingMethod && !this.hasShippingMethods) {
 				return true;
 			}
 
-			if (this.shippingMethods.length === 0) {
+			if (!this.hasShippingMethods) {
 				return false;
 			}
 
@@ -652,10 +632,6 @@ const SinglePageCheckout = (props) => {
 			);
 		},
 
-		showShippingMethods() {
-			return this.shippingMethods.length > 0 || this.requireShippingMethod;
-		},
-
 		onDetailsChange(event) {
 			if (event.target && event.target.name === 'email') {
 				this.email = event.target.value;
@@ -669,8 +645,6 @@ const SinglePageCheckout = (props) => {
 
 			event.preventDefault();
 			event.stopPropagation();
-			this.status = this.payIncompleteLabel;
-			this.statusTone = 'error';
 		},
 
 		syncPayButtons() {

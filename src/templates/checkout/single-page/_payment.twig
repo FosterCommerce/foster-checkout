@@ -28,7 +28,6 @@
 						<input
 							id="spVoucherCode"
 							type="text"
-							x-model="voucherInput"
 							autocomplete="off"
 							placeholder="{{ 'voucher.enterCode'|t('foster-checkout') }}"
 							class="w-full h-12 px-4 bg-white rounded-lg border border-gray-250 text-gray-800"
@@ -43,23 +42,21 @@
 						</button>
 					</div>
 
-					<template x-if="vouchers.length">
+					{% set voucherAdjustments = cart.adjustments|filter(adjustment => adjustment.type == 'voucher') %}
+					{% if voucherAdjustments|length %}
 						<div class="border-gray-400 border-b flex flex-col space-y-2 py-4">
 							<p class="text-gray-500 m-0">
 								{{ 'voucher.appliedCodesHeading'|t('foster-checkout') }}:
 							</p>
 							<ul class="text-gray-500 m-0 list-disc">
-								<template x-for="voucher in vouchers" :key="voucher.code">
-									<li class="ml-5">
-										<span x-text="voucher.code"></span>
-										<template x-if="voucher.amount">
-											<span x-text="' (' + voucher.amount + ' applied)'"></span>
-										</template>
-									</li>
-								</template>
+								{% for adj in voucherAdjustments %}
+									{% set matches = adj.description|split('code ') %}
+									{% set code = matches|length > 1 ? matches[1]|trim("'") : 'Voucher/Gift Card' %}
+									<li class="ml-5">{{ code }}{% if adj.amount %} ({{ adj.amountAsCurrency }} applied){% endif %}</li>
+								{% endfor %}
 							</ul>
 						</div>
-					</template>
+					{% endif %}
 				</div>
 			</section>
 		{% endif %}
