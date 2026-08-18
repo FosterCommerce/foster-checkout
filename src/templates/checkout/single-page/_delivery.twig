@@ -6,7 +6,7 @@
 		{{ 'checkout.delivery'|t('foster-checkout') }}
 	</h2>
 
-	<div class="p-4" data-fc-collect>
+	<div class="p-4">
 		<div class="xl:border xl:border-gray-250 xl:rounded-lg">
 			{% if currentUser and addresses|length %}
 				{% for address in addresses %}
@@ -26,12 +26,7 @@
 								class="inline-flex justify-start items-center gap-4 cursor-pointer"
 								:class="{ 'font-medium text-black': parseInt(shippingAddressId) === {{ address.id }} && !useNewAddress }"
 							>
-								<template x-if="addressLabels[{{ address.id }}]">
-									<p><span class="block" x-text="addressLabels[{{ address.id }}]"></span></p>
-								</template>
-								<template x-if="!addressLabels[{{ address.id }}]">
-									{% include 'foster-checkout/_components/app/formatted-address' with { address: address } %}
-								</template>
+								{% include 'foster-checkout/_components/app/formatted-address' with { address: address } %}
 							</label>
 
 							<template x-if="parseInt(shippingAddressId) === {{ address.id }} && !useNewAddress">
@@ -47,16 +42,9 @@
 						</div>
 
 						<template x-if="parseInt(editExistingAddress) === {{ address.id }}">
-							<div class="pt-8" data-fc-address-edit="{{ address.id }}" data-fc-skip-collect>
+							<div class="pt-8">
 								{% include 'foster-checkout/_components/app/address-fields' with { address: address } %}
 								<div class="flex justify-start items-center gap-4 mt-4 pt-4">
-								<button
-									type="button"
-									class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]"
-									@click="editExistingAddress = 0"
-								>
-										{{ 'misc.save'|t('foster-checkout') }}
-									</button>
 									<button
 										type="button"
 										class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]"

@@ -588,8 +588,6 @@ const SinglePageCheckout = (props) => {
 		voucherInput: '',
 		editExistingAddress: 0,
 		editBillingAddressId: 0,
-		addressLabels: {},
-		shippingPreview: props.shippingPreview ?? '',
 		notesHandle: props.notesHandle ?? '',
 		notesValue: props.notesValue ?? '',
 		gatewayId: props.gatewayId,

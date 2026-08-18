@@ -9,7 +9,7 @@
 		{{ 'shipping.stepTitle'|t('foster-checkout') }}
 	</h2>
 
-	<div class="p-4" data-fc-collect>
+	<div class="p-4">
 		<template x-if="shippingMethods.length">
 			<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
 				<template x-for="method in shippingMethods" :key="method.handle">
@@ -25,14 +25,14 @@
 							/>
 							<label
 								:for="'sp_method_' + method.handle"
-								class="inline-flex justify-start items-center gap-4 cursor-pointer"
+								class="flex flex-1 justify-between items-center gap-4 cursor-pointer"
 							>
 								<span class="block">
 									<span class="block" x-text="method.name"></span>
 									<span class="block mt-1 text-sm text-gray-500" x-show="method.description" x-text="method.description"></span>
 								</span>
+								<span class="block font-semibold" x-text="method.price"></span>
 							</label>
-							<span class="block font-semibold" x-text="method.price"></span>
 						</div>
 					</div>
 				</template>

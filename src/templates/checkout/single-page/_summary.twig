@@ -22,23 +22,43 @@
 			</ul>
 		</div>
 
-		<article data-fc-skip-collect>
+		<article>
 			<div
 				class="mb-6 px-4 border border-gray-250 {{ isFlat ? '' : 'rounded-lg' }}"
 			>
-				<button type="button" class="flex justify-between items-center w-full py-4" @click="couponOpen = !couponOpen">
+				<button
+					type="button"
+					class="flex justify-between items-center w-full py-4"
+					@click="couponOpen = !couponOpen"
+					:aria-expanded="couponOpen ? 'true' : 'false'"
+					aria-controls="spCouponPanel"
+				>
 					<span id="spCouponCodeLabel" class="font-medium text-gray-500">
 						{{ 'summary.couponCodeLabel'|t('foster-checkout') }}
 						<template x-if="couponCode">
 							<span x-text="' (' + couponCode + ')'"></span>
 						</template>
 					</span>
-					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current" aria-hidden="true">
-						<path d="M7.00028 8.70057L0.661133 2.36142L2.07528 0.947266L7.00028 5.89727L11.9253 0.972268L13.3394 2.38642L7.00028 8.70057Z"/>
-					</svg>
+					<template x-if="couponOpen">
+						<svg x-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current" aria-hidden="true">
+							<path d="M6.99972 0.301388L13.3389 6.64054L11.9247 8.05469L6.99972 3.10469L2.07472 8.02969L0.660568 6.61554L6.99972 0.301388Z"/>
+						</svg>
+					</template>
+					<template x-if="!couponOpen">
+						<svg x-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current" aria-hidden="true">
+							<path d="M7.00028 8.70057L0.661133 2.36142L2.07528 0.947266L7.00028 5.89727L11.9253 0.972268L13.3394 2.38642L7.00028 8.70057Z"/>
+						</svg>
+					</template>
 				</button>
 
-				<div x-show="couponOpen" x-cloak class="pb-6" role="group" aria-labelledby="spCouponCodeLabel">
+				<div
+					id="spCouponPanel"
+					x-show="couponOpen"
+					x-cloak
+					class="pb-6"
+					role="group"
+					aria-labelledby="spCouponCodeLabel"
+				>
 					<template x-if="!couponCode">
 						<div class="grid grid-cols-[1fr,_120px] items-start gap-4">
 							<label for="spCouponCode" class="sr-only">{{ 'summary.couponCode'|t('foster-checkout') }}</label>
@@ -52,7 +72,9 @@
 							>
 							<button
 								type="button"
-								class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-lg"
+								disabled
+								aria-disabled="true"
+								class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-lg opacity-50 cursor-not-allowed"
 							>
 								{{ 'summary.submitCouponCode'|t('foster-checkout') }}
 							</button>
@@ -61,7 +83,7 @@
 					<template x-if="couponCode">
 						<div class="flex justify-between items-center text-sm p-2 rounded-lg {{ isFlat ? 'border border-gray-300' : 'border border-gray-250' }}">
 							<p class="font-bold" x-text="couponCode"></p>
-							<button type="button" class="hover:cursor-pointer">
+							<button type="button" disabled aria-disabled="true" class="opacity-50 cursor-not-allowed">
 								<span class="sr-only">{{ 'summary.removeCoupon'|t('foster-checkout') }}</span>
 								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" class="fill-current" aria-hidden="true">
 									<path d="M1.22473 13.9682L0.03125 12.7747L5.80625 6.99973L0.03125 1.22473L1.22473 0.03125L6.99973 5.80625L12.7747 0.03125L13.9682 1.22473L8.1932 6.99973L13.9682 12.7747L12.7747 13.9682L6.99973 8.1932L1.22473 13.9682Z" fill="black"></path>
@@ -101,7 +123,9 @@
 						<dd class="text-right text-red-500">
 							<button
 								type="button"
-								class="mr-2 text-sm underline text-gray-500 hover:no-underline hover:text-gray-700"
+								disabled
+								aria-disabled="true"
+								class="mr-2 text-sm underline text-gray-500 opacity-50 cursor-not-allowed"
 							>
 								{{ 'summary.removeCoupon'|t('foster-checkout') }}
 							</button>

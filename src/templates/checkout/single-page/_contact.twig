@@ -14,7 +14,7 @@
 		{% endif %}
 	</div>
 
-	<div class="p-4" data-fc-collect>
+	<div class="p-4">
 		{% if currentUser %}
 			<p class="text-gray-800">{{ currentUser.email }}</p>
 		{% else %}
@@ -56,7 +56,7 @@
 					<template x-if="subscribe">
 						<input type="hidden" name="list" value="{{ klaviyoListId }}">
 					</template>
-					<input type="checkbox" id="subscribe" class="sr-only" x-model="subscribe">
+					<input type="checkbox" id="subscribe" class="sr-only" x-model="subscribe" :aria-checked="subscribe ? 'true' : 'false'">
 					<label for="subscribe" class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500">
 						{{ craft.fostercheckout.settings.options.subscribe|raw }}
 					</label>
