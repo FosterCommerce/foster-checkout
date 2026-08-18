@@ -28,7 +28,7 @@ A path with no template behind it is rejected when saved in the control panel. S
 | `step` | `email`, `shipping-address`, `shipping-method`, `billing`, `payment`, `confirmation`, `single-page`, or empty on the cart |
 | `cart` | the current order. Reaches the head include on every page, but the body include omits it on the shipping address and order confirmation pages |
 
-One template is included on every page, so branch on `step` to target a single one. On a one-page checkout the value is `single-page`.
+One template is included on every page, so branch on `step` to target a single one.
 
 ```twig
 {% if context == 'checkout' and step == 'confirmation' %}
