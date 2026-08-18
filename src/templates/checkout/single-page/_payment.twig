@@ -32,13 +32,10 @@
 							autocomplete="off"
 							placeholder="{{ 'voucher.enterCode'|t('foster-checkout') }}"
 							class="w-full h-12 px-4 bg-white rounded-lg border border-gray-250 text-gray-800"
-							@keydown.enter.prevent="applyVoucher()"
 						>
 						<button
 							type="button"
 							class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-xl"
-							:disabled="pending > 0"
-							@click="applyVoucher()"
 						>
 							{{ 'voucher.applyCode'|t('foster-checkout') }}
 						</button>

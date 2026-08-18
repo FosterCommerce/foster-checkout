@@ -50,12 +50,11 @@
 							<div class="pt-8" data-fc-address-edit="{{ address.id }}" data-fc-skip-collect>
 								{% include 'foster-checkout/_components/app/address-fields' with { address: address } %}
 								<div class="flex justify-start items-center gap-4 mt-4 pt-4">
-									<button
-										type="button"
-										class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]"
-										:disabled="pending > 0"
-										@click="saveAddressBook({{ address.id }})"
-									>
+								<button
+									type="button"
+									class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]"
+									@click="editExistingAddress = 0"
+								>
 										{{ 'misc.save'|t('foster-checkout') }}
 									</button>
 									<button

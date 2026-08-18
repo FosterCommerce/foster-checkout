@@ -562,17 +562,11 @@ const LineItem = (options) => {
 
 const SinglePageCheckout = (props) => {
 	return {
-		actionUrl: props.actionUrl,
-		klaviyoUrl: props.klaviyoUrl ?? '',
-		csrfName: props.csrfName,
-		csrfValue: props.csrfValue,
-		cartId: props.cartId,
 		loggedIn: props.loggedIn,
 		email: props.email ?? '',
 		createAccount: props.createAccount ?? false,
 		subscribe: props.subscribe ?? false,
 		klaviyoListId: props.klaviyoListId ?? '',
-		trackedCheckout: false,
 		shippingAddressId: props.shippingAddressId,
 		useNewAddress: props.useNewAddress ?? false,
 		shippingMethodHandle: props.shippingMethodHandle ?? '',
@@ -592,9 +586,6 @@ const SinglePageCheckout = (props) => {
 		couponOpen: Boolean(props.couponCode),
 		vouchers: props.vouchers ?? [],
 		voucherInput: '',
-		saveAddressUrl: props.saveAddressUrl ?? '',
-		giftVoucherAddUrl: props.giftVoucherAddUrl ?? '',
-		giftVoucherRemoveUrl: props.giftVoucherRemoveUrl ?? '',
 		editExistingAddress: 0,
 		editBillingAddressId: 0,
 		addressLabels: {},
@@ -603,17 +594,18 @@ const SinglePageCheckout = (props) => {
 		notesValue: props.notesValue ?? '',
 		gatewayId: props.gatewayId,
 		payLabelPrefix: props.payLabelPrefix,
-		savingLabel: props.savingLabel,
-		savedLabel: props.savedLabel,
-		failedLabel: props.failedLabel,
 		payIncompleteLabel: props.payIncompleteLabel,
 		status: '',
 		statusTone: 'idle',
-		pending: 0,
-		applying: false,
-		fieldErrors: {},
 
 		init() {
+			this.$watch('email', () => this.syncPayButtons());
+			this.$watch('shippingAddressId', () => this.syncPayButtons());
+			this.$watch('useNewAddress', () => this.syncPayButtons());
+			this.$watch('shippingMethodHandle', () => this.syncPayButtons());
+			this.$watch('billingSameAsShipping', () => this.syncPayButtons());
+			this.$watch('billingAddressId', () => this.syncPayButtons());
+			this.$watch('useNewBillingAddress', () => this.syncPayButtons());
 			this.syncPayButtons();
 		},
 
@@ -649,12 +641,14 @@ const SinglePageCheckout = (props) => {
 			return Boolean(this.billingAddressId);
 		},
 
+		hasShippingSelection() {
+			return Boolean(this.useNewAddress) || Boolean(this.shippingAddressId);
+		},
+
 		canPay() {
 			return (
-				this.pending === 0 &&
-				this.statusTone !== 'saving' &&
 				this.hasEmail() &&
-				this.hasShippingAddress &&
+				this.hasShippingSelection() &&
 				this.hasShippingMethod() &&
 				this.hasBilling()
 			);
@@ -667,444 +661,6 @@ const SinglePageCheckout = (props) => {
 		onDetailsChange(event) {
 			if (event.target && event.target.name === 'email') {
 				this.email = event.target.value;
-			}
-		},
-
-		collectNamedFields(scope) {
-			const payload = {};
-
-			if (!scope) {
-				return payload;
-			}
-
-			scope
-				.querySelectorAll('input[name], select[name], textarea[name]')
-				.forEach((element) => {
-					const name = element.getAttribute('name');
-					const type = element.type;
-					const skipped = element.closest(
-						'[data-fc-skip-collect], [data-fc-address-edit]'
-					);
-
-					if (!name || element.disabled) {
-						return;
-					}
-
-					if (skipped && skipped !== scope) {
-						return;
-					}
-
-					if (type === 'button' || type === 'submit') {
-						return;
-					}
-
-					if ((type === 'checkbox' || type === 'radio') && !element.checked) {
-						return;
-					}
-
-					if (name.endsWith('_radio')) {
-						return;
-					}
-
-					payload[name] = element.value;
-				});
-
-			return payload;
-		},
-
-		collectDetails() {
-			const payload = {};
-			const scopes = this.$root.querySelectorAll('[data-fc-collect]');
-
-			scopes.forEach((scope) => {
-				Object.assign(payload, this.collectNamedFields(scope));
-			});
-
-			return payload;
-		},
-
-		async postForm(url, fields) {
-			const body = new FormData();
-			body.set(this.csrfName, this.csrfValue);
-
-			Object.entries(fields).forEach(([key, value]) => {
-				if (value === undefined || value === null) {
-					return;
-				}
-
-				body.set(key, String(value));
-			});
-
-			const response = await fetch(url, {
-				method: 'POST',
-				headers: {
-					Accept: 'application/json',
-					'X-Requested-With': 'XMLHttpRequest',
-				},
-				body,
-				credentials: 'same-origin',
-			});
-
-			const contentType = response.headers.get('content-type') || '';
-			const isJson = contentType.includes('application/json');
-			const data = isJson ? await response.json() : {};
-
-			return { response, data, isJson };
-		},
-
-		formatAddress(address) {
-			if (!address || typeof address !== 'object') {
-				return '';
-			}
-
-			const locality = [
-				address.locality,
-				address.administrativeArea,
-				address.postalCode,
-			]
-				.filter(Boolean)
-				.join(' ');
-
-			return [
-				address.fullName,
-				address.addressLine1,
-				address.addressLine2,
-				locality,
-			]
-				.filter(Boolean)
-				.join(', ');
-		},
-
-		voucherFromAdjustment(item) {
-			const description = item.description || item.name || '';
-			const matches = description.split('code ');
-			const code =
-				matches.length > 1
-					? matches[1].replaceAll("'", '').trim()
-					: description || 'Voucher/Gift Card';
-
-			return {
-				code,
-				amount: item.amountAsCurrency || item.amount || '',
-			};
-		},
-
-		buildPayload(extra = {}) {
-			const payload = {
-				...this.collectDetails(),
-				registerUserOnOrderComplete: this.createAccount ? '1' : '0',
-				shippingMethodHandle: this.shippingMethodHandle || '',
-				billingAddressSameAsShipping: this.billingSameAsShipping ? '1' : '0',
-				...extra,
-			};
-
-			if (!this.loggedIn) {
-				payload.email = this.email;
-			}
-
-			if (!this.useNewAddress && this.shippingAddressId) {
-				payload.shippingAddressId = String(this.shippingAddressId);
-				payload.useNewAddress = '0';
-			} else {
-				payload.shippingAddressId = '0';
-				payload.useNewAddress = '1';
-			}
-
-			if (this.billingSameAsShipping) {
-				payload.billingAddressId = '';
-				payload.useNewBillingAddress = '0';
-			} else if (this.useNewBillingAddress) {
-				payload.useNewBillingAddress = '1';
-				payload.billingAddressId = '';
-			} else if (this.billingAddressId) {
-				payload.billingAddressId = String(this.billingAddressId);
-				payload.useNewBillingAddress = '0';
-			}
-
-			if (this.subscribe && this.klaviyoListId) {
-				payload.subscribe = '1';
-				payload.list = this.klaviyoListId;
-			}
-
-			if (this.notesHandle) {
-				payload[`fields[${this.notesHandle}]`] = this.notesValue;
-			}
-
-			return payload;
-		},
-
-		async saveCart(extra = {}) {
-			if (!this.loggedIn && !this.hasEmail() && !this.hasShippingAddress) {
-				return;
-			}
-
-			this.pending += 1;
-			this.status = this.savingLabel;
-			this.statusTone = 'saving';
-			this.syncPayButtons();
-
-			const body = new FormData();
-			body.set(this.csrfName, this.csrfValue);
-
-			const useKlaviyo =
-				Boolean(this.klaviyoUrl) &&
-				!this.loggedIn &&
-				!this.trackedCheckout &&
-				this.hasEmail();
-
-			if (useKlaviyo) {
-				body.set('action', 'klaviyo-connect-plus/api/track');
-				body.set('event[name]', 'Started Checkout');
-				body.set('event[trackOrder]', '1');
-				body.set('event[orderId]', String(this.cartId || ''));
-				body.set('forward', '/commerce/cart/update-cart');
-			} else {
-				body.set('action', 'commerce/cart/update-cart');
-			}
-
-			const payload = this.buildPayload(extra);
-
-			Object.entries(payload).forEach(([key, value]) => {
-				if (value === undefined || value === null) {
-					return;
-				}
-
-				body.set(key, String(value));
-			});
-
-			try {
-				const response = await fetch(
-					useKlaviyo ? this.klaviyoUrl : this.actionUrl,
-					{
-						method: 'POST',
-						headers: {
-							Accept: 'application/json',
-							'X-Requested-With': 'XMLHttpRequest',
-						},
-						body,
-						credentials: 'same-origin',
-					}
-				);
-
-				const contentType = response.headers.get('content-type') || '';
-				if (!contentType.includes('application/json')) {
-					throw new Error('not-json');
-				}
-
-				const data = await response.json();
-				if (!response.ok || data.success === false) {
-					this.applyErrors(data);
-					return;
-				}
-
-				if (useKlaviyo) {
-					this.trackedCheckout = true;
-				}
-
-				this.applyCart(data.cart || (data.data && data.data.cart) || {});
-				this.fieldErrors = {};
-				this.status = this.savedLabel;
-				this.statusTone = 'saved';
-			} catch {
-				this.status = this.failedLabel;
-				this.statusTone = 'error';
-			} finally {
-				this.pending = Math.max(0, this.pending - 1);
-				this.syncPayButtons();
-			}
-		},
-
-		applyErrors(data) {
-			this.fieldErrors = data.errors || {};
-			this.status = data.message || data.error || this.failedLabel;
-			this.statusTone = 'error';
-		},
-
-		applyCart(cart) {
-			if (!cart || typeof cart !== 'object') {
-				return;
-			}
-
-			this.applying = true;
-			this.itemSubtotal = cart.itemSubtotalAsCurrency || this.itemSubtotal;
-			this.shippingTotal =
-				cart.totalShippingCostAsCurrency || this.shippingTotal;
-			this.taxTotal = cart.totalTaxAsCurrency || this.taxTotal;
-			this.total =
-				cart.totalAsCurrency || cart.totalPriceAsCurrency || this.total;
-			this.hasShippingAddress = Boolean(cart.shippingAddressId);
-			this.couponCode = cart.couponCode || '';
-			this.couponInput = this.couponCode;
-			this.shippingPreview = this.formatAddress(cart.shippingAddress);
-
-			if (cart.email) {
-				this.email = cart.email;
-			}
-
-			const options = cart.availableShippingMethodOptions;
-			if (options) {
-				this.shippingMethods = this.normalizeMethods(options);
-				const handles = this.shippingMethods.map((method) => method.handle);
-				if (
-					this.shippingMethodHandle &&
-					!handles.includes(this.shippingMethodHandle)
-				) {
-					this.shippingMethodHandle = handles[0] || '';
-				} else if (!this.shippingMethodHandle && handles.length === 1) {
-					this.shippingMethodHandle = handles[0];
-				}
-			}
-
-			if (Array.isArray(cart.adjustments)) {
-				this.discounts = cart.adjustments
-					.filter((item) => item.type === 'discount' && !item.lineItemId)
-					.map((item) => ({
-						name: item.name,
-						amount: item.amountAsCurrency || item.amount,
-					}));
-				this.vouchers = cart.adjustments
-					.filter((item) => item.type === 'voucher')
-					.map((item) => this.voucherFromAdjustment(item));
-			}
-
-			this.$nextTick(() => {
-				this.applying = false;
-				this.syncPayButtons();
-			});
-		},
-
-		normalizeMethods(options) {
-			const entries = Array.isArray(options)
-				? options.map((method) => [method.handle, method])
-				: Object.entries(options);
-
-			return entries.map(([handle, method]) => ({
-				handle,
-				name: method.name || handle,
-				description: method.description || '',
-				price: method.priceAsCurrency || method.price || '',
-			}));
-		},
-
-		applyCoupon() {
-			return this.saveCart({
-				couponCode: this.couponInput,
-			});
-		},
-
-		removeCoupon() {
-			this.couponInput = '';
-			return this.saveCart({
-				couponCode: '',
-			});
-		},
-
-		async saveAddressBook(addressId) {
-			if (!this.saveAddressUrl || !addressId) {
-				return;
-			}
-
-			const scope = this.$root.querySelector(
-				`[data-fc-address-edit="${addressId}"]`
-			);
-			const fields = {
-				...this.collectNamedFields(scope),
-				addressId: String(addressId),
-			};
-
-			this.pending += 1;
-			this.status = this.savingLabel;
-			this.statusTone = 'saving';
-			this.syncPayButtons();
-
-			try {
-				const { response, data, isJson } = await this.postForm(
-					this.saveAddressUrl,
-					fields
-				);
-				if (!isJson || !response.ok || data.success === false) {
-					this.applyErrors(data);
-					return;
-				}
-
-				this.addressLabels = {
-					...this.addressLabels,
-					[addressId]: this.formatAddress(fields),
-				};
-				this.editExistingAddress = 0;
-				this.editBillingAddressId = 0;
-				await this.saveCart();
-			} catch {
-				this.status = this.failedLabel;
-				this.statusTone = 'error';
-			} finally {
-				this.pending = Math.max(0, this.pending - 1);
-				this.syncPayButtons();
-			}
-		},
-
-		async applyVoucher() {
-			if (!this.giftVoucherAddUrl || !String(this.voucherInput || '').trim()) {
-				return;
-			}
-
-			this.pending += 1;
-			this.status = this.savingLabel;
-			this.statusTone = 'saving';
-			this.syncPayButtons();
-
-			try {
-				const { response, data, isJson } = await this.postForm(
-					this.giftVoucherAddUrl,
-					{
-						voucherCode: this.voucherInput,
-					}
-				);
-				if (isJson && (!response.ok || data.success === false)) {
-					this.applyErrors(data);
-					return;
-				}
-
-				this.voucherInput = '';
-				await this.saveCart();
-			} catch {
-				this.status = this.failedLabel;
-				this.statusTone = 'error';
-			} finally {
-				this.pending = Math.max(0, this.pending - 1);
-				this.syncPayButtons();
-			}
-		},
-
-		async removeVoucher(code) {
-			if (!this.giftVoucherRemoveUrl || !code) {
-				return;
-			}
-
-			this.pending += 1;
-			this.status = this.savingLabel;
-			this.statusTone = 'saving';
-			this.syncPayButtons();
-
-			try {
-				const { response, data, isJson } = await this.postForm(
-					this.giftVoucherRemoveUrl,
-					{
-						voucherCode: code,
-					}
-				);
-				if (isJson && (!response.ok || data.success === false)) {
-					this.applyErrors(data);
-					return;
-				}
-
-				await this.saveCart();
-			} catch {
-				this.status = this.failedLabel;
-				this.statusTone = 'error';
-			} finally {
-				this.pending = Math.max(0, this.pending - 1);
-				this.syncPayButtons();
 			}
 		},
 
@@ -1126,13 +682,8 @@ const SinglePageCheckout = (props) => {
 			}
 
 			const allowed = this.canPay();
-			const label = `${this.payLabelPrefix} ${this.total}`.trim();
-
 			form.querySelectorAll('button[type="submit"]').forEach((button) => {
 				button.disabled = !allowed;
-				if (label) {
-					button.textContent = label;
-				}
 			});
 		},
 	};

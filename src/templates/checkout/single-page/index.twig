@@ -87,7 +87,6 @@
 
 	{% set notesHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
 	{% set notesValue = notesHandle ? (cart.getFieldValue(notesHandle) ?? '') : '' %}
-	{% set klaviyoEnabled = craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
 	{% set giftVoucherEnabled = craft.app.plugins.isPluginEnabled('gift-voucher') %}
 	{% set subscribeDefault = false %}
 	{% set appliedVouchers = [] %}
@@ -104,11 +103,6 @@
 	{% endif %}
 
 	{% set config = {
-		actionUrl: actionUrl('commerce/cart/update-cart'),
-		klaviyoUrl: klaviyoEnabled ? actionUrl('klaviyo-connect-plus/api/track') : '',
-		csrfName: craft.app.config.general.csrfTokenName,
-		csrfValue: craft.app.request.csrfToken,
-		cartId: cart.id,
 		loggedIn: currentUser ? true : false,
 		email: cart.email ?? '',
 		createAccount: cart.registerUserOnOrderComplete ? true : false,
@@ -130,16 +124,10 @@
 		discounts: orderDiscounts,
 		couponCode: cart.couponCode ?? '',
 		vouchers: appliedVouchers,
-		saveAddressUrl: actionUrl('users/save-address'),
-		giftVoucherAddUrl: giftVoucherEnabled ? actionUrl('gift-voucher/cart/add-code') : '',
-		giftVoucherRemoveUrl: giftVoucherEnabled ? actionUrl('gift-voucher/cart/remove-code') : '',
 		notesHandle: notesHandle ?? '',
 		notesValue: notesValue,
 		gatewayId: initialGatewayId,
 		payLabelPrefix: 'payment.payButtonText'|t('foster-checkout'),
-		savingLabel: 'misc.saving'|t('foster-checkout'),
-		savedLabel: 'misc.saved'|t('foster-checkout'),
-		failedLabel: 'misc.saveFailed'|t('foster-checkout'),
 		payIncompleteLabel: 'checkout.payIncomplete'|t('foster-checkout'),
 	} %}
 

@@ -6,11 +6,8 @@ use CommerceGuys\Addressing\AddressFormat\AddressField;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
-use craft\commerce\controllers\BaseFrontEndController;
 use craft\commerce\elements\Order;
-use craft\commerce\events\ModifyCartInfoEvent;
 use craft\commerce\events\OrderNoticeEvent;
-use craft\commerce\Plugin as CommercePlugin;
 use craft\events\DefineAddressFieldLabelEvent;
 use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
@@ -453,43 +450,6 @@ class FosterCheckout extends Plugin
 					$event->field === AddressField::ADMINISTRATIVE_AREA
 				) {
 					$event->label = 'County';
-				}
-			}
-		);
-
-		Event::on(
-			BaseFrontEndController::class,
-			BaseFrontEndController::EVENT_MODIFY_CART_INFO,
-			function (ModifyCartInfoEvent $event): void {
-				if (! $this->checkout->settings()->options->enableSinglePageCheckout) {
-					return;
-				}
-
-				$cart = $event->cart;
-				$options = $event->cartInfo['availableShippingMethodOptions'] ?? null;
-				if (! $cart instanceof Order || ! is_array($options)) {
-					return;
-				}
-
-				$shippingMethods = $cart->availableShippingMethodOptions;
-				$commerce = CommercePlugin::getInstance();
-				if ($commerce === null) {
-					return;
-				}
-
-				foreach ($options as $handle => $option) {
-					if (! is_array($option)) {
-						continue;
-					}
-
-					if (! isset($shippingMethods[$handle])) {
-						continue;
-					}
-
-					$method = $shippingMethods[$handle];
-					$rule = $commerce->getShippingMethods()->getMatchingShippingRule($cart, $method);
-					$event->cartInfo['availableShippingMethodOptions'][$handle]['description'] = $rule?->getDescription() ?: '';
-					$event->cartInfo['availableShippingMethodOptions'][$handle]['priceAsCurrency'] = $method->priceAsCurrency;
 				}
 			}
 		);

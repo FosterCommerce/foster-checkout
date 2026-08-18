@@ -49,13 +49,10 @@
 								autocomplete="off"
 								placeholder="{{ 'summary.couponCodePrompt'|t('foster-checkout') }}"
 								class="w-full h-12 px-4 bg-white rounded-lg border border-gray-250 text-gray-800"
-								@keydown.enter.prevent="applyCoupon()"
 							>
 							<button
 								type="button"
 								class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-lg"
-								:disabled="pending > 0"
-								@click="applyCoupon()"
 							>
 								{{ 'summary.submitCouponCode'|t('foster-checkout') }}
 							</button>
@@ -64,7 +61,7 @@
 					<template x-if="couponCode">
 						<div class="flex justify-between items-center text-sm p-2 rounded-lg {{ isFlat ? 'border border-gray-300' : 'border border-gray-250' }}">
 							<p class="font-bold" x-text="couponCode"></p>
-							<button type="button" class="hover:cursor-pointer" :disabled="pending > 0" @click="removeCoupon()">
+							<button type="button" class="hover:cursor-pointer">
 								<span class="sr-only">{{ 'summary.removeCoupon'|t('foster-checkout') }}</span>
 								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" class="fill-current" aria-hidden="true">
 									<path d="M1.22473 13.9682L0.03125 12.7747L5.80625 6.99973L0.03125 1.22473L1.22473 0.03125L6.99973 5.80625L12.7747 0.03125L13.9682 1.22473L8.1932 6.99973L13.9682 12.7747L12.7747 13.9682L6.99973 8.1932L1.22473 13.9682Z" fill="black"></path>
@@ -105,8 +102,6 @@
 							<button
 								type="button"
 								class="mr-2 text-sm underline text-gray-500 hover:no-underline hover:text-gray-700"
-								:disabled="pending > 0"
-								@click="removeVoucher(voucher.code)"
 							>
 								{{ 'summary.removeCoupon'|t('foster-checkout') }}
 							</button>
