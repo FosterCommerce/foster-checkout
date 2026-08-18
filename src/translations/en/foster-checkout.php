@@ -67,6 +67,9 @@ return [
 	'email.nextStep' => 'Next step',
 	'email.createAccount' => 'Create an account?',
 
+	'checkout.delivery' => 'Delivery',
+	'checkout.payIncomplete' => 'Complete the required details above before paying.',
+
 	// Login page
 	'login.emailLabel' => 'Email',
 	'login.usernameLabel' => 'Username',
@@ -176,6 +179,8 @@ return [
 	'misc.cancel' => 'Cancel',
 	'misc.save' => 'Save',
 	'misc.saving' => 'Saving',
+	'misc.saved' => 'Saved',
+	'misc.saveFailed' => 'Could not save your details. Try again.',
 	'misc.update' => 'Update',
 	'misc.returnToCart' => 'Return to cart',
 	'misc.returnToCheckout' => 'Back to checkout',

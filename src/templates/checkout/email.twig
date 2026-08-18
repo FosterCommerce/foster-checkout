@@ -1,3 +1,7 @@
+{% if craft.fostercheckout.settings.options.isSinglePageCheckout %}
+	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) %}
+{% endif %}
+
 {% if currentUser %}
 	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address' %}
 {% endif %}

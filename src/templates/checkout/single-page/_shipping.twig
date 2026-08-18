@@ -1,0 +1,60 @@
+{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
+{% set requireShippingMethod = currentStore.requireShippingMethodSelectionAtCheckout %}
+
+{% if optionCount or requireShippingMethod %}
+	<section class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}">
+		<h2 class="p-4 font-semibold bg-gray-200">
+			{{ 'shipping.stepTitle'|t('foster-checkout') }}
+		</h2>
+
+		<div class="p-4">
+			{% if optionCount %}
+				<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+					{% for handle, method in availableShippingMethodOptions %}
+						{% set rule = craft.commerce.shippingMethods.getMatchingShippingRule(cart, method) %}
+						{% set methodDescription = rule and rule.getDescription() ? rule.getDescription() : null %}
+						{% set methodPrice = method.getPrice() ?? (rule ? rule.price : null) %}
+
+						<div class="p-4 border-b border-gray-250" :class="{ 'bg-gray-100': shippingMethodHandle === '{{ handle|e('js') }}' }">
+							<div class="relative flex justify-between items-center gap-4 radio">
+								<input
+									x-model="shippingMethodHandle"
+									id="sp_method_{{ handle }}"
+									name="shippingMethodHandle_radio"
+									type="radio"
+									class="absolute opacity-0 w-px h-px"
+									value="{{ handle }}"
+								/>
+								<label
+									for="sp_method_{{ handle }}"
+									class="inline-flex justify-start items-center gap-4 cursor-pointer w-full"
+								>
+									<span class="block">
+										<span class="block">{{ method.name|t('foster-checkout') }}</span>
+										{% if methodDescription %}
+											<span class="block mt-1 text-sm text-gray-500">
+												{{ methodDescription|t('foster-checkout') }}
+											</span>
+										{% endif %}
+									</span>
+									<span class="block ml-auto font-semibold">
+										{{ (methodPrice ?? 0)|commerceCurrency(cart.currency) }}
+									</span>
+								</label>
+							</div>
+						</div>
+					{% endfor %}
+				</div>
+			{% else %}
+				<p>{{ 'shipping.noMethodAvailable'|t('foster-checkout') }}.</p>
+			{% endif %}
+
+			{% set note = craft.fostercheckout.note('shipping', {cart}) %}
+			{% if note %}
+				<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
+					{{ note|raw }}
+				</div>
+			{% endif %}
+		</div>
+	</section>
+{% endif %}

@@ -1,3 +1,7 @@
+{% if craft.fostercheckout.settings.options.isSinglePageCheckout %}
+	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) %}
+{% endif %}
+
 {% extends 'foster-checkout/_layouts/default' %}
 
 {% block head %}

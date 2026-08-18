@@ -560,10 +560,112 @@ const LineItem = (options) => {
 	};
 };
 
+const SinglePageCheckout = (props) => {
+	return {
+		loggedIn: props.loggedIn,
+		email: props.email ?? '',
+		shippingAddressId: props.shippingAddressId,
+		useNewAddress: props.useNewAddress ?? false,
+		shippingMethodHandle: props.shippingMethodHandle ?? '',
+		requireShippingMethod: props.requireShippingMethod ?? false,
+		hasShippingMethods: props.hasShippingMethods ?? false,
+		billingSameAsShipping: props.billingSameAsShipping ?? true,
+		billingAddressId: props.billingAddressId,
+		useNewBillingAddress: props.useNewBillingAddress ?? false,
+		editExistingAddress: 0,
+		editBillingAddressId: 0,
+		gatewayId: props.gatewayId,
+
+		init() {
+			this.$watch('email', () => this.syncPayButtons());
+			this.$watch('shippingAddressId', () => this.syncPayButtons());
+			this.$watch('useNewAddress', () => this.syncPayButtons());
+			this.$watch('shippingMethodHandle', () => this.syncPayButtons());
+			this.$watch('billingSameAsShipping', () => this.syncPayButtons());
+			this.$watch('billingAddressId', () => this.syncPayButtons());
+			this.$watch('useNewBillingAddress', () => this.syncPayButtons());
+			this.syncPayButtons();
+		},
+
+		hasEmail() {
+			if (this.loggedIn) {
+				return true;
+			}
+
+			return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(this.email || '').trim());
+		},
+
+		hasShippingMethod() {
+			if (!this.requireShippingMethod && !this.hasShippingMethods) {
+				return true;
+			}
+
+			if (!this.hasShippingMethods) {
+				return false;
+			}
+
+			return Boolean(this.shippingMethodHandle);
+		},
+
+		hasBilling() {
+			if (this.billingSameAsShipping) {
+				return true;
+			}
+
+			if (this.useNewBillingAddress) {
+				return true;
+			}
+
+			return Boolean(this.billingAddressId);
+		},
+
+		hasShippingSelection() {
+			return Boolean(this.useNewAddress) || Boolean(this.shippingAddressId);
+		},
+
+		canPay() {
+			return (
+				this.hasEmail() &&
+				this.hasShippingSelection() &&
+				this.hasShippingMethod() &&
+				this.hasBilling()
+			);
+		},
+
+		onDetailsChange(event) {
+			if (event.target && event.target.name === 'email') {
+				this.email = event.target.value;
+			}
+		},
+
+		onPaySubmit(event) {
+			if (this.canPay()) {
+				return;
+			}
+
+			event.preventDefault();
+			event.stopPropagation();
+		},
+
+		syncPayButtons() {
+			const form = this.$refs.paymentForm;
+			if (!form) {
+				return;
+			}
+
+			const allowed = this.canPay();
+			form.querySelectorAll('button[type="submit"]').forEach((button) => {
+				button.disabled = !allowed;
+			});
+		},
+	};
+};
+
 Alpine.plugin(focus);
 Alpine.data('ClearableInput', ClearableInput);
 Alpine.data('SearchableSelect', SearchableSelect);
 Alpine.data('LineItem', LineItem);
+Alpine.data('SinglePageCheckout', SinglePageCheckout);
 
 window.Alpine = Alpine;
 Alpine.start();

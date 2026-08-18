@@ -1,0 +1,175 @@
+{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
+{% set notesHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
+{% set notesValue = notesHandle ? (cart.getFieldValue(notesHandle) ?? '') : '' %}
+
+{% set lineItemDiscount = 0 %}
+{% set orderDiscountAdjustments = [] %}
+{% for adjustment in cart.adjustments %}
+	{% if adjustment.type == 'discount' %}
+		{% if adjustment.lineItemId %}
+			{% set lineItemDiscount = lineItemDiscount + adjustment.amount %}
+		{% else %}
+			{% set orderDiscountAdjustments = orderDiscountAdjustments|merge([adjustment]) %}
+		{% endif %}
+	{% endif %}
+{% endfor %}
+
+<aside>
+	<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:rounded-lg lg:border lg:border-gray-250' }}">
+		<div class="grid grid-cols-1 gap-6">
+			<div class="flex justify-between items-center gap-4">
+				<h2 class="text-xl font-bold text-gray-800 leading-snug">
+					{{ 'summary.itemsTitle'|t('foster-checkout') }}
+				</h2>
+				<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}" class="inline-block text-[var(--brandColor)] underline">
+					{{ 'misc.edit'|t('foster-checkout') }}
+				</a>
+			</div>
+
+			<ul class="grid grid-cols-1 gap-4">
+				{% for lineItem in cart.lineItems %}
+					<li>
+						{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem } %}
+					</li>
+				{% endfor %}
+			</ul>
+		</div>
+
+		<article>
+			<div
+				x-data="{ isOpen: {{ cart.couponCode ? 'true' : 'false' }} }"
+				class="mb-6 px-4 border border-gray-250 {{ isFlat ? '' : 'rounded-lg' }}"
+			>
+				<button
+					type="button"
+					class="flex justify-between items-center w-full py-4"
+					@click="isOpen = !isOpen"
+					:aria-expanded="isOpen ? 'true' : 'false'"
+					aria-controls="spCouponPanel"
+				>
+					<span id="spCouponCodeLabel" class="font-medium text-gray-500">
+						{{ 'summary.couponCodeLabel'|t('foster-checkout') }}{% if cart.couponCode %} ({{ cart.couponCode }}){% endif %}
+					</span>
+					<template x-if="isOpen">
+						<svg x-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current" aria-hidden="true">
+							<path d="M6.99972 0.301388L13.3389 6.64054L11.9247 8.05469L6.99972 3.10469L2.07472 8.02969L0.660568 6.61554L6.99972 0.301388Z"/>
+						</svg>
+					</template>
+					<template x-if="!isOpen">
+						<svg x-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current" aria-hidden="true">
+							<path d="M7.00028 8.70057L0.661133 2.36142L2.07528 0.947266L7.00028 5.89727L11.9253 0.972268L13.3394 2.38642L7.00028 8.70057Z"/>
+						</svg>
+					</template>
+				</button>
+
+				<div
+					id="spCouponPanel"
+					x-show="isOpen"
+					x-cloak
+					class="pb-6"
+					role="group"
+					aria-labelledby="spCouponCodeLabel"
+				>
+					{% if not cart.couponCode %}
+						<div class="grid grid-cols-[1fr,_120px] items-start gap-4">
+							<label for="spCouponCode" class="sr-only">{{ 'summary.couponCode'|t('foster-checkout') }}</label>
+							<input
+								id="spCouponCode"
+								type="text"
+								autocomplete="off"
+								placeholder="{{ 'summary.couponCodePrompt'|t('foster-checkout') }}"
+								class="w-full h-12 px-4 bg-white rounded-lg border border-gray-250 text-gray-800"
+							>
+							<button
+								type="button"
+								disabled
+								aria-disabled="true"
+								class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-lg opacity-50 cursor-not-allowed"
+							>
+								{{ 'summary.submitCouponCode'|t('foster-checkout') }}
+							</button>
+						</div>
+					{% else %}
+						<div class="flex justify-between items-center text-sm p-2 rounded-lg {{ isFlat ? 'border border-gray-300' : 'border border-gray-250' }}">
+							<p class="font-bold">{{ cart.couponCode }}</p>
+							<button type="button" disabled aria-disabled="true" class="opacity-50 cursor-not-allowed">
+								<span class="sr-only">{{ 'summary.removeCoupon'|t('foster-checkout') }}</span>
+								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" class="fill-current" aria-hidden="true">
+									<path d="M1.22473 13.9682L0.03125 12.7747L5.80625 6.99973L0.03125 1.22473L1.22473 0.03125L6.99973 5.80625L12.7747 0.03125L13.9682 1.22473L8.1932 6.99973L13.9682 12.7747L12.7747 13.9682L6.99973 8.1932L1.22473 13.9682Z" fill="black"></path>
+								</svg>
+							</button>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+
+			<dl class="grid grid-cols-1 gap-4">
+				<div class="flex justify-between items-center gap-4">
+					<dt class="text-gray-500">{{ 'summary.itemsLabel'|t('foster-checkout') }}</dt>
+					<dd class="text-right text-black">{{ (cart.itemSubtotal + lineItemDiscount)|commerceCurrency }}</dd>
+				</div>
+
+				{% if cart.shippingAddressId %}
+					<div class="flex justify-between items-center gap-4">
+						<dt class="text-gray-500">{{ 'summary.shippingLabel'|t('foster-checkout') }}</dt>
+						<dd class="text-right text-black">{{ cart.totalShippingCostAsCurrency }}</dd>
+					</div>
+				{% endif %}
+
+				<div class="flex justify-between items-center gap-4">
+					<dt class="text-gray-500">{{ 'summary.taxLabel'|t('foster-checkout') }}</dt>
+					<dd class="text-right text-black">{{ cart.totalTaxAsCurrency }}</dd>
+				</div>
+
+				{% for adjustment in orderDiscountAdjustments %}
+					<div class="flex justify-between items-center gap-4">
+						<dt class="text-gray-500">{{ adjustment.name }}</dt>
+						<dd class="text-right text-red-500">{{ adjustment.amount|commerceCurrency }}</dd>
+					</div>
+				{% endfor %}
+
+				{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
+					{% set voucherAdjustments = cart.adjustments|filter(adjustment => adjustment.type == 'voucher') %}
+					{% for adj in voucherAdjustments %}
+						{% set matches = adj.description|split('code ') %}
+						{% set code = matches|length > 1 ? matches[1]|trim("'") : 'Voucher/Gift Card' %}
+						<div class="flex justify-between items-center gap-4">
+							<dt class="text-gray-500">{{ code }}</dt>
+							<dd class="text-right text-red-500">
+								<button
+									type="button"
+									disabled
+									aria-disabled="true"
+									class="mr-2 text-sm underline text-gray-500 opacity-50 cursor-not-allowed"
+								>
+									{{ 'summary.removeCoupon'|t('foster-checkout') }}
+								</button>
+								<span>{{ adj.amountAsCurrency }}</span>
+							</dd>
+						</div>
+					{% endfor %}
+				{% endif %}
+
+				<div class="flex justify-between items-center gap-4">
+					<dt class="font-semibold text-black">{{ 'summary.total'|t('foster-checkout') }}</dt>
+					<dd class="font-semibold text-right text-black">{{ cart.totalAsCurrency }}</dd>
+				</div>
+			</dl>
+
+			{% if notesHandle %}
+				<div class="mt-8">
+					<p class="mb-2 text-gray-500">{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</p>
+					<label for="spOrderNote" class="sr-only">{{ 'summary.addOrderNote'|t('foster-checkout') }}</label>
+					<textarea
+						id="spOrderNote"
+						rows="2"
+						class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 placeholder-gray-400"
+						placeholder="{{ 'summary.addOrderNote'|t('foster-checkout') }}"
+					>{{ notesValue }}</textarea>
+				</div>
+			{% endif %}
+		</article>
+	</div>
+
+	{% include 'foster-checkout/_components/app/global-checkout-note' %}
+</aside>

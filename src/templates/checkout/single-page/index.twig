@@ -1,0 +1,138 @@
+{% extends 'foster-checkout/_layouts/default' %}
+
+{% block head %}
+	<title>
+		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }}
+		| {{ 'misc.checkoutTitle'|t('foster-checkout') }}
+	</title>
+{% endblock %}
+
+{% block includeHead %}
+	{% set headInclude = craft.fostercheckout.settings.includes.head %}
+	{% if headInclude|default %}
+		{% include headInclude with {
+			context: 'checkout',
+			location: 'head',
+			step: 'single-page',
+			cart: cart
+		} %}
+	{% endif %}
+{% endblock %}
+
+{% block body %}
+	{% set site = craft.app.sites.currentSite %}
+	{% set parts = [
+		'fc_subscribe',
+		craft.app.request.hostName,
+		site.id,
+		site.language,
+		cart.number
+	]|join('_') %}
+	{% js at head %}
+		window.FC_SUBSCRIBE_KEY = {{ parts|json_encode|raw }};
+	{% endjs %}
+
+	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
+	{% set sourceId = cart.sourceShippingAddressId ?? null %}
+	{% set hasCartShip = cart.shippingAddressId is not empty %}
+	{% set hasBookAddresses = currentUser and addresses|length %}
+	{% set isNewAddress = (sourceId is null) and (hasCartShip or not hasBookAddresses) %}
+	{% set initialShippingAddressId = isNewAddress ? 0 : (sourceId ?? (addresses|length ? addresses|first.id : 0)) %}
+
+	{% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? [] %}
+	{% set optionCount = availableShippingMethodOptions|length %}
+	{% set onlyMethod = optionCount ? (availableShippingMethodOptions|keys|first) : null %}
+	{% set cartHandle = cart.shippingMethodHandle ?? (cart.shippingMethod.handle ?? null) %}
+	{% set hasCartHandle = cartHandle and (cartHandle in availableShippingMethodOptions|keys) %}
+	{% set initialHandle = hasCartHandle ? cartHandle : onlyMethod %}
+
+	{% set sourceBillId = cart.sourceBillingAddressId ?? null %}
+	{% set hasMatch = cart.hasMatchingAddresses() %}
+	{% set hasBillingRecord = cart.billingAddressId is not empty %}
+	{% set isNewBilling = (not hasMatch) and (sourceBillId is null) and hasBillingRecord %}
+
+	{% set gateways = cart.getAvailableGateways() %}
+	{% set cartGatewayId = cart.gatewayId ?? (gateways|length ? gateways[0].id : null) %}
+	{% set gatewayIds = gateways|map(g => g.id) %}
+	{% set hasGateway = cartGatewayId and (cartGatewayId in gatewayIds) %}
+	{% set initialGatewayId = hasGateway ? cartGatewayId : (gateways|length ? gateways[0].id : null) %}
+
+	{% set config = {
+		loggedIn: currentUser ? true : false,
+		email: cart.email ?? '',
+		shippingAddressId: initialShippingAddressId,
+		useNewAddress: isNewAddress ? true : false,
+		shippingMethodHandle: initialHandle ?? '',
+		requireShippingMethod: currentStore.requireShippingMethodSelectionAtCheckout ? true : false,
+		hasShippingMethods: optionCount ? true : false,
+		billingSameAsShipping: hasMatch ? true : false,
+		billingAddressId: sourceBillId,
+		useNewBillingAddress: isNewBilling ? true : false,
+		gatewayId: initialGatewayId,
+	} %}
+
+	<script type="application/json" id="fcSinglePageConfig">{{ config|json_encode|raw }}</script>
+
+	<div
+		class="mt-10 pb-28 lg:pb-32"
+		x-data="SinglePageCheckout(JSON.parse(document.getElementById('fcSinglePageConfig').textContent))"
+	>
+		{{ include('foster-checkout/_components/app/flash-message') }}
+		{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
+
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+			<main class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
+				<div class="grid grid-cols-1 gap-6">
+					{% if not currentUser %}
+						{% include 'foster-checkout/checkout/single-page/_contact' %}
+					{% endif %}
+					{% include 'foster-checkout/checkout/single-page/_delivery' %}
+					{% include 'foster-checkout/checkout/single-page/_shipping' %}
+					{% include 'foster-checkout/checkout/single-page/_payment' %}
+
+					<div class="md:flex md:justify-start">
+						<a
+							href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
+							class="block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg"
+						>
+							{{ 'misc.returnToCart'|t('foster-checkout') }}
+						</a>
+					</div>
+				</div>
+			</main>
+
+			{% include 'foster-checkout/checkout/single-page/_summary' %}
+		</div>
+
+		{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+	</div>
+
+	{% js %}
+	var paymentForms = document.querySelectorAll('#paymentForm');
+
+	if (paymentForms.length) {
+		paymentForms.forEach((paymentForm) => {
+			paymentForm.addEventListener('submit', function (event) {
+				if (event.defaultPrevented || paymentForm.dataset.processing) {
+					event.preventDefault();
+					return false;
+				}
+
+				paymentForm.dataset.processing = true;
+			});
+		});
+	}
+	{% endjs %}
+{% endblock %}
+
+{% block includeBody %}
+	{% set bodyInclude = craft.fostercheckout.settings.includes.body %}
+	{% if bodyInclude|default %}
+		{% include bodyInclude with {
+			context: 'checkout',
+			location: 'body',
+			step: 'single-page',
+			cart: cart
+		} %}
+	{% endif %}
+{% endblock %}
