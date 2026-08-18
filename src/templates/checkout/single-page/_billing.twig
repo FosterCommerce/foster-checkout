@@ -119,7 +119,7 @@
 			</div>
 
 			<template x-if="useNewBillingAddress">
-				<div class="p-4" @focusout="queueSave()" @change="queueSave(0)">
+				<div class="p-4">
 					{% include 'foster-checkout/_components/app/address-fields' with {
 						context: 'billingAddress',
 						address: cart.billingAddress ?? null,

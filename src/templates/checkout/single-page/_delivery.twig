@@ -94,7 +94,7 @@
 			{% endif %}
 
 			<template x-if="useNewAddress">
-				<div class="p-4" @focusout="queueSave()" @change="queueSave(0)">
+				<div class="p-4">
 					{% set address = null %}
 					{% if cart.shippingAddressId is not null and cart.sourceShippingAddressId is null %}
 						{% set address = craft.addresses().id(cart.shippingAddressId).one() %}

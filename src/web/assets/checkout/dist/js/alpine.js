@@ -610,28 +610,11 @@ const SinglePageCheckout = (props) => {
 		status: '',
 		statusTone: 'idle',
 		pending: 0,
-		saveTimer: null,
 		applying: false,
 		fieldErrors: {},
 
 		init() {
-			this.$watch('shippingMethodHandle', () => this.onSelectionChange());
-			this.$watch('shippingAddressId', () => this.onSelectionChange());
-			this.$watch('useNewAddress', () => this.onSelectionChange());
-			this.$watch('billingSameAsShipping', () => this.onSelectionChange());
-			this.$watch('billingAddressId', () => this.onSelectionChange());
-			this.$watch('useNewBillingAddress', () => this.onSelectionChange());
-			this.$watch('createAccount', () => this.onSelectionChange());
-			this.$watch('subscribe', () => this.onSelectionChange());
 			this.syncPayButtons();
-		},
-
-		onSelectionChange() {
-			if (this.applying) {
-				return;
-			}
-
-			this.queueSave(0);
 		},
 
 		hasEmail() {
@@ -679,26 +662,6 @@ const SinglePageCheckout = (props) => {
 
 		showShippingMethods() {
 			return this.shippingMethods.length > 0 || this.requireShippingMethod;
-		},
-
-		queueSave(delay = 400) {
-			if (this.saveTimer) {
-				clearTimeout(this.saveTimer);
-			}
-
-			this.saveTimer = setTimeout(() => {
-				this.saveTimer = null;
-				this.saveCart();
-			}, delay);
-		},
-
-		saveNow() {
-			if (this.saveTimer) {
-				clearTimeout(this.saveTimer);
-				this.saveTimer = null;
-			}
-
-			return this.saveCart();
 		},
 
 		onDetailsChange(event) {
@@ -1145,25 +1108,7 @@ const SinglePageCheckout = (props) => {
 			}
 		},
 
-		saveNotes() {
-			if (!this.notesHandle) {
-				return;
-			}
-
-			return this.saveCart();
-		},
-
-		async onPaySubmit(event) {
-			if (this.saveTimer || this.pending > 0) {
-				event.preventDefault();
-				event.stopPropagation();
-				await this.saveNow();
-				if (this.canPay() && this.$refs.paymentForm) {
-					this.$refs.paymentForm.requestSubmit();
-				}
-				return;
-			}
-
+		onPaySubmit(event) {
 			if (this.canPay()) {
 				return;
 			}

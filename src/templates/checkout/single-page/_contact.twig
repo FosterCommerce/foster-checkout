@@ -18,7 +18,7 @@
 		{% if currentUser %}
 			<p class="text-gray-800">{{ currentUser.email }}</p>
 		{% else %}
-			<div class="grid grid-cols-1 gap-6" @input="onDetailsChange($event)" @focusout="queueSave()">
+			<div class="grid grid-cols-1 gap-6" @input="onDetailsChange($event)">
 				{% include 'foster-checkout/_components/base/input-text-clearable' with {
 					label: 'email.emailLabel'|t('foster-checkout'),
 					id: 'email',
