@@ -1,5 +1,9 @@
-{% if currentUser %}
-	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address' %}
-{% else %}
-	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/email' %}
+{% if not craft.fostercheckout.settings.options.isSinglePageCheckout %}
+	{% if currentUser %}
+		{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address' %}
+	{% else %}
+		{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/email' %}
+	{% endif %}
 {% endif %}
+
+{% extends 'foster-checkout/checkout/single-page/index' %}
