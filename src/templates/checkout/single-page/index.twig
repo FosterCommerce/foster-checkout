@@ -1,0 +1,237 @@
+{% extends 'foster-checkout/_layouts/default' %}
+
+{% block head %}
+	<title>
+		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }}
+		| {{ 'misc.checkoutTitle'|t('foster-checkout') }}
+	</title>
+{% endblock %}
+
+{% block includeHead %}
+	{% set headInclude = craft.fostercheckout.settings.includes.head %}
+	{% if headInclude|default %}
+		{% include headInclude with {
+			context: 'checkout',
+			location: 'head',
+			step: 'single-page',
+			cart: cart
+		} %}
+	{% endif %}
+{% endblock %}
+
+{% block body %}
+	{% set site = craft.app.sites.currentSite %}
+	{% set parts = [
+		'fc_subscribe',
+		craft.app.request.hostName,
+		site.id,
+		site.language,
+		cart.number
+	]|join('_') %}
+	{% js at head %}
+		window.FC_SUBSCRIBE_KEY = {{ parts|json_encode|raw }};
+	{% endjs %}
+
+	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
+	{% set sourceId = cart.sourceShippingAddressId ?? null %}
+	{% set hasCartShip = cart.shippingAddressId is not empty %}
+	{% set hasBookAddresses = currentUser and addresses|length %}
+	{% set isNewAddress = (sourceId is null) and (hasCartShip or not hasBookAddresses) %}
+	{% set initialShippingAddressId = isNewAddress ? 0 : (sourceId ?? (addresses|length ? addresses|first.id : 0)) %}
+
+	{% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? [] %}
+	{% set optionCount = availableShippingMethodOptions|length %}
+	{% set onlyMethod = optionCount ? (availableShippingMethodOptions|keys|first) : null %}
+	{% set cartHandle = cart.shippingMethodHandle ?? (cart.shippingMethod.handle ?? null) %}
+	{% set hasCartHandle = cartHandle and (cartHandle in availableShippingMethodOptions|keys) %}
+	{% set initialHandle = hasCartHandle ? cartHandle : onlyMethod %}
+
+	{% set shippingMethodsForJs = [] %}
+	{% for handle, method in availableShippingMethodOptions %}
+		{% set rule = craft.commerce.shippingMethods.getMatchingShippingRule(cart, method) %}
+		{% set methodDescription = rule and rule.getDescription() ? rule.getDescription() : '' %}
+		{% set methodPrice = method.getPrice() ?? (rule ? rule.price : 0) %}
+		{% set shippingMethodsForJs = shippingMethodsForJs|merge([{
+			handle: handle,
+			name: method.name,
+			description: methodDescription,
+			price: methodPrice|commerceCurrency(cart.currency)
+		}]) %}
+	{% endfor %}
+
+	{% set sourceBillId = cart.sourceBillingAddressId ?? null %}
+	{% set hasMatch = cart.hasMatchingAddresses() %}
+	{% set hasBillingRecord = cart.billingAddressId is not empty %}
+	{% set isNewBilling = (not hasMatch) and (sourceBillId is null) and hasBillingRecord %}
+
+	{% set lineItemDiscount = 0 %}
+	{% set orderDiscounts = [] %}
+	{% for adjustment in cart.adjustments %}
+		{% if adjustment.type == 'discount' %}
+			{% if adjustment.lineItemId %}
+				{% set lineItemDiscount = lineItemDiscount + adjustment.amount %}
+			{% else %}
+				{% set orderDiscounts = orderDiscounts|merge([{
+					name: adjustment.name,
+					amount: adjustment.amount|commerceCurrency
+				}]) %}
+			{% endif %}
+		{% endif %}
+	{% endfor %}
+
+	{% set gateways = cart.getAvailableGateways() %}
+	{% set cartGatewayId = cart.gatewayId ?? (gateways|length ? gateways[0].id : null) %}
+	{% set gatewayIds = gateways|map(g => g.id) %}
+	{% set hasGateway = cartGatewayId and (cartGatewayId in gatewayIds) %}
+	{% set initialGatewayId = hasGateway ? cartGatewayId : (gateways|length ? gateways[0].id : null) %}
+
+	{% set notesHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
+	{% set notesValue = notesHandle ? (cart.getFieldValue(notesHandle) ?? '') : '' %}
+	{% set klaviyoEnabled = craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
+	{% set giftVoucherEnabled = craft.app.plugins.isPluginEnabled('gift-voucher') %}
+	{% set subscribeDefault = false %}
+	{% set appliedVouchers = [] %}
+	{% if giftVoucherEnabled %}
+		{% for adjustment in cart.adjustments %}
+			{% if adjustment.type == 'voucher' %}
+				{% set matches = adjustment.description|split('code ') %}
+				{% set appliedVouchers = appliedVouchers|merge([{
+					code: matches|length > 1 ? matches[1]|trim("'") : 'Voucher/Gift Card',
+					amount: adjustment.amountAsCurrency
+				}]) %}
+			{% endif %}
+		{% endfor %}
+	{% endif %}
+
+	{% set config = {
+		actionUrl: actionUrl('commerce/cart/update-cart'),
+		klaviyoUrl: klaviyoEnabled ? actionUrl('klaviyo-connect-plus/api/track') : '',
+		csrfName: craft.app.config.general.csrfTokenName,
+		csrfValue: craft.app.request.csrfToken,
+		cartId: cart.id,
+		loggedIn: currentUser ? true : false,
+		email: cart.email ?? '',
+		createAccount: cart.registerUserOnOrderComplete ? true : false,
+		subscribe: subscribeDefault,
+		klaviyoListId: craft.fostercheckout.settings.options.klaviyoListId ?? '',
+		shippingAddressId: initialShippingAddressId,
+		useNewAddress: isNewAddress ? true : false,
+		shippingMethodHandle: initialHandle ?? '',
+		shippingMethods: shippingMethodsForJs,
+		requireShippingMethod: currentStore.requireShippingMethodSelectionAtCheckout ? true : false,
+		billingSameAsShipping: hasMatch ? true : false,
+		billingAddressId: sourceBillId,
+		useNewBillingAddress: isNewBilling ? true : false,
+		itemSubtotal: (cart.itemSubtotal + lineItemDiscount)|commerceCurrency,
+		shippingTotal: cart.totalShippingCostAsCurrency,
+		taxTotal: cart.totalTaxAsCurrency,
+		total: cart.totalAsCurrency,
+		hasShippingAddress: cart.shippingAddressId ? true : false,
+		discounts: orderDiscounts,
+		couponCode: cart.couponCode ?? '',
+		vouchers: appliedVouchers,
+		saveAddressUrl: actionUrl('users/save-address'),
+		giftVoucherAddUrl: giftVoucherEnabled ? actionUrl('gift-voucher/cart/add-code') : '',
+		giftVoucherRemoveUrl: giftVoucherEnabled ? actionUrl('gift-voucher/cart/remove-code') : '',
+		notesHandle: notesHandle ?? '',
+		notesValue: notesValue,
+		gatewayId: initialGatewayId,
+		payLabelPrefix: 'payment.payButtonText'|t('foster-checkout'),
+		savingLabel: 'misc.saving'|t('foster-checkout'),
+		savedLabel: 'misc.saved'|t('foster-checkout'),
+		failedLabel: 'misc.saveFailed'|t('foster-checkout'),
+		payIncompleteLabel: 'checkout.payIncomplete'|t('foster-checkout'),
+	} %}
+
+	<script type="application/json" id="fcSinglePageConfig">{{ config|json_encode|raw }}</script>
+
+	<div
+		class="mt-10 pb-28 lg:pb-32"
+		x-data="SinglePageCheckout(JSON.parse(document.getElementById('fcSinglePageConfig').textContent))"
+		x-init="
+			if (window.FC_SUBSCRIBE_KEY) {
+				subscribe = JSON.parse(localStorage.getItem(window.FC_SUBSCRIBE_KEY) ?? 'false');
+				$watch('subscribe', value => localStorage.setItem(window.FC_SUBSCRIBE_KEY, JSON.stringify(value)));
+			}
+		"
+	>
+		<div
+			class="mb-6 text-sm"
+			role="status"
+			aria-live="polite"
+			aria-atomic="true"
+			:class="{
+				'text-gray-500': statusTone === 'saving' || statusTone === 'idle',
+				'text-green-700': statusTone === 'saved',
+				'text-red-600': statusTone === 'error'
+			}"
+		>
+			<span x-show="statusTone === 'saving'" class="inline-flex items-center gap-2">
+				<svg aria-hidden="true" class="w-4 h-4 animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+					<path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
+				</svg>
+				<span x-text="status"></span>
+			</span>
+			<span x-show="statusTone !== 'saving'" x-text="status"></span>
+		</div>
+
+		{{ include('foster-checkout/_components/app/flash-message') }}
+		{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
+
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+			<main class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
+				<div class="grid grid-cols-1 gap-6">
+					{% if not currentUser %}
+						{% include 'foster-checkout/checkout/single-page/_contact' %}
+					{% endif %}
+					{% include 'foster-checkout/checkout/single-page/_delivery' %}
+					{% include 'foster-checkout/checkout/single-page/_shipping' %}
+					{% include 'foster-checkout/checkout/single-page/_payment' %}
+
+					<div class="md:flex md:justify-start">
+						<a
+							href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
+							class="block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg"
+						>
+							{{ 'misc.returnToCart'|t('foster-checkout') }}
+						</a>
+					</div>
+				</div>
+			</main>
+
+			{% include 'foster-checkout/checkout/single-page/_summary' %}
+		</div>
+
+		{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+	</div>
+
+	{% js %}
+	var paymentForms = document.querySelectorAll('#paymentForm');
+
+	if (paymentForms.length) {
+		paymentForms.forEach((paymentForm) => {
+			paymentForm.addEventListener('submit', function (event) {
+				if (event.defaultPrevented || paymentForm.dataset.processing) {
+					event.preventDefault();
+					return false;
+				}
+
+				paymentForm.dataset.processing = true;
+			});
+		});
+	}
+	{% endjs %}
+{% endblock %}
+
+{% block includeBody %}
+	{% set bodyInclude = craft.fostercheckout.settings.includes.body %}
+	{% if bodyInclude|default %}
+		{% include bodyInclude with {
+			context: 'checkout',
+			location: 'body',
+			step: 'single-page',
+			cart: cart
+		} %}
+	{% endif %}
+{% endblock %}

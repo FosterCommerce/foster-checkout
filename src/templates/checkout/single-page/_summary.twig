@@ -1,0 +1,142 @@
+{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
+{% set notesHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
+
+<aside>
+	<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:rounded-lg lg:border lg:border-gray-250' }}">
+		<div class="grid grid-cols-1 gap-6">
+			<div class="flex justify-between items-center gap-4">
+				<h2 class="text-xl font-bold text-gray-800 leading-snug">
+					{{ 'summary.itemsTitle'|t('foster-checkout') }}
+				</h2>
+				<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}" class="inline-block text-[var(--brandColor)] underline">
+					{{ 'misc.edit'|t('foster-checkout') }}
+				</a>
+			</div>
+
+			<ul class="grid grid-cols-1 gap-4">
+				{% for lineItem in cart.lineItems %}
+					<li>
+						{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem } %}
+					</li>
+				{% endfor %}
+			</ul>
+		</div>
+
+		<article data-fc-skip-collect>
+			<div
+				class="mb-6 px-4 border border-gray-250 {{ isFlat ? '' : 'rounded-lg' }}"
+			>
+				<button type="button" class="flex justify-between items-center w-full py-4" @click="couponOpen = !couponOpen">
+					<span id="spCouponCodeLabel" class="font-medium text-gray-500">
+						{{ 'summary.couponCodeLabel'|t('foster-checkout') }}
+						<template x-if="couponCode">
+							<span x-text="' (' + couponCode + ')'"></span>
+						</template>
+					</span>
+					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current" aria-hidden="true">
+						<path d="M7.00028 8.70057L0.661133 2.36142L2.07528 0.947266L7.00028 5.89727L11.9253 0.972268L13.3394 2.38642L7.00028 8.70057Z"/>
+					</svg>
+				</button>
+
+				<div x-show="couponOpen" x-cloak class="pb-6" role="group" aria-labelledby="spCouponCodeLabel">
+					<template x-if="!couponCode">
+						<div class="grid grid-cols-[1fr,_120px] items-start gap-4">
+							<label for="spCouponCode" class="sr-only">{{ 'summary.couponCode'|t('foster-checkout') }}</label>
+							<input
+								id="spCouponCode"
+								type="text"
+								x-model="couponInput"
+								autocomplete="off"
+								placeholder="{{ 'summary.couponCodePrompt'|t('foster-checkout') }}"
+								class="w-full h-12 px-4 bg-white rounded-lg border border-gray-250 text-gray-800"
+								@keydown.enter.prevent="applyCoupon()"
+							>
+							<button
+								type="button"
+								class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-lg"
+								:disabled="pending > 0"
+								@click="applyCoupon()"
+							>
+								{{ 'summary.submitCouponCode'|t('foster-checkout') }}
+							</button>
+						</div>
+					</template>
+					<template x-if="couponCode">
+						<div class="flex justify-between items-center text-sm p-2 rounded-lg {{ isFlat ? 'border border-gray-300' : 'border border-gray-250' }}">
+							<p class="font-bold" x-text="couponCode"></p>
+							<button type="button" class="hover:cursor-pointer" :disabled="pending > 0" @click="removeCoupon()">
+								<span class="sr-only">{{ 'summary.removeCoupon'|t('foster-checkout') }}</span>
+								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" class="fill-current" aria-hidden="true">
+									<path d="M1.22473 13.9682L0.03125 12.7747L5.80625 6.99973L0.03125 1.22473L1.22473 0.03125L6.99973 5.80625L12.7747 0.03125L13.9682 1.22473L8.1932 6.99973L13.9682 12.7747L12.7747 13.9682L6.99973 8.1932L1.22473 13.9682Z" fill="black"></path>
+								</svg>
+							</button>
+						</div>
+					</template>
+				</div>
+			</div>
+
+			<dl class="grid grid-cols-1 gap-4">
+				<div class="flex justify-between items-center gap-4">
+					<dt class="text-gray-500">{{ 'summary.itemsLabel'|t('foster-checkout') }}</dt>
+					<dd class="text-right text-black" x-text="itemSubtotal"></dd>
+				</div>
+
+				<div class="flex justify-between items-center gap-4" x-show="hasShippingAddress">
+					<dt class="text-gray-500">{{ 'summary.shippingLabel'|t('foster-checkout') }}</dt>
+					<dd class="text-right text-black" x-text="shippingTotal"></dd>
+				</div>
+
+				<div class="flex justify-between items-center gap-4">
+					<dt class="text-gray-500">{{ 'summary.taxLabel'|t('foster-checkout') }}</dt>
+					<dd class="text-right text-black" x-text="taxTotal"></dd>
+				</div>
+
+				<template x-for="discount in discounts" :key="discount.name">
+					<div class="flex justify-between items-center gap-4">
+						<dt class="text-gray-500" x-text="discount.name"></dt>
+						<dd class="text-right text-red-500" x-text="discount.amount"></dd>
+					</div>
+				</template>
+
+				<template x-for="voucher in vouchers" :key="voucher.code">
+					<div class="flex justify-between items-center gap-4">
+						<dt class="text-gray-500" x-text="voucher.code"></dt>
+						<dd class="text-right text-red-500">
+							<button
+								type="button"
+								class="mr-2 text-sm underline text-gray-500 hover:no-underline hover:text-gray-700"
+								:disabled="pending > 0"
+								@click="removeVoucher(voucher.code)"
+							>
+								{{ 'summary.removeCoupon'|t('foster-checkout') }}
+							</button>
+							<span x-text="voucher.amount"></span>
+						</dd>
+					</div>
+				</template>
+
+				<div class="flex justify-between items-center gap-4">
+					<dt class="font-semibold text-black">{{ 'summary.total'|t('foster-checkout') }}</dt>
+					<dd class="font-semibold text-right text-black" x-text="total"></dd>
+				</div>
+			</dl>
+
+			{% if notesHandle %}
+				<div class="mt-8">
+					<p class="mb-2 text-gray-500">{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</p>
+					<label for="spOrderNote" class="sr-only">{{ 'summary.addOrderNote'|t('foster-checkout') }}</label>
+					<textarea
+						id="spOrderNote"
+						rows="2"
+						x-model="notesValue"
+						class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 placeholder-gray-400"
+						placeholder="{{ 'summary.addOrderNote'|t('foster-checkout') }}"
+						@focusout="saveNotes()"
+					></textarea>
+				</div>
+			{% endif %}
+		</article>
+	</div>
+
+	{% include 'foster-checkout/_components/app/global-checkout-note' %}
+</aside>

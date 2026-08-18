@@ -1,0 +1,51 @@
+{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
+
+<section
+	x-show="showShippingMethods()"
+	x-cloak
+	class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
+>
+	<h2 class="p-4 font-semibold bg-gray-200">
+		{{ 'shipping.stepTitle'|t('foster-checkout') }}
+	</h2>
+
+	<div class="p-4" data-fc-collect>
+		<template x-if="shippingMethods.length">
+			<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+				<template x-for="method in shippingMethods" :key="method.handle">
+					<div class="p-4 border-b border-gray-250" :class="{ 'bg-gray-100': shippingMethodHandle === method.handle }">
+						<div class="relative flex justify-between items-center gap-4 radio">
+							<input
+								x-model="shippingMethodHandle"
+								:id="'sp_method_' + method.handle"
+								name="shippingMethodHandle_radio"
+								type="radio"
+								class="absolute opacity-0 w-px h-px"
+								:value="method.handle"
+							/>
+							<label
+								:for="'sp_method_' + method.handle"
+								class="inline-flex justify-start items-center gap-4 cursor-pointer"
+							>
+								<span class="block">
+									<span class="block" x-text="method.name"></span>
+									<span class="block mt-1 text-sm text-gray-500" x-show="method.description" x-text="method.description"></span>
+								</span>
+							</label>
+							<span class="block font-semibold" x-text="method.price"></span>
+						</div>
+					</div>
+				</template>
+			</div>
+		</template>
+
+		<p x-show="!shippingMethods.length">{{ 'shipping.noMethodAvailable'|t('foster-checkout') }}.</p>
+
+		{% set note = craft.fostercheckout.note('shipping', {cart}) %}
+		{% if note %}
+			<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
+				{{ note|raw }}
+			</div>
+		{% endif %}
+	</div>
+</section>
