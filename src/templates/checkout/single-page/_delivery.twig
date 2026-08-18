@@ -1,4 +1,3 @@
-{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 
 <section class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}">

@@ -1,5 +1,4 @@
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
-{% set gateways = cart.getAvailableGateways() %}
 
 <section class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}">
 	<h2 class="p-4 font-semibold bg-gray-200">

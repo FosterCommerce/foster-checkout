@@ -1,6 +1,4 @@
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
-{% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? [] %}
-{% set optionCount = availableShippingMethodOptions|length %}
 {% set requireShippingMethod = currentStore.requireShippingMethodSelectionAtCheckout %}
 
 {% if optionCount or requireShippingMethod %}
@@ -29,7 +27,7 @@
 								/>
 								<label
 									for="sp_method_{{ handle }}"
-									class="flex flex-1 justify-between items-center gap-4 cursor-pointer"
+									class="inline-flex justify-start items-center gap-4 cursor-pointer w-full"
 								>
 									<span class="block">
 										<span class="block">{{ method.name|t('foster-checkout') }}</span>
@@ -39,7 +37,7 @@
 											</span>
 										{% endif %}
 									</span>
-									<span class="block font-semibold">
+									<span class="block ml-auto font-semibold">
 										{{ (methodPrice ?? 0)|commerceCurrency(cart.currency) }}
 									</span>
 								</label>
