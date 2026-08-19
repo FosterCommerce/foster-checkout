@@ -30,10 +30,6 @@
 	]|join('_') %}
 	{% js at head %}
 		window.FC_SUBSCRIBE_KEY = {{ parts|json_encode|raw }};
-		window.fcFieldErrors = {
-			required: {{ 'validation.required'|t('foster-checkout')|json_encode|raw }},
-			invalidEmail: {{ 'validation.invalidEmail'|t('foster-checkout')|json_encode|raw }}
-		};
 	{% endjs %}
 
 	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}

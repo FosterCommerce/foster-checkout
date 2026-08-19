@@ -28,6 +28,8 @@ const ClearableInput = (props) => {
 		required: props.required,
 		errors: props.errors,
 		success: props.success,
+		requiredError: props.requiredError || '',
+		invalidEmailError: props.invalidEmailError || '',
 		showButton: false,
 		touched: false,
 		props: props,
@@ -68,16 +70,15 @@ const ClearableInput = (props) => {
 				this.requiredFields()[this.countryCode()]?.includes(this.name) ?? false
 			);
 		},
-		validate(showEmpty = false) {
+		validate(showRequired = false) {
 			const value = String(this.value || '').trim();
 			const messages = [];
 			let valid = true;
-			const labels = window.fcFieldErrors || {};
 
 			if (this.isRequired() && value === '') {
 				valid = false;
-				if (showEmpty || this.touched) {
-					messages.push(labels.required || '');
+				if (showRequired || this.touched) {
+					messages.push(this.requiredError);
 				}
 			} else if (
 				this.type === 'email' &&
@@ -85,7 +86,7 @@ const ClearableInput = (props) => {
 				!isValidEmail(value)
 			) {
 				valid = false;
-				messages.push(labels.invalidEmail || '');
+				messages.push(this.invalidEmailError);
 			}
 
 			setErrors(this, messages);
@@ -103,6 +104,7 @@ const SearchableSelect = (props) => {
 		required: props.required || false,
 		errors: props.errors || [],
 		success: props.success || [],
+		requiredError: props.requiredError || '',
 		modelValue: props.value || null,
 		tmpInputEventValue: null, // This is set when the hidden input's input event fires
 		open: false,
@@ -334,16 +336,15 @@ const SearchableSelect = (props) => {
 			return Boolean(this.required) && this.options.length > 0;
 		},
 
-		validate(showEmpty = false) {
+		validate(showRequired = false) {
 			const value = String(this.modelValue || '').trim();
 			const messages = [];
 			let valid = true;
-			const labels = window.fcFieldErrors || {};
 
 			if (this.isRequired() && value === '') {
 				valid = false;
-				if (showEmpty || this.touched) {
-					messages.push(labels.required || '');
+				if (showRequired || this.touched) {
+					messages.push(this.requiredError);
 				}
 			}
 
@@ -895,7 +896,7 @@ const SinglePageCheckout = (props) => {
 			}
 		},
 
-		collectRoot(panel) {
+		panelScope(panel) {
 			if (panel === 'delivery' && this.useNewAddress) {
 				return this.$root.querySelector('[data-fc-new-shipping]');
 			}
@@ -931,13 +932,13 @@ const SinglePageCheckout = (props) => {
 				return true;
 			}
 
-			const root = this.collectRoot(panel);
-			if (!root) {
+			const scope = this.panelScope(panel);
+			if (!scope) {
 				return true;
 			}
 
 			let ready = true;
-			root.querySelectorAll('[data-fc-field]').forEach((element) => {
+			scope.querySelectorAll('[data-fc-field]').forEach((element) => {
 				if (element === this.$root) {
 					return;
 				}
@@ -1844,7 +1845,7 @@ const SinglePageCheckout = (props) => {
 				return;
 			}
 
-			if (wrapper.dataset.fcPaypal === '1') {
+			if (wrapper.dataset.fcPaypalInit === 'true') {
 				return;
 			}
 
@@ -1863,7 +1864,7 @@ const SinglePageCheckout = (props) => {
 				return;
 			}
 
-			wrapper.dataset.fcPaypal = '1';
+			wrapper.dataset.fcPaypalInit = 'true';
 			window.initPaypalCheckout();
 		},
 	};

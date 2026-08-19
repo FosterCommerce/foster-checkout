@@ -27,6 +27,8 @@
 			required: {{ required ? 'true' : 'false' }},
 		{% endif %}
 		type: '{{ type|default('text') }}',
+		requiredError: {{ 'misc.required'|t('foster-checkout')|json_encode }},
+		invalidEmailError: {{ 'email.invalid'|t('foster-checkout')|json_encode }},
 		errors: {{ errors|default([])|json_encode }},
 		success: {{ success|default([])|json_encode }}
 	})">

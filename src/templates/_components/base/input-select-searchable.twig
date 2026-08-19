@@ -36,6 +36,7 @@
 			required: {{ required ? 'true' : 'false' }},
 		{% endif %}
 		value: '{{ value|default('') }}',
+		requiredError: {{ 'misc.required'|t('foster-checkout')|json_encode }},
 		errors: {{ errors|default([])|json_encode }},
 		success: {{ success|default([])|json_encode }}
 	})"
