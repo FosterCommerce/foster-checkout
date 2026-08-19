@@ -181,6 +181,8 @@ return [
 	'misc.saving' => 'Saving',
 	'misc.saved' => 'Saved',
 	'misc.saveFailed' => 'Could not save your details. Try again.',
+	'validation.required' => 'This field is required.',
+	'validation.invalidEmail' => 'Enter a valid email address.',
 	'misc.update' => 'Update',
 	'misc.returnToCart' => 'Return to cart',
 	'misc.returnToCheckout' => 'Back to checkout',

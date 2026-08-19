@@ -178,6 +178,8 @@ return [
 	'misc.saving' => 'Enregistrement',
 	'misc.saved' => 'Enregistré',
 	'misc.saveFailed' => 'Impossible d\'enregistrer vos informations. Réessayez.',
+	'validation.required' => 'Ce champ est obligatoire.',
+	'validation.invalidEmail' => 'Entre une adresse e-mail valide.',
 	'misc.update' => 'Mettre à jour',
 	'misc.returnToCart' => 'Retour au panier',
 	'misc.returnToCheckout' => 'Retour au paiement',

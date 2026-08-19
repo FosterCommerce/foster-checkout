@@ -16,9 +16,9 @@
 	<div
 		class="p-4"
 		data-fc-collect
-		@input="queueSave(400, $event)"
-		@change="queueSave(0, $event)"
-		@selected="$nextTick(() => queueSave(0, null, {}, 'delivery'))"
+		@blur.capture="saveIfValid('delivery', $event)"
+		@change="saveIfValid('delivery', $event)"
+		@selected="$nextTick(() => saveIfValid('delivery', $event))"
 	>
 		<div class="xl:border xl:border-gray-250 xl:rounded-lg">
 			{% if currentUser and addresses|length %}

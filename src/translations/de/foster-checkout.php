@@ -178,6 +178,8 @@ return [
 	'misc.saving' => 'Wird gespeichert',
 	'misc.saved' => 'Gespeichert',
 	'misc.saveFailed' => 'Ihre Angaben konnten nicht gespeichert werden. Bitte erneut versuchen.',
+	'validation.required' => 'Dieses Feld ist erforderlich.',
+	'validation.invalidEmail' => 'Gib eine gültige E-Mail-Adresse ein.',
 	'misc.update' => 'Aktualisieren',
 	'misc.returnToCart' => 'Zurück zum Warenkorb',
 	'misc.returnToCheckout' => 'Zurück zur Kasse',

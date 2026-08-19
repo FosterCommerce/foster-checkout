@@ -1,10 +1,27 @@
 import Alpine from 'https://esm.sh/alpinejs@3.16.1';
 import focus from 'https://esm.sh/@alpinejs/focus@3.16.1';
 
+const isValidEmail = (value) =>
+	/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+
+const setErrors = (field, messages) => {
+	const next = messages.filter(Boolean);
+	if (
+		Array.isArray(field.errors) &&
+		field.errors.length === next.length &&
+		field.errors.every((message, index) => message === next[index])
+	) {
+		return;
+	}
+
+	field.errors = next;
+};
+
 const ClearableInput = (props) => {
 	return {
 		name: props.name,
 		value: props.value,
+		type: props.type || 'text',
 		countryCode: props.countryCode,
 		requiredFields: props.requiredFields,
 		addressScope: props.addressScope ?? false,
@@ -12,22 +29,28 @@ const ClearableInput = (props) => {
 		errors: props.errors,
 		success: props.success,
 		showButton: false,
+		touched: false,
 		props: props,
 
 		input() {
 			this.showButton = this.value !== '';
-			this.errors = [];
+			if (this.touched || String(this.value || '').trim() !== '') {
+				this.validate(false);
+			}
 		},
 		focus() {
 			this.showButton = this.value !== '';
 		},
 		blur() {
+			this.touched = true;
 			this.showButton =
 				this.$refs.button === document.activeElement && this.value !== '';
+			this.validate(true);
 		},
 		clear() {
 			this.value = '';
-			this.errors = [];
+			this.touched = true;
+			this.showButton = false;
 			this.$refs.input.focus();
 			this.$refs.input.dispatchEvent(new Event('input', { bubbles: true }));
 		},
@@ -44,6 +67,29 @@ const ClearableInput = (props) => {
 			return (
 				this.requiredFields()[this.countryCode()]?.includes(this.name) ?? false
 			);
+		},
+		validate(showEmpty = false) {
+			const value = String(this.value || '').trim();
+			const messages = [];
+			let valid = true;
+			const labels = window.fcFieldErrors || {};
+
+			if (this.isRequired() && value === '') {
+				valid = false;
+				if (showEmpty || this.touched) {
+					messages.push(labels.required || '');
+				}
+			} else if (
+				this.type === 'email' &&
+				value !== '' &&
+				!isValidEmail(value)
+			) {
+				valid = false;
+				messages.push(labels.invalidEmail || '');
+			}
+
+			setErrors(this, messages);
+			return valid;
 		},
 	};
 };
@@ -64,6 +110,7 @@ const SearchableSelect = (props) => {
 		activeIndex: 0,
 		selectedOption: null,
 		lastPinned: null,
+		touched: false,
 
 		init() {
 			// Remove the fallback select element
@@ -122,6 +169,8 @@ const SearchableSelect = (props) => {
 				}
 
 				if (this.selectedOption) {
+					this.touched = true;
+					this.errors = [];
 					this.$nextTick(() => {
 						// Make sure that the value is set on the hidden input in the next tick so that everything else
 						// in the current tick has completed.
@@ -281,6 +330,27 @@ const SearchableSelect = (props) => {
 			return `${this.id}-error`;
 		},
 
+		isRequired() {
+			return Boolean(this.required) && this.options.length > 0;
+		},
+
+		validate(showEmpty = false) {
+			const value = String(this.modelValue || '').trim();
+			const messages = [];
+			let valid = true;
+			const labels = window.fcFieldErrors || {};
+
+			if (this.isRequired() && value === '') {
+				valid = false;
+				if (showEmpty || this.touched) {
+					messages.push(labels.required || '');
+				}
+			}
+
+			setErrors(this, messages);
+			return valid;
+		},
+
 		optionId(index) {
 			return `${this.id}-option-${index}`;
 		},
@@ -305,6 +375,8 @@ const SearchableSelect = (props) => {
 			if (this.lastPinned) {
 				this.lastPinned.isLastPinned = true;
 			}
+			this.touched = true;
+			this.validate(true);
 		},
 
 		toggleListbox() {
@@ -612,12 +684,13 @@ const SinglePageCheckout = (props) => {
 		},
 		panelStatusTimers: {},
 		queuedSavePanel: null,
-		activeSavePanel: null,
 		pending: 0,
 		saveTimer: null,
-		saveGeneration: 0,
 		saveAbort: null,
 		queuedSaveExtra: {},
+		saving: false,
+		nextSave: null,
+		lastSaved: '',
 		shippingRestoreAttempted: false,
 		paypalInitTimer: null,
 
@@ -644,7 +717,7 @@ const SinglePageCheckout = (props) => {
 			this.syncPayButtons();
 
 			if (!this.cartHasShippingAddress && this.shippingAddressId) {
-				this.queueSave(0, null, {}, 'delivery');
+				this.saveIfValid('delivery');
 			}
 		},
 
@@ -658,6 +731,9 @@ const SinglePageCheckout = (props) => {
 				clearTimeout(this.paypalInitTimer);
 				this.paypalInitTimer = null;
 			}
+
+			this.nextSave = null;
+			this.saving = false;
 
 			if (this.saveAbort) {
 				this.saveAbort.abort();
@@ -688,7 +764,7 @@ const SinglePageCheckout = (props) => {
 				return true;
 			}
 
-			return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(this.email || '').trim());
+			return isValidEmail(this.email);
 		},
 
 		get hasShippingMethod() {
@@ -796,7 +872,7 @@ const SinglePageCheckout = (props) => {
 			}
 
 			this.shippingRestoreAttempted = false;
-			this.queueSave(0, null, {}, panel);
+			this.saveIfValid(panel);
 		},
 
 		onShippingMethodChange() {
@@ -817,6 +893,88 @@ const SinglePageCheckout = (props) => {
 			if (event.target && event.target.name === 'email') {
 				this.email = event.target.value;
 			}
+		},
+
+		collectRoot(panel) {
+			if (panel === 'delivery' && this.useNewAddress) {
+				return this.$root.querySelector('[data-fc-new-shipping]');
+			}
+
+			if (panel === 'payment' && this.useNewBillingAddress) {
+				return this.$root.querySelector('[data-fc-new-billing]');
+			}
+
+			const section = this.$root.querySelector(`[data-fc-panel="${panel}"]`);
+			return section
+				? section.querySelector('[data-fc-collect]') || section
+				: null;
+		},
+
+		canSavePanel(panel) {
+			if (
+				panel === 'delivery' &&
+				!this.useNewAddress &&
+				this.shippingAddressId
+			) {
+				return true;
+			}
+
+			if (panel === 'payment' && this.billingSameAsShipping) {
+				return true;
+			}
+
+			if (
+				panel === 'payment' &&
+				!this.useNewBillingAddress &&
+				this.billingAddressId
+			) {
+				return true;
+			}
+
+			const root = this.collectRoot(panel);
+			if (!root) {
+				return true;
+			}
+
+			let ready = true;
+			root.querySelectorAll('[data-fc-field]').forEach((element) => {
+				if (element === this.$root) {
+					return;
+				}
+
+				const data = window.Alpine.$data(element);
+				if (!data || typeof data.validate !== 'function') {
+					return;
+				}
+
+				if (!data.validate(false)) {
+					ready = false;
+				}
+			});
+
+			return ready;
+		},
+
+		saveIfValid(panel, event = null) {
+			if (this.syncingFromCart) {
+				return;
+			}
+
+			this.$nextTick(() => {
+				if (this.syncingFromCart) {
+					return;
+				}
+
+				if (!this.canSavePanel(panel)) {
+					return;
+				}
+
+				if (JSON.stringify(this.buildPayload()) === this.lastSaved) {
+					return;
+				}
+
+				this.queueSave(0, event, {}, panel);
+			});
 		},
 
 		queueSave(delay = 400, event = null, extra = {}, panel = null) {
@@ -997,7 +1155,7 @@ const SinglePageCheckout = (props) => {
 				payload.shippingAddressId = String(this.shippingAddressId);
 				payload.useNewAddress = '0';
 			} else if (hasShippingFields) {
-				payload.shippingAddressId = '0';
+				delete payload.shippingAddressId;
 				payload.useNewAddress = '1';
 			} else {
 				this.stripAddressGroup(payload, 'shippingAddress[');
@@ -1180,23 +1338,40 @@ const SinglePageCheckout = (props) => {
 				return;
 			}
 
+			if (this.saving) {
+				if (extra.methodOnly && this.nextSave && !this.nextSave.methodOnly) {
+					return;
+				}
+
+				this.nextSave = extra;
+				this.setPanelStatus(
+					extra.panel || this.queuedSavePanel || 'delivery',
+					'saving'
+				);
+				return;
+			}
+
 			const methodOnly = extra.methodOnly === true;
 			const panel = extra.panel || this.queuedSavePanel || 'delivery';
 			const payload = { ...extra };
 			delete payload.methodOnly;
 			delete payload.panel;
-			this.queuedSavePanel = null;
-			this.activeSavePanel = panel;
-			this.setPanelStatus(panel, 'saving');
 
-			if (this.saveAbort) {
-				this.saveAbort.abort();
+			if (
+				!methodOnly &&
+				payload.couponCode === undefined &&
+				JSON.stringify(this.buildPayload()) === this.lastSaved
+			) {
+				this.clearSavingPanel(panel);
+				return;
 			}
 
+			this.queuedSavePanel = null;
+
+			this.setPanelStatus(panel, 'saving');
+			this.saving = true;
 			this.saveAbort = new AbortController();
 			const { signal } = this.saveAbort;
-			this.saveGeneration += 1;
-			const generation = this.saveGeneration;
 
 			this.pending += 1;
 			this.status = this.savingLabel;
@@ -1221,10 +1396,6 @@ const SinglePageCheckout = (props) => {
 					signal
 				);
 
-				if (generation !== this.saveGeneration) {
-					return;
-				}
-
 				if (!isJson) {
 					this.status = this.failedLabel;
 					this.statusTone = 'error';
@@ -1245,8 +1416,9 @@ const SinglePageCheckout = (props) => {
 				this.status = this.savedLabel;
 				this.statusTone = 'saved';
 				this.setPanelStatus(panel, 'saved');
+				this.lastSaved = JSON.stringify(this.buildPayload());
 			} catch (error) {
-				if (error.name === 'AbortError' || generation !== this.saveGeneration) {
+				if (error.name === 'AbortError') {
 					return;
 				}
 
@@ -1254,9 +1426,14 @@ const SinglePageCheckout = (props) => {
 				this.statusTone = 'error';
 				this.setPanelStatus(panel, 'error');
 			} finally {
+				this.saving = false;
 				this.pending = Math.max(0, this.pending - 1);
-				if (generation === this.saveGeneration) {
-					this.syncPayButtons();
+				this.syncPayButtons();
+
+				const next = this.nextSave;
+				this.nextSave = null;
+				if (next) {
+					this.saveCart(next);
 				}
 			}
 		},
@@ -1649,7 +1826,7 @@ const SinglePageCheckout = (props) => {
 			});
 		},
 
-		initFosterPaypal(attempt = 0) {
+		initPaypal(attempt = 0) {
 			if (this.paypalInitTimer) {
 				clearTimeout(this.paypalInitTimer);
 				this.paypalInitTimer = null;
@@ -1662,12 +1839,12 @@ const SinglePageCheckout = (props) => {
 				}
 
 				this.paypalInitTimer = setTimeout(() => {
-					this.initFosterPaypal(attempt + 1);
+					this.initPaypal(attempt + 1);
 				}, 200);
 				return;
 			}
 
-			if (wrapper.dataset.fcPaypalReady === '1') {
+			if (wrapper.dataset.fcPaypal === '1') {
 				return;
 			}
 
@@ -1681,12 +1858,12 @@ const SinglePageCheckout = (props) => {
 				}
 
 				this.paypalInitTimer = setTimeout(() => {
-					this.initFosterPaypal(attempt + 1);
+					this.initPaypal(attempt + 1);
 				}, 200);
 				return;
 			}
 
-			wrapper.dataset.fcPaypalReady = '1';
+			wrapper.dataset.fcPaypal = '1';
 			window.initPaypalCheckout();
 		},
 	};

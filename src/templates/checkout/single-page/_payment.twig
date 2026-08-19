@@ -161,7 +161,7 @@
 											"
 											x-init="
 												{% if gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
-													$nextTick(() => initFosterPaypal());
+													$nextTick(() => initPaypal());
 												{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
 													$nextTick(() => typeof initStripe === 'function' && initStripe());
 												{% endif %}

@@ -2,9 +2,9 @@
 
 <div
 	data-fc-collect
-	@input="queueSave(400, $event)"
-	@change="queueSave(0, $event)"
-	@selected="$nextTick(() => queueSave(0, null, {}, 'payment'))"
+	@blur.capture="saveIfValid('payment', $event)"
+	@change="saveIfValid('payment', $event)"
+	@selected="$nextTick(() => saveIfValid('payment', $event))"
 >
 	<h3 class="mb-4 font-semibold">
 		{{ 'billing.stepName'|t('foster-checkout') }}

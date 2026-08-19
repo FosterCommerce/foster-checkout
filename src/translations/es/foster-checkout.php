@@ -179,6 +179,8 @@ return [
 	'misc.saving' => 'Guardando',
 	'misc.saved' => 'Guardado',
 	'misc.saveFailed' => 'No se pudieron guardar tus datos. Inténtalo de nuevo.',
+	'validation.required' => 'Este campo es obligatorio.',
+	'validation.invalidEmail' => 'Introduce un correo electrónico válido.',
 	'misc.update' => 'Actualizar',
 	'misc.returnToCart' => 'Volver al carrito',
 	'misc.returnToCheckout' => 'Volver al pago',
