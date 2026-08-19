@@ -619,6 +619,7 @@ const SinglePageCheckout = (props) => {
 		saveAbort: null,
 		queuedSaveExtra: {},
 		shippingRestoreAttempted: false,
+		paypalInitTimer: null,
 
 		init() {
 			this.$watch('email', () => {
@@ -651,6 +652,11 @@ const SinglePageCheckout = (props) => {
 			if (this.saveTimer) {
 				clearTimeout(this.saveTimer);
 				this.saveTimer = null;
+			}
+
+			if (this.paypalInitTimer) {
+				clearTimeout(this.paypalInitTimer);
+				this.paypalInitTimer = null;
 			}
 
 			if (this.saveAbort) {
@@ -1641,6 +1647,47 @@ const SinglePageCheckout = (props) => {
 			form.querySelectorAll('button[type="submit"]').forEach((button) => {
 				button.disabled = !allowed;
 			});
+		},
+
+		initFosterPaypal(attempt = 0) {
+			if (this.paypalInitTimer) {
+				clearTimeout(this.paypalInitTimer);
+				this.paypalInitTimer = null;
+			}
+
+			const wrapper = this.$root.querySelector('.paypal-rest-form');
+			if (!wrapper) {
+				if (attempt >= 5) {
+					return;
+				}
+
+				this.paypalInitTimer = setTimeout(() => {
+					this.initFosterPaypal(attempt + 1);
+				}, 200);
+				return;
+			}
+
+			if (wrapper.dataset.fcPaypalReady === '1') {
+				return;
+			}
+
+			if (
+				typeof window.paypal_checkout_sdk === 'undefined' ||
+				typeof window.initPaypalCheckout !== 'function' ||
+				!wrapper.firstElementChild
+			) {
+				if (attempt >= 50) {
+					return;
+				}
+
+				this.paypalInitTimer = setTimeout(() => {
+					this.initFosterPaypal(attempt + 1);
+				}, 200);
+				return;
+			}
+
+			wrapper.dataset.fcPaypalReady = '1';
+			window.initPaypalCheckout();
 		},
 	};
 };

@@ -160,8 +160,11 @@
 											hover:[&_button#paymentForm-authorizeNet-authorizeSubmit]:opacity-90
 											"
 											x-init="
-												'{{ gateway.className() }}' === 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' && initPaypalCheckout();
-												'{{ gateway.className() }}' === 'craft\\commerce\\stripe\\gateways\\PaymentIntents' && initStripe();
+												{% if gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
+													$nextTick(() => initFosterPaypal());
+												{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+													$nextTick(() => typeof initStripe === 'function' && initStripe());
+												{% endif %}
 												$nextTick(() => syncPayButtons())
 											"
 										>
