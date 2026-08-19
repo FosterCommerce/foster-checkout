@@ -16,6 +16,7 @@
 	<div
 		class="p-4"
 		data-fc-collect
+		@input="refreshShippingPreview()"
 		@blur.capture="saveIfValid('delivery', $event)"
 		@change="saveIfValid('delivery', $event)"
 		@selected="$nextTick(() => saveIfValid('delivery', $event))"

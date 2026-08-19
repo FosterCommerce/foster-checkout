@@ -760,6 +760,10 @@ const SinglePageCheckout = (props) => {
 			return this.shippingMethods.length > 0;
 		},
 
+		get loadingShippingMethods() {
+			return this.panelStatus.delivery === 'saving';
+		},
+
 		get hasEmail() {
 			if (this.loggedIn) {
 				return true;
@@ -801,7 +805,8 @@ const SinglePageCheckout = (props) => {
 				this.hasShippingSelection &&
 				this.cartHasShippingAddress &&
 				this.hasShippingMethod &&
-				this.hasBilling
+				this.hasBilling &&
+				!this.loadingShippingMethods
 			);
 		},
 
@@ -873,6 +878,9 @@ const SinglePageCheckout = (props) => {
 			}
 
 			this.shippingRestoreAttempted = false;
+			if (panel === 'delivery') {
+				this.refreshShippingPreview();
+			}
 			this.saveIfValid(panel);
 		},
 
@@ -964,6 +972,10 @@ const SinglePageCheckout = (props) => {
 			this.$nextTick(() => {
 				if (this.syncingFromCart) {
 					return;
+				}
+
+				if (panel === 'delivery') {
+					this.refreshShippingPreview();
 				}
 
 				if (!this.canSavePanel(panel)) {
@@ -1523,6 +1535,47 @@ const SinglePageCheckout = (props) => {
 			return (fields && fields.countryCode) || '';
 		},
 
+		addressFieldsFromPayload(payload, prefix) {
+			const fields = {};
+
+			Object.entries(payload).forEach(([key, value]) => {
+				if (!key.startsWith(prefix) || !key.endsWith(']')) {
+					return;
+				}
+
+				fields[key.slice(prefix.length, -1)] = value;
+			});
+
+			return fields;
+		},
+
+		refreshShippingPreview() {
+			if (!this.useNewAddress && this.shippingAddressId) {
+				const label = this.addressLabel(this.shippingAddressId, '');
+				if (label) {
+					this.shippingPreview = label;
+				}
+				return;
+			}
+
+			const scope = this.$root.querySelector('[data-fc-new-shipping]');
+			if (!scope) {
+				return;
+			}
+
+			const preview = this.formatAddress(
+				this.addressFieldsFromPayload(
+					this.collectNamedFields(scope),
+					'shippingAddress['
+				),
+				scope
+			);
+
+			if (preview) {
+				this.shippingPreview = preview;
+			}
+		},
+
 		formatAddress(fields, scope, address = null) {
 			if (!fields || typeof fields !== 'object') {
 				return '';
@@ -1634,6 +1687,10 @@ const SinglePageCheckout = (props) => {
 				this.writeAddressToScope(scope, this.addressToFields(address), prefix);
 				if (kind === 'billing') {
 					this.refreshNewBillingContent();
+				}
+
+				if (kind === 'shipping') {
+					this.refreshShippingPreview();
 				}
 			});
 		},

@@ -3,7 +3,7 @@
 <section
 	class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
 	data-fc-panel="shipping"
-	x-show="requireShippingMethod || hasShippingMethods"
+	x-show="requireShippingMethod || hasShippingMethods || loadingShippingMethods"
 	x-cloak
 >
 	<div class="flex items-center gap-3 p-4 bg-gray-200">
@@ -18,7 +18,7 @@
 	<div class="p-4">
 		<div
 			class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden"
-			x-show="hasShippingMethods"
+			x-show="hasShippingMethods && !loadingShippingMethods"
 		>
 			<template x-for="method in shippingMethods" :key="method.handle">
 				<div class="p-4 border-b border-gray-250" :class="{ 'bg-gray-100': shippingMethodHandle === method.handle }">
@@ -51,7 +51,24 @@
 			</template>
 		</div>
 
-		<p x-show="!hasShippingMethods">{{ 'shipping.noMethodAvailable'|t('foster-checkout') }}.</p>
+		<p
+			class="flex items-center gap-2 text-gray-500"
+			x-show="loadingShippingMethods"
+			x-cloak
+		>
+			<svg
+				class="w-4 h-4 animate-spin shrink-0"
+				xmlns="http://www.w3.org/2000/svg"
+				fill="none"
+				viewBox="0 0 24 24"
+				aria-hidden="true"
+			>
+				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+				<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+			</svg>
+			<span>{{ 'shipping.gettingMethods'|t('foster-checkout') }}.</span>
+		</p>
+		<p x-show="!hasShippingMethods && !loadingShippingMethods">{{ 'shipping.noMethodAvailable'|t('foster-checkout') }}.</p>
 
 		{% set note = craft.fostercheckout.note('shipping', {cart}) %}
 		{% if note %}
