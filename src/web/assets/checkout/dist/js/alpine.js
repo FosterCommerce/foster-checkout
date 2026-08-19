@@ -569,7 +569,6 @@ const SinglePageCheckout = (props) => {
 		useNewAddress: props.useNewAddress ?? false,
 		shippingMethodHandle: props.shippingMethodHandle ?? '',
 		requireShippingMethod: props.requireShippingMethod ?? false,
-		hasShippingMethods: props.hasShippingMethods ?? false,
 		billingSameAsShipping: props.billingSameAsShipping ?? true,
 		billingAddressId: props.billingAddressId,
 		useNewBillingAddress: props.useNewBillingAddress ?? false,
@@ -583,9 +582,17 @@ const SinglePageCheckout = (props) => {
 		shippingPreview: props.shippingPreview ?? '',
 		latestShippingAddress: null,
 		latestBillingAddress: null,
+		shippingMethods: props.shippingMethods ?? [],
+		totals: props.totals ?? {
+			itemsAsCurrency: '',
+			shippingAsCurrency: '',
+			taxAsCurrency: '',
+			totalAsCurrency: '',
+			discounts: [],
+			vouchers: [],
+		},
 		noAddressLabel: props.noAddressLabel ?? '',
 		payButtonText: props.payButtonText ?? '',
-		payAmount: props.payAmount ?? '',
 		syncingFromCart: false,
 		hasNewBillingContent: false,
 		editExistingAddress: 0,
@@ -611,6 +618,7 @@ const SinglePageCheckout = (props) => {
 		saveGeneration: 0,
 		saveAbort: null,
 		queuedSaveExtra: {},
+		shippingRestoreAttempted: false,
 
 		init() {
 			this.$watch('email', () => {
@@ -665,6 +673,10 @@ const SinglePageCheckout = (props) => {
 			return String(this.email || '').trim();
 		},
 
+		get hasShippingMethods() {
+			return this.shippingMethods.length > 0;
+		},
+
 		get hasEmail() {
 			if (this.loggedIn) {
 				return true;
@@ -711,7 +723,7 @@ const SinglePageCheckout = (props) => {
 		},
 
 		get payButtonLabel() {
-			return `${this.payButtonText} ${this.payAmount || ''}`.trim();
+			return `${this.payButtonText} ${this.totals.totalAsCurrency || ''}`.trim();
 		},
 
 		panelStatusLabel(panel) {
@@ -777,6 +789,7 @@ const SinglePageCheckout = (props) => {
 				return;
 			}
 
+			this.shippingRestoreAttempted = false;
 			this.queueSave(0, null, {}, panel);
 		},
 
@@ -784,6 +797,8 @@ const SinglePageCheckout = (props) => {
 			if (this.syncingFromCart) {
 				return;
 			}
+
+			this.shippingRestoreAttempted = false;
 
 			if (this.saveTimer && !this.queuedSaveExtra.methodOnly) {
 				return;
@@ -1444,6 +1459,8 @@ const SinglePageCheckout = (props) => {
 				return;
 			}
 
+			const previousHandle = this.shippingMethodHandle;
+			const cartHandle = cart.shippingMethodHandle || '';
 			this.syncingFromCart = true;
 
 			try {
@@ -1466,15 +1483,16 @@ const SinglePageCheckout = (props) => {
 					);
 				}
 
+				const live = cart.fosterCheckout || {};
+
+				if (typeof live.shippingPreview === 'string') {
+					this.shippingPreview = live.shippingPreview;
+				}
+
 				if (cart.shippingAddress && typeof cart.shippingAddress === 'object') {
 					this.latestShippingAddress = cart.shippingAddress;
 					this.rememberAddress(
 						cart.sourceShippingAddressId,
-						cart.shippingAddress
-					);
-					this.shippingPreview = this.formatAddress(
-						this.addressToFields(cart.shippingAddress),
-						null,
 						cart.shippingAddress
 					);
 				}
@@ -1486,11 +1504,47 @@ const SinglePageCheckout = (props) => {
 						cart.billingAddress
 					);
 				}
+
+				if (Array.isArray(live.shippingMethods)) {
+					this.shippingMethods = live.shippingMethods;
+				}
+
+				const handles = this.shippingMethods.map((method) => method.handle);
+				const liveHandle =
+					typeof live.shippingMethodHandle === 'string'
+						? live.shippingMethodHandle
+						: cartHandle;
+
+				if (previousHandle && handles.includes(previousHandle)) {
+					this.shippingMethodHandle = previousHandle;
+				} else if (handles.includes(liveHandle)) {
+					this.shippingMethodHandle = liveHandle;
+				} else {
+					this.shippingMethodHandle = handles[0] || '';
+				}
+
+				if (live.totals && typeof live.totals === 'object') {
+					this.totals = {
+						discounts: [],
+						vouchers: [],
+						...live.totals,
+					};
+				}
 			} finally {
 				this.syncingFromCart = false;
 			}
 
 			this.syncPayButtons();
+
+			if (
+				previousHandle &&
+				previousHandle === this.shippingMethodHandle &&
+				previousHandle !== cartHandle &&
+				!this.shippingRestoreAttempted
+			) {
+				this.shippingRestoreAttempted = true;
+				this.queueSave(0, null, { methodOnly: true }, 'shipping');
+			}
 		},
 
 		async saveAddressBook(addressId) {

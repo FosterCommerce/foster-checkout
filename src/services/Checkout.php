@@ -7,8 +7,11 @@ use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
 use craft\commerce\enums\LineItemType;
+use craft\commerce\helpers\Currency;
 use craft\commerce\models\LineItem;
+use craft\commerce\models\OrderAdjustment;
 use craft\commerce\Plugin as Commerce;
+use craft\elements\Address;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
 use DateTime;
@@ -300,6 +303,145 @@ class Checkout extends Component
 	public function subscribeText(): ?string
 	{
 		return $this->contentOrConfig('subscribe', $this->settings()->options->subscribe);
+	}
+
+	/**
+	 * @return array{
+	 *     shippingMethods: list<array{handle: string, name: string, description: string, priceAsCurrency: string}>,
+	 *     shippingMethodHandle: string,
+	 *     totals: array{
+	 *         itemsAsCurrency: string,
+	 *         shippingAsCurrency: string,
+	 *         taxAsCurrency: string,
+	 *         totalAsCurrency: string,
+	 *         discounts: list<array{name: string, amountAsCurrency: string}>,
+	 *         vouchers: list<array{name: string, amountAsCurrency: string}>
+	 *     },
+	 *     shippingPreview: string
+	 * }
+	 */
+	public function checkoutLiveState(Order $cart): array
+	{
+		$shippingMethods = $this->checkoutShippingMethods($cart);
+		$handles = array_column($shippingMethods, 'handle');
+		$cartHandle = (string) ($cart->shippingMethodHandle ?? '');
+		$shippingMethodHandle = $cartHandle !== '' && in_array($cartHandle, $handles, true)
+			? $cartHandle
+			: ($handles[0] ?? '');
+
+		return [
+			'shippingMethods' => $shippingMethods,
+			'shippingMethodHandle' => $shippingMethodHandle,
+			'totals' => $this->checkoutTotals($cart),
+			'shippingPreview' => $this->checkoutAddressPreview($cart->getShippingAddress()),
+		];
+	}
+
+	private function checkoutAddressPreview(?Address $address): string
+	{
+		if ($address === null) {
+			return '';
+		}
+
+		$formatted = $this->addressFormatter()->format($address);
+		$name = trim((string) $address->fullName);
+
+		if ($name === '') {
+			return $formatted;
+		}
+
+		if ($formatted === '') {
+			return $name;
+		}
+
+		return $name . ', ' . $formatted;
+	}
+
+	/**
+	 * @return list<array{handle: string, name: string, description: string, priceAsCurrency: string}>
+	 */
+	private function checkoutShippingMethods(Order $cart): array
+	{
+		$commerce = Commerce::getInstance();
+		if ($commerce === null) {
+			return [];
+		}
+
+		$methods = [];
+
+		foreach ($cart->availableShippingMethodOptions as $handle => $method) {
+			$rule = $commerce->getShippingMethods()->getMatchingShippingRule($cart, $method);
+			$description = $rule?->getDescription() ?: '';
+
+			$methods[] = [
+				'handle' => (string) $handle,
+				'name' => Craft::t('foster-checkout', $method->name ?? (string) $handle),
+				'description' => $description !== '' ? Craft::t('foster-checkout', $description) : '',
+				'priceAsCurrency' => $method->priceAsCurrency,
+			];
+		}
+
+		return $methods;
+	}
+
+	/**
+	 * @return array{
+	 *     itemsAsCurrency: string,
+	 *     shippingAsCurrency: string,
+	 *     taxAsCurrency: string,
+	 *     totalAsCurrency: string,
+	 *     discounts: list<array{name: string, amountAsCurrency: string}>,
+	 *     vouchers: list<array{name: string, amountAsCurrency: string}>
+	 * }
+	 */
+	private function checkoutTotals(Order $cart): array
+	{
+		$lineItemDiscount = 0.0;
+		$discounts = [];
+		$vouchers = [];
+
+		foreach ($cart->getAdjustments() ?? [] as $adjustment) {
+			if ($adjustment->type === 'discount') {
+				if ($adjustment->lineItemId) {
+					$lineItemDiscount += $adjustment->amount;
+					continue;
+				}
+
+				$discounts[] = [
+					'name' => $adjustment->name,
+					'amountAsCurrency' => $adjustment->amountAsCurrency,
+				];
+				continue;
+			}
+
+			if ($adjustment->type === 'voucher') {
+				$vouchers[] = [
+					'name' => $this->voucherLabel($adjustment),
+					'amountAsCurrency' => $adjustment->amountAsCurrency,
+				];
+			}
+		}
+
+		$itemsAmount = (float) $cart->getTeller()->add($cart->getItemSubtotal(), $lineItemDiscount);
+
+		return [
+			'itemsAsCurrency' => Currency::formatAsCurrency($itemsAmount, $cart->currency),
+			'shippingAsCurrency' => $cart->totalShippingCostAsCurrency,
+			'taxAsCurrency' => $cart->totalTaxAsCurrency,
+			'totalAsCurrency' => $cart->totalAsCurrency,
+			'discounts' => $discounts,
+			'vouchers' => $vouchers,
+		];
+	}
+
+	private function voucherLabel(OrderAdjustment $adjustment): string
+	{
+		$parts = explode('code ', (string) $adjustment->description, 2);
+		if (isset($parts[1])) {
+			return trim($parts[1], "'\" ");
+		}
+
+		return 'Voucher/Gift Card';
 	}
 
 	/**
