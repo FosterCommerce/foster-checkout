@@ -1,11 +1,25 @@
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 
-<section class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}">
-	<h2 class="p-4 font-semibold bg-gray-200">
-		{{ 'checkout.delivery'|t('foster-checkout') }}
-	</h2>
+<section
+	class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
+	data-fc-panel="delivery"
+>
+	<div class="flex items-center gap-3 p-4 bg-gray-200">
+		<h2 class="font-semibold">
+			{{ 'checkout.delivery'|t('foster-checkout') }}
+		</h2>
+		<div class="ml-auto">
+			{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'delivery' } %}
+		</div>
+	</div>
 
-	<div class="p-4">
+	<div
+		class="p-4"
+		data-fc-collect
+		@input="queueSave(400, $event)"
+		@change="queueSave(0, $event)"
+		@selected="$nextTick(() => queueSave(0, null, {}, 'delivery'))"
+	>
 		<div class="xl:border xl:border-gray-250 xl:rounded-lg">
 			{% if currentUser and addresses|length %}
 				{% for address in addresses %}
@@ -25,7 +39,10 @@
 								class="inline-flex justify-start items-center gap-4 cursor-pointer"
 								:class="{ 'font-medium text-black': parseInt(shippingAddressId) === {{ address.id }} && !useNewAddress }"
 							>
-								{% include 'foster-checkout/_components/app/formatted-address' with { address: address } %}
+								{% include 'foster-checkout/_components/app/formatted-address' with {
+									address: address,
+									liveId: address.id,
+								} %}
 							</label>
 
 							<template x-if="parseInt(shippingAddressId) === {{ address.id }} && !useNewAddress">
@@ -41,9 +58,22 @@
 						</div>
 
 						<template x-if="parseInt(editExistingAddress) === {{ address.id }}">
-							<div class="pt-8">
+							<div
+								class="pt-8"
+								data-fc-address-edit="{{ address.id }}"
+								x-init="applyAddressFields({{ address.id }})"
+							>
 								{% include 'foster-checkout/_components/app/address-fields' with { address: address } %}
 								<div class="flex justify-start items-center gap-4 mt-4 pt-4">
+									<button
+										type="button"
+										class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]"
+										:disabled="pending > 0"
+										:class="pending > 0 ? 'opacity-50 cursor-not-allowed' : ''"
+										@click="saveAddressBook({{ address.id }})"
+									>
+										{{ 'misc.save'|t('foster-checkout') }}
+									</button>
 									<button
 										type="button"
 										class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]"
@@ -80,7 +110,7 @@
 			{% endif %}
 
 			<template x-if="useNewAddress">
-				<div class="p-4">
+				<div class="p-4" data-fc-new-shipping x-init="applyDraftAddress('shipping')">
 					{% set address = null %}
 					{% if cart.shippingAddressId is not null and cart.sourceShippingAddressId is null %}
 						{% set address = craft.addresses().id(cart.shippingAddressId).one() %}

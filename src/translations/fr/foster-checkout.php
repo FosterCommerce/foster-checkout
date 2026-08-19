@@ -176,6 +176,8 @@ return [
 	'misc.cancel' => 'Annuler',
 	'misc.save' => 'Enregistrer',
 	'misc.saving' => 'Enregistrement',
+	'misc.saved' => 'Enregistré',
+	'misc.saveFailed' => 'Impossible d\'enregistrer vos informations. Réessayez.',
 	'misc.update' => 'Mettre à jour',
 	'misc.returnToCart' => 'Retour au panier',
 	'misc.returnToCheckout' => 'Retour au paiement',

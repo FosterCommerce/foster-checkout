@@ -176,6 +176,8 @@ return [
 	'misc.cancel' => 'Abbrechen',
 	'misc.save' => 'Speichern',
 	'misc.saving' => 'Wird gespeichert',
+	'misc.saved' => 'Gespeichert',
+	'misc.saveFailed' => 'Ihre Angaben konnten nicht gespeichert werden. Bitte erneut versuchen.',
 	'misc.update' => 'Aktualisieren',
 	'misc.returnToCart' => 'Zurück zum Warenkorb',
 	'misc.returnToCheckout' => 'Zurück zur Kasse',
