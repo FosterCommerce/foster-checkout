@@ -120,12 +120,18 @@
 
 				<div class="flex justify-between items-center gap-4" x-show="cartHasShippingAddress" x-cloak>
 					<dt class="text-gray-500">{{ 'summary.shippingLabel'|t('foster-checkout') }}</dt>
-					<dd class="text-right text-black" x-text="totals.shippingAsCurrency"></dd>
+					<dd class="text-right text-black">
+						<span x-show="loadingShippingMethods" class="text-gray-500" x-cloak>{{ 'misc.saving'|t('foster-checkout') }}</span>
+						<span x-show="!loadingShippingMethods" x-text="totals.shippingAsCurrency"></span>
+					</dd>
 				</div>
 
 				<div class="flex justify-between items-center gap-4">
 					<dt class="text-gray-500">{{ 'summary.taxLabel'|t('foster-checkout') }}</dt>
-					<dd class="text-right text-black" x-text="totals.taxAsCurrency"></dd>
+					<dd class="text-right text-black">
+						<span x-show="loadingShippingMethods" class="text-gray-500" x-cloak>{{ 'misc.saving'|t('foster-checkout') }}</span>
+						<span x-show="!loadingShippingMethods" x-text="totals.taxAsCurrency"></span>
+					</dd>
 				</div>
 
 				<template x-for="discount in totals.discounts" :key="discount.name + discount.amountAsCurrency">
@@ -156,7 +162,10 @@
 
 				<div class="flex justify-between items-center gap-4">
 					<dt class="font-semibold text-black">{{ 'summary.total'|t('foster-checkout') }}</dt>
-					<dd class="font-semibold text-right text-black" x-text="totals.totalAsCurrency"></dd>
+					<dd class="font-semibold text-right text-black">
+						<span x-show="loadingShippingMethods" class="text-gray-500 font-normal" x-cloak>{{ 'misc.saving'|t('foster-checkout') }}</span>
+						<span x-show="!loadingShippingMethods" x-text="totals.totalAsCurrency"></span>
+					</dd>
 				</div>
 			</dl>
 

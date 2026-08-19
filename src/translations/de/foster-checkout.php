@@ -113,6 +113,7 @@ return [
 	// Shipping Method page
 	'shipping.stepTitle' => 'Versandart',
 	'shipping.noMethodAvailable' => 'Keine Versandoptionen verfügbar',
+	'shipping.gettingMethods' => 'Versandarten werden ermittelt',
 	'shipping.nextStep' => 'Nächster Schritt',
 
 	// Billing Address page

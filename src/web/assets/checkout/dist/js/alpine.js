@@ -677,6 +677,10 @@ const SinglePageCheckout = (props) => {
 			return this.shippingMethods.length > 0;
 		},
 
+		get loadingShippingMethods() {
+			return this.panelStatus.delivery === 'saving';
+		},
+
 		get hasEmail() {
 			if (this.loggedIn) {
 				return true;
@@ -718,7 +722,8 @@ const SinglePageCheckout = (props) => {
 				this.hasShippingSelection &&
 				this.cartHasShippingAddress &&
 				this.hasShippingMethod &&
-				this.hasBilling
+				this.hasBilling &&
+				!this.loadingShippingMethods
 			);
 		},
 
