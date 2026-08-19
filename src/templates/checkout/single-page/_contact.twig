@@ -2,18 +2,29 @@
 {% set klaviyoListId = craft.fostercheckout.settings.options.klaviyoListId %}
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 
-<section class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}">
+<section
+	class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
+	data-fc-panel="contact"
+>
 	<div class="flex justify-between items-center p-4 gap-4 bg-gray-200">
-		<h2 class="font-semibold">
-			{{ 'email.stepName'|t('foster-checkout') }}
-		</h2>
+		<div class="flex items-center gap-2 min-w-0">
+			<h2 class="font-semibold">
+				{{ 'email.stepName'|t('foster-checkout') }}
+			</h2>
+			{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'contact' } %}
+		</div>
 		<a href="{{ loginUrl }}" class="text-sm text-[var(--brandColor)] underline">
 			{{ 'email.signIn'|t('foster-checkout') }}
 		</a>
 	</div>
 
-	<div class="p-4">
-		<div class="grid grid-cols-1 gap-6" @input="onDetailsChange($event)">
+	<div
+		class="p-4"
+		data-fc-collect
+		@input="onDetailsChange($event); queueSave(400, $event)"
+		@change="queueSave(0, $event)"
+	>
+		<div class="grid grid-cols-1 gap-6">
 			{% include 'foster-checkout/_components/base/input-text-clearable' with {
 				label: 'email.emailLabel'|t('foster-checkout'),
 				id: 'email',

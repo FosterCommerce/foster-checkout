@@ -1,9 +1,17 @@
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 
-<section class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}">
-	<h2 class="p-4 font-semibold bg-gray-200">
-		{{ 'payment.stepName'|t('foster-checkout') }}
-	</h2>
+<section
+	class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
+	data-fc-panel="payment"
+>
+	<div class="flex items-center gap-3 p-4 bg-gray-200">
+		<h2 class="font-semibold">
+			{{ 'payment.stepName'|t('foster-checkout') }}
+		</h2>
+		<div class="ml-auto">
+			{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'payment' } %}
+		</div>
+	</div>
 
 	<div class="grid grid-cols-1 gap-5 xl:gap-6 p-4">
 		{% set note = craft.fostercheckout.note('payment', {cart}) %}
@@ -65,16 +73,17 @@
 				{{ 'payment.paymentMethod'|t('foster-checkout') }}
 			</h3>
 
-			<p x-show="!canPay()" x-cloak class="mb-4 text-sm text-gray-500">
+			<p x-show="!canPay" x-cloak class="mb-4 text-sm text-gray-500">
 				{{ 'checkout.payIncomplete'|t('foster-checkout') }}
 			</p>
 
-			<div :class="{ 'opacity-60': !canPay() }">
+			<div :class="{ 'opacity-60': !canPay }">
 				<form
 					method="POST"
 					class="grid gap-y-4 gap-x-4"
 					id="paymentForm"
 					x-ref="paymentForm"
+					data-fc-skip-collect
 					@submit="onPaySubmit($event)"
 				>
 					{{ csrfInput() }}
@@ -223,10 +232,9 @@
 												<button
 													type="submit"
 													class="justify-between items-center gap-4 w-full px-4 py-3 mt-6 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
-													:disabled="!canPay()"
-												>
-													{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
-												</button>
+													:disabled="!canPay"
+													x-text="payButtonLabel"
+												></button>
 											{% else %}
 												{% namespace gateway.handle|commercePaymentFormNamespace %}
 													{{ gateway.getPaymentFormHtml(params)|raw }}

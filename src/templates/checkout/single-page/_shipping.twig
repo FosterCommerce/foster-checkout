@@ -2,10 +2,18 @@
 {% set requireShippingMethod = currentStore.requireShippingMethodSelectionAtCheckout %}
 
 {% if optionCount or requireShippingMethod %}
-	<section class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}">
-		<h2 class="p-4 font-semibold bg-gray-200">
-			{{ 'shipping.stepTitle'|t('foster-checkout') }}
-		</h2>
+	<section
+		class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
+		data-fc-panel="shipping"
+	>
+		<div class="flex items-center gap-3 p-4 bg-gray-200">
+			<h2 class="font-semibold">
+				{{ 'shipping.stepTitle'|t('foster-checkout') }}
+			</h2>
+			<div class="ml-auto">
+				{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'shipping' } %}
+			</div>
+		</div>
 
 		<div class="p-4">
 			{% if optionCount %}

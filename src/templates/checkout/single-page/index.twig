@@ -46,6 +46,12 @@
 	{% set hasCartHandle = cartHandle and (cartHandle in availableShippingMethodOptions|keys) %}
 	{% set initialHandle = hasCartHandle ? cartHandle : onlyMethod %}
 
+	{% set shippingPreview = '' %}
+	{% if cart.shippingAddress %}
+		{% set formatter = craft.fostercheckout.addressFormatter() %}
+		{% set shippingPreview = cart.shippingAddress.fullName ~ ', ' ~ cart.shippingAddress|address({ }, formatter) %}
+	{% endif %}
+
 	{% set sourceBillId = cart.sourceBillingAddressId ?? null %}
 	{% set hasMatch = cart.hasMatchingAddresses() %}
 	{% set hasBillingRecord = cart.billingAddressId is not empty %}
@@ -69,6 +75,15 @@
 		billingAddressId: sourceBillId,
 		useNewBillingAddress: isNewBilling ? true : false,
 		gatewayId: initialGatewayId,
+		hasShippingAddress: cart.shippingAddressId ? true : false,
+		couponCode: cart.couponCode ?? '',
+		shippingPreview: shippingPreview,
+		noAddressLabel: 'misc.noAddress'|t('foster-checkout'),
+		payButtonText: 'payment.payButtonText'|t('foster-checkout'),
+		payAmount: cart.totalAsCurrency ?? '',
+		savingLabel: 'misc.saving'|t('foster-checkout'),
+		savedLabel: 'misc.saved'|t('foster-checkout'),
+		failedLabel: 'misc.saveFailed'|t('foster-checkout'),
 	} %}
 
 	<script type="application/json" id="fcSinglePageConfig">{{ config|json_encode|raw }}</script>
@@ -82,6 +97,7 @@
 
 		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
 			<main class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
+				<p class="sr-only" role="status" aria-live="polite" aria-atomic="true" x-text="status"></p>
 				<div class="grid grid-cols-1 gap-6">
 					{% if not currentUser %}
 						{% include 'foster-checkout/checkout/single-page/_contact' %}
