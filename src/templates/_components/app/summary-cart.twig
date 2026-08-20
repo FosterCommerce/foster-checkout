@@ -20,7 +20,7 @@
 
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">{{ 'summary.itemsLabel'|t('foster-checkout') }}</dt>
-			<dd class="text-right text-black">{{ (cart.itemSubtotal + lineItemDiscount)|commerceCurrency }}</dd>
+			<dd class="text-right text-black">{{ (cart.itemSubtotal + lineItemDiscount)|round(2)|commerceCurrency }}</dd>
 		</div>
 
 		{% if not cart.shippingAddressId %}
