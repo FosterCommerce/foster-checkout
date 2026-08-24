@@ -116,6 +116,7 @@ return [
 	// Shipping Method page
 	'shipping.stepTitle' => 'Shipping method',
 	'shipping.noMethodAvailable' => 'No shipping options available',
+	'shipping.gettingMethods' => 'Getting shipping methods',
 	'shipping.nextStep' => 'Next step',
 
 	// Billing Address page

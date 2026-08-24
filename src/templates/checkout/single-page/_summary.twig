@@ -2,18 +2,6 @@
 {% set notesHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
 {% set notesValue = notesHandle ? (cart.getFieldValue(notesHandle) ?? '') : '' %}
 
-{% set lineItemDiscount = 0 %}
-{% set orderDiscountAdjustments = [] %}
-{% for adjustment in cart.adjustments %}
-	{% if adjustment.type == 'discount' %}
-		{% if adjustment.lineItemId %}
-			{% set lineItemDiscount = lineItemDiscount + adjustment.amount %}
-		{% else %}
-			{% set orderDiscountAdjustments = orderDiscountAdjustments|merge([adjustment]) %}
-		{% endif %}
-	{% endif %}
-{% endfor %}
-
 <aside>
 	<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:rounded-lg lg:border lg:border-gray-250' }}">
 		<div class="grid grid-cols-1 gap-6">
@@ -127,35 +115,36 @@
 			<dl class="grid grid-cols-1 gap-4">
 				<div class="flex justify-between items-center gap-4">
 					<dt class="text-gray-500">{{ 'summary.itemsLabel'|t('foster-checkout') }}</dt>
-					<dd class="text-right text-black">{{ (cart.itemSubtotal + lineItemDiscount)|commerceCurrency }}</dd>
+					<dd class="text-right text-black" x-text="totals.itemsAsCurrency"></dd>
 				</div>
 
-				{% if cart.shippingAddressId %}
-					<div class="flex justify-between items-center gap-4">
-						<dt class="text-gray-500">{{ 'summary.shippingLabel'|t('foster-checkout') }}</dt>
-						<dd class="text-right text-black">{{ cart.totalShippingCostAsCurrency }}</dd>
-					</div>
-				{% endif %}
+				<div class="flex justify-between items-center gap-4" x-show="cartHasShippingAddress" x-cloak>
+					<dt class="text-gray-500">{{ 'summary.shippingLabel'|t('foster-checkout') }}</dt>
+					<dd class="text-right text-black">
+						<span x-show="loadingShippingMethods" class="text-gray-500" x-cloak>{{ 'misc.saving'|t('foster-checkout') }}</span>
+						<span x-show="!loadingShippingMethods" x-text="totals.shippingAsCurrency"></span>
+					</dd>
+				</div>
 
 				<div class="flex justify-between items-center gap-4">
 					<dt class="text-gray-500">{{ 'summary.taxLabel'|t('foster-checkout') }}</dt>
-					<dd class="text-right text-black">{{ cart.totalTaxAsCurrency }}</dd>
+					<dd class="text-right text-black">
+						<span x-show="loadingShippingMethods" class="text-gray-500" x-cloak>{{ 'misc.saving'|t('foster-checkout') }}</span>
+						<span x-show="!loadingShippingMethods" x-text="totals.taxAsCurrency"></span>
+					</dd>
 				</div>
 
-				{% for adjustment in orderDiscountAdjustments %}
+				<template x-for="discount in totals.discounts" :key="discount.name + discount.amountAsCurrency">
 					<div class="flex justify-between items-center gap-4">
-						<dt class="text-gray-500">{{ adjustment.name }}</dt>
-						<dd class="text-right text-red-500">{{ adjustment.amount|commerceCurrency }}</dd>
+						<dt class="text-gray-500" x-text="discount.name"></dt>
+						<dd class="text-right text-red-500" x-text="discount.amountAsCurrency"></dd>
 					</div>
-				{% endfor %}
+				</template>
 
 				{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
-					{% set voucherAdjustments = cart.adjustments|filter(adjustment => adjustment.type == 'voucher') %}
-					{% for adj in voucherAdjustments %}
-						{% set matches = adj.description|split('code ') %}
-						{% set code = matches|length > 1 ? matches[1]|trim("'") : 'Voucher/Gift Card' %}
+					<template x-for="voucher in totals.vouchers" :key="voucher.name + voucher.amountAsCurrency">
 						<div class="flex justify-between items-center gap-4">
-							<dt class="text-gray-500">{{ code }}</dt>
+							<dt class="text-gray-500" x-text="voucher.name"></dt>
 							<dd class="text-right text-red-500">
 								<button
 									type="button"
@@ -165,15 +154,18 @@
 								>
 									{{ 'summary.removeCoupon'|t('foster-checkout') }}
 								</button>
-								<span>{{ adj.amountAsCurrency }}</span>
+								<span x-text="voucher.amountAsCurrency"></span>
 							</dd>
 						</div>
-					{% endfor %}
+					</template>
 				{% endif %}
 
 				<div class="flex justify-between items-center gap-4">
 					<dt class="font-semibold text-black">{{ 'summary.total'|t('foster-checkout') }}</dt>
-					<dd class="font-semibold text-right text-black">{{ cart.totalAsCurrency }}</dd>
+					<dd class="font-semibold text-right text-black">
+						<span x-show="loadingShippingMethods" class="text-gray-500 font-normal" x-cloak>{{ 'misc.saving'|t('foster-checkout') }}</span>
+						<span x-show="!loadingShippingMethods" x-text="totals.totalAsCurrency"></span>
+					</dd>
 				</div>
 			</dl>
 

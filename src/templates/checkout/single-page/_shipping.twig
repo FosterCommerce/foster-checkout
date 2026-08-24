@@ -1,68 +1,80 @@
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
-{% set requireShippingMethod = currentStore.requireShippingMethodSelectionAtCheckout %}
 
-{% if optionCount or requireShippingMethod %}
-	<section
-		class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
-		data-fc-panel="shipping"
-	>
-		<div class="flex items-center gap-3 p-4 bg-gray-200">
-			<h2 class="font-semibold">
-				{{ 'shipping.stepTitle'|t('foster-checkout') }}
-			</h2>
-			<div class="ml-auto">
-				{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'shipping' } %}
+<section
+	class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
+	data-fc-panel="shipping"
+	x-show="requireShippingMethod || hasShippingMethods || loadingShippingMethods"
+	x-cloak
+>
+	<div class="flex items-center gap-3 p-4 bg-gray-200">
+		<h2 class="font-semibold">
+			{{ 'shipping.stepTitle'|t('foster-checkout') }}
+		</h2>
+		<div class="ml-auto">
+			{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'shipping' } %}
+		</div>
+	</div>
+
+	<div class="p-4">
+		<div
+			class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden"
+			x-show="hasShippingMethods && !loadingShippingMethods"
+		>
+			<template x-for="method in shippingMethods" :key="method.handle">
+				<div class="p-4 border-b border-gray-250" :class="{ 'bg-gray-100': shippingMethodHandle === method.handle }">
+					<div class="relative flex justify-between items-center gap-4 radio">
+						<input
+							:id="'sp_method_' + method.handle"
+							name="shippingMethodHandle_radio"
+							type="radio"
+							class="absolute opacity-0 w-px h-px"
+							:value="method.handle"
+							:checked="shippingMethodHandle === method.handle"
+							@change="shippingMethodHandle = method.handle"
+						/>
+						<label
+							:for="'sp_method_' + method.handle"
+							class="inline-flex justify-start items-center gap-4 cursor-pointer w-full"
+						>
+							<span class="block">
+								<span class="block" x-text="method.name"></span>
+								<span
+									class="block mt-1 text-sm text-gray-500"
+									x-show="method.description"
+									x-text="method.description"
+								></span>
+							</span>
+							<span class="block ml-auto font-semibold" x-text="method.priceAsCurrency"></span>
+						</label>
+					</div>
+				</div>
+			</template>
+		</div>
+
+		<p
+			class="flex items-center gap-2 text-gray-500"
+			x-show="loadingShippingMethods"
+			x-cloak
+		>
+			<svg
+				class="w-4 h-4 animate-spin shrink-0"
+				xmlns="http://www.w3.org/2000/svg"
+				fill="none"
+				viewBox="0 0 24 24"
+				aria-hidden="true"
+			>
+				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+				<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+			</svg>
+			<span>{{ 'shipping.gettingMethods'|t('foster-checkout') }}.</span>
+		</p>
+		<p x-show="!hasShippingMethods && !loadingShippingMethods">{{ 'shipping.noMethodAvailable'|t('foster-checkout') }}.</p>
+
+		{% set note = craft.fostercheckout.note('shipping', {cart}) %}
+		{% if note %}
+			<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
+				{{ note|raw }}
 			</div>
-		</div>
-
-		<div class="p-4">
-			{% if optionCount %}
-				<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
-					{% for handle, method in availableShippingMethodOptions %}
-						{% set rule = craft.commerce.shippingMethods.getMatchingShippingRule(cart, method) %}
-						{% set methodDescription = rule and rule.getDescription() ? rule.getDescription() : null %}
-						{% set methodPrice = method.getPrice() ?? (rule ? rule.price : null) %}
-
-						<div class="p-4 border-b border-gray-250" :class="{ 'bg-gray-100': shippingMethodHandle === '{{ handle|e('js') }}' }">
-							<div class="relative flex justify-between items-center gap-4 radio">
-								<input
-									x-model="shippingMethodHandle"
-									id="sp_method_{{ handle }}"
-									name="shippingMethodHandle_radio"
-									type="radio"
-									class="absolute opacity-0 w-px h-px"
-									value="{{ handle }}"
-								/>
-								<label
-									for="sp_method_{{ handle }}"
-									class="inline-flex justify-start items-center gap-4 cursor-pointer w-full"
-								>
-									<span class="block">
-										<span class="block">{{ method.name|t('foster-checkout') }}</span>
-										{% if methodDescription %}
-											<span class="block mt-1 text-sm text-gray-500">
-												{{ methodDescription|t('foster-checkout') }}
-											</span>
-										{% endif %}
-									</span>
-									<span class="block ml-auto font-semibold">
-										{{ (methodPrice ?? 0)|commerceCurrency(cart.currency) }}
-									</span>
-								</label>
-							</div>
-						</div>
-					{% endfor %}
-				</div>
-			{% else %}
-				<p>{{ 'shipping.noMethodAvailable'|t('foster-checkout') }}.</p>
-			{% endif %}
-
-			{% set note = craft.fostercheckout.note('shipping', {cart}) %}
-			{% if note %}
-				<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
-					{{ note|raw }}
-				</div>
-			{% endif %}
-		</div>
-	</section>
-{% endif %}
+		{% endif %}
+	</div>
+</section>

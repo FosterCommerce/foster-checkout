@@ -39,18 +39,7 @@
 	{% set isNewAddress = (sourceId is null) and (hasCartShip or not hasBookAddresses) %}
 	{% set initialShippingAddressId = isNewAddress ? 0 : (sourceId ?? (addresses|length ? addresses|first.id : 0)) %}
 
-	{% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? [] %}
-	{% set optionCount = availableShippingMethodOptions|length %}
-	{% set onlyMethod = optionCount ? (availableShippingMethodOptions|keys|first) : null %}
-	{% set cartHandle = cart.shippingMethodHandle ?? (cart.shippingMethod.handle ?? null) %}
-	{% set hasCartHandle = cartHandle and (cartHandle in availableShippingMethodOptions|keys) %}
-	{% set initialHandle = hasCartHandle ? cartHandle : onlyMethod %}
-
-	{% set shippingPreview = '' %}
-	{% if cart.shippingAddress %}
-		{% set formatter = craft.fostercheckout.addressFormatter() %}
-		{% set shippingPreview = cart.shippingAddress.fullName ~ ', ' ~ cart.shippingAddress|address({ }, formatter) %}
-	{% endif %}
+	{% set live = craft.fostercheckout.checkoutLiveState(cart) %}
 
 	{% set sourceBillId = cart.sourceBillingAddressId ?? null %}
 	{% set hasMatch = cart.hasMatchingAddresses() %}
@@ -68,19 +57,19 @@
 		email: cart.email ?? '',
 		shippingAddressId: initialShippingAddressId,
 		useNewAddress: isNewAddress ? true : false,
-		shippingMethodHandle: initialHandle ?? '',
+		shippingMethodHandle: live.shippingMethodHandle,
 		requireShippingMethod: currentStore.requireShippingMethodSelectionAtCheckout ? true : false,
-		hasShippingMethods: optionCount ? true : false,
+		shippingMethods: live.shippingMethods,
+		totals: live.totals,
 		billingSameAsShipping: hasMatch ? true : false,
 		billingAddressId: sourceBillId,
 		useNewBillingAddress: isNewBilling ? true : false,
 		gatewayId: initialGatewayId,
 		hasShippingAddress: cart.shippingAddressId ? true : false,
 		couponCode: cart.couponCode ?? '',
-		shippingPreview: shippingPreview,
+		shippingPreview: live.shippingPreview,
 		noAddressLabel: 'misc.noAddress'|t('foster-checkout'),
 		payButtonText: 'payment.payButtonText'|t('foster-checkout'),
-		payAmount: cart.totalAsCurrency ?? '',
 		savingLabel: 'misc.saving'|t('foster-checkout'),
 		savedLabel: 'misc.saved'|t('foster-checkout'),
 		failedLabel: 'misc.saveFailed'|t('foster-checkout'),

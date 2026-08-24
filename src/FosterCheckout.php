@@ -6,7 +6,9 @@ use CommerceGuys\Addressing\AddressFormat\AddressField;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
+use craft\commerce\controllers\BaseFrontEndController;
 use craft\commerce\elements\Order;
+use craft\commerce\events\ModifyCartInfoEvent;
 use craft\commerce\events\OrderNoticeEvent;
 use craft\events\DefineAddressFieldLabelEvent;
 use craft\events\DefineAddressFieldsEvent;
@@ -18,6 +20,7 @@ use craft\helpers\UrlHelper;
 use craft\i18n\PhpMessageSource;
 use craft\services\Addresses;
 use craft\services\UserPermissions;
+use craft\web\Request as WebRequest;
 use craft\web\Response;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
@@ -325,6 +328,38 @@ class FosterCheckout extends Plugin
 		return new Settings();
 	}
 
+	private function singlePageCheckoutPath(): ?string
+	{
+		if (! $this->checkout->settings()->options->isSinglePageCheckout()) {
+			return null;
+		}
+
+		$request = Craft::$app->getRequest();
+		if (! $request instanceof WebRequest || ! $request->getIsSiteRequest()) {
+			return null;
+		}
+
+		$checkoutPath = $this->checkout->settings()->paths->checkout;
+		$path = $request->getPathInfo();
+
+		if ($path !== $checkoutPath && ! str_starts_with($path, $checkoutPath . '/')) {
+			return null;
+		}
+
+		return $checkoutPath;
+	}
+
+	private function shouldAttachSinglePageCartInfo(): bool
+	{
+		if ($this->singlePageCheckoutPath() === null) {
+			return false;
+		}
+
+		$request = Craft::$app->getRequest();
+
+		return $request instanceof WebRequest && $request->getAcceptsJson();
+	}
+
 	private function registerComponents(): void
 	{
 		$this->setComponents([
@@ -334,8 +369,40 @@ class FosterCheckout extends Plugin
 		]);
 	}
 
+	private function allowPostieRatesOnSinglePageCheckout(): void
+	{
+		$checkoutPath = $this->singlePageCheckoutPath();
+		if ($checkoutPath === null) {
+			return;
+		}
+
+		$postie = Craft::$app->getPlugins()->getPlugin('postie');
+		if ($postie === null) {
+			return;
+		}
+
+		$settings = $postie->getSettings();
+		if (! is_object($settings) || ! property_exists($settings, 'routesChecks')) {
+			return;
+		}
+
+		$routesChecks = $settings->routesChecks;
+		if (! is_array($routesChecks)) {
+			return;
+		}
+
+		$route = '/' . $checkoutPath;
+		if (in_array($route, $routesChecks, true)) {
+			return;
+		}
+
+		$settings->routesChecks[] = $route;
+	}
+
 	private function attachEventHandlers(): void
 	{
+		$this->allowPostieRatesOnSinglePageCheckout();
+
 		Event::on(
 			CraftVariable::class,
 			CraftVariable::EVENT_INIT,
@@ -451,6 +518,23 @@ class FosterCheckout extends Plugin
 				) {
 					$event->label = 'County';
 				}
+			}
+		);
+
+		Event::on(
+			BaseFrontEndController::class,
+			BaseFrontEndController::EVENT_MODIFY_CART_INFO,
+			function (ModifyCartInfoEvent $event): void {
+				if (! $this->shouldAttachSinglePageCartInfo()) {
+					return;
+				}
+
+				$cart = $event->cart;
+				if (! $cart instanceof Order) {
+					return;
+				}
+
+				$event->cartInfo['fosterCheckout'] = $this->checkout->checkoutLiveState($cart);
 			}
 		);
 
