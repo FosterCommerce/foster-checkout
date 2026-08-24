@@ -324,7 +324,7 @@ class Checkout extends Component
 	{
 		$shippingMethods = $this->checkoutShippingMethods($cart);
 		$handles = array_column($shippingMethods, 'handle');
-		$cartHandle = (string) ($cart->shippingMethodHandle ?? '');
+		$cartHandle = $cart->shippingMethodHandle ?? '';
 		$shippingMethodHandle = $cartHandle !== '' && in_array($cartHandle, $handles, true)
 			? $cartHandle
 			: ($handles[0] ?? '');
@@ -339,7 +339,7 @@ class Checkout extends Component
 
 	private function checkoutAddressPreview(?Address $address): string
 	{
-		if ($address === null) {
+		if (! $address instanceof \craft\elements\Address) {
 			return '';
 		}
 
