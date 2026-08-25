@@ -44,7 +44,8 @@ use yii\base\InvalidConfigException;
  *     shippingMethods: list<CheckoutShippingMethod>,
  *     shippingMethodHandle: string,
  *     totals: CheckoutTotals,
- *     shippingPreview: string
+ *     shippingPreview: string,
+ *     couponCodeError?: string
  * }
  */
 class Checkout extends Component

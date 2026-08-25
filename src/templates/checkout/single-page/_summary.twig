@@ -39,7 +39,7 @@
 							{{ 'summary.couponCodeLabel'|t('foster-checkout') }}
 							<span x-show="couponCode" x-cloak x-text="' (' + couponCode + ')'"></span>
 						</span>
-						{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'summary' } %}
+						{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'coupon' } %}
 					</span>
 					<template x-if="couponOpen">
 						<svg x-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current" aria-hidden="true">
@@ -174,7 +174,10 @@
 
 			{% if notesHandle %}
 				<div class="mt-8" data-fc-collect>
-					<p class="mb-2 text-gray-500">{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</p>
+					<p class="mb-2 inline-flex items-center gap-2 text-gray-500">
+						<span>{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</span>
+						{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'notes' } %}
+					</p>
 					<form
 						class="flex flex-col md:flex-row justify-start items-end gap-4"
 						@submit.prevent="saveNotes()"
@@ -192,9 +195,15 @@
 						<button
 							type="submit"
 							class="block px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg text-nowrap"
-							:class="notesButtonVisible ? 'visible' : 'hidden'"
-							x-text="panelStatus.summary === 'saving' ? savingLabel : '{{ 'summary.saveOrderNote'|t('foster-checkout')|e('js') }}'"
-						></button>
+							:disabled="pending > 0"
+							:class="{
+								'visible': notesButtonVisible,
+								'hidden': !notesButtonVisible,
+								'opacity-50 cursor-not-allowed': pending > 0
+							}"
+						>
+							{{ 'summary.saveOrderNote'|t('foster-checkout') }}
+						</button>
 					</form>
 				</div>
 			{% endif %}

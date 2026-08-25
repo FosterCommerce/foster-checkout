@@ -71,7 +71,8 @@ export const SinglePageCheckout = (props) => {
 			delivery: 'idle',
 			shipping: 'idle',
 			payment: 'idle',
-			summary: 'idle',
+			coupon: 'idle',
+			notes: 'idle',
 		},
 		panelStatusTimers: {},
 		queuedSavePanel: null,
@@ -923,6 +924,16 @@ export const SinglePageCheckout = (props) => {
 				const cart = data.cart || data.model || (data.data && data.data.cart);
 				this.applyCart(cart, this.shippingRateKey(saved));
 
+				const couponError = this.couponRejectedMessage(saved, cart);
+				if (couponError) {
+					this.couponError = couponError;
+					this.couponOpen = true;
+					this.status = couponError;
+					this.statusTone = 'error';
+					this.setPanelStatus(panel, 'error');
+					return;
+				}
+
 				this.clearInputErrors();
 				this.status = this.savedLabel;
 				this.statusTone = 'saved';
@@ -958,17 +969,20 @@ export const SinglePageCheckout = (props) => {
 				return;
 			}
 
+			this.couponError = '';
+
 			return this.saveCart({
 				couponCode: code,
-				panel: 'summary',
+				panel: 'coupon',
 			});
 		},
 
 		removeCoupon() {
 			this.couponInput = '';
+			this.couponError = '';
 			return this.saveCart({
 				couponCode: '',
-				panel: 'summary',
+				panel: 'coupon',
 			});
 		},
 
@@ -980,8 +994,26 @@ export const SinglePageCheckout = (props) => {
 
 			return this.saveCart({
 				[input.name]: input.value,
-				panel: 'summary',
+				panel: 'notes',
 			});
+		},
+
+		couponRejectedMessage(saved, cart) {
+			if (saved.couponCode === undefined || saved.couponCode === '') {
+				return '';
+			}
+
+			const live = (cart && cart.fosterCheckout) || {};
+			if (live.couponCodeError) {
+				return String(live.couponCodeError);
+			}
+
+			const applied = String((cart && cart.couponCode) || '');
+			if (applied.toLowerCase() === String(saved.couponCode).toLowerCase()) {
+				return '';
+			}
+
+			return this.failedLabel;
 		},
 
 		addressLabel(addressId, fallback) {

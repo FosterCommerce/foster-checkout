@@ -211,6 +211,8 @@ class FosterCheckout extends Plugin
 	// plugin drops out of Settings -> Plugins wherever admin changes are disallowed.
 	public bool $hasReadOnlyCpSettings = true;
 
+	private ?string $singlePageCouponCodeError = null;
+
 	#[\Override]
 	public function init(): void
 	{
@@ -556,7 +558,12 @@ class FosterCheckout extends Plugin
 					return;
 				}
 
-				$event->cartInfo['fosterCheckout'] = $this->checkout->checkoutLiveState($cart);
+				$live = $this->checkout->checkoutLiveState($cart);
+				if ($this->singlePageCouponCodeError !== null) {
+					$live['couponCodeError'] = $this->singlePageCouponCodeError;
+				}
+
+				$event->cartInfo['fosterCheckout'] = $live;
 			}
 		);
 
@@ -565,12 +572,17 @@ class FosterCheckout extends Plugin
 		Event::on(
 			Order::class,
 			Order::EVENT_BEFORE_APPLY_ADD_NOTICE,
-			static function (OrderNoticeEvent $event): void {
+			function (OrderNoticeEvent $event): void {
 				if (! Craft::$app->getRequest()->getIsSiteRequest() || $event->orderNotice->attribute !== 'couponCode') {
 					return;
 				}
 
-				Craft::$app->getSession()->setFlash('couponCodeError', $event->orderNotice->message);
+				if ($this->isSinglePageJsonRequest()) {
+					$this->singlePageCouponCodeError = $event->orderNotice->message;
+				} else {
+					Craft::$app->getSession()->setFlash('couponCodeError', $event->orderNotice->message);
+				}
+
 				$event->isValid = false;
 			}
 		);
