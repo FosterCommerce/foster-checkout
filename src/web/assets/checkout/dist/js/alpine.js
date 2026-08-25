@@ -48,11 +48,13 @@ const ClearableInput = (props) => {
 			this.validate(true);
 		},
 		clear() {
+			const input = this.$refs.input;
 			this.value = '';
 			this.touched = true;
 			this.showButton = false;
-			this.$refs.input.focus();
-			this.$refs.input.dispatchEvent(new Event('input', { bubbles: true }));
+			input.value = '';
+			input.focus();
+			input.dispatchEvent(new Event('input', { bubbles: true }));
 		},
 		isRequired() {
 			if (typeof this.required === 'boolean') {
