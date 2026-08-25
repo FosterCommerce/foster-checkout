@@ -10,6 +10,7 @@ use craft\commerce\controllers\BaseFrontEndController;
 use craft\commerce\elements\Order;
 use craft\commerce\events\ModifyCartInfoEvent;
 use craft\commerce\events\OrderNoticeEvent;
+use craft\elements\Address;
 use craft\events\DefineAddressFieldLabelEvent;
 use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
@@ -399,9 +400,31 @@ class FosterCheckout extends Plugin
 		$settings->routesChecks[] = $route;
 	}
 
+	/* Allow Fetching of shipping methods without requiring a phone number. */
+	private function allowEmptyPhoneOnSinglePageCartSave(): void
+	{
+		Event::on(
+			Address::class,
+			Model::EVENT_AFTER_VALIDATE,
+			function (Event $event): void {
+				if (! $this->shouldAttachSinglePageCartInfo()) {
+					return;
+				}
+
+				$address = $event->sender;
+				if (! $address instanceof Address || ! $address->isFieldEmpty('phone')) {
+					return;
+				}
+
+				$address->clearErrors('phone');
+			}
+		);
+	}
+
 	private function attachEventHandlers(): void
 	{
 		$this->allowPostieRatesOnSinglePageCheckout();
+		$this->allowEmptyPhoneOnSinglePageCartSave();
 
 		Event::on(
 			CraftVariable::class,

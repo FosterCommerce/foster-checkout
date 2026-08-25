@@ -796,6 +796,14 @@ const SinglePageCheckout = (props) => {
 			return Boolean(this.useNewAddress) || Boolean(this.shippingAddressId);
 		},
 
+		get deliveryReadyForPay() {
+			if (!this.useNewAddress && this.shippingAddressId) {
+				return true;
+			}
+
+			return this.panelFieldsReady('delivery');
+		},
+
 		get canPay() {
 			return (
 				this.pending === 0 &&
@@ -806,6 +814,7 @@ const SinglePageCheckout = (props) => {
 				this.cartHasShippingAddress &&
 				this.hasShippingMethod &&
 				this.hasBilling &&
+				this.deliveryReadyForPay &&
 				!this.loadingShippingMethods
 			);
 		},
@@ -919,6 +928,42 @@ const SinglePageCheckout = (props) => {
 				: null;
 		},
 
+		addressFieldHandle(data) {
+			const name = String(data.name || '');
+			const match = name.match(/\[([^\]]+)\]$/);
+
+			return match ? match[1] : name;
+		},
+
+		panelFieldsReady(panel, handles = null, showRequired = false) {
+			const scope = this.panelScope(panel);
+			if (!scope) {
+				return true;
+			}
+
+			let ready = true;
+			scope.querySelectorAll('[data-fc-field]').forEach((element) => {
+				if (element === this.$root) {
+					return;
+				}
+
+				const data = window.Alpine.$data(element);
+				if (!data || typeof data.validate !== 'function') {
+					return;
+				}
+
+				if (handles && !handles.has(this.addressFieldHandle(data))) {
+					return;
+				}
+
+				if (!data.validate(showRequired)) {
+					ready = false;
+				}
+			});
+
+			return ready;
+		},
+
 		canSavePanel(panel) {
 			if (
 				panel === 'delivery' &&
@@ -940,28 +985,46 @@ const SinglePageCheckout = (props) => {
 				return true;
 			}
 
-			const scope = this.panelScope(panel);
-			if (!scope) {
+			if (panel === 'delivery') {
+				return this.panelFieldsReady(
+					panel,
+					new Set([
+						'countryCode',
+						'fullName',
+						'addressLine1',
+						'locality',
+						'administrativeArea',
+						'postalCode',
+					])
+				);
+			}
+
+			return this.panelFieldsReady(panel);
+		},
+
+		shippingRateKey(payload) {
+			return [
+				payload.shippingAddressId ?? '',
+				payload.useNewAddress ?? '',
+				payload['shippingAddress[countryCode]'] ?? '',
+				payload['shippingAddress[administrativeArea]'] ?? '',
+				payload['shippingAddress[postalCode]'] ?? '',
+			].join('|');
+		},
+
+		deliveryNeedsSave(payload) {
+			if (!this.lastSaved) {
 				return true;
 			}
 
-			let ready = true;
-			scope.querySelectorAll('[data-fc-field]').forEach((element) => {
-				if (element === this.$root) {
-					return;
-				}
-
-				const data = window.Alpine.$data(element);
-				if (!data || typeof data.validate !== 'function') {
-					return;
-				}
-
-				if (!data.validate(false)) {
-					ready = false;
-				}
-			});
-
-			return ready;
+			try {
+				return (
+					this.shippingRateKey(payload) !==
+					this.shippingRateKey(JSON.parse(this.lastSaved))
+				);
+			} catch {
+				return true;
+			}
 		},
 
 		saveIfValid(panel, event = null) {
@@ -982,7 +1045,12 @@ const SinglePageCheckout = (props) => {
 					return;
 				}
 
-				if (JSON.stringify(this.buildPayload()) === this.lastSaved) {
+				const payload = this.buildPayload();
+				if (JSON.stringify(payload) === this.lastSaved) {
+					return;
+				}
+
+				if (panel === 'delivery' && !this.deliveryNeedsSave(payload)) {
 					return;
 				}
 
@@ -1857,9 +1925,17 @@ const SinglePageCheckout = (props) => {
 		},
 
 		onPaySubmit(event) {
-			if (this.saveTimer) {
+			const payloadChanged =
+				JSON.stringify(this.buildPayload()) !== this.lastSaved;
+
+			if (this.saveTimer || payloadChanged) {
 				event.preventDefault();
 				event.stopPropagation();
+				if (!this.deliveryReadyForPay) {
+					this.panelFieldsReady('delivery', null, true);
+					return;
+				}
+
 				this.saveNow();
 				return;
 			}
@@ -1868,6 +1944,7 @@ const SinglePageCheckout = (props) => {
 				return;
 			}
 
+			this.panelFieldsReady('delivery', null, true);
 			event.preventDefault();
 			event.stopPropagation();
 		},
