@@ -2,7 +2,7 @@
 {% set notesHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
 {% set notesValue = notesHandle ? (cart.getFieldValue(notesHandle) ?? '') : '' %}
 
-<aside>
+<aside class="lg:col-start-2 lg:row-start-1 lg:row-span-2">
 	<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:rounded-lg lg:border lg:border-gray-250' }}">
 		<div class="grid grid-cols-1 gap-6">
 			<div class="flex justify-between items-center gap-4">
