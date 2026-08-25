@@ -132,6 +132,7 @@ return [
 	'payment.paymentMethod' => 'Zahlungsart',
 	'payment.payButtonText' => 'Bezahlen',
 	'payment.processing' => 'Bitte warten Sie, während wir die Zahlung verarbeiten.',
+	'payment.placingOrder' => 'Bitte warten Sie, während wir Ihre Bestellung aufgeben.',
 	'payment.cardNumberError' => 'Geben Sie eine gültige Kartennummer ein.',
 	'payment.cardMonthError' => 'Geben Sie einen gültigen Monat ein.',
 	'payment.cardYearError' => 'Geben Sie ein gültiges Jahr ein.',

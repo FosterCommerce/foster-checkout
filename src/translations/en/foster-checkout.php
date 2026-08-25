@@ -135,6 +135,7 @@ return [
 	'payment.paymentMethod' => 'Payment method',
 	'payment.payButtonText' => 'Pay',
 	'payment.processing' => 'Please wait while we process your payment.',
+	'payment.placingOrder' => 'Please wait while we place your order.',
 	'payment.cardNumberError' => 'Enter a valid card number.',
 	'payment.cardMonthError' => 'Enter a valid month.',
 	'payment.cardYearError' => 'Enter a valid year.',

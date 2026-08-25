@@ -132,6 +132,7 @@ return [
 	'payment.paymentMethod' => 'Méthode de paiement',
 	'payment.payButtonText' => 'Payer',
 	'payment.processing' => 'Veuillez patienter pendant le traitement de votre paiement.',
+	'payment.placingOrder' => 'Veuillez patienter pendant que nous enregistrons votre commande.',
 	'payment.cardNumberError' => 'Saisissez un numéro de carte valide.',
 	'payment.cardMonthError' => 'Saisissez un mois valide.',
 	'payment.cardYearError' => 'Saisissez une année valide.',

@@ -48,6 +48,8 @@ export const SinglePageCheckout = (props) => {
 		noAddressLabel: props.noAddressLabel ?? '',
 		payButtonText: props.payButtonText ?? '',
 		processingLabel: props.processingLabel ?? '',
+		placingOrderLabel: props.placingOrderLabel ?? '',
+		manualGatewayIds: props.manualGatewayIds ?? [],
 		cardNumberError: props.cardNumberError ?? '',
 		cardMonthError: props.cardMonthError ?? '',
 		cardYearError: props.cardYearError ?? '',
@@ -117,7 +119,10 @@ export const SinglePageCheckout = (props) => {
 				}
 			};
 			window.addEventListener('pageshow', this.onPageShow);
-			this.$nextTick(() => this.bindPayOverlay());
+			this.$nextTick(() => {
+				this.lastSaved = JSON.stringify(this.buildPayload());
+				this.bindPayOverlay();
+			});
 
 			if (!this.cartHasShippingAddress && this.shippingAddressId) {
 				this.saveIfValid('delivery');
@@ -238,6 +243,15 @@ export const SinglePageCheckout = (props) => {
 
 		get payButtonLabel() {
 			return `${this.payButtonText} ${this.totals.totalAsCurrency || ''}`.trim();
+		},
+
+		get processingMessage() {
+			const selected = Number(this.gatewayId);
+			const isManual = this.manualGatewayIds.some(
+				(gatewayId) => Number(gatewayId) === selected
+			);
+
+			return isManual ? this.placingOrderLabel : this.processingLabel;
 		},
 
 		formatMoney(amount) {
@@ -1344,35 +1358,49 @@ export const SinglePageCheckout = (props) => {
 		},
 
 		async onPaySubmit(event) {
-			const payloadChanged =
-				JSON.stringify(this.buildPayload()) !== this.lastSaved;
-
-			if (this.saveTimer || payloadChanged) {
-				event.preventDefault();
-				event.stopPropagation();
-				if (!this.deliveryReadyForPay) {
-					this.panelFieldsReady('delivery', null, true);
-					return;
-				}
-
-				await this.saveNow();
-				const stillDirty =
-					JSON.stringify(this.buildPayload()) !== this.lastSaved;
-				if (stillDirty || !this.canPay || this.statusTone === 'error') {
-					return;
-				}
-
-				this.$refs.paymentForm?.requestSubmit();
-				return;
-			}
-
-			if (this.canPay) {
+			if (event.submitter?.id?.endsWith('authorizeSubmit')) {
 				return;
 			}
 
 			event.preventDefault();
 			event.stopPropagation();
-			this.panelFieldsReady('delivery', null, true);
+
+			if (!this.deliveryReadyForPay) {
+				this.panelFieldsReady('delivery', null, true);
+				return;
+			}
+
+			if (
+				!this.hasEmail ||
+				!this.hasShippingSelection ||
+				!this.cartHasShippingAddress ||
+				!this.hasShippingMethod ||
+				!this.hasBilling
+			) {
+				this.panelFieldsReady('delivery', null, true);
+				return;
+			}
+
+			const payloadChanged =
+				JSON.stringify(this.buildPayload()) !== this.lastSaved;
+
+			this.paying = true;
+
+			if (this.saveTimer || payloadChanged) {
+				if (this.saveTimer) {
+					clearTimeout(this.saveTimer);
+					this.saveTimer = null;
+				}
+
+				await this.saveCart({ panel: 'payment' });
+				if (this.statusTone === 'error') {
+					this.paying = false;
+					return;
+				}
+			}
+
+			this.lastSaved = JSON.stringify(this.buildPayload());
+			this.$refs.paymentForm?.submit();
 		},
 
 		bindPayOverlay() {

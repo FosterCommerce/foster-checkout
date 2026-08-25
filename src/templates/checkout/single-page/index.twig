@@ -71,6 +71,8 @@
 		noAddressLabel: 'misc.noAddress'|t('foster-checkout'),
 		payButtonText: 'payment.payButtonText'|t('foster-checkout'),
 		processingLabel: 'payment.processing'|t('foster-checkout'),
+		placingOrderLabel: 'payment.placingOrder'|t('foster-checkout'),
+		manualGatewayIds: gateways|filter(gateway => className(gateway) == 'craft\\commerce\\gateways\\Manual')|map(gateway => gateway.id),
 		cardNumberError: 'payment.cardNumberError'|t('foster-checkout'),
 		cardMonthError: 'payment.cardMonthError'|t('foster-checkout'),
 		cardYearError: 'payment.cardYearError'|t('foster-checkout'),
