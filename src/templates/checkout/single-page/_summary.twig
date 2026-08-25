@@ -183,15 +183,24 @@
 						@submit.prevent="saveNotes()"
 					>
 						<label for="spOrderNote" class="sr-only">{{ 'summary.addOrderNote'|t('foster-checkout') }}</label>
-						<textarea
-							x-ref="orderNote"
-							id="spOrderNote"
-							name="fields[{{ notesHandle }}]"
-							rows="2"
-							class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 placeholder-gray-400"
-							placeholder="{{ 'summary.addOrderNote'|t('foster-checkout') }}"
-							@focus="notesButtonVisible = true"
-						>{{ notesValue }}</textarea>
+						<div class="w-full">
+							<textarea
+								x-ref="orderNote"
+								id="spOrderNote"
+								name="fields[{{ notesHandle }}]"
+								rows="2"
+								class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 placeholder-gray-400"
+								:class="notesError ? 'border-red-500' : ''"
+								placeholder="{{ 'summary.addOrderNote'|t('foster-checkout') }}"
+								@focus="notesButtonVisible = true"
+							>{{ notesValue }}</textarea>
+							<p
+								x-show="notesError"
+								x-cloak
+								class="mt-2 text-sm text-red-500"
+								x-text="notesError"
+							></p>
+						</div>
 						<button
 							type="submit"
 							class="block px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg text-nowrap"

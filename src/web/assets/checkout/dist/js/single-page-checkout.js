@@ -31,6 +31,7 @@ export const SinglePageCheckout = (props) => {
 		couponInput: props.couponCode ?? '',
 		couponOpen: Boolean(props.couponCode),
 		couponError: '',
+		notesError: '',
 		notesButtonVisible: false,
 		addressLabels: {},
 		addressFields: {},
@@ -818,6 +819,7 @@ export const SinglePageCheckout = (props) => {
 
 		clearInputErrors() {
 			this.couponError = '';
+			this.notesError = '';
 			this.$root
 				.querySelectorAll(
 					'[data-fc-collect] [x-data], [data-fc-address-edit] [x-data]'
@@ -833,6 +835,7 @@ export const SinglePageCheckout = (props) => {
 		applyFieldErrors(errors) {
 			this.clearInputErrors();
 			const flattened = this.flattenErrors(errors);
+			const noteName = this.$refs.orderNote?.name;
 
 			Object.entries(flattened).forEach(([key, messages]) => {
 				const name = this.errorKeyToName(key);
@@ -840,6 +843,10 @@ export const SinglePageCheckout = (props) => {
 
 				if (name === 'couponCode') {
 					this.couponError = messages.join(' ');
+				}
+
+				if (noteName && name === noteName) {
+					this.notesError = messages.join(' ');
 				}
 			});
 		},
@@ -915,12 +922,14 @@ export const SinglePageCheckout = (props) => {
 					this.status = this.failedLabel;
 					this.statusTone = 'error';
 					this.setPanelStatus(panel, 'error');
+					this.markNotesError(savingNotes);
 					return;
 				}
 
 				if (!response.ok || data.success === false) {
 					this.applyErrors(data);
 					this.setPanelStatus(panel, 'error');
+					this.markNotesError(savingNotes);
 					return;
 				}
 
@@ -929,9 +938,10 @@ export const SinglePageCheckout = (props) => {
 
 				const couponError = this.couponRejectedMessage(saved, cart);
 				if (couponError) {
-					this.couponError = couponError;
+					this.applyFieldErrors({
+						couponCode: [couponError],
+					});
 					this.couponOpen = true;
-					this.status = couponError;
 					this.setPanelStatus(panel, 'error');
 					return;
 				}
@@ -952,6 +962,7 @@ export const SinglePageCheckout = (props) => {
 				this.status = this.failedLabel;
 				this.statusTone = 'error';
 				this.setPanelStatus(panel, 'error');
+				this.markNotesError(savingNotes);
 			} finally {
 				this.saving = false;
 				this.pending = Math.max(0, this.pending - 1);
@@ -994,10 +1005,24 @@ export const SinglePageCheckout = (props) => {
 				return;
 			}
 
+			this.notesError = '';
+
 			return this.saveCart({
 				[input.name]: input.value,
 				panel: 'notes',
 			});
+		},
+
+		markNotesError(savingNotes) {
+			if (!savingNotes) {
+				return;
+			}
+
+			if (!this.notesError) {
+				this.notesError = this.status || this.failedLabel;
+			}
+
+			this.notesButtonVisible = true;
 		},
 
 		couponRejectedMessage(saved, cart) {
