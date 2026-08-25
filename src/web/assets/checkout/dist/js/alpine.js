@@ -658,9 +658,12 @@ const SinglePageCheckout = (props) => {
 		shippingMethods: props.shippingMethods ?? [],
 		totals: props.totals ?? {
 			itemsAsCurrency: '',
+			shipping: 0,
 			shippingAsCurrency: '',
 			taxAsCurrency: '',
+			total: 0,
 			totalAsCurrency: '',
+			currency: 'USD',
 			discounts: [],
 			vouchers: [],
 		},
@@ -692,7 +695,6 @@ const SinglePageCheckout = (props) => {
 		saving: false,
 		nextSave: null,
 		lastSaved: '',
-		shippingRestoreAttempted: false,
 		paypalInitTimer: null,
 
 		init() {
@@ -705,7 +707,12 @@ const SinglePageCheckout = (props) => {
 				this.onSelectionChange('delivery')
 			);
 			this.$watch('useNewAddress', () => this.onSelectionChange('delivery'));
-			this.$watch('shippingMethodHandle', () => this.onShippingMethodChange());
+			this.$watch('shippingMethodHandle', () => {
+				if (!this.syncingFromCart) {
+					this.applySelectedMethodTotals();
+					this.syncPayButtons();
+				}
+			});
 			this.$watch('billingSameAsShipping', () =>
 				this.onSelectionChange('payment')
 			);
@@ -823,6 +830,51 @@ const SinglePageCheckout = (props) => {
 			return `${this.payButtonText} ${this.totals.totalAsCurrency || ''}`.trim();
 		},
 
+		formatMoney(amount) {
+			try {
+				return new Intl.NumberFormat(undefined, {
+					style: 'currency',
+					currency: this.totals.currency || 'USD',
+				}).format(amount);
+			} catch {
+				return String(amount);
+			}
+		},
+
+		applySelectedMethodTotals() {
+			const method = this.shippingMethods.find(
+				(item) => item.handle === this.shippingMethodHandle
+			);
+			if (!method) {
+				return;
+			}
+
+			const nextShipping = Number(method.price);
+			const prevShipping = Number(this.totals.shipping);
+			const prevTotal = Number(this.totals.total);
+			const nextTotal =
+				Number.isFinite(nextShipping) &&
+				Number.isFinite(prevShipping) &&
+				Number.isFinite(prevTotal)
+					? prevTotal - prevShipping + nextShipping
+					: null;
+
+			const totals = {
+				...this.totals,
+				shipping: Number.isFinite(nextShipping)
+					? nextShipping
+					: this.totals.shipping,
+				shippingAsCurrency: method.priceAsCurrency,
+			};
+
+			if (nextTotal !== null) {
+				totals.total = nextTotal;
+				totals.totalAsCurrency = this.formatMoney(nextTotal);
+			}
+
+			this.totals = totals;
+		},
+
 		panelStatusLabel(panel) {
 			const tone = this.panelStatus[panel];
 			if (tone === 'saving') {
@@ -886,25 +938,7 @@ const SinglePageCheckout = (props) => {
 				return;
 			}
 
-			this.shippingRestoreAttempted = false;
-			if (panel === 'delivery') {
-				this.refreshShippingPreview();
-			}
 			this.saveIfValid(panel);
-		},
-
-		onShippingMethodChange() {
-			if (this.syncingFromCart) {
-				return;
-			}
-
-			this.shippingRestoreAttempted = false;
-
-			if (this.saveTimer && !this.queuedSaveExtra.methodOnly) {
-				return;
-			}
-
-			this.queueSave(0, null, { methodOnly: true }, 'shipping');
 		},
 
 		onDetailsChange(event) {
@@ -1079,18 +1113,11 @@ const SinglePageCheckout = (props) => {
 				this.queuedSavePanel ||
 				'delivery';
 
-			const hadPending = Boolean(this.saveTimer);
-			const pendingExtra = this.queuedSaveExtra;
-
 			if (this.saveTimer) {
 				clearTimeout(this.saveTimer);
 			}
 
-			if (extra.methodOnly && hadPending && !pendingExtra.methodOnly) {
-				this.queuedSaveExtra = pendingExtra;
-			} else {
-				this.queuedSaveExtra = extra;
-			}
+			this.queuedSaveExtra = extra;
 
 			if (this.queuedSavePanel && this.queuedSavePanel !== nextPanel) {
 				this.clearSavingPanel(this.queuedSavePanel);
@@ -1420,10 +1447,6 @@ const SinglePageCheckout = (props) => {
 			}
 
 			if (this.saving) {
-				if (extra.methodOnly && this.nextSave && !this.nextSave.methodOnly) {
-					return;
-				}
-
 				this.nextSave = extra;
 				this.setPanelStatus(
 					extra.panel || this.queuedSavePanel || 'delivery',
@@ -1432,14 +1455,11 @@ const SinglePageCheckout = (props) => {
 				return;
 			}
 
-			const methodOnly = extra.methodOnly === true;
 			const panel = extra.panel || this.queuedSavePanel || 'delivery';
 			const payload = { ...extra };
-			delete payload.methodOnly;
 			delete payload.panel;
 
 			if (
-				!methodOnly &&
 				payload.couponCode === undefined &&
 				JSON.stringify(this.buildPayload()) === this.lastSaved
 			) {
@@ -1462,14 +1482,8 @@ const SinglePageCheckout = (props) => {
 			try {
 				const fields = {
 					action: 'commerce/cart/update-cart',
+					...this.buildPayload(payload),
 				};
-
-				if (methodOnly) {
-					fields.shippingMethodHandle = this.shippingMethodHandle || '';
-					Object.assign(fields, payload);
-				} else {
-					Object.assign(fields, this.buildPayload(payload));
-				}
 
 				const { response, data, isJson } = await this.postForm(
 					this.postUrl(),
@@ -1844,16 +1858,6 @@ const SinglePageCheckout = (props) => {
 			}
 
 			this.syncPayButtons();
-
-			if (
-				previousHandle &&
-				previousHandle === this.shippingMethodHandle &&
-				previousHandle !== cartHandle &&
-				!this.shippingRestoreAttempted
-			) {
-				this.shippingRestoreAttempted = true;
-				this.queueSave(0, null, { methodOnly: true }, 'shipping');
-			}
 		},
 
 		async saveAddressBook(addressId) {

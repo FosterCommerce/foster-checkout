@@ -307,13 +307,16 @@ class Checkout extends Component
 
 	/**
 	 * @return array{
-	 *     shippingMethods: list<array{handle: string, name: string, description: string, priceAsCurrency: string}>,
+	 *     shippingMethods: list<array{handle: string, name: string, description: string, price: float, priceAsCurrency: string}>,
 	 *     shippingMethodHandle: string,
 	 *     totals: array{
 	 *         itemsAsCurrency: string,
+	 *         shipping: float,
 	 *         shippingAsCurrency: string,
 	 *         taxAsCurrency: string,
+	 *         total: float,
 	 *         totalAsCurrency: string,
+	 *         currency: string,
 	 *         discounts: list<array{name: string, amountAsCurrency: string}>,
 	 *         vouchers: list<array{name: string, amountAsCurrency: string}>
 	 *     },
@@ -358,7 +361,7 @@ class Checkout extends Component
 	}
 
 	/**
-	 * @return list<array{handle: string, name: string, description: string, priceAsCurrency: string}>
+	 * @return list<array{handle: string, name: string, description: string, price: float, priceAsCurrency: string}>
 	 */
 	private function checkoutShippingMethods(Order $cart): array
 	{
@@ -377,6 +380,7 @@ class Checkout extends Component
 				'handle' => (string) $handle,
 				'name' => Craft::t('foster-checkout', $method->name ?? (string) $handle),
 				'description' => $description !== '' ? Craft::t('foster-checkout', $description) : '',
+				'price' => (float) $method->price,
 				'priceAsCurrency' => $method->priceAsCurrency,
 			];
 		}
@@ -387,9 +391,12 @@ class Checkout extends Component
 	/**
 	 * @return array{
 	 *     itemsAsCurrency: string,
+	 *     shipping: float,
 	 *     shippingAsCurrency: string,
 	 *     taxAsCurrency: string,
+	 *     total: float,
 	 *     totalAsCurrency: string,
+	 *     currency: string,
 	 *     discounts: list<array{name: string, amountAsCurrency: string}>,
 	 *     vouchers: list<array{name: string, amountAsCurrency: string}>
 	 * }
@@ -426,9 +433,12 @@ class Checkout extends Component
 
 		return [
 			'itemsAsCurrency' => Currency::formatAsCurrency($itemsAmount, $cart->currency),
+			'shipping' => (float) $cart->getTotalShippingCost(),
 			'shippingAsCurrency' => $cart->totalShippingCostAsCurrency,
 			'taxAsCurrency' => $cart->totalTaxAsCurrency,
+			'total' => (float) $cart->getTotal(),
 			'totalAsCurrency' => $cart->totalAsCurrency,
+			'currency' => (string) $cart->currency,
 			'discounts' => $discounts,
 			'vouchers' => $vouchers,
 		];
