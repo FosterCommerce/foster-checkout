@@ -476,7 +476,7 @@ const SearchableSelect = (props) => {
 				return null;
 			}
 
-			const searchValue = value.toLowerCase().trim();
+			const searchValue = String(value).toLowerCase().trim();
 
 			// Exact match on label
 			let selectedOption = this.options.find(
@@ -555,14 +555,20 @@ const LineItem = (options) => {
 				quantity = this.min;
 			}
 
-			const limit = this.maxAllowed;
-			this.showErrorMaxMessage = Number.isFinite(limit) && quantity > limit;
-			if (this.showErrorMaxMessage) {
-				quantity = limit;
-			}
+			const stockLimit = this.unlimitedStock ? Infinity : (this.stock ?? 0);
+			const maxLimit = this.max || Infinity;
 
 			this.showErrorStockMessage =
-				!this.unlimitedStock && quantity > (this.stock ?? 0);
+				Number.isFinite(stockLimit) && quantity > stockLimit;
+			this.showErrorMaxMessage =
+				Number.isFinite(maxLimit) &&
+				quantity > maxLimit &&
+				!this.showErrorStockMessage;
+
+			const limit = this.maxAllowed;
+			if (Number.isFinite(limit) && quantity > limit) {
+				quantity = limit;
+			}
 
 			return quantity;
 		},
@@ -1488,7 +1494,7 @@ const SinglePageCheckout = (props) => {
 			}
 
 			if (this.saving) {
-				this.nextSave = extra;
+				this.nextSave = { ...(this.nextSave || {}), ...extra };
 				this.setPanelStatus(
 					extra.panel || this.queuedSavePanel || 'delivery',
 					'saving'
@@ -2012,6 +2018,18 @@ const SinglePageCheckout = (props) => {
 			}
 
 			form.dataset.fcPayOverlay = 'true';
+			form.addEventListener(
+				'click',
+				(event) => {
+					const button = event.target.closest('[id$="authorizeSubmit"]');
+					if (!button || !this.canPay) {
+						return;
+					}
+
+					this.wrapAuthorizeHandler();
+				},
+				true
+			);
 			form.addEventListener('input', (event) => {
 				const input = event.target;
 				if (
