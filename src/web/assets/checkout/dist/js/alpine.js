@@ -1486,9 +1486,10 @@ const SinglePageCheckout = (props) => {
 			this.syncPayButtons();
 
 			try {
+				const saved = this.buildPayload(payload);
 				const fields = {
 					action: 'commerce/cart/update-cart',
-					...this.buildPayload(payload),
+					...saved,
 				};
 
 				const { response, data, isJson } = await this.postForm(
@@ -1511,13 +1512,13 @@ const SinglePageCheckout = (props) => {
 				}
 
 				const cart = data.cart || data.model || (data.data && data.data.cart);
-				this.applyCart(cart);
+				this.applyCart(cart, this.shippingRateKey(saved));
 
 				this.clearInputErrors();
 				this.status = this.savedLabel;
 				this.statusTone = 'saved';
 				this.setPanelStatus(panel, 'saved');
-				this.lastSaved = JSON.stringify(this.buildPayload());
+				this.lastSaved = JSON.stringify(saved);
 			} catch (error) {
 				if (error.name === 'AbortError') {
 					return;
@@ -1783,13 +1784,15 @@ const SinglePageCheckout = (props) => {
 			});
 		},
 
-		applyCart(cart) {
+		applyCart(cart, savedKey = '') {
 			if (!cart || typeof cart !== 'object') {
 				return;
 			}
 
 			const previousHandle = this.shippingMethodHandle;
 			const cartHandle = cart.shippingMethodHandle || '';
+			const sameAddress =
+				!savedKey || savedKey === this.shippingRateKey(this.buildPayload());
 			this.syncingFromCart = true;
 
 			try {
@@ -1814,11 +1817,15 @@ const SinglePageCheckout = (props) => {
 
 				const live = cart.fosterCheckout || {};
 
-				if (typeof live.shippingPreview === 'string') {
+				if (sameAddress && typeof live.shippingPreview === 'string') {
 					this.shippingPreview = live.shippingPreview;
 				}
 
-				if (cart.shippingAddress && typeof cart.shippingAddress === 'object') {
+				if (
+					sameAddress &&
+					cart.shippingAddress &&
+					typeof cart.shippingAddress === 'object'
+				) {
 					this.latestShippingAddress = cart.shippingAddress;
 					this.rememberAddress(
 						cart.sourceShippingAddressId,
@@ -1834,30 +1841,32 @@ const SinglePageCheckout = (props) => {
 					);
 				}
 
-				if (Array.isArray(live.shippingMethods)) {
+				if (sameAddress && Array.isArray(live.shippingMethods)) {
 					this.shippingMethods = live.shippingMethods;
 				}
 
-				const handles = this.shippingMethods.map((method) => method.handle);
-				const liveHandle =
-					typeof live.shippingMethodHandle === 'string'
-						? live.shippingMethodHandle
-						: cartHandle;
+				if (sameAddress) {
+					const handles = this.shippingMethods.map((method) => method.handle);
+					const liveHandle =
+						typeof live.shippingMethodHandle === 'string'
+							? live.shippingMethodHandle
+							: cartHandle;
 
-				if (previousHandle && handles.includes(previousHandle)) {
-					this.shippingMethodHandle = previousHandle;
-				} else if (handles.includes(liveHandle)) {
-					this.shippingMethodHandle = liveHandle;
-				} else {
-					this.shippingMethodHandle = handles[0] || '';
-				}
+					if (previousHandle && handles.includes(previousHandle)) {
+						this.shippingMethodHandle = previousHandle;
+					} else if (handles.includes(liveHandle)) {
+						this.shippingMethodHandle = liveHandle;
+					} else {
+						this.shippingMethodHandle = handles[0] || '';
+					}
 
-				if (live.totals && typeof live.totals === 'object') {
-					this.totals = {
-						discounts: [],
-						vouchers: [],
-						...live.totals,
-					};
+					if (live.totals && typeof live.totals === 'object') {
+						this.totals = {
+							discounts: [],
+							vouchers: [],
+							...live.totals,
+						};
+					}
 				}
 			} finally {
 				this.syncingFromCart = false;
