@@ -3,6 +3,7 @@
 namespace fostercommerce\fostercheckout\services;
 
 use Craft;
+use craft\commerce\base\ShippingMethodInterface;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
@@ -329,13 +330,14 @@ class Checkout extends Component
 	}
 
 	/**
+	 * @param array<array-key, mixed>|null $shippingMethodOptions
 	 * @return CheckoutLiveState
 	 */
-	public function checkoutLiveState(Order $cart): array
+	public function checkoutLiveState(Order $cart, ?array $shippingMethodOptions = null): array
 	{
-		$shippingMethods = $this->checkoutShippingMethods($cart);
+		$shippingMethods = $this->checkoutShippingMethods($cart, $shippingMethodOptions);
 		$handles = array_column($shippingMethods, 'handle');
-		$cartHandle = (string) ($cart->shippingMethodHandle ?? '');
+		$cartHandle = $cart->shippingMethodHandle ?? '';
 		$shippingMethodHandle = $cartHandle !== '' && in_array($cartHandle, $handles, true)
 			? $cartHandle
 			: ($handles[0] ?? '');
@@ -350,7 +352,7 @@ class Checkout extends Component
 
 	private function checkoutAddressPreview(?Address $address): string
 	{
-		if ($address === null) {
+		if (! $address instanceof Address) {
 			return '';
 		}
 
@@ -369,31 +371,94 @@ class Checkout extends Component
 	}
 
 	/**
+	 * @param array<array-key, mixed>|null $cartOptions
 	 * @return list<CheckoutShippingMethod>
 	 */
-	private function checkoutShippingMethods(Order $cart): array
+	private function checkoutShippingMethods(Order $cart, ?array $cartOptions = null): array
+	{
+		$options = $cartOptions ?? $this->shippingOptionsFromCart($cart);
+		$descriptions = $this->shippingRuleDescriptions($cart, array_keys($options));
+		$methods = [];
+
+		foreach ($options as $key => $option) {
+			if (! is_array($option)) {
+				continue;
+			}
+
+			$handle = (string) $key;
+			$name = $option['name'] ?? null;
+			$price = $option['price'] ?? null;
+			$priceAsCurrency = $option['priceAsCurrency'] ?? null;
+
+			$methods[] = [
+				'handle' => $handle,
+				'name' => Craft::t('foster-checkout', is_string($name) && $name !== '' ? $name : $handle),
+				'description' => $descriptions[$handle] ?? '',
+				'price' => is_numeric($price) ? (float) $price : 0.0,
+				'priceAsCurrency' => is_string($priceAsCurrency) ? $priceAsCurrency : '',
+			];
+		}
+
+		return $methods;
+	}
+
+	/**
+	 * @return array<string, array{name: string, price: float, priceAsCurrency: string}>
+	 */
+	private function shippingOptionsFromCart(Order $cart): array
+	{
+		$options = [];
+
+		foreach ($cart->availableShippingMethodOptions as $handle => $option) {
+			$options[(string) $handle] = [
+				'name' => (string) ($option->name ?? $handle),
+				'price' => $option->price,
+				'priceAsCurrency' => $option->priceAsCurrency,
+			];
+		}
+
+		return $options;
+	}
+
+	/**
+	 * @param list<array-key> $handles
+	 * @return array<string, string>
+	 */
+	private function shippingRuleDescriptions(Order $cart, array $handles): array
 	{
 		$commerce = Commerce::getInstance();
 		if ($commerce === null) {
 			return [];
 		}
 
+		$shippingMethods = $commerce->getShippingMethods();
+		$storeMethods = $shippingMethods->getAllShippingMethods($cart->storeId);
 		$methods = [];
 
-		foreach ($cart->availableShippingMethodOptions as $handle => $method) {
-			$rule = $commerce->getShippingMethods()->getMatchingShippingRule($cart, $method);
-			$description = $rule?->getDescription() ?: '';
-
-			$methods[] = [
-				'handle' => (string) $handle,
-				'name' => Craft::t('foster-checkout', $method->name ?? (string) $handle),
-				'description' => $description !== '' ? Craft::t('foster-checkout', $description) : '',
-				'price' => (float) $method->price,
-				'priceAsCurrency' => $method->priceAsCurrency,
-			];
+		foreach ($storeMethods as $storeMethod) {
+			$methods[$storeMethod->getHandle()] = $storeMethod;
 		}
 
-		return $methods;
+		$handles = array_map(static fn (int|string $handle): string => (string) $handle, $handles);
+
+		if (array_diff($handles, array_keys($methods)) !== []) {
+			foreach ($cart->availableShippingMethodOptions as $handle => $option) {
+				$methods[(string) $handle] ??= $option;
+			}
+		}
+
+		$descriptions = [];
+
+		foreach ($handles as $handle) {
+			$method = $methods[$handle] ?? null;
+			$description = $method instanceof ShippingMethodInterface
+				? ($shippingMethods->getMatchingShippingRule($cart, $method)?->getDescription() ?: '')
+				: '';
+
+			$descriptions[$handle] = $description === '' ? '' : Craft::t('foster-checkout', $description);
+		}
+
+		return $descriptions;
 	}
 
 	/**
@@ -431,10 +496,10 @@ class Checkout extends Component
 
 		return [
 			'itemsAsCurrency' => Currency::formatAsCurrency($itemsAmount, $cart->currency),
-			'shipping' => (float) $cart->getTotalShippingCost(),
+			'shipping' => $cart->getTotalShippingCost(),
 			'shippingAsCurrency' => $cart->totalShippingCostAsCurrency,
 			'taxAsCurrency' => $cart->totalTaxAsCurrency,
-			'total' => (float) $cart->getTotal(),
+			'total' => $cart->getTotal(),
 			'totalAsCurrency' => $cart->totalAsCurrency,
 			'currency' => (string) $cart->currency,
 			'discounts' => $discounts,

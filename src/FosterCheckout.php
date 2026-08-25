@@ -558,7 +558,12 @@ class FosterCheckout extends Plugin
 					return;
 				}
 
-				$live = $this->checkout->checkoutLiveState($cart);
+				$shippingMethodOptions = $event->cartInfo['availableShippingMethodOptions'] ?? null;
+				$live = $this->checkout->checkoutLiveState(
+					$cart,
+					is_array($shippingMethodOptions) ? $shippingMethodOptions : null
+				);
+
 				if ($this->singlePageCouponCodeError !== null) {
 					$live['couponCodeError'] = $this->singlePageCouponCodeError;
 				}
