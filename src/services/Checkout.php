@@ -121,7 +121,11 @@ class Checkout extends Component
 	public function jsBundle(): string
 	{
 		/** @var string $bundleUrl */
-		$bundleUrl = Craft::$app->assetManager->getPublishedUrl('@fostercheckout/web/assets/checkout/dist/js/alpine.js', true);
+		$bundleUrl = Craft::$app->assetManager->getPublishedUrl(
+			'@fostercheckout/web/assets/checkout/dist/js',
+			true,
+			'alpine.js'
+		);
 
 		return $bundleUrl;
 	}
