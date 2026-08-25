@@ -1,9 +1,6 @@
 import Alpine from 'https://esm.sh/alpinejs@3.16.1';
 import focus from 'https://esm.sh/@alpinejs/focus@3.16.1';
-import { SinglePageCheckout } from './single-page-checkout.js';
-
-const isValidEmail = (value) =>
-	/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+import { SinglePageCheckout, isValidEmail } from './single-page-checkout.js';
 
 const setErrors = (field, messages) => {
 	const next = messages.filter(Boolean);

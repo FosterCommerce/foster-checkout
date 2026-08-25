@@ -1,4 +1,4 @@
-const isValidEmail = (value) =>
+export const isValidEmail = (value) =>
 	/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 
 const asList = (value) =>
