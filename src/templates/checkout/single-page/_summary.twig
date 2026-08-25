@@ -115,7 +115,7 @@
 			<dl class="grid grid-cols-1 gap-4">
 				<div class="flex justify-between items-center gap-4">
 					<dt class="text-gray-500">{{ 'summary.itemsLabel'|t('foster-checkout') }}</dt>
-					<dd class="text-right text-black" x-text="totals.itemsAsCurrency"></dd>
+					<dd class="text-right text-black" x-text="totals.itemsAsCurrency">{{ live.totals.itemsAsCurrency ?? '' }}</dd>
 				</div>
 
 				<div class="flex justify-between items-center gap-4" x-show="cartHasShippingAddress" x-cloak>
@@ -124,7 +124,7 @@
 						class="text-right"
 						:class="loadingShippingMethods ? 'text-gray-500' : 'text-black'"
 						x-text="totals.shippingAsCurrency"
-					></dd>
+					>{{ live.totals.shippingAsCurrency ?? '' }}</dd>
 				</div>
 
 				<div class="flex justify-between items-center gap-4">
@@ -133,7 +133,7 @@
 						class="text-right"
 						:class="loadingShippingMethods ? 'text-gray-500' : 'text-black'"
 						x-text="totals.taxAsCurrency"
-					></dd>
+					>{{ live.totals.taxAsCurrency ?? '' }}</dd>
 				</div>
 
 				<template x-for="discount in totals.discounts" :key="discount.name + discount.amountAsCurrency">
@@ -168,7 +168,7 @@
 						class="font-semibold text-right"
 						:class="loadingShippingMethods ? 'text-gray-500 font-normal' : 'text-black'"
 						x-text="totals.totalAsCurrency"
-					></dd>
+					>{{ live.totals.totalAsCurrency ?? '' }}</dd>
 				</div>
 			</dl>
 

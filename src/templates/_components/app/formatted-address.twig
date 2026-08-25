@@ -5,7 +5,7 @@
 	{% set fallback = address.fullName ~ ', ' ~ address|address({ }, formatter) %}
 	<p>
 		{% if liveId %}
-			<span class="block" x-text="addressLabel({{ liveId }}, {{ fallback|json_encode }})"></span>
+			<span class="block" x-text="addressLabel({{ liveId }}, {{ fallback|json_encode }})">{{ fallback }}</span>
 		{% else %}
 			<span class="block">{{ fallback }}</span>
 		{% endif %}
