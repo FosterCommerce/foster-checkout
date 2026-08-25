@@ -1,6 +1,9 @@
 const isValidEmail = (value) =>
 	/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 
+const asList = (value) =>
+	Array.isArray(value) ? value : Object.values(value ?? {});
+
 const CARD_FIELDS = ['number', 'month', 'year', 'cvv'];
 
 const AUTHORIZE_ERROR_FIELDS = {
@@ -34,7 +37,7 @@ export const SinglePageCheckout = (props) => {
 		shippingPreview: props.shippingPreview ?? '',
 		latestShippingAddress: null,
 		latestBillingAddress: null,
-		shippingMethods: props.shippingMethods ?? [],
+		shippingMethods: asList(props.shippingMethods),
 		totals: props.totals ?? {
 			itemsAsCurrency: '',
 			shipping: 0,
@@ -50,7 +53,7 @@ export const SinglePageCheckout = (props) => {
 		payButtonText: props.payButtonText ?? '',
 		processingLabel: props.processingLabel ?? '',
 		placingOrderLabel: props.placingOrderLabel ?? '',
-		manualGatewayIds: props.manualGatewayIds ?? [],
+		manualGatewayIds: asList(props.manualGatewayIds),
 		cardNumberError: props.cardNumberError ?? '',
 		cardMonthError: props.cardMonthError ?? '',
 		cardYearError: props.cardYearError ?? '',
@@ -929,7 +932,6 @@ export const SinglePageCheckout = (props) => {
 					this.couponError = couponError;
 					this.couponOpen = true;
 					this.status = couponError;
-					this.statusTone = 'error';
 					this.setPanelStatus(panel, 'error');
 					return;
 				}

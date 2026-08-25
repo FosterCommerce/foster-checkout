@@ -52,6 +52,13 @@
 	{% set hasGateway = cartGatewayId and (cartGatewayId in gatewayIds) %}
 	{% set initialGatewayId = hasGateway ? cartGatewayId : (gateways|length ? gateways[0].id : null) %}
 
+	{% set manualGatewayIds = [] %}
+	{% for gateway in gateways %}
+		{% if className(gateway) == 'craft\\commerce\\gateways\\Manual' %}
+			{% set manualGatewayIds = manualGatewayIds|merge([gateway.id]) %}
+		{% endif %}
+	{% endfor %}
+
 	{% set config = {
 		loggedIn: currentUser ? true : false,
 		email: cart.email ?? '',
@@ -72,7 +79,7 @@
 		payButtonText: 'payment.payButtonText'|t('foster-checkout'),
 		processingLabel: 'payment.processing'|t('foster-checkout'),
 		placingOrderLabel: 'payment.placingOrder'|t('foster-checkout'),
-		manualGatewayIds: gateways|filter(gateway => className(gateway) == 'craft\\commerce\\gateways\\Manual')|map(gateway => gateway.id),
+		manualGatewayIds: manualGatewayIds,
 		cardNumberError: 'payment.cardNumberError'|t('foster-checkout'),
 		cardMonthError: 'payment.cardMonthError'|t('foster-checkout'),
 		cardYearError: 'payment.cardYearError'|t('foster-checkout'),
