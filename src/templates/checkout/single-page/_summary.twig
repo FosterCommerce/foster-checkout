@@ -179,40 +179,38 @@
 						{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'notes' } %}
 					</p>
 					<form
-						class="flex flex-col md:flex-row justify-start items-end gap-4"
+						class="grid gap-2"
 						@submit.prevent="saveNotes()"
 					>
 						<label for="spOrderNote" class="sr-only">{{ 'summary.addOrderNote'|t('foster-checkout') }}</label>
-						<div class="w-full">
+						<div class="grid grid-cols-1 md:grid-cols-[1fr_auto] items-end gap-4">
 							<textarea
 								x-ref="orderNote"
 								id="spOrderNote"
 								name="fields[{{ notesHandle }}]"
 								rows="2"
-								class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 placeholder-gray-400"
+								class="w-full min-w-0 border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 placeholder-gray-400"
 								:class="notesError ? 'border-red-500' : ''"
 								placeholder="{{ 'summary.addOrderNote'|t('foster-checkout') }}"
 								@focus="notesButtonVisible = true"
 							>{{ notesValue }}</textarea>
-							<p
-								x-show="notesError"
+							<button
+								type="submit"
+								x-show="notesButtonVisible"
 								x-cloak
-								class="mt-2 text-sm text-red-500"
-								x-text="notesError"
-							></p>
+								class="h-12 px-4 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg text-nowrap shrink-0"
+								:disabled="pending > 0"
+								:class="pending > 0 ? 'opacity-50 cursor-not-allowed' : ''"
+							>
+								{{ 'summary.saveOrderNote'|t('foster-checkout') }}
+							</button>
 						</div>
-						<button
-							type="submit"
-							class="block px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg text-nowrap"
-							:disabled="pending > 0"
-							:class="{
-								'visible': notesButtonVisible,
-								'hidden': !notesButtonVisible,
-								'opacity-50 cursor-not-allowed': pending > 0
-							}"
-						>
-							{{ 'summary.saveOrderNote'|t('foster-checkout') }}
-						</button>
+						<p
+							x-show="notesError"
+							x-cloak
+							class="text-sm text-red-500"
+							x-text="notesError"
+						></p>
 					</form>
 				</div>
 			{% endif %}
