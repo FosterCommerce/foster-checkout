@@ -126,7 +126,9 @@ export const SinglePageCheckout = (props) => {
 			};
 			window.addEventListener('pageshow', this.onPageShow);
 			this.$nextTick(() => {
-				this.lastSaved = JSON.stringify(this.buildPayload());
+				if (this.cartHasShippingAddress) {
+					this.lastSaved = JSON.stringify(this.buildPayload());
+				}
 				this.bindPayOverlay();
 			});
 
@@ -943,6 +945,8 @@ export const SinglePageCheckout = (props) => {
 					});
 					this.couponOpen = true;
 					this.setPanelStatus(panel, 'error');
+					this.status = '';
+					this.statusTone = 'idle';
 					return;
 				}
 
