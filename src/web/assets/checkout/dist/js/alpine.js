@@ -1088,7 +1088,7 @@ const SinglePageCheckout = (props) => {
 						return;
 					}
 
-					if (name.endsWith('_radio')) {
+					if (name.endsWith('_radio') || name.endsWith('_display')) {
 						return;
 					}
 
