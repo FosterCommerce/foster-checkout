@@ -350,7 +350,7 @@ class FosterCheckout extends Plugin
 		return $checkoutPath;
 	}
 
-	private function shouldAttachSinglePageCartInfo(): bool
+	private function isSinglePageJsonRequest(): bool
 	{
 		if ($this->singlePageCheckoutPath() === null) {
 			return false;
@@ -400,14 +400,13 @@ class FosterCheckout extends Plugin
 		$settings->routesChecks[] = $route;
 	}
 
-	/* Allow Fetching of shipping methods without requiring a phone number. */
 	private function allowEmptyPhoneOnSinglePageCartSave(): void
 	{
 		Event::on(
 			Address::class,
 			Model::EVENT_AFTER_VALIDATE,
 			function (Event $event): void {
-				if (! $this->shouldAttachSinglePageCartInfo()) {
+				if (! $this->isSinglePageJsonRequest()) {
 					return;
 				}
 
@@ -548,7 +547,7 @@ class FosterCheckout extends Plugin
 			BaseFrontEndController::class,
 			BaseFrontEndController::EVENT_MODIFY_CART_INFO,
 			function (ModifyCartInfoEvent $event): void {
-				if (! $this->shouldAttachSinglePageCartInfo()) {
+				if (! $this->isSinglePageJsonRequest()) {
 					return;
 				}
 

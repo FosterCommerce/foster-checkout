@@ -187,7 +187,12 @@
 												{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
 													$nextTick(() => typeof initStripe === 'function' && initStripe());
 												{% endif %}
-												$nextTick(() => { syncPayButtons(); wrapAuthorizeHandler(); })
+												$nextTick(() => {
+													syncPayButtons();
+													if ($el.querySelector('[id$=authorizeSubmit]')) {
+														wrapAuthorizeHandler();
+													}
+												})
 											"
 										>
 											{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}

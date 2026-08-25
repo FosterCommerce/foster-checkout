@@ -28,6 +28,24 @@ use yii\base\InvalidConfigException;
  * Checkout service
  *
  * @phpstan-type LinksTable array<array-key, array{text: non-empty-string, url: non-empty-string}>
+ * @phpstan-type CheckoutShippingMethod array{handle: string, name: string, description: string, price: float, priceAsCurrency: string}
+ * @phpstan-type CheckoutTotals array{
+ *     itemsAsCurrency: string,
+ *     shipping: float,
+ *     shippingAsCurrency: string,
+ *     taxAsCurrency: string,
+ *     total: float,
+ *     totalAsCurrency: string,
+ *     currency: string,
+ *     discounts: list<array{name: string, amountAsCurrency: string}>,
+ *     vouchers: list<array{name: string, amountAsCurrency: string}>
+ * }
+ * @phpstan-type CheckoutLiveState array{
+ *     shippingMethods: list<CheckoutShippingMethod>,
+ *     shippingMethodHandle: string,
+ *     totals: CheckoutTotals,
+ *     shippingPreview: string
+ * }
  */
 class Checkout extends Component
 {
@@ -306,22 +324,7 @@ class Checkout extends Component
 	}
 
 	/**
-	 * @return array{
-	 *     shippingMethods: list<array{handle: string, name: string, description: string, price: float, priceAsCurrency: string}>,
-	 *     shippingMethodHandle: string,
-	 *     totals: array{
-	 *         itemsAsCurrency: string,
-	 *         shipping: float,
-	 *         shippingAsCurrency: string,
-	 *         taxAsCurrency: string,
-	 *         total: float,
-	 *         totalAsCurrency: string,
-	 *         currency: string,
-	 *         discounts: list<array{name: string, amountAsCurrency: string}>,
-	 *         vouchers: list<array{name: string, amountAsCurrency: string}>
-	 *     },
-	 *     shippingPreview: string
-	 * }
+	 * @return CheckoutLiveState
 	 */
 	public function checkoutLiveState(Order $cart): array
 	{
@@ -361,7 +364,7 @@ class Checkout extends Component
 	}
 
 	/**
-	 * @return list<array{handle: string, name: string, description: string, price: float, priceAsCurrency: string}>
+	 * @return list<CheckoutShippingMethod>
 	 */
 	private function checkoutShippingMethods(Order $cart): array
 	{
@@ -389,17 +392,7 @@ class Checkout extends Component
 	}
 
 	/**
-	 * @return array{
-	 *     itemsAsCurrency: string,
-	 *     shipping: float,
-	 *     shippingAsCurrency: string,
-	 *     taxAsCurrency: string,
-	 *     total: float,
-	 *     totalAsCurrency: string,
-	 *     currency: string,
-	 *     discounts: list<array{name: string, amountAsCurrency: string}>,
-	 *     vouchers: list<array{name: string, amountAsCurrency: string}>
-	 * }
+	 * @return CheckoutTotals
 	 */
 	private function checkoutTotals(Order $cart): array
 	{

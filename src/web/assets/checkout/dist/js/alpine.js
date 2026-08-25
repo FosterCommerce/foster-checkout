@@ -6,6 +6,15 @@ const isValidEmail = (value) =>
 
 const CARD_FIELDS = ['number', 'month', 'year', 'cvv'];
 
+const AUTHORIZE_ERROR_FIELDS = {
+	E_WC_04: 'number',
+	E_WC_05: 'number',
+	E_WC_06: 'month',
+	E_WC_07: 'year',
+	E_WC_08: 'year',
+	E_WC_15: 'cvv',
+};
+
 const setErrors = (field, messages) => {
 	const next = messages.filter(Boolean);
 	if (
@@ -705,7 +714,6 @@ const SinglePageCheckout = (props) => {
 		pending: 0,
 		saveTimer: null,
 		saveAbort: null,
-		queuedSaveExtra: {},
 		saving: false,
 		nextSave: null,
 		lastSaved: '',
@@ -1135,11 +1143,11 @@ const SinglePageCheckout = (props) => {
 					return;
 				}
 
-				this.queueSave(0, event, {}, panel);
+				this.queueSave(0, event, panel);
 			});
 		},
 
-		queueSave(delay = 400, event = null, extra = {}, panel = null) {
+		queueSave(delay = 400, event = null, panel = null) {
 			if (
 				event &&
 				event.target &&
@@ -1156,15 +1164,12 @@ const SinglePageCheckout = (props) => {
 			const nextPanel =
 				(fromEvent && fromEvent.getAttribute('data-fc-panel')) ||
 				panel ||
-				extra.panel ||
 				this.queuedSavePanel ||
 				'delivery';
 
 			if (this.saveTimer) {
 				clearTimeout(this.saveTimer);
 			}
-
-			this.queuedSaveExtra = extra;
 
 			if (this.queuedSavePanel && this.queuedSavePanel !== nextPanel) {
 				this.clearSavingPanel(this.queuedSavePanel);
@@ -1174,12 +1179,10 @@ const SinglePageCheckout = (props) => {
 			this.setPanelStatus(nextPanel, 'saving');
 
 			this.saveTimer = setTimeout(() => {
-				const queued = this.queuedSaveExtra;
 				const queuedPanel = this.queuedSavePanel;
 				this.saveTimer = null;
-				this.queuedSaveExtra = {};
 				this.syncPayButtons();
-				this.saveCart({ ...queued, panel: queuedPanel });
+				this.saveCart({ panel: queuedPanel });
 			}, delay);
 
 			this.syncPayButtons();
@@ -1191,11 +1194,7 @@ const SinglePageCheckout = (props) => {
 				this.saveTimer = null;
 			}
 
-			const queued = this.queuedSaveExtra;
-			const panel = this.queuedSavePanel;
-			this.queuedSaveExtra = {};
-
-			return this.saveCart({ ...queued, panel });
+			return this.saveCart({ panel: this.queuedSavePanel });
 		},
 
 		collectNamedFields(scope) {
@@ -2039,10 +2038,13 @@ const SinglePageCheckout = (props) => {
 					this.clearCardError(input);
 				}
 			});
-			this.wrapAuthorizeHandler();
 		},
 
 		wrapAuthorizeHandler() {
+			if (!this.cardInput('authorizeSubmit')) {
+				return;
+			}
+
 			this.wrapCardFields();
 			const checkout = this;
 
@@ -2051,14 +2053,14 @@ const SinglePageCheckout = (props) => {
 				typeof window.sendPaymentDataToAnet === 'function'
 			) {
 				this.originalSendPayment = window.sendPaymentDataToAnet;
-				window.sendPaymentDataToAnet = function () {
+				window.sendPaymentDataToAnet = function (...args) {
 					if (!checkout.checkCard()) {
 						checkout.paying = false;
 						return;
 					}
 
 					checkout.paying = true;
-					return checkout.originalSendPayment.apply(this, arguments);
+					return checkout.originalSendPayment.apply(this, args);
 				};
 			}
 
@@ -2070,19 +2072,15 @@ const SinglePageCheckout = (props) => {
 			}
 
 			this.originalAuthorizeHandler = window.responseHandler;
-			window.responseHandler = function (response) {
-				if (
-					response &&
-					response.messages &&
-					response.messages.resultCode === 'Error'
-				) {
+			window.responseHandler = function (...args) {
+				const response = args[0];
+				if (response?.messages?.resultCode === 'Error') {
 					checkout.paying = false;
 					checkout.showAuthorizeErrors(response);
-					checkout.syncPayButtons();
 					return;
 				}
 
-				return checkout.originalAuthorizeHandler.apply(this, arguments);
+				return checkout.originalAuthorizeHandler.apply(this, args);
 			};
 		},
 
@@ -2098,7 +2096,7 @@ const SinglePageCheckout = (props) => {
 		wrapCardFields() {
 			CARD_FIELDS.forEach((name) => {
 				const input = this.cardInput(name);
-				if (!input || input.parentElement.dataset.fcCardField) {
+				if (!input?.parentElement || input.parentElement.dataset.fcCardField) {
 					return;
 				}
 
@@ -2205,14 +2203,6 @@ const SinglePageCheckout = (props) => {
 		},
 
 		showAuthorizeErrors(response) {
-			const fields = {
-				E_WC_04: 'number',
-				E_WC_05: 'number',
-				E_WC_06: 'month',
-				E_WC_07: 'year',
-				E_WC_08: 'year',
-				E_WC_15: 'cvv',
-			};
 			const labels = {
 				E_WC_05: this.cardNumberError,
 				E_WC_06: this.cardMonthError,
@@ -2223,7 +2213,7 @@ const SinglePageCheckout = (props) => {
 			const errors = {};
 
 			(response.messages.message || []).forEach((item) => {
-				const name = fields[item.code] || 'number';
+				const name = AUTHORIZE_ERROR_FIELDS[item.code] || 'number';
 				errors[name] = labels[item.code] || item.text || this.cardNumberError;
 			});
 
