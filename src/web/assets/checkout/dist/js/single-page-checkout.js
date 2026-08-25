@@ -936,7 +936,7 @@ export const SinglePageCheckout = (props) => {
 				const next = this.nextSave;
 				this.nextSave = null;
 				if (next) {
-					this.saveCart(next);
+					await this.saveCart(next);
 				}
 			}
 		},
@@ -1343,32 +1343,36 @@ export const SinglePageCheckout = (props) => {
 			}
 		},
 
-		onPaySubmit(event) {
+		async onPaySubmit(event) {
 			const payloadChanged =
 				JSON.stringify(this.buildPayload()) !== this.lastSaved;
 
 			if (this.saveTimer || payloadChanged) {
 				event.preventDefault();
 				event.stopPropagation();
-				this.paying = false;
 				if (!this.deliveryReadyForPay) {
 					this.panelFieldsReady('delivery', null, true);
 					return;
 				}
 
-				this.saveNow();
+				await this.saveNow();
+				const stillDirty =
+					JSON.stringify(this.buildPayload()) !== this.lastSaved;
+				if (stillDirty || !this.canPay || this.statusTone === 'error') {
+					return;
+				}
+
+				this.$refs.paymentForm?.requestSubmit();
 				return;
 			}
 
 			if (this.canPay) {
-				this.paying = true;
 				return;
 			}
 
-			this.paying = false;
-			this.panelFieldsReady('delivery', null, true);
 			event.preventDefault();
 			event.stopPropagation();
+			this.panelFieldsReady('delivery', null, true);
 		},
 
 		bindPayOverlay() {
