@@ -938,6 +938,12 @@ const SinglePageCheckout = (props) => {
 				return;
 			}
 
+			if (panel === 'payment') {
+				this.refreshNewBillingContent();
+				this.syncPayButtons();
+				return;
+			}
+
 			this.saveIfValid(panel);
 		},
 
