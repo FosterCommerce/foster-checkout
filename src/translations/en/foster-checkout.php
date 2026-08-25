@@ -134,6 +134,12 @@ return [
 	'payment.stepName' => 'Payment',
 	'payment.paymentMethod' => 'Payment method',
 	'payment.payButtonText' => 'Pay',
+	'payment.processing' => 'Please wait while we process your payment.',
+	'payment.cardNumberError' => 'Enter a valid card number.',
+	'payment.cardMonthError' => 'Enter a valid month.',
+	'payment.cardYearError' => 'Enter a valid year.',
+	'payment.cardExpired' => 'This card has expired.',
+	'payment.cardCvvError' => 'Enter a valid CVV.',
 	'payment.voucherApplied' => 'Voucher/Gift card applied',
 
 	// Gift vouchers

@@ -131,6 +131,12 @@ return [
 	'payment.stepName' => 'Paiement',
 	'payment.paymentMethod' => 'Méthode de paiement',
 	'payment.payButtonText' => 'Payer',
+	'payment.processing' => 'Veuillez patienter pendant le traitement de votre paiement.',
+	'payment.cardNumberError' => 'Saisissez un numéro de carte valide.',
+	'payment.cardMonthError' => 'Saisissez un mois valide.',
+	'payment.cardYearError' => 'Saisissez une année valide.',
+	'payment.cardExpired' => 'Cette carte a expiré.',
+	'payment.cardCvvError' => 'Saisissez un CVV valide.',
 	'payment.voucherApplied' => 'Coupon / carte-cadeau appliqué(e)',
 
 	// Gift vouchers

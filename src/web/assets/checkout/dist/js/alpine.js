@@ -4,6 +4,8 @@ import focus from 'https://esm.sh/@alpinejs/focus@3.16.1';
 const isValidEmail = (value) =>
 	/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 
+const CARD_FIELDS = ['number', 'month', 'year', 'cvv'];
+
 const setErrors = (field, messages) => {
 	const next = messages.filter(Boolean);
 	if (
@@ -669,6 +671,12 @@ const SinglePageCheckout = (props) => {
 		},
 		noAddressLabel: props.noAddressLabel ?? '',
 		payButtonText: props.payButtonText ?? '',
+		processingLabel: props.processingLabel ?? '',
+		cardNumberError: props.cardNumberError ?? '',
+		cardMonthError: props.cardMonthError ?? '',
+		cardYearError: props.cardYearError ?? '',
+		cardExpiredError: props.cardExpiredError ?? '',
+		cardCvvError: props.cardCvvError ?? '',
 		syncingFromCart: false,
 		hasNewBillingContent: false,
 		editExistingAddress: 0,
@@ -696,6 +704,10 @@ const SinglePageCheckout = (props) => {
 		nextSave: null,
 		lastSaved: '',
 		paypalInitTimer: null,
+		paying: false,
+		onPageShow: null,
+		originalAuthorizeHandler: null,
+		originalSendPayment: null,
 
 		init() {
 			this.$watch('email', () => {
@@ -723,6 +735,14 @@ const SinglePageCheckout = (props) => {
 			});
 			this.$nextTick(() => this.refreshNewBillingContent());
 			this.syncPayButtons();
+			this.$watch('paying', () => this.syncPayButtons());
+			this.onPageShow = (event) => {
+				if (event.persisted) {
+					this.paying = false;
+				}
+			};
+			window.addEventListener('pageshow', this.onPageShow);
+			this.$nextTick(() => this.bindPayOverlay());
 
 			if (!this.cartHasShippingAddress && this.shippingAddressId) {
 				this.saveIfValid('delivery');
@@ -746,6 +766,21 @@ const SinglePageCheckout = (props) => {
 			if (this.saveAbort) {
 				this.saveAbort.abort();
 				this.saveAbort = null;
+			}
+
+			if (this.onPageShow) {
+				window.removeEventListener('pageshow', this.onPageShow);
+				this.onPageShow = null;
+			}
+
+			if (this.originalAuthorizeHandler) {
+				window.responseHandler = this.originalAuthorizeHandler;
+				this.originalAuthorizeHandler = null;
+			}
+
+			if (this.originalSendPayment) {
+				window.sendPaymentDataToAnet = this.originalSendPayment;
+				this.originalSendPayment = null;
 			}
 
 			Object.values(this.panelStatusTimers).forEach((timer) => {
@@ -1464,10 +1499,11 @@ const SinglePageCheckout = (props) => {
 			const panel = extra.panel || this.queuedSavePanel || 'delivery';
 			const payload = { ...extra };
 			delete payload.panel;
+			const saved = this.buildPayload(payload);
 
 			if (
 				payload.couponCode === undefined &&
-				JSON.stringify(this.buildPayload()) === this.lastSaved
+				JSON.stringify(saved) === this.lastSaved
 			) {
 				this.clearSavingPanel(panel);
 				return;
@@ -1486,7 +1522,6 @@ const SinglePageCheckout = (props) => {
 			this.syncPayButtons();
 
 			try {
-				const saved = this.buildPayload(payload);
 				const fields = {
 					action: 'commerce/cart/update-cart',
 					...saved,
@@ -1817,35 +1852,26 @@ const SinglePageCheckout = (props) => {
 
 				const live = cart.fosterCheckout || {};
 
-				if (sameAddress && typeof live.shippingPreview === 'string') {
-					this.shippingPreview = live.shippingPreview;
-				}
-
-				if (
-					sameAddress &&
-					cart.shippingAddress &&
-					typeof cart.shippingAddress === 'object'
-				) {
-					this.latestShippingAddress = cart.shippingAddress;
-					this.rememberAddress(
-						cart.sourceShippingAddressId,
-						cart.shippingAddress
-					);
-				}
-
-				if (cart.billingAddress && typeof cart.billingAddress === 'object') {
-					this.latestBillingAddress = cart.billingAddress;
-					this.rememberAddress(
-						cart.sourceBillingAddressId,
-						cart.billingAddress
-					);
-				}
-
-				if (sameAddress && Array.isArray(live.shippingMethods)) {
-					this.shippingMethods = live.shippingMethods;
-				}
-
 				if (sameAddress) {
+					if (typeof live.shippingPreview === 'string') {
+						this.shippingPreview = live.shippingPreview;
+					}
+
+					if (
+						cart.shippingAddress &&
+						typeof cart.shippingAddress === 'object'
+					) {
+						this.latestShippingAddress = cart.shippingAddress;
+						this.rememberAddress(
+							cart.sourceShippingAddressId,
+							cart.shippingAddress
+						);
+					}
+
+					if (Array.isArray(live.shippingMethods)) {
+						this.shippingMethods = live.shippingMethods;
+					}
+
 					const handles = this.shippingMethods.map((method) => method.handle);
 					const liveHandle =
 						typeof live.shippingMethodHandle === 'string'
@@ -1867,6 +1893,14 @@ const SinglePageCheckout = (props) => {
 							...live.totals,
 						};
 					}
+				}
+
+				if (cart.billingAddress && typeof cart.billingAddress === 'object') {
+					this.latestBillingAddress = cart.billingAddress;
+					this.rememberAddress(
+						cart.sourceBillingAddressId,
+						cart.billingAddress
+					);
 				}
 			} finally {
 				this.syncingFromCart = false;
@@ -1950,6 +1984,7 @@ const SinglePageCheckout = (props) => {
 			if (this.saveTimer || payloadChanged) {
 				event.preventDefault();
 				event.stopPropagation();
+				this.paying = false;
 				if (!this.deliveryReadyForPay) {
 					this.panelFieldsReady('delivery', null, true);
 					return;
@@ -1960,12 +1995,221 @@ const SinglePageCheckout = (props) => {
 			}
 
 			if (this.canPay) {
+				this.paying = true;
 				return;
 			}
 
+			this.paying = false;
 			this.panelFieldsReady('delivery', null, true);
 			event.preventDefault();
 			event.stopPropagation();
+		},
+
+		bindPayOverlay() {
+			const form = this.$refs.paymentForm;
+			if (!form || form.dataset.fcPayOverlay === 'true') {
+				return;
+			}
+
+			form.dataset.fcPayOverlay = 'true';
+			form.addEventListener('input', (event) => {
+				const input = event.target;
+				if (
+					input &&
+					CARD_FIELDS.some((name) => input.id && input.id.endsWith(name))
+				) {
+					this.clearCardError(input);
+				}
+			});
+			this.wrapAuthorizeHandler();
+		},
+
+		wrapAuthorizeHandler() {
+			this.wrapCardFields();
+			const checkout = this;
+
+			if (
+				!this.originalSendPayment &&
+				typeof window.sendPaymentDataToAnet === 'function'
+			) {
+				this.originalSendPayment = window.sendPaymentDataToAnet;
+				window.sendPaymentDataToAnet = function () {
+					if (!checkout.checkCard()) {
+						checkout.paying = false;
+						return;
+					}
+
+					checkout.paying = true;
+					return checkout.originalSendPayment.apply(this, arguments);
+				};
+			}
+
+			if (
+				this.originalAuthorizeHandler ||
+				typeof window.responseHandler !== 'function'
+			) {
+				return;
+			}
+
+			this.originalAuthorizeHandler = window.responseHandler;
+			window.responseHandler = function (response) {
+				if (
+					response &&
+					response.messages &&
+					response.messages.resultCode === 'Error'
+				) {
+					checkout.paying = false;
+					checkout.showAuthorizeErrors(response);
+					checkout.syncPayButtons();
+					return;
+				}
+
+				return checkout.originalAuthorizeHandler.apply(this, arguments);
+			};
+		},
+
+		cardInput(name) {
+			const form = this.$refs.paymentForm;
+			if (!form) {
+				return null;
+			}
+
+			return form.querySelector(`[id$="${name}"]`);
+		},
+
+		wrapCardFields() {
+			CARD_FIELDS.forEach((name) => {
+				const input = this.cardInput(name);
+				if (!input || input.parentElement.dataset.fcCardField) {
+					return;
+				}
+
+				const wrap = document.createElement('div');
+				wrap.dataset.fcCardField = name;
+				wrap.className = 'min-w-0';
+				input.parentElement.insertBefore(wrap, input);
+				wrap.appendChild(input);
+			});
+		},
+
+		clearCardError(input) {
+			if (!input) {
+				return;
+			}
+
+			input.classList.remove('border-red-500');
+			input.removeAttribute('aria-invalid');
+			const wrap = input.parentElement;
+			const note =
+				wrap && wrap.dataset.fcCardField
+					? wrap.querySelector('[data-fc-card-error]')
+					: input.nextElementSibling;
+			if (note && note.dataset.fcCardError) {
+				note.remove();
+			}
+		},
+
+		clearCardErrors() {
+			CARD_FIELDS.forEach((name) => {
+				this.clearCardError(this.cardInput(name));
+			});
+		},
+
+		showCardErrors(errors) {
+			this.clearCardErrors();
+			this.wrapCardFields();
+
+			let first = null;
+			Object.entries(errors).forEach(([name, message]) => {
+				const input = this.cardInput(name);
+				if (!input || !message) {
+					return;
+				}
+
+				input.classList.add('border-red-500');
+				input.setAttribute('aria-invalid', 'true');
+				const note = document.createElement('p');
+				note.dataset.fcCardError = name;
+				note.className = 'mt-1 text-sm leading-snug text-red-500';
+				note.textContent = message;
+				input.parentElement.appendChild(note);
+				if (!first) {
+					first = input;
+				}
+			});
+
+			if (first) {
+				first.focus();
+			}
+		},
+
+		checkCard() {
+			const number = String(this.cardInput('number')?.value || '').replace(
+				/\s+/g,
+				''
+			);
+			const monthValue = String(this.cardInput('month')?.value || '').trim();
+			const yearValue = String(this.cardInput('year')?.value || '').trim();
+			const cvv = String(this.cardInput('cvv')?.value || '').replace(
+				/\s+/g,
+				''
+			);
+			const month = parseInt(monthValue, 10);
+			const errors = {};
+
+			if (!/^\d{13,19}$/.test(number)) {
+				errors.number = this.cardNumberError;
+			}
+
+			if (!monthValue || month < 1 || month > 12) {
+				errors.month = this.cardMonthError;
+			}
+
+			if (!/^\d{2}$|^\d{4}$/.test(yearValue)) {
+				errors.year = this.cardYearError;
+			} else if (!errors.month) {
+				const year =
+					yearValue.length === 2
+						? 2000 + parseInt(yearValue, 10)
+						: parseInt(yearValue, 10);
+				const expires = new Date(year, month, 0, 23, 59, 59);
+				if (expires < new Date()) {
+					errors.year = this.cardExpiredError;
+				}
+			}
+
+			if (!/^\d{3,4}$/.test(cvv)) {
+				errors.cvv = this.cardCvvError;
+			}
+
+			this.showCardErrors(errors);
+			return Object.keys(errors).length === 0;
+		},
+
+		showAuthorizeErrors(response) {
+			const fields = {
+				E_WC_04: 'number',
+				E_WC_05: 'number',
+				E_WC_06: 'month',
+				E_WC_07: 'year',
+				E_WC_08: 'year',
+				E_WC_15: 'cvv',
+			};
+			const labels = {
+				E_WC_05: this.cardNumberError,
+				E_WC_06: this.cardMonthError,
+				E_WC_07: this.cardYearError,
+				E_WC_08: this.cardExpiredError,
+				E_WC_15: this.cardCvvError,
+			};
+			const errors = {};
+
+			(response.messages.message || []).forEach((item) => {
+				const name = fields[item.code] || 'number';
+				errors[name] = labels[item.code] || item.text || this.cardNumberError;
+			});
+
+			this.showCardErrors(errors);
 		},
 
 		syncPayButtons() {
@@ -1974,10 +2218,12 @@ const SinglePageCheckout = (props) => {
 				return;
 			}
 
-			const allowed = this.canPay;
-			form.querySelectorAll('button[type="submit"]').forEach((button) => {
-				button.disabled = !allowed;
-			});
+			const allowed = this.canPay && !this.paying;
+			form
+				.querySelectorAll('button[type="submit"], [id$="authorizeSubmit"]')
+				.forEach((button) => {
+					button.disabled = !allowed;
+				});
 		},
 
 		initPaypal(attempt = 0) {
