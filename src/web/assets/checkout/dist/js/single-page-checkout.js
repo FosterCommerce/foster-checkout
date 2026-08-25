@@ -28,6 +28,7 @@ export const SinglePageCheckout = (props) => {
 		couponInput: props.couponCode ?? '',
 		couponOpen: Boolean(props.couponCode),
 		couponError: '',
+		notesButtonVisible: false,
 		addressLabels: {},
 		addressFields: {},
 		shippingPreview: props.shippingPreview ?? '',
@@ -563,15 +564,6 @@ export const SinglePageCheckout = (props) => {
 			this.syncPayButtons();
 		},
 
-		saveNow() {
-			if (this.saveTimer) {
-				clearTimeout(this.saveTimer);
-				this.saveTimer = null;
-			}
-
-			return this.saveCart({ panel: this.queuedSavePanel });
-		},
-
 		collectNamedFields(scope) {
 			const payload = {};
 
@@ -880,9 +872,11 @@ export const SinglePageCheckout = (props) => {
 			const payload = { ...extra };
 			delete payload.panel;
 			const saved = this.buildPayload(payload);
+			const noteName = this.$refs.orderNote?.name;
+			const savingNotes = Boolean(noteName && Object.hasOwn(payload, noteName));
 
 			if (
-				payload.couponCode === undefined &&
+				Object.keys(payload).length === 0 &&
 				JSON.stringify(saved) === this.lastSaved
 			) {
 				this.clearSavingPanel(panel);
@@ -934,6 +928,9 @@ export const SinglePageCheckout = (props) => {
 				this.statusTone = 'saved';
 				this.setPanelStatus(panel, 'saved');
 				this.lastSaved = JSON.stringify(saved);
+				if (savingNotes) {
+					this.notesButtonVisible = false;
+				}
 			} catch (error) {
 				if (error.name === 'AbortError') {
 					return;
@@ -971,6 +968,18 @@ export const SinglePageCheckout = (props) => {
 			this.couponInput = '';
 			return this.saveCart({
 				couponCode: '',
+				panel: 'summary',
+			});
+		},
+
+		saveNotes() {
+			const input = this.$refs.orderNote;
+			if (!input?.name) {
+				return;
+			}
+
+			return this.saveCart({
+				[input.name]: input.value,
 				panel: 'summary',
 			});
 		},
