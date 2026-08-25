@@ -1,10 +1,10 @@
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 
 <section
-	class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
+	class="border border-gray-250 {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
 	data-fc-panel="payment"
 >
-	<div class="flex items-center gap-3 p-4 bg-gray-200">
+	<div class="flex items-center gap-3 p-4 bg-gray-200 {{ isFlat ? '' : 'rounded-t-lg' }}">
 		<h2 class="font-semibold">
 			{{ 'payment.stepName'|t('foster-checkout') }}
 		</h2>
