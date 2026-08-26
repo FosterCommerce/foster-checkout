@@ -97,7 +97,16 @@
 				<p class="text-sm text-center" x-text="processingMessage"></p>
 			</div>
 
-			<div x-show="!paying" :class="{ 'opacity-60': !canPay }">
+			<div class="relative" x-show="!paying">
+				<div
+					x-show="!canPay"
+					class="absolute inset-0 z-20 cursor-not-allowed"
+					@click.prevent.stop
+					@mousedown.prevent.stop
+					@pointerdown.prevent.stop
+					aria-hidden="true"
+				></div>
+				<div :class="{ 'opacity-60 pointer-events-none': !canPay }">
 				<form
 					method="POST"
 					class="grid gap-y-4 gap-x-4"
@@ -277,6 +286,7 @@
 						{% endfor %}
 					</div>
 				</form>
+				</div>
 			</div>
 		</section>
 	</div>

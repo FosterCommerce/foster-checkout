@@ -1621,6 +1621,10 @@ export const SinglePageCheckout = (props) => {
 			event.preventDefault();
 			event.stopPropagation();
 
+			if (!this.canPay) {
+				return;
+			}
+
 			if (!this.deliveryReadyForPay) {
 				this.panelFieldsReady('delivery', null, true);
 				return;
@@ -1703,7 +1707,7 @@ export const SinglePageCheckout = (props) => {
 			) {
 				this.originalSendPayment = window.sendPaymentDataToAnet;
 				window.sendPaymentDataToAnet = async function (...args) {
-					if (!checkout.checkCard()) {
+					if (!checkout.canPay || !checkout.checkCard()) {
 						checkout.paying = false;
 						return;
 					}
