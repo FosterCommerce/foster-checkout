@@ -135,7 +135,10 @@ export const SinglePageCheckout = (props) => {
 				});
 			});
 			this.$watch('gatewayId', () => {
-				this.$nextTick(() => this.prefillAuthorizeCardHolder());
+				this.$nextTick(() => {
+					this.syncPayButtons();
+					this.prefillAuthorizeCardHolder();
+				});
 			});
 			this.$nextTick(() => this.refreshNewBillingContent());
 			this.syncPayButtons();
@@ -1938,10 +1941,14 @@ export const SinglePageCheckout = (props) => {
 			}
 
 			const allowed = this.canPay && !this.paying;
+			const label = this.payButtonLabel;
 			form
 				.querySelectorAll('button[type="submit"], [id$="authorizeSubmit"]')
 				.forEach((button) => {
 					button.disabled = !allowed;
+					if (label && !button.closest('.paypal-rest-form')) {
+						button.textContent = label;
+					}
 				});
 		},
 
