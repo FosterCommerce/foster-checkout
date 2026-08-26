@@ -19,6 +19,10 @@ export const SinglePageCheckout = (props) => {
 	return {
 		loggedIn: props.loggedIn,
 		email: props.email ?? '',
+		cartId: props.cartId ?? null,
+		klaviyoEnabled: Boolean(props.klaviyoEnabled),
+		trackedCheckout: false,
+		subscribed: false,
 		shippingAddressId: props.shippingAddressId,
 		useNewAddress: props.useNewAddress ?? false,
 		shippingMethodHandle: props.shippingMethodHandle ?? '',
@@ -866,6 +870,26 @@ export const SinglePageCheckout = (props) => {
 			};
 		},
 
+		shouldTrackCheckout(saved) {
+			return (
+				this.klaviyoEnabled &&
+				!this.loggedIn &&
+				!this.trackedCheckout &&
+				isValidEmail(saved.email || this.email)
+			);
+		},
+
+		shouldSubscribe(saved) {
+			return (
+				this.klaviyoEnabled &&
+				!this.loggedIn &&
+				!this.subscribed &&
+				String(saved.subscribe || '') === '1' &&
+				Boolean(saved.list) &&
+				isValidEmail(saved.email || this.email)
+			);
+		},
+
 		applyErrors(data) {
 			this.status = data.message || data.error || this.failedLabel;
 			this.statusTone = 'error';
@@ -919,6 +943,20 @@ export const SinglePageCheckout = (props) => {
 					action: 'commerce/cart/update-cart',
 					...saved,
 				};
+				const trackCheckout = this.shouldTrackCheckout(saved);
+				const subscribe = this.shouldSubscribe(saved);
+				const useKlaviyo = trackCheckout || subscribe;
+
+				if (useKlaviyo) {
+					fields.action = 'klaviyo-connect-plus/api/track';
+					fields.forward = '/commerce/cart/update-cart';
+
+					if (trackCheckout) {
+						fields['event[name]'] = 'Started Checkout';
+						fields['event[trackOrder]'] = '1';
+						fields['event[orderId]'] = String(this.cartId || '');
+					}
+				}
 
 				const { response, data, isJson } = await this.postForm(
 					this.postUrl(),
@@ -939,6 +977,14 @@ export const SinglePageCheckout = (props) => {
 					this.setPanelStatus(panel, 'error');
 					this.markNotesError(savingNotes);
 					return;
+				}
+
+				if (trackCheckout) {
+					this.trackedCheckout = true;
+				}
+
+				if (subscribe) {
+					this.subscribed = true;
 				}
 
 				const cart = data.cart || data.model || (data.data && data.data.cart);
