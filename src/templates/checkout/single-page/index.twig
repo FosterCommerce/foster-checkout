@@ -62,6 +62,8 @@
 	{% set config = {
 		loggedIn: currentUser ? true : false,
 		email: cart.email ?? '',
+		cartId: cart.id,
+		klaviyoEnabled: craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') ? true : false,
 		shippingAddressId: initialShippingAddressId,
 		useNewAddress: isNewAddress ? true : false,
 		shippingMethodHandle: live.shippingMethodHandle,

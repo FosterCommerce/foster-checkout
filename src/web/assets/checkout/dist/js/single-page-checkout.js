@@ -19,6 +19,10 @@ export const SinglePageCheckout = (props) => {
 	return {
 		loggedIn: props.loggedIn,
 		email: props.email ?? '',
+		cartId: props.cartId ?? null,
+		klaviyoEnabled: Boolean(props.klaviyoEnabled),
+		trackedCheckout: false,
+		subscribed: false,
 		shippingAddressId: props.shippingAddressId,
 		useNewAddress: props.useNewAddress ?? false,
 		shippingMethodHandle: props.shippingMethodHandle ?? '',
@@ -87,6 +91,7 @@ export const SinglePageCheckout = (props) => {
 		nextSave: null,
 		lastSaved: '',
 		paypalInitTimer: null,
+		paypalInvalidated: false,
 		paying: false,
 		onPageShow: null,
 		originalAuthorizeHandler: null,
@@ -106,8 +111,8 @@ export const SinglePageCheckout = (props) => {
 				if (!this.syncingFromCart) {
 					this.applySelectedMethodTotals();
 					this.syncPayButtons();
+					this.invalidatePaypalCheckout();
 					this.saveIfValid('shipping');
-					this.closePaypalInlineCheckout();
 				}
 			});
 			this.$watch('billingSameAsShipping', () =>
@@ -118,9 +123,16 @@ export const SinglePageCheckout = (props) => {
 				this.onSelectionChange('payment');
 				this.$nextTick(() => this.refreshNewBillingContent());
 			});
+			this.$watch('gatewayId', () => {
+				this.$nextTick(() => this.syncPayButtons());
+			});
 			this.$nextTick(() => this.refreshNewBillingContent());
 			this.syncPayButtons();
 			this.$watch('paying', () => this.syncPayButtons());
+			this.$watch(
+				() => Number(this.totals.total) === 0,
+				() => this.$nextTick(() => this.ensureAvailableGateway())
+			);
 			this.onPageShow = (event) => {
 				if (event.persisted) {
 					this.paying = false;
@@ -255,6 +267,40 @@ export const SinglePageCheckout = (props) => {
 			return `${this.payButtonText} ${this.totals.totalAsCurrency || ''}`.trim();
 		},
 
+		gatewayFits(el) {
+			const availableAtZero = el?.dataset?.availableAtZero === '1';
+			const zeroOnly = el?.dataset?.zeroOnly === '1';
+
+			if (Number(this.totals.total) === 0) {
+				return availableAtZero;
+			}
+
+			return !zeroOnly;
+		},
+
+		ensureAvailableGateway() {
+			const form = this.$refs.paymentForm;
+			if (!form) {
+				return;
+			}
+
+			const rows = Array.from(form.querySelectorAll('[data-fc-gateway]'));
+			const available = rows.filter((row) => this.gatewayFits(row));
+			const currentOk = available.some(
+				(row) =>
+					Number(row.querySelector('input[name="gatewayId"]')?.value) ===
+					Number(this.gatewayId)
+			);
+			if (currentOk) {
+				return;
+			}
+
+			const next = available[0]?.querySelector('input[name="gatewayId"]');
+			if (next) {
+				this.gatewayId = Number(next.value);
+			}
+		},
+
 		get processingMessage() {
 			const selected = Number(this.gatewayId);
 			const isManual = this.manualGatewayIds.some(
@@ -264,15 +310,25 @@ export const SinglePageCheckout = (props) => {
 			return isManual ? this.placingOrderLabel : this.processingLabel;
 		},
 
-		formatMoney(amount) {
-			try {
-				return new Intl.NumberFormat(undefined, {
-					style: 'currency',
-					currency: this.totals.currency || 'USD',
-				}).format(amount);
-			} catch {
+		formatAmountLikeExisting(amount) {
+			const reference =
+				this.totals.totalAsCurrency ||
+				this.totals.itemsAsCurrency ||
+				this.totals.shippingAsCurrency ||
+				'';
+			const prefixMatch = reference.match(/^[^\d-]+/);
+			const numeric = Number(amount);
+
+			if (!prefixMatch || !Number.isFinite(numeric)) {
 				return String(amount);
 			}
+
+			const formatted = Math.abs(numeric).toLocaleString('en-US', {
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2,
+			});
+
+			return `${numeric < 0 ? '-' : ''}${prefixMatch[0]}${formatted}`;
 		},
 
 		applySelectedMethodTotals() {
@@ -303,7 +359,7 @@ export const SinglePageCheckout = (props) => {
 
 			if (nextTotal !== null) {
 				totals.total = nextTotal;
-				totals.totalAsCurrency = this.formatMoney(nextTotal);
+				totals.totalAsCurrency = this.formatAmountLikeExisting(nextTotal);
 			}
 
 			this.totals = totals;
@@ -378,6 +434,7 @@ export const SinglePageCheckout = (props) => {
 				return;
 			}
 
+			this.invalidatePaypalCheckout();
 			this.saveIfValid(panel);
 		},
 
@@ -525,10 +582,12 @@ export const SinglePageCheckout = (props) => {
 
 				const payload = this.buildPayload();
 				if (JSON.stringify(payload) === this.lastSaved) {
+					this.restorePaypalIfSkipped();
 					return;
 				}
 
 				if (panel === 'delivery' && !this.deliveryNeedsSave(payload)) {
+					this.restorePaypalIfSkipped();
 					return;
 				}
 
@@ -866,6 +925,46 @@ export const SinglePageCheckout = (props) => {
 			};
 		},
 
+		shouldTrackCheckout(saved) {
+			return (
+				this.klaviyoEnabled &&
+				!this.loggedIn &&
+				!this.trackedCheckout &&
+				isValidEmail(saved.email || this.email)
+			);
+		},
+
+		shouldSubscribe(saved) {
+			return (
+				this.klaviyoEnabled &&
+				!this.loggedIn &&
+				!this.subscribed &&
+				String(saved.subscribe || '') === '1' &&
+				Boolean(saved.list) &&
+				isValidEmail(saved.email || this.email)
+			);
+		},
+
+		async subscribeToKlaviyo(saved, signal) {
+			try {
+				const { response, isJson } = await this.postForm(
+					this.postUrl(),
+					{
+						action: 'klaviyo-connect-plus/api/track',
+						email: saved.email || this.email,
+						list: saved.list,
+						subscribe: '1',
+					},
+					signal
+				);
+				if (isJson && response.ok) {
+					this.subscribed = true;
+				}
+			} catch {
+				void 0;
+			}
+		},
+
 		applyErrors(data) {
 			this.status = data.message || data.error || this.failedLabel;
 			this.statusTone = 'error';
@@ -890,11 +989,14 @@ export const SinglePageCheckout = (props) => {
 			const panel = extra.panel || this.queuedSavePanel || 'delivery';
 			const payload = { ...extra };
 			delete payload.panel;
+			const force = Boolean(payload.force);
+			delete payload.force;
 			const saved = this.buildPayload(payload);
 			const noteName = this.$refs.orderNote?.name;
 			const savingNotes = Boolean(noteName && Object.hasOwn(payload, noteName));
 
 			if (
+				!force &&
 				Object.keys(payload).length === 0 &&
 				JSON.stringify(saved) === this.lastSaved
 			) {
@@ -914,11 +1016,23 @@ export const SinglePageCheckout = (props) => {
 			this.statusTone = 'saving';
 			this.syncPayButtons();
 
+			let cartSynced = false;
+
 			try {
 				const fields = {
 					action: 'commerce/cart/update-cart',
 					...saved,
 				};
+				const trackCheckout = this.shouldTrackCheckout(saved);
+				const subscribe = this.shouldSubscribe(saved);
+
+				if (trackCheckout) {
+					fields.action = 'klaviyo-connect-plus/api/track';
+					fields.forward = '/commerce/cart/update-cart';
+					fields['event[name]'] = 'Started Checkout';
+					fields['event[trackOrder]'] = '1';
+					fields['event[orderId]'] = String(this.cartId || '');
+				}
 
 				const { response, data, isJson } = await this.postForm(
 					this.postUrl(),
@@ -941,8 +1055,21 @@ export const SinglePageCheckout = (props) => {
 					return;
 				}
 
+				if (trackCheckout) {
+					this.trackedCheckout = true;
+				}
+
+				if (subscribe) {
+					if (trackCheckout) {
+						this.subscribed = true;
+					} else {
+						await this.subscribeToKlaviyo(saved, signal);
+					}
+				}
+
 				const cart = data.cart || data.model || (data.data && data.data.cart);
 				this.applyCart(cart, this.shippingRateKey(saved));
+				cartSynced = true;
 
 				const couponError = this.couponRejectedMessage(saved, cart);
 				if (couponError) {
@@ -982,6 +1109,8 @@ export const SinglePageCheckout = (props) => {
 				this.nextSave = null;
 				if (next) {
 					await this.saveCart(next);
+				} else if (this.paypalInvalidated && cartSynced) {
+					this.maybeReinitPaypalCheckout();
 				}
 			}
 		},
@@ -993,7 +1122,7 @@ export const SinglePageCheckout = (props) => {
 			}
 
 			this.couponError = '';
-			this.closePaypalInlineCheckout();
+			this.invalidatePaypalCheckout();
 
 			return this.saveCart({
 				couponCode: code,
@@ -1004,7 +1133,7 @@ export const SinglePageCheckout = (props) => {
 		removeCoupon() {
 			this.couponInput = '';
 			this.couponError = '';
-			this.closePaypalInlineCheckout();
+			this.invalidatePaypalCheckout();
 
 			return this.saveCart({
 				couponCode: '',
@@ -1368,6 +1497,7 @@ export const SinglePageCheckout = (props) => {
 			}
 
 			this.syncPayButtons();
+			this.$nextTick(() => this.ensureAvailableGateway());
 		},
 
 		async saveAddressBook(addressId) {
@@ -1394,6 +1524,16 @@ export const SinglePageCheckout = (props) => {
 					? 'payment'
 					: 'delivery';
 
+			const isCurrentShipping =
+				parseInt(this.shippingAddressId, 10) === parseInt(addressId, 10);
+			const isCurrentBilling =
+				!this.billingSameAsShipping &&
+				parseInt(this.billingAddressId, 10) === parseInt(addressId, 10);
+
+			if (isCurrentShipping || isCurrentBilling) {
+				this.invalidatePaypalCheckout();
+			}
+
 			this.pending += 1;
 			this.status = this.savingLabel;
 			this.statusTone = 'saving';
@@ -1413,6 +1553,7 @@ export const SinglePageCheckout = (props) => {
 						this.statusTone = 'error';
 					}
 					this.setPanelStatus(panel, 'error');
+					this.restorePaypalIfSkipped();
 					return;
 				}
 
@@ -1421,7 +1562,10 @@ export const SinglePageCheckout = (props) => {
 					this.shippingPreview = this.addressLabels[String(addressId)];
 				}
 
-				await this.saveCart({ panel });
+				await this.saveCart({
+					panel,
+					force: isCurrentShipping || isCurrentBilling,
+				});
 				if (this.statusTone !== 'error') {
 					this.editExistingAddress = 0;
 					this.editBillingAddressId = 0;
@@ -1432,6 +1576,7 @@ export const SinglePageCheckout = (props) => {
 				this.status = this.failedLabel;
 				this.statusTone = 'error';
 				this.setPanelStatus(panel, 'error');
+				this.restorePaypalIfSkipped();
 			} finally {
 				this.pending = Math.max(0, this.pending - 1);
 				this.syncPayButtons();
@@ -1445,6 +1590,10 @@ export const SinglePageCheckout = (props) => {
 
 			event.preventDefault();
 			event.stopPropagation();
+
+			if (!this.canPay) {
+				return;
+			}
 
 			if (!this.deliveryReadyForPay) {
 				this.panelFieldsReady('delivery', null, true);
@@ -1527,13 +1676,30 @@ export const SinglePageCheckout = (props) => {
 				typeof window.sendPaymentDataToAnet === 'function'
 			) {
 				this.originalSendPayment = window.sendPaymentDataToAnet;
-				window.sendPaymentDataToAnet = function (...args) {
-					if (!checkout.checkCard()) {
+				window.sendPaymentDataToAnet = async function (...args) {
+					if (!checkout.canPay || !checkout.checkCard()) {
 						checkout.paying = false;
 						return;
 					}
 
 					checkout.paying = true;
+
+					if (checkout.saveTimer) {
+						clearTimeout(checkout.saveTimer);
+						checkout.saveTimer = null;
+					}
+
+					const payloadChanged =
+						JSON.stringify(checkout.buildPayload()) !== checkout.lastSaved;
+
+					if (payloadChanged || checkout.saving) {
+						await checkout.saveCart({ panel: 'payment' });
+						if (checkout.statusTone === 'error') {
+							checkout.paying = false;
+							return;
+						}
+					}
+
 					return checkout.originalSendPayment.apply(this, args);
 				};
 			}
@@ -1701,21 +1867,21 @@ export const SinglePageCheckout = (props) => {
 			}
 
 			const allowed = this.canPay && !this.paying;
+			const label = this.payButtonLabel;
 			form
 				.querySelectorAll('button[type="submit"], [id$="authorizeSubmit"]')
 				.forEach((button) => {
 					button.disabled = !allowed;
+					if (label && !button.closest('.paypal-rest-form')) {
+						button.textContent = label;
+					}
 				});
 		},
 
-		closePaypalInlineCheckout() {
+		invalidatePaypalCheckout() {
 			const wrapper = this.$root.querySelector('.paypal-rest-form');
 			const renderDiv = wrapper?.firstElementChild;
-			if (
-				!wrapper ||
-				!renderDiv ||
-				typeof window.initPaypalCheckout !== 'function'
-			) {
+			if (!wrapper || !renderDiv) {
 				return;
 			}
 
@@ -1727,7 +1893,28 @@ export const SinglePageCheckout = (props) => {
 			}
 
 			renderDiv.innerHTML = '';
-			window.initPaypalCheckout();
+			delete wrapper.dataset.fcPaypalInit;
+			this.paypalInvalidated = true;
+		},
+
+		maybeReinitPaypalCheckout() {
+			if (!this.paypalInvalidated) {
+				return;
+			}
+
+			this.paypalInvalidated = false;
+
+			if (!this.$root.querySelector('.paypal-rest-form')) {
+				return;
+			}
+
+			this.initPaypal();
+		},
+
+		restorePaypalIfSkipped() {
+			if (this.paypalInvalidated && !this.saving && !this.saveTimer) {
+				this.maybeReinitPaypalCheckout();
+			}
 		},
 
 		initPaypal(attempt = 0) {
