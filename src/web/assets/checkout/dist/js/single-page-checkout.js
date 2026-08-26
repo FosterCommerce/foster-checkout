@@ -107,6 +107,7 @@ export const SinglePageCheckout = (props) => {
 					this.applySelectedMethodTotals();
 					this.syncPayButtons();
 					this.saveIfValid('shipping');
+					this.closePaypalInlineCheckout();
 				}
 			});
 			this.$watch('billingSameAsShipping', () =>
@@ -992,6 +993,7 @@ export const SinglePageCheckout = (props) => {
 			}
 
 			this.couponError = '';
+			this.closePaypalInlineCheckout();
 
 			return this.saveCart({
 				couponCode: code,
@@ -1002,6 +1004,8 @@ export const SinglePageCheckout = (props) => {
 		removeCoupon() {
 			this.couponInput = '';
 			this.couponError = '';
+			this.closePaypalInlineCheckout();
+
 			return this.saveCart({
 				couponCode: '',
 				panel: 'coupon',
@@ -1702,6 +1706,21 @@ export const SinglePageCheckout = (props) => {
 				.forEach((button) => {
 					button.disabled = !allowed;
 				});
+		},
+
+		closePaypalInlineCheckout() {
+			const wrapper = this.$root.querySelector('.paypal-rest-form');
+			const renderDiv = wrapper?.firstElementChild;
+			if (!wrapper || !renderDiv || typeof window.initPaypalCheckout !== 'function') {
+				return;
+			}
+
+			if (!renderDiv.childElementCount && !String(renderDiv.innerHTML || '').trim()) {
+				return;
+			}
+
+			renderDiv.innerHTML = '';
+			window.initPaypalCheckout();
 		},
 
 		initPaypal(attempt = 0) {
