@@ -1702,13 +1702,30 @@ export const SinglePageCheckout = (props) => {
 				typeof window.sendPaymentDataToAnet === 'function'
 			) {
 				this.originalSendPayment = window.sendPaymentDataToAnet;
-				window.sendPaymentDataToAnet = function (...args) {
+				window.sendPaymentDataToAnet = async function (...args) {
 					if (!checkout.checkCard()) {
 						checkout.paying = false;
 						return;
 					}
 
 					checkout.paying = true;
+
+					if (checkout.saveTimer) {
+						clearTimeout(checkout.saveTimer);
+						checkout.saveTimer = null;
+					}
+
+					const payloadChanged =
+						JSON.stringify(checkout.buildPayload()) !== checkout.lastSaved;
+
+					if (payloadChanged || checkout.saving) {
+						await checkout.saveCart({ panel: 'payment' });
+						if (checkout.statusTone === 'error') {
+							checkout.paying = false;
+							return;
+						}
+					}
+
 					return checkout.originalSendPayment.apply(this, args);
 				};
 			}
