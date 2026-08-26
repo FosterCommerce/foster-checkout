@@ -122,21 +122,22 @@
 					<input type="hidden" name="orderEmail" :value="email">
 
 					<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+						{% set zeroValueGatewayHandles = craft.fostercheckout.settings.zeroValueGatewayHandles %}
 						{% for gateway in gateways %}
 							{% set gatewayClass = className(gateway) %}
-							{% set zeroValueGatewayHandles = craft.fostercheckout.settings.zeroValueGatewayHandles %}
-							{% set shouldRender = true %}
 							{% set isManualGateway = false %}
 							{% set gatewayNote = null %}
+							{% set availableAtZero = gateway.handle in zeroValueGatewayHandles %}
+							{% set zeroOnly = gatewayClass == 'craft\\commerce\\gateways\\Manual' and gateway.getOnlyAllowForZeroPriceOrders() %}
 
-							{% if cart.total != 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual' and gateway.getOnlyAllowForZeroPriceOrders() %}
-								{% set shouldRender = false %}
-							{% elseif cart.total == 0 and gateway.handle not in zeroValueGatewayHandles %}
-								{% set shouldRender = false %}
-							{% endif %}
-
-							{% if shouldRender %}
-								<div class="p-4 border-b border-gray-250" :class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }">
+								<div
+									class="p-4 border-b border-gray-250"
+									data-fc-gateway
+									data-available-at-zero="{{ availableAtZero ? '1' : '0' }}"
+									data-zero-only="{{ zeroOnly ? '1' : '0' }}"
+									x-show="gatewayFits($el)"
+									:class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }"
+								>
 									<div class="relative flex justify-between items-center gap-4 radio">
 										<input
 											id="sp_gateway_{{ gateway.id }}"
@@ -282,7 +283,6 @@
 										</div>
 									</template>
 								</div>
-							{% endif %}
 						{% endfor %}
 					</div>
 				</form>

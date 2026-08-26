@@ -140,6 +140,10 @@ export const SinglePageCheckout = (props) => {
 			this.$nextTick(() => this.refreshNewBillingContent());
 			this.syncPayButtons();
 			this.$watch('paying', () => this.syncPayButtons());
+			this.$watch(
+				() => Number(this.totals.total) === 0,
+				() => this.$nextTick(() => this.ensureAvailableGateway())
+			);
 			this.onPageShow = (event) => {
 				if (event.persisted) {
 					this.paying = false;
@@ -273,6 +277,40 @@ export const SinglePageCheckout = (props) => {
 
 		get payButtonLabel() {
 			return `${this.payButtonText} ${this.totals.totalAsCurrency || ''}`.trim();
+		},
+
+		gatewayFits(el) {
+			const availableAtZero = el?.dataset?.availableAtZero === '1';
+			const zeroOnly = el?.dataset?.zeroOnly === '1';
+
+			if (Number(this.totals.total) === 0) {
+				return availableAtZero;
+			}
+
+			return !zeroOnly;
+		},
+
+		ensureAvailableGateway() {
+			const form = this.$refs.paymentForm;
+			if (!form) {
+				return;
+			}
+
+			const rows = Array.from(form.querySelectorAll('[data-fc-gateway]'));
+			const available = rows.filter((row) => this.gatewayFits(row));
+			const currentOk = available.some(
+				(row) =>
+					Number(row.querySelector('input[name="gatewayId"]')?.value) ===
+					Number(this.gatewayId)
+			);
+			if (currentOk) {
+				return;
+			}
+
+			const next = available[0]?.querySelector('input[name="gatewayId"]');
+			if (next) {
+				this.gatewayId = Number(next.value);
+			}
 		},
 
 		get processingMessage() {
@@ -1430,7 +1468,10 @@ export const SinglePageCheckout = (props) => {
 			}
 
 			this.syncPayButtons();
-			this.$nextTick(() => this.prefillAuthorizeCardHolder());
+			this.$nextTick(() => {
+				this.ensureAvailableGateway();
+				this.prefillAuthorizeCardHolder();
+			});
 		},
 
 		namePartsFromAddress(address) {
