@@ -5,7 +5,7 @@ export default [
 		ignores: ["vendor/**"],
 	},
 	{
-		files: ["src/web/assets/checkout/dist/js/alpine.js"],
+		files: ["src/web/assets/checkout/dist/js/*.js"],
 		plugins: {
 			"@stylistic": stylistic,
 		},

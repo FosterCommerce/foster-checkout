@@ -2,15 +2,13 @@
 
 <div
 	data-fc-collect
-	@input="queueSave(400, $event)"
-	@change="queueSave(0, $event)"
-	@selected="$nextTick(() => queueSave(0, null, {}, 'payment'))"
+	@input="refreshNewBillingContent()"
 >
 	<h3 class="mb-4 font-semibold">
 		{{ 'billing.stepName'|t('foster-checkout') }}
 	</h3>
 
-	<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+	<div class="xl:border xl:border-gray-250 xl:rounded-lg">
 		<div class="p-4" :class="{ 'bg-gray-100': billingSameAsShipping }">
 			<div class="radio">
 				<input
@@ -28,7 +26,7 @@
 						</span>
 						<span class="block mt-2 text-gray-500">
 							<p>
-								<span class="block" x-text="shippingPreview || noAddressLabel"></span>
+								<span class="block" x-text="shippingPreview || noAddressLabel">{{ live.shippingPreview ?? 'misc.noAddress'|t('foster-checkout') }}</span>
 							</p>
 						</span>
 					</span>

@@ -21,8 +21,9 @@
 	<div
 		class="p-4"
 		data-fc-collect
-		@input="onDetailsChange($event); queueSave(400, $event)"
-		@change="queueSave(0, $event)"
+		@input="onDetailsChange($event)"
+		@blur.capture="saveIfValid('contact', $event)"
+		@change="saveIfValid('contact', $event)"
 	>
 		<div class="grid grid-cols-1 gap-6">
 			{% include 'foster-checkout/_components/base/input-text-clearable' with {

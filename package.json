@@ -6,8 +6,8 @@
 	"scripts": {
 		"lint:check": "eslint",
 		"lint:fix": "eslint --fix",
-		"format:check": "prettier --check src/web/assets/checkout/**/alpine.js",
-		"format:fix": "prettier --write src/web/assets/checkout/**/alpine.js",
+		"format:check": "prettier --check src/web/assets/checkout/dist/js/*.js",
+		"format:fix": "prettier --write src/web/assets/checkout/dist/js/*.js",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"repository": {

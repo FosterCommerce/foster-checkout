@@ -1,10 +1,10 @@
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 
 <section
-	class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
+	class="border border-gray-250 {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
 	data-fc-panel="delivery"
 >
-	<div class="flex items-center gap-3 p-4 bg-gray-200">
+	<div class="flex items-center gap-3 p-4 bg-gray-200 {{ isFlat ? '' : 'rounded-t-lg' }}">
 		<h2 class="font-semibold">
 			{{ 'checkout.delivery'|t('foster-checkout') }}
 		</h2>
@@ -16,9 +16,10 @@
 	<div
 		class="p-4"
 		data-fc-collect
-		@input="queueSave(400, $event)"
-		@change="queueSave(0, $event)"
-		@selected="$nextTick(() => queueSave(0, null, {}, 'delivery'))"
+		@input="refreshShippingPreview()"
+		@blur.capture="saveIfValid('delivery', $event)"
+		@change="saveIfValid('delivery', $event)"
+		@selected="$nextTick(() => saveIfValid('delivery', $event))"
 	>
 		<div class="xl:border xl:border-gray-250 xl:rounded-lg">
 			{% if currentUser and addresses|length %}

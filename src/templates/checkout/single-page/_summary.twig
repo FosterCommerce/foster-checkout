@@ -2,7 +2,7 @@
 {% set notesHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
 {% set notesValue = notesHandle ? (cart.getFieldValue(notesHandle) ?? '') : '' %}
 
-<aside>
+<aside class="lg:col-start-2 lg:row-start-1 lg:row-span-2">
 	<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:rounded-lg lg:border lg:border-gray-250' }}">
 		<div class="grid grid-cols-1 gap-6">
 			<div class="flex justify-between items-center gap-4">
@@ -39,7 +39,7 @@
 							{{ 'summary.couponCodeLabel'|t('foster-checkout') }}
 							<span x-show="couponCode" x-cloak x-text="' (' + couponCode + ')'"></span>
 						</span>
-						{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'summary' } %}
+						{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'coupon' } %}
 					</span>
 					<template x-if="couponOpen">
 						<svg x-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current" aria-hidden="true">
@@ -115,23 +115,25 @@
 			<dl class="grid grid-cols-1 gap-4">
 				<div class="flex justify-between items-center gap-4">
 					<dt class="text-gray-500">{{ 'summary.itemsLabel'|t('foster-checkout') }}</dt>
-					<dd class="text-right text-black" x-text="totals.itemsAsCurrency"></dd>
+					<dd class="text-right text-black" x-text="totals.itemsAsCurrency">{{ live.totals.itemsAsCurrency ?? '' }}</dd>
 				</div>
 
 				<div class="flex justify-between items-center gap-4" x-show="cartHasShippingAddress" x-cloak>
 					<dt class="text-gray-500">{{ 'summary.shippingLabel'|t('foster-checkout') }}</dt>
-					<dd class="text-right text-black">
-						<span x-show="loadingShippingMethods" class="text-gray-500" x-cloak>{{ 'misc.saving'|t('foster-checkout') }}</span>
-						<span x-show="!loadingShippingMethods" x-text="totals.shippingAsCurrency"></span>
-					</dd>
+					<dd
+						class="text-right"
+						:class="loadingShippingMethods ? 'text-gray-500' : 'text-black'"
+						x-text="totals.shippingAsCurrency"
+					>{{ live.totals.shippingAsCurrency ?? '' }}</dd>
 				</div>
 
 				<div class="flex justify-between items-center gap-4">
 					<dt class="text-gray-500">{{ 'summary.taxLabel'|t('foster-checkout') }}</dt>
-					<dd class="text-right text-black">
-						<span x-show="loadingShippingMethods" class="text-gray-500" x-cloak>{{ 'misc.saving'|t('foster-checkout') }}</span>
-						<span x-show="!loadingShippingMethods" x-text="totals.taxAsCurrency"></span>
-					</dd>
+					<dd
+						class="text-right"
+						:class="loadingShippingMethods ? 'text-gray-500' : 'text-black'"
+						x-text="totals.taxAsCurrency"
+					>{{ live.totals.taxAsCurrency ?? '' }}</dd>
 				</div>
 
 				<template x-for="discount in totals.discounts" :key="discount.name + discount.amountAsCurrency">
@@ -162,23 +164,54 @@
 
 				<div class="flex justify-between items-center gap-4">
 					<dt class="font-semibold text-black">{{ 'summary.total'|t('foster-checkout') }}</dt>
-					<dd class="font-semibold text-right text-black">
-						<span x-show="loadingShippingMethods" class="text-gray-500 font-normal" x-cloak>{{ 'misc.saving'|t('foster-checkout') }}</span>
-						<span x-show="!loadingShippingMethods" x-text="totals.totalAsCurrency"></span>
-					</dd>
+					<dd
+						class="font-semibold text-right"
+						:class="loadingShippingMethods ? 'text-gray-500 font-normal' : 'text-black'"
+						x-text="totals.totalAsCurrency"
+					>{{ live.totals.totalAsCurrency ?? '' }}</dd>
 				</div>
 			</dl>
 
 			{% if notesHandle %}
-				<div class="mt-8">
-					<p class="mb-2 text-gray-500">{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</p>
-					<label for="spOrderNote" class="sr-only">{{ 'summary.addOrderNote'|t('foster-checkout') }}</label>
-					<textarea
-						id="spOrderNote"
-						rows="2"
-						class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 placeholder-gray-400"
-						placeholder="{{ 'summary.addOrderNote'|t('foster-checkout') }}"
-					>{{ notesValue }}</textarea>
+				<div class="mt-8" data-fc-collect>
+					<p class="mb-2 inline-flex items-center gap-2 text-gray-500">
+						<span>{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</span>
+						{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'notes' } %}
+					</p>
+					<form
+						class="grid gap-2"
+						@submit.prevent="saveNotes()"
+					>
+						<label for="spOrderNote" class="sr-only">{{ 'summary.addOrderNote'|t('foster-checkout') }}</label>
+						<div class="grid grid-cols-1 md:grid-cols-[1fr_auto] items-end gap-4">
+							<textarea
+								x-ref="orderNote"
+								id="spOrderNote"
+								name="fields[{{ notesHandle }}]"
+								rows="2"
+								class="w-full min-w-0 border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 placeholder-gray-400"
+								:class="notesError ? 'border-red-500' : ''"
+								placeholder="{{ 'summary.addOrderNote'|t('foster-checkout') }}"
+								@focus="notesButtonVisible = true"
+							>{{ notesValue }}</textarea>
+							<button
+								type="submit"
+								x-show="notesButtonVisible"
+								x-cloak
+								class="h-12 px-4 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg text-nowrap shrink-0"
+								:disabled="pending > 0"
+								:class="pending > 0 ? 'opacity-50 cursor-not-allowed' : ''"
+							>
+								{{ 'summary.saveOrderNote'|t('foster-checkout') }}
+							</button>
+						</div>
+						<p
+							x-show="notesError"
+							x-cloak
+							class="text-sm text-red-500"
+							x-text="notesError"
+						></p>
+					</form>
 				</div>
 			{% endif %}
 		</article>

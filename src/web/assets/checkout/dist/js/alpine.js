@@ -1,35 +1,60 @@
 import Alpine from 'https://esm.sh/alpinejs@3.16.1';
 import focus from 'https://esm.sh/@alpinejs/focus@3.16.1';
+import { SinglePageCheckout, isValidEmail } from './single-page-checkout.js';
+
+const setErrors = (field, messages) => {
+	const next = messages.filter(Boolean);
+	if (
+		Array.isArray(field.errors) &&
+		field.errors.length === next.length &&
+		field.errors.every((message, index) => message === next[index])
+	) {
+		return;
+	}
+
+	field.errors = next;
+};
 
 const ClearableInput = (props) => {
 	return {
 		name: props.name,
 		value: props.value,
+		type: props.type || 'text',
 		countryCode: props.countryCode,
 		requiredFields: props.requiredFields,
 		addressScope: props.addressScope ?? false,
 		required: props.required,
 		errors: props.errors,
 		success: props.success,
+		requiredError: props.requiredError || '',
+		invalidEmailError: props.invalidEmailError || '',
 		showButton: false,
+		touched: false,
 		props: props,
 
 		input() {
 			this.showButton = this.value !== '';
-			this.errors = [];
+			if (this.touched || String(this.value || '').trim() !== '') {
+				this.validate(false);
+			}
 		},
 		focus() {
 			this.showButton = this.value !== '';
 		},
 		blur() {
+			this.touched = true;
 			this.showButton =
 				this.$refs.button === document.activeElement && this.value !== '';
+			this.validate(true);
 		},
 		clear() {
+			const input = this.$refs.input;
 			this.value = '';
-			this.errors = [];
-			this.$refs.input.focus();
-			this.$refs.input.dispatchEvent(new Event('input', { bubbles: true }));
+			this.touched = true;
+			this.showButton = false;
+			input.value = '';
+			input.focus();
+			input.dispatchEvent(new Event('input', { bubbles: true }));
 		},
 		isRequired() {
 			if (typeof this.required === 'boolean') {
@@ -45,6 +70,28 @@ const ClearableInput = (props) => {
 				this.requiredFields()[this.countryCode()]?.includes(this.name) ?? false
 			);
 		},
+		validate(showRequired = false) {
+			const value = String(this.value || '').trim();
+			const messages = [];
+			let valid = true;
+
+			if (this.isRequired() && value === '') {
+				valid = false;
+				if (showRequired || this.touched) {
+					messages.push(this.requiredError);
+				}
+			} else if (
+				this.type === 'email' &&
+				value !== '' &&
+				!isValidEmail(value)
+			) {
+				valid = false;
+				messages.push(this.invalidEmailError);
+			}
+
+			setErrors(this, messages);
+			return valid;
+		},
 	};
 };
 
@@ -57,6 +104,7 @@ const SearchableSelect = (props) => {
 		required: props.required || false,
 		errors: props.errors || [],
 		success: props.success || [],
+		requiredError: props.requiredError || '',
 		modelValue: props.value || null,
 		tmpInputEventValue: null, // This is set when the hidden input's input event fires
 		open: false,
@@ -64,6 +112,7 @@ const SearchableSelect = (props) => {
 		activeIndex: 0,
 		selectedOption: null,
 		lastPinned: null,
+		touched: false,
 
 		init() {
 			// Remove the fallback select element
@@ -122,6 +171,8 @@ const SearchableSelect = (props) => {
 				}
 
 				if (this.selectedOption) {
+					this.touched = true;
+					this.errors = [];
 					this.$nextTick(() => {
 						// Make sure that the value is set on the hidden input in the next tick so that everything else
 						// in the current tick has completed.
@@ -281,6 +332,26 @@ const SearchableSelect = (props) => {
 			return `${this.id}-error`;
 		},
 
+		isRequired() {
+			return Boolean(this.required) && this.options.length > 0;
+		},
+
+		validate(showRequired = false) {
+			const value = String(this.modelValue || '').trim();
+			const messages = [];
+			let valid = true;
+
+			if (this.isRequired() && value === '') {
+				valid = false;
+				if (showRequired || this.touched) {
+					messages.push(this.requiredError);
+				}
+			}
+
+			setErrors(this, messages);
+			return valid;
+		},
+
 		optionId(index) {
 			return `${this.id}-option-${index}`;
 		},
@@ -305,6 +376,8 @@ const SearchableSelect = (props) => {
 			if (this.lastPinned) {
 				this.lastPinned.isLastPinned = true;
 			}
+			this.touched = true;
+			this.validate(true);
 		},
 
 		toggleListbox() {
@@ -401,7 +474,7 @@ const SearchableSelect = (props) => {
 				return null;
 			}
 
-			const searchValue = value.toLowerCase().trim();
+			const searchValue = String(value).toLowerCase().trim();
 
 			// Exact match on label
 			let selectedOption = this.options.find(
@@ -480,14 +553,20 @@ const LineItem = (options) => {
 				quantity = this.min;
 			}
 
-			const limit = this.maxAllowed;
-			this.showErrorMaxMessage = Number.isFinite(limit) && quantity > limit;
-			if (this.showErrorMaxMessage) {
-				quantity = limit;
-			}
+			const stockLimit = this.unlimitedStock ? Infinity : (this.stock ?? 0);
+			const maxLimit = this.max || Infinity;
 
 			this.showErrorStockMessage =
-				!this.unlimitedStock && quantity > (this.stock ?? 0);
+				Number.isFinite(stockLimit) && quantity > stockLimit;
+			this.showErrorMaxMessage =
+				Number.isFinite(maxLimit) &&
+				quantity > maxLimit &&
+				!this.showErrorStockMessage;
+
+			const limit = this.maxAllowed;
+			if (Number.isFinite(limit) && quantity > limit) {
+				quantity = limit;
+			}
 
 			return quantity;
 		},
@@ -556,1095 +635,6 @@ const LineItem = (options) => {
 				);
 				quantityInput.value = this.qty;
 				this.$root.querySelector('form').requestSubmit();
-			});
-		},
-	};
-};
-
-const SinglePageCheckout = (props) => {
-	return {
-		loggedIn: props.loggedIn,
-		email: props.email ?? '',
-		shippingAddressId: props.shippingAddressId,
-		useNewAddress: props.useNewAddress ?? false,
-		shippingMethodHandle: props.shippingMethodHandle ?? '',
-		requireShippingMethod: props.requireShippingMethod ?? false,
-		billingSameAsShipping: props.billingSameAsShipping ?? true,
-		billingAddressId: props.billingAddressId,
-		useNewBillingAddress: props.useNewBillingAddress ?? false,
-		cartHasShippingAddress: props.hasShippingAddress ?? false,
-		couponCode: props.couponCode ?? '',
-		couponInput: props.couponCode ?? '',
-		couponOpen: Boolean(props.couponCode),
-		couponError: '',
-		addressLabels: {},
-		addressFields: {},
-		shippingPreview: props.shippingPreview ?? '',
-		latestShippingAddress: null,
-		latestBillingAddress: null,
-		shippingMethods: props.shippingMethods ?? [],
-		totals: props.totals ?? {
-			itemsAsCurrency: '',
-			shippingAsCurrency: '',
-			taxAsCurrency: '',
-			totalAsCurrency: '',
-			discounts: [],
-			vouchers: [],
-		},
-		noAddressLabel: props.noAddressLabel ?? '',
-		payButtonText: props.payButtonText ?? '',
-		syncingFromCart: false,
-		hasNewBillingContent: false,
-		editExistingAddress: 0,
-		editBillingAddressId: 0,
-		gatewayId: props.gatewayId,
-		savingLabel: props.savingLabel,
-		savedLabel: props.savedLabel,
-		failedLabel: props.failedLabel,
-		status: '',
-		statusTone: 'idle',
-		panelStatus: {
-			contact: 'idle',
-			delivery: 'idle',
-			shipping: 'idle',
-			payment: 'idle',
-			summary: 'idle',
-		},
-		panelStatusTimers: {},
-		queuedSavePanel: null,
-		activeSavePanel: null,
-		pending: 0,
-		saveTimer: null,
-		saveGeneration: 0,
-		saveAbort: null,
-		queuedSaveExtra: {},
-		shippingRestoreAttempted: false,
-
-		init() {
-			this.$watch('email', () => {
-				if (!this.syncingFromCart) {
-					this.syncPayButtons();
-				}
-			});
-			this.$watch('shippingAddressId', () =>
-				this.onSelectionChange('delivery')
-			);
-			this.$watch('useNewAddress', () => this.onSelectionChange('delivery'));
-			this.$watch('shippingMethodHandle', () => this.onShippingMethodChange());
-			this.$watch('billingSameAsShipping', () =>
-				this.onSelectionChange('payment')
-			);
-			this.$watch('billingAddressId', () => this.onSelectionChange('payment'));
-			this.$watch('useNewBillingAddress', () => {
-				this.onSelectionChange('payment');
-				this.$nextTick(() => this.refreshNewBillingContent());
-			});
-			this.$nextTick(() => this.refreshNewBillingContent());
-			this.syncPayButtons();
-
-			if (!this.cartHasShippingAddress && this.shippingAddressId) {
-				this.queueSave(0, null, {}, 'delivery');
-			}
-		},
-
-		destroy() {
-			if (this.saveTimer) {
-				clearTimeout(this.saveTimer);
-				this.saveTimer = null;
-			}
-
-			if (this.saveAbort) {
-				this.saveAbort.abort();
-				this.saveAbort = null;
-			}
-
-			Object.values(this.panelStatusTimers).forEach((timer) => {
-				clearTimeout(timer);
-			});
-			this.panelStatusTimers = {};
-		},
-
-		guestEmail() {
-			const input = this.$root.querySelector('#email');
-			if (input) {
-				return String(input.value || '').trim();
-			}
-
-			return String(this.email || '').trim();
-		},
-
-		get hasShippingMethods() {
-			return this.shippingMethods.length > 0;
-		},
-
-		get loadingShippingMethods() {
-			return this.panelStatus.delivery === 'saving';
-		},
-
-		get hasEmail() {
-			if (this.loggedIn) {
-				return true;
-			}
-
-			return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(this.email || '').trim());
-		},
-
-		get hasShippingMethod() {
-			if (!this.hasShippingMethods) {
-				return !this.requireShippingMethod;
-			}
-
-			return Boolean(this.shippingMethodHandle);
-		},
-
-		get hasBilling() {
-			if (this.billingSameAsShipping) {
-				return true;
-			}
-
-			if (this.useNewBillingAddress) {
-				return this.hasNewBillingContent;
-			}
-
-			return Boolean(this.billingAddressId);
-		},
-
-		get hasShippingSelection() {
-			return Boolean(this.useNewAddress) || Boolean(this.shippingAddressId);
-		},
-
-		get canPay() {
-			return (
-				this.pending === 0 &&
-				!this.saveTimer &&
-				this.statusTone !== 'error' &&
-				this.hasEmail &&
-				this.hasShippingSelection &&
-				this.cartHasShippingAddress &&
-				this.hasShippingMethod &&
-				this.hasBilling &&
-				!this.loadingShippingMethods
-			);
-		},
-
-		get payButtonLabel() {
-			return `${this.payButtonText} ${this.totals.totalAsCurrency || ''}`.trim();
-		},
-
-		panelStatusLabel(panel) {
-			const tone = this.panelStatus[panel];
-			if (tone === 'saving') {
-				return this.savingLabel;
-			}
-
-			if (tone === 'saved') {
-				return this.savedLabel;
-			}
-
-			return '';
-		},
-
-		clearSavingPanel(panel) {
-			if (!panel || this.panelStatus[panel] !== 'saving') {
-				return;
-			}
-
-			this.setPanelStatus(panel, 'idle');
-		},
-
-		setPanelStatus(panel, tone) {
-			if (!panel) {
-				return;
-			}
-
-			if (this.panelStatusTimers[panel]) {
-				clearTimeout(this.panelStatusTimers[panel]);
-				this.panelStatusTimers = {
-					...this.panelStatusTimers,
-					[panel]: null,
-				};
-			}
-
-			this.panelStatus = {
-				...this.panelStatus,
-				[panel]: tone,
-			};
-
-			if (tone !== 'saved') {
-				return;
-			}
-
-			const timer = setTimeout(() => {
-				if (this.panelStatus[panel] === 'saved') {
-					this.panelStatus = {
-						...this.panelStatus,
-						[panel]: 'idle',
-					};
-				}
-			}, 2500);
-
-			this.panelStatusTimers = {
-				...this.panelStatusTimers,
-				[panel]: timer,
-			};
-		},
-
-		onSelectionChange(panel = 'delivery') {
-			if (this.syncingFromCart) {
-				return;
-			}
-
-			this.shippingRestoreAttempted = false;
-			this.queueSave(0, null, {}, panel);
-		},
-
-		onShippingMethodChange() {
-			if (this.syncingFromCart) {
-				return;
-			}
-
-			this.shippingRestoreAttempted = false;
-
-			if (this.saveTimer && !this.queuedSaveExtra.methodOnly) {
-				return;
-			}
-
-			this.queueSave(0, null, { methodOnly: true }, 'shipping');
-		},
-
-		onDetailsChange(event) {
-			if (event.target && event.target.name === 'email') {
-				this.email = event.target.value;
-			}
-		},
-
-		queueSave(delay = 400, event = null, extra = {}, panel = null) {
-			if (
-				event &&
-				event.target &&
-				event.target.closest('[data-fc-address-edit]')
-			) {
-				return;
-			}
-
-			if (this.useNewBillingAddress) {
-				this.refreshNewBillingContent();
-			}
-
-			const fromEvent = event?.target?.closest('[data-fc-panel]');
-			const nextPanel =
-				(fromEvent && fromEvent.getAttribute('data-fc-panel')) ||
-				panel ||
-				extra.panel ||
-				this.queuedSavePanel ||
-				'delivery';
-
-			const hadPending = Boolean(this.saveTimer);
-			const pendingExtra = this.queuedSaveExtra;
-
-			if (this.saveTimer) {
-				clearTimeout(this.saveTimer);
-			}
-
-			if (extra.methodOnly && hadPending && !pendingExtra.methodOnly) {
-				this.queuedSaveExtra = pendingExtra;
-			} else {
-				this.queuedSaveExtra = extra;
-			}
-
-			if (this.queuedSavePanel && this.queuedSavePanel !== nextPanel) {
-				this.clearSavingPanel(this.queuedSavePanel);
-			}
-
-			this.queuedSavePanel = nextPanel;
-			this.setPanelStatus(nextPanel, 'saving');
-
-			this.saveTimer = setTimeout(() => {
-				const queued = this.queuedSaveExtra;
-				const queuedPanel = this.queuedSavePanel;
-				this.saveTimer = null;
-				this.queuedSaveExtra = {};
-				this.syncPayButtons();
-				this.saveCart({ ...queued, panel: queuedPanel });
-			}, delay);
-
-			this.syncPayButtons();
-		},
-
-		saveNow() {
-			if (this.saveTimer) {
-				clearTimeout(this.saveTimer);
-				this.saveTimer = null;
-			}
-
-			const queued = this.queuedSaveExtra;
-			const panel = this.queuedSavePanel;
-			this.queuedSaveExtra = {};
-
-			return this.saveCart({ ...queued, panel });
-		},
-
-		collectNamedFields(scope) {
-			const payload = {};
-
-			if (!scope) {
-				return payload;
-			}
-
-			scope
-				.querySelectorAll('input[name], select[name], textarea[name]')
-				.forEach((element) => {
-					const name = element.getAttribute('name');
-					const type = element.type;
-					const skipped = element.closest(
-						'[data-fc-skip-collect], [data-fc-address-edit]'
-					);
-
-					if (!name || element.disabled) {
-						return;
-					}
-
-					if (skipped && skipped !== scope) {
-						return;
-					}
-
-					if (type === 'button' || type === 'submit') {
-						return;
-					}
-
-					if ((type === 'checkbox' || type === 'radio') && !element.checked) {
-						return;
-					}
-
-					if (name.endsWith('_radio')) {
-						return;
-					}
-
-					payload[name] = element.value;
-				});
-
-			return payload;
-		},
-
-		collectDetails() {
-			const payload = {};
-
-			this.$root.querySelectorAll('[data-fc-collect]').forEach((scope) => {
-				Object.assign(payload, this.collectNamedFields(scope));
-			});
-
-			return payload;
-		},
-
-		addressGroupHasValues(payload, prefix) {
-			return Object.keys(payload).some(
-				(key) =>
-					key.startsWith(prefix) && String(payload[key] || '').trim() !== ''
-			);
-		},
-
-		addressGroupHasContent(payload, prefix) {
-			return ['fullName', 'addressLine1', 'locality', 'postalCode'].some(
-				(field) => String(payload[`${prefix}${field}]`] || '').trim() !== ''
-			);
-		},
-
-		newBillingHasContent() {
-			const scope = this.$root
-				? this.$root.querySelector('[data-fc-new-billing]')
-				: null;
-
-			return this.addressGroupHasContent(
-				this.collectNamedFields(scope),
-				'billingAddress['
-			);
-		},
-
-		refreshNewBillingContent() {
-			this.hasNewBillingContent = this.newBillingHasContent();
-			this.syncPayButtons();
-		},
-
-		stripAddressGroup(payload, prefix) {
-			Object.keys(payload).forEach((key) => {
-				if (key.startsWith(prefix)) {
-					delete payload[key];
-				}
-			});
-		},
-
-		buildPayload(extra = {}) {
-			const payload = {
-				...this.collectDetails(),
-				shippingMethodHandle: this.shippingMethodHandle || '',
-				billingAddressSameAsShipping: this.billingSameAsShipping ? '1' : '0',
-				...extra,
-			};
-
-			if (!this.loggedIn) {
-				this.email = this.guestEmail();
-				payload.email = this.email;
-			}
-
-			const hasShippingFields = this.addressGroupHasValues(
-				payload,
-				'shippingAddress['
-			);
-
-			if (!this.useNewAddress && this.shippingAddressId) {
-				this.stripAddressGroup(payload, 'shippingAddress[');
-				payload.shippingAddressId = String(this.shippingAddressId);
-				payload.useNewAddress = '0';
-			} else if (hasShippingFields) {
-				payload.shippingAddressId = '0';
-				payload.useNewAddress = '1';
-			} else {
-				this.stripAddressGroup(payload, 'shippingAddress[');
-				delete payload.shippingAddressId;
-				delete payload.useNewAddress;
-			}
-
-			const hasBillingFields = this.addressGroupHasValues(
-				payload,
-				'billingAddress['
-			);
-
-			if (this.billingSameAsShipping) {
-				this.stripAddressGroup(payload, 'billingAddress[');
-				payload.billingAddressId = '';
-				payload.useNewBillingAddress = '0';
-			} else if (this.useNewBillingAddress && hasBillingFields) {
-				payload.useNewBillingAddress = '1';
-				payload.billingAddressId = '';
-			} else if (this.billingAddressId) {
-				this.stripAddressGroup(payload, 'billingAddress[');
-				payload.billingAddressId = String(this.billingAddressId);
-				payload.useNewBillingAddress = '0';
-			} else {
-				this.stripAddressGroup(payload, 'billingAddress[');
-				delete payload.useNewBillingAddress;
-				delete payload.billingAddressId;
-			}
-
-			return payload;
-		},
-
-		postUrl() {
-			return window.location.pathname + window.location.search;
-		},
-
-		async postForm(url, fields, signal) {
-			const body = new FormData();
-			body.set(window.csrfTokenName, window.csrfTokenValue);
-
-			Object.entries(fields).forEach(([key, value]) => {
-				if (value === undefined || value === null) {
-					return;
-				}
-
-				body.set(key, String(value));
-			});
-
-			const response = await fetch(url, {
-				method: 'POST',
-				headers: {
-					Accept: 'application/json',
-					'X-Requested-With': 'XMLHttpRequest',
-				},
-				body,
-				credentials: 'same-origin',
-				signal,
-			});
-
-			const text = await response.text();
-			let data = {};
-			let isJson = false;
-
-			try {
-				data = text ? JSON.parse(text) : {};
-				isJson = true;
-			} catch {
-				isJson = false;
-			}
-
-			return { response, data, isJson };
-		},
-
-		flattenErrors(source, prefix = '') {
-			const flattened = {};
-
-			if (!source || typeof source !== 'object' || Array.isArray(source)) {
-				return flattened;
-			}
-
-			Object.entries(source).forEach(([key, value]) => {
-				const path = prefix ? `${prefix}.${key}` : key;
-
-				if (Array.isArray(value)) {
-					flattened[path] = value.map((item) => String(item));
-					return;
-				}
-
-				if (value && typeof value === 'object') {
-					Object.assign(flattened, this.flattenErrors(value, path));
-					return;
-				}
-
-				if (value) {
-					flattened[path] = [String(value)];
-				}
-			});
-
-			return flattened;
-		},
-
-		errorKeyToName(key) {
-			if (key.includes('[')) {
-				return key;
-			}
-
-			const parts = key.split('.');
-			if (parts.length === 1) {
-				return key;
-			}
-
-			return `${parts[0]}[${parts.slice(1).join('][')}]`;
-		},
-
-		findNamedInput(name) {
-			return this.$root.querySelector(`[name="${this.escapeName(name)}"]`);
-		},
-
-		setInputErrors(name, messages) {
-			const input = this.findNamedInput(name);
-			if (!input) {
-				return;
-			}
-
-			const root = input.closest('[x-data]');
-			if (!root || root === this.$root) {
-				return;
-			}
-
-			const data = window.Alpine.$data(root);
-			if (data && Array.isArray(data.errors)) {
-				data.errors = messages;
-			}
-		},
-
-		clearInputErrors() {
-			this.couponError = '';
-			this.$root
-				.querySelectorAll(
-					'[data-fc-collect] [x-data], [data-fc-address-edit] [x-data]'
-				)
-				.forEach((root) => {
-					const data = window.Alpine.$data(root);
-					if (data && Array.isArray(data.errors)) {
-						data.errors = [];
-					}
-				});
-		},
-
-		applyFieldErrors(errors) {
-			this.clearInputErrors();
-			const flattened = this.flattenErrors(errors);
-
-			Object.entries(flattened).forEach(([key, messages]) => {
-				const name = this.errorKeyToName(key);
-				this.setInputErrors(name, messages);
-
-				if (name === 'couponCode') {
-					this.couponError = messages.join(' ');
-				}
-			});
-		},
-
-		collectResponseErrors(data) {
-			return {
-				...(data.errors || {}),
-				...((data.cart && data.cart.errors) || {}),
-			};
-		},
-
-		applyErrors(data) {
-			this.status = data.message || data.error || this.failedLabel;
-			this.statusTone = 'error';
-			this.applyFieldErrors(this.collectResponseErrors(data));
-		},
-
-		async saveCart(extra = {}) {
-			if (!this.loggedIn && !this.hasEmail && !this.cartHasShippingAddress) {
-				this.clearSavingPanel(extra.panel || this.queuedSavePanel);
-				return;
-			}
-
-			const methodOnly = extra.methodOnly === true;
-			const panel = extra.panel || this.queuedSavePanel || 'delivery';
-			const payload = { ...extra };
-			delete payload.methodOnly;
-			delete payload.panel;
-			this.queuedSavePanel = null;
-			this.activeSavePanel = panel;
-			this.setPanelStatus(panel, 'saving');
-
-			if (this.saveAbort) {
-				this.saveAbort.abort();
-			}
-
-			this.saveAbort = new AbortController();
-			const { signal } = this.saveAbort;
-			this.saveGeneration += 1;
-			const generation = this.saveGeneration;
-
-			this.pending += 1;
-			this.status = this.savingLabel;
-			this.statusTone = 'saving';
-			this.syncPayButtons();
-
-			try {
-				const fields = {
-					action: 'commerce/cart/update-cart',
-				};
-
-				if (methodOnly) {
-					fields.shippingMethodHandle = this.shippingMethodHandle || '';
-					Object.assign(fields, payload);
-				} else {
-					Object.assign(fields, this.buildPayload(payload));
-				}
-
-				const { response, data, isJson } = await this.postForm(
-					this.postUrl(),
-					fields,
-					signal
-				);
-
-				if (generation !== this.saveGeneration) {
-					return;
-				}
-
-				if (!isJson) {
-					this.status = this.failedLabel;
-					this.statusTone = 'error';
-					this.setPanelStatus(panel, 'error');
-					return;
-				}
-
-				if (!response.ok || data.success === false) {
-					this.applyErrors(data);
-					this.setPanelStatus(panel, 'error');
-					return;
-				}
-
-				const cart = data.cart || data.model || (data.data && data.data.cart);
-				this.applyCart(cart);
-
-				this.clearInputErrors();
-				this.status = this.savedLabel;
-				this.statusTone = 'saved';
-				this.setPanelStatus(panel, 'saved');
-			} catch (error) {
-				if (error.name === 'AbortError' || generation !== this.saveGeneration) {
-					return;
-				}
-
-				this.status = this.failedLabel;
-				this.statusTone = 'error';
-				this.setPanelStatus(panel, 'error');
-			} finally {
-				this.pending = Math.max(0, this.pending - 1);
-				if (generation === this.saveGeneration) {
-					this.syncPayButtons();
-				}
-			}
-		},
-
-		applyCoupon() {
-			const code = String(this.couponInput || '').trim();
-			if (!code) {
-				return;
-			}
-
-			return this.saveCart({
-				couponCode: code,
-				panel: 'summary',
-			});
-		},
-
-		removeCoupon() {
-			this.couponInput = '';
-			return this.saveCart({
-				couponCode: '',
-				panel: 'summary',
-			});
-		},
-
-		addressLabel(addressId, fallback) {
-			return this.addressLabels[String(addressId)] || fallback;
-		},
-
-		escapeName(name) {
-			return typeof CSS !== 'undefined' && CSS.escape
-				? CSS.escape(name)
-				: name.replaceAll('"', '\\"');
-		},
-
-		addressToFields(address) {
-			const fields = {};
-			if (!address || typeof address !== 'object') {
-				return fields;
-			}
-
-			[
-				'fullName',
-				'firstName',
-				'lastName',
-				'organization',
-				'addressLine1',
-				'addressLine2',
-				'locality',
-				'dependentLocality',
-				'administrativeArea',
-				'postalCode',
-				'countryCode',
-			].forEach((key) => {
-				if (address[key] != null && address[key] !== '') {
-					fields[key] = String(address[key]);
-				}
-			});
-
-			return fields;
-		},
-
-		countryLabel(address, fields, scope) {
-			if (address) {
-				if (address.countryName) {
-					return address.countryName;
-				}
-
-				if (address.country && address.country.name) {
-					return address.country.name;
-				}
-			}
-
-			const countrySelector =
-				'[name="countryCode"], [name="shippingAddress[countryCode]"], [name="billingAddress[countryCode]"]';
-			const countryInput = scope ? scope.querySelector(countrySelector) : null;
-			const selectRoot = countryInput ? countryInput.closest('[x-data]') : null;
-			const selectData = selectRoot ? window.Alpine.$data(selectRoot) : null;
-			if (
-				selectData &&
-				selectData.selectedOption &&
-				selectData.selectedOption.label
-			) {
-				return selectData.selectedOption.label;
-			}
-
-			return (fields && fields.countryCode) || '';
-		},
-
-		formatAddress(fields, scope, address = null) {
-			if (!fields || typeof fields !== 'object') {
-				return '';
-			}
-
-			return [
-				fields.fullName,
-				fields.addressLine1,
-				fields.addressLine2,
-				fields.locality,
-				fields.administrativeArea,
-				fields.postalCode,
-				this.countryLabel(address, fields, scope),
-			]
-				.map((part) => String(part || '').trim())
-				.filter(Boolean)
-				.join(', ');
-		},
-
-		rememberAddress(addressId, address, fields, scope) {
-			if (!addressId) {
-				return;
-			}
-
-			const id = String(addressId);
-			const snapshot = { ...(fields || this.addressToFields(address)) };
-			delete snapshot.action;
-			delete snapshot.addressId;
-			this.addressFields = {
-				...this.addressFields,
-				[id]: snapshot,
-			};
-			this.addressLabels = {
-				...this.addressLabels,
-				[id]: this.formatAddress(snapshot, scope, address),
-			};
-		},
-
-		writeAddressToScope(scope, fields, prefix = '') {
-			if (!scope || !fields) {
-				return;
-			}
-
-			const formRoot = scope.querySelector('[x-data]');
-			const formData = formRoot ? window.Alpine.$data(formRoot) : null;
-			if (formData) {
-				if (fields.countryCode) {
-					formData.countryCode = fields.countryCode;
-				}
-				if (Object.hasOwn(fields, 'administrativeArea')) {
-					formData.administrativeArea = fields.administrativeArea;
-				}
-			}
-
-			Object.entries(fields).forEach(([name, value]) => {
-				const inputName = prefix ? `${prefix}[${name}]` : name;
-				const input = scope.querySelector(
-					`[name="${this.escapeName(inputName)}"]`
-				);
-				if (!input) {
-					return;
-				}
-
-				input.value = value;
-				const data = window.Alpine.$data(input.closest('[x-data]'));
-				if (!data) {
-					return;
-				}
-
-				if (Object.hasOwn(data, 'value')) {
-					data.value = value;
-				}
-
-				if (Object.hasOwn(data, 'modelValue')) {
-					data.modelValue = value;
-				}
-			});
-		},
-
-		applyAddressFields(addressId) {
-			const stored = this.addressFields[String(addressId)];
-			if (!stored) {
-				return;
-			}
-
-			this.$nextTick(() => {
-				const scope = this.$root.querySelector(
-					`[data-fc-address-edit="${addressId}"]`
-				);
-				this.writeAddressToScope(scope, stored);
-			});
-		},
-
-		applyDraftAddress(kind) {
-			const address =
-				kind === 'billing'
-					? this.latestBillingAddress
-					: this.latestShippingAddress;
-			if (!address) {
-				return;
-			}
-
-			const prefix = kind === 'billing' ? 'billingAddress' : 'shippingAddress';
-			const selector =
-				kind === 'billing' ? '[data-fc-new-billing]' : '[data-fc-new-shipping]';
-
-			this.$nextTick(() => {
-				const scope = this.$root.querySelector(selector);
-				this.writeAddressToScope(scope, this.addressToFields(address), prefix);
-				if (kind === 'billing') {
-					this.refreshNewBillingContent();
-				}
-			});
-		},
-
-		applyCart(cart) {
-			if (!cart || typeof cart !== 'object') {
-				return;
-			}
-
-			const previousHandle = this.shippingMethodHandle;
-			const cartHandle = cart.shippingMethodHandle || '';
-			this.syncingFromCart = true;
-
-			try {
-				if (!this.loggedIn && cart.email) {
-					this.email = cart.email;
-				}
-
-				if (Object.hasOwn(cart, 'couponCode')) {
-					const nextCode = cart.couponCode || '';
-					const keepDraft = this.couponInput !== this.couponCode;
-					this.couponCode = nextCode;
-					if (!keepDraft) {
-						this.couponInput = nextCode;
-					}
-				}
-
-				if ('shippingAddressId' in cart || cart.shippingAddress) {
-					this.cartHasShippingAddress = Boolean(
-						cart.shippingAddressId || cart.shippingAddress
-					);
-				}
-
-				const live = cart.fosterCheckout || {};
-
-				if (typeof live.shippingPreview === 'string') {
-					this.shippingPreview = live.shippingPreview;
-				}
-
-				if (cart.shippingAddress && typeof cart.shippingAddress === 'object') {
-					this.latestShippingAddress = cart.shippingAddress;
-					this.rememberAddress(
-						cart.sourceShippingAddressId,
-						cart.shippingAddress
-					);
-				}
-
-				if (cart.billingAddress && typeof cart.billingAddress === 'object') {
-					this.latestBillingAddress = cart.billingAddress;
-					this.rememberAddress(
-						cart.sourceBillingAddressId,
-						cart.billingAddress
-					);
-				}
-
-				if (Array.isArray(live.shippingMethods)) {
-					this.shippingMethods = live.shippingMethods;
-				}
-
-				const handles = this.shippingMethods.map((method) => method.handle);
-				const liveHandle =
-					typeof live.shippingMethodHandle === 'string'
-						? live.shippingMethodHandle
-						: cartHandle;
-
-				if (previousHandle && handles.includes(previousHandle)) {
-					this.shippingMethodHandle = previousHandle;
-				} else if (handles.includes(liveHandle)) {
-					this.shippingMethodHandle = liveHandle;
-				} else {
-					this.shippingMethodHandle = handles[0] || '';
-				}
-
-				if (live.totals && typeof live.totals === 'object') {
-					this.totals = {
-						discounts: [],
-						vouchers: [],
-						...live.totals,
-					};
-				}
-			} finally {
-				this.syncingFromCart = false;
-			}
-
-			this.syncPayButtons();
-
-			if (
-				previousHandle &&
-				previousHandle === this.shippingMethodHandle &&
-				previousHandle !== cartHandle &&
-				!this.shippingRestoreAttempted
-			) {
-				this.shippingRestoreAttempted = true;
-				this.queueSave(0, null, { methodOnly: true }, 'shipping');
-			}
-		},
-
-		async saveAddressBook(addressId) {
-			if (!addressId) {
-				return;
-			}
-
-			if (this.saveTimer) {
-				clearTimeout(this.saveTimer);
-				this.saveTimer = null;
-			}
-
-			const scope = this.$root.querySelector(
-				`[data-fc-address-edit="${addressId}"]`
-			);
-			const fields = {
-				action: 'users/save-address',
-				...this.collectNamedFields(scope),
-				addressId: String(addressId),
-			};
-
-			const panel =
-				parseInt(this.editBillingAddressId, 10) === parseInt(addressId, 10)
-					? 'payment'
-					: 'delivery';
-
-			this.pending += 1;
-			this.status = this.savingLabel;
-			this.statusTone = 'saving';
-			this.setPanelStatus(panel, 'saving');
-			this.syncPayButtons();
-
-			try {
-				const { response, data, isJson } = await this.postForm(
-					this.postUrl(),
-					fields
-				);
-				if (!isJson || !response.ok || data.success === false) {
-					if (isJson) {
-						this.applyErrors(data);
-					} else {
-						this.status = this.failedLabel;
-						this.statusTone = 'error';
-					}
-					this.setPanelStatus(panel, 'error');
-					return;
-				}
-
-				this.rememberAddress(addressId, null, fields, scope);
-				if (parseInt(this.shippingAddressId, 10) === parseInt(addressId, 10)) {
-					this.shippingPreview = this.addressLabels[String(addressId)];
-				}
-
-				await this.saveCart({ panel });
-				if (this.statusTone !== 'error') {
-					this.editExistingAddress = 0;
-					this.editBillingAddressId = 0;
-				} else {
-					this.setPanelStatus(panel, 'error');
-				}
-			} catch {
-				this.status = this.failedLabel;
-				this.statusTone = 'error';
-				this.setPanelStatus(panel, 'error');
-			} finally {
-				this.pending = Math.max(0, this.pending - 1);
-				this.syncPayButtons();
-			}
-		},
-
-		onPaySubmit(event) {
-			if (this.saveTimer) {
-				event.preventDefault();
-				event.stopPropagation();
-				this.saveNow();
-				return;
-			}
-
-			if (this.canPay) {
-				return;
-			}
-
-			event.preventDefault();
-			event.stopPropagation();
-		},
-
-		syncPayButtons() {
-			const form = this.$refs.paymentForm;
-			if (!form) {
-				return;
-			}
-
-			const allowed = this.canPay;
-			form.querySelectorAll('button[type="submit"]').forEach((button) => {
-				button.disabled = !allowed;
 			});
 		},
 	};

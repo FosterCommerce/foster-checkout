@@ -20,6 +20,7 @@
 {% endif %}
 
 <div
+	data-fc-field
 	x-data="SearchableSelect({
 		id: '{{ fieldId }}',
 		name: '{{ fieldName }}',
@@ -35,6 +36,7 @@
 			required: {{ required ? 'true' : 'false' }},
 		{% endif %}
 		value: '{{ value|default('') }}',
+		requiredError: {{ 'misc.required'|t('foster-checkout')|json_encode }},
 		errors: {{ errors|default([])|json_encode }},
 		success: {{ success|default([])|json_encode }}
 	})"
@@ -94,7 +96,6 @@
 				type="text"
 				x-ref="button"
 				:id="buttonId()"
-				:name="`${name}_display`"
 				:required="required && options.length > 0"
 				:value="buttonLabel === placeholder ? '' : buttonLabel"
 				:placeholder="placeholder"

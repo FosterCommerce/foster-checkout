@@ -10,6 +10,7 @@ use craft\commerce\controllers\BaseFrontEndController;
 use craft\commerce\elements\Order;
 use craft\commerce\events\ModifyCartInfoEvent;
 use craft\commerce\events\OrderNoticeEvent;
+use craft\elements\Address;
 use craft\events\DefineAddressFieldLabelEvent;
 use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
@@ -210,6 +211,8 @@ class FosterCheckout extends Plugin
 	// plugin drops out of Settings -> Plugins wherever admin changes are disallowed.
 	public bool $hasReadOnlyCpSettings = true;
 
+	private ?string $singlePageCouponCodeError = null;
+
 	#[\Override]
 	public function init(): void
 	{
@@ -349,7 +352,7 @@ class FosterCheckout extends Plugin
 		return $checkoutPath;
 	}
 
-	private function shouldAttachSinglePageCartInfo(): bool
+	private function isSinglePageJsonRequest(): bool
 	{
 		if ($this->singlePageCheckoutPath() === null) {
 			return false;
@@ -399,9 +402,30 @@ class FosterCheckout extends Plugin
 		$settings->routesChecks[] = $route;
 	}
 
+	private function allowEmptyPhoneOnSinglePageCartSave(): void
+	{
+		Event::on(
+			Address::class,
+			Model::EVENT_AFTER_VALIDATE,
+			function (Event $event): void {
+				if (! $this->isSinglePageJsonRequest()) {
+					return;
+				}
+
+				$address = $event->sender;
+				if (! $address instanceof Address || ! $address->isFieldEmpty('phone')) {
+					return;
+				}
+
+				$address->clearErrors('phone');
+			}
+		);
+	}
+
 	private function attachEventHandlers(): void
 	{
 		$this->allowPostieRatesOnSinglePageCheckout();
+		$this->allowEmptyPhoneOnSinglePageCartSave();
 
 		Event::on(
 			CraftVariable::class,
@@ -525,7 +549,7 @@ class FosterCheckout extends Plugin
 			BaseFrontEndController::class,
 			BaseFrontEndController::EVENT_MODIFY_CART_INFO,
 			function (ModifyCartInfoEvent $event): void {
-				if (! $this->shouldAttachSinglePageCartInfo()) {
+				if (! $this->isSinglePageJsonRequest()) {
 					return;
 				}
 
@@ -534,7 +558,14 @@ class FosterCheckout extends Plugin
 					return;
 				}
 
-				$event->cartInfo['fosterCheckout'] = $this->checkout->checkoutLiveState($cart);
+				$live = $this->checkout->checkoutLiveState($cart);
+
+				if ($this->singlePageCouponCodeError !== null) {
+					$live['couponCodeError'] = $this->singlePageCouponCodeError;
+					$this->singlePageCouponCodeError = null;
+				}
+
+				$event->cartInfo['fosterCheckout'] = $live;
 			}
 		);
 
@@ -543,12 +574,17 @@ class FosterCheckout extends Plugin
 		Event::on(
 			Order::class,
 			Order::EVENT_BEFORE_APPLY_ADD_NOTICE,
-			static function (OrderNoticeEvent $event): void {
+			function (OrderNoticeEvent $event): void {
 				if (! Craft::$app->getRequest()->getIsSiteRequest() || $event->orderNotice->attribute !== 'couponCode') {
 					return;
 				}
 
-				Craft::$app->getSession()->setFlash('couponCodeError', $event->orderNotice->message);
+				if ($this->isSinglePageJsonRequest()) {
+					$this->singlePageCouponCodeError = $event->orderNotice->message;
+				} else {
+					Craft::$app->getSession()->setFlash('couponCodeError', $event->orderNotice->message);
+				}
+
 				$event->isValid = false;
 			}
 		);

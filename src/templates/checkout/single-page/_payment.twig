@@ -1,10 +1,10 @@
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 
 <section
-	class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
+	class="border border-gray-250 {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
 	data-fc-panel="payment"
 >
-	<div class="flex items-center gap-3 p-4 bg-gray-200">
+	<div class="flex items-center gap-3 p-4 bg-gray-200 {{ isFlat ? '' : 'rounded-t-lg' }}">
 		<h2 class="font-semibold">
 			{{ 'payment.stepName'|t('foster-checkout') }}
 		</h2>
@@ -69,15 +69,35 @@
 		{% endif %}
 
 		<section class="relative">
-			<h3 class="mb-4 font-semibold">
+			<h3 class="mb-4 font-semibold" x-show="!paying">
 				{{ 'payment.paymentMethod'|t('foster-checkout') }}
 			</h3>
 
-			<p x-show="!canPay" x-cloak class="mb-4 text-sm text-gray-500">
+			<p x-show="!canPay && !paying" x-cloak class="mb-4 text-sm text-gray-500">
 				{{ 'checkout.payIncomplete'|t('foster-checkout') }}
 			</p>
 
-			<div :class="{ 'opacity-60': !canPay }">
+			<div
+				class="flex flex-col items-center justify-center gap-3 py-16 text-gray-500"
+				x-show="paying"
+				x-cloak
+				role="status"
+				aria-live="polite"
+			>
+				<svg
+					class="w-8 h-8 animate-spin shrink-0"
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					aria-hidden="true"
+				>
+					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+					<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+				</svg>
+				<p class="text-sm text-center" x-text="processingMessage"></p>
+			</div>
+
+			<div x-show="!paying" :class="{ 'opacity-60': !canPay }">
 				<form
 					method="POST"
 					class="grid gap-y-4 gap-x-4"
@@ -133,8 +153,10 @@
 											[&_.grid[data-cols='2']]:grid-cols-1 md:[&_.grid[data-cols='2']]:grid-cols-2
 											[&_.item]:space-y-2
 											[&_.multitext]:grid [&_.multitext]:gap-3
-											[&_.multitextrow]:grid [&_.multitextrow]:gap-3
-											[&_.multitextrow]:grid-cols-1 sm:[&_.multitextrow]:grid-cols-[2fr_1fr_1fr]
+											[&_.multitextrow]:grid [&_.multitextrow]:gap-3 [&_.multitextrow]:items-start
+											[&_.multitext>.multitextrow:first-child]:grid-cols-1
+											[&_.multitext>.multitextrow:not(:first-child)]:grid-cols-3
+											[&_.multitextrow>div]:min-w-0
 											[&_input.text]:block [&_input.text]:w-full
 											[&_input.text]:rounded-xl
 											[&_input.text]:border [&_input.text]:border-gray-300
@@ -160,9 +182,17 @@
 											hover:[&_button#paymentForm-authorizeNet-authorizeSubmit]:opacity-90
 											"
 											x-init="
-												'{{ gateway.className() }}' === 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' && initPaypalCheckout();
-												'{{ gateway.className() }}' === 'craft\\commerce\\stripe\\gateways\\PaymentIntents' && initStripe();
-												$nextTick(() => syncPayButtons())
+												{% if gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
+													$nextTick(() => initPaypal());
+												{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+													$nextTick(() => typeof initStripe === 'function' && initStripe());
+												{% endif %}
+												$nextTick(() => {
+													syncPayButtons();
+													if ($el.querySelector('[id$=authorizeSubmit]')) {
+														wrapAuthorizeHandler();
+													}
+												})
 											"
 										>
 											{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}

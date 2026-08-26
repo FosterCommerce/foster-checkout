@@ -28,6 +28,25 @@ use yii\base\InvalidConfigException;
  * Checkout service
  *
  * @phpstan-type LinksTable array<array-key, array{text: non-empty-string, url: non-empty-string}>
+ * @phpstan-type CheckoutShippingMethod array{handle: string, name: string, description: string, price: float, priceAsCurrency: string}
+ * @phpstan-type CheckoutTotals array{
+ *     itemsAsCurrency: string,
+ *     shipping: float,
+ *     shippingAsCurrency: string,
+ *     taxAsCurrency: string,
+ *     total: float,
+ *     totalAsCurrency: string,
+ *     currency: string,
+ *     discounts: list<array{name: string, amountAsCurrency: string}>,
+ *     vouchers: list<array{name: string, amountAsCurrency: string}>
+ * }
+ * @phpstan-type CheckoutLiveState array{
+ *     shippingMethods: list<CheckoutShippingMethod>,
+ *     shippingMethodHandle: string,
+ *     totals: CheckoutTotals,
+ *     shippingPreview: string,
+ *     couponCodeError?: string
+ * }
  */
 class Checkout extends Component
 {
@@ -103,7 +122,11 @@ class Checkout extends Component
 	public function jsBundle(): string
 	{
 		/** @var string $bundleUrl */
-		$bundleUrl = Craft::$app->assetManager->getPublishedUrl('@fostercheckout/web/assets/checkout/dist/js/alpine.js', true);
+		$bundleUrl = Craft::$app->assetManager->getPublishedUrl(
+			'@fostercheckout/web/assets/checkout/dist/js',
+			true,
+			'alpine.js'
+		);
 
 		return $bundleUrl;
 	}
@@ -306,19 +329,7 @@ class Checkout extends Component
 	}
 
 	/**
-	 * @return array{
-	 *     shippingMethods: list<array{handle: string, name: string, description: string, priceAsCurrency: string}>,
-	 *     shippingMethodHandle: string,
-	 *     totals: array{
-	 *         itemsAsCurrency: string,
-	 *         shippingAsCurrency: string,
-	 *         taxAsCurrency: string,
-	 *         totalAsCurrency: string,
-	 *         discounts: list<array{name: string, amountAsCurrency: string}>,
-	 *         vouchers: list<array{name: string, amountAsCurrency: string}>
-	 *     },
-	 *     shippingPreview: string
-	 * }
+	 * @return CheckoutLiveState
 	 */
 	public function checkoutLiveState(Order $cart): array
 	{
@@ -339,7 +350,7 @@ class Checkout extends Component
 
 	private function checkoutAddressPreview(?Address $address): string
 	{
-		if (! $address instanceof \craft\elements\Address) {
+		if (! $address instanceof Address) {
 			return '';
 		}
 
@@ -358,7 +369,7 @@ class Checkout extends Component
 	}
 
 	/**
-	 * @return list<array{handle: string, name: string, description: string, priceAsCurrency: string}>
+	 * @return list<CheckoutShippingMethod>
 	 */
 	private function checkoutShippingMethods(Order $cart): array
 	{
@@ -377,6 +388,7 @@ class Checkout extends Component
 				'handle' => (string) $handle,
 				'name' => Craft::t('foster-checkout', $method->name ?? (string) $handle),
 				'description' => $description !== '' ? Craft::t('foster-checkout', $description) : '',
+				'price' => (float) $method->price,
 				'priceAsCurrency' => $method->priceAsCurrency,
 			];
 		}
@@ -385,14 +397,7 @@ class Checkout extends Component
 	}
 
 	/**
-	 * @return array{
-	 *     itemsAsCurrency: string,
-	 *     shippingAsCurrency: string,
-	 *     taxAsCurrency: string,
-	 *     totalAsCurrency: string,
-	 *     discounts: list<array{name: string, amountAsCurrency: string}>,
-	 *     vouchers: list<array{name: string, amountAsCurrency: string}>
-	 * }
+	 * @return CheckoutTotals
 	 */
 	private function checkoutTotals(Order $cart): array
 	{
@@ -426,9 +431,12 @@ class Checkout extends Component
 
 		return [
 			'itemsAsCurrency' => Currency::formatAsCurrency($itemsAmount, $cart->currency),
+			'shipping' => $cart->getTotalShippingCost(),
 			'shippingAsCurrency' => $cart->totalShippingCostAsCurrency,
 			'taxAsCurrency' => $cart->totalTaxAsCurrency,
+			'total' => $cart->getTotal(),
 			'totalAsCurrency' => $cart->totalAsCurrency,
+			'currency' => (string) $cart->currency,
 			'discounts' => $discounts,
 			'vouchers' => $vouchers,
 		];
