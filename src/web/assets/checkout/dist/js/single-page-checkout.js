@@ -40,8 +40,8 @@ export const SinglePageCheckout = (props) => {
 		addressLabels: {},
 		addressFields: {},
 		shippingPreview: props.shippingPreview ?? '',
-		latestShippingAddress: null,
-		latestBillingAddress: null,
+		latestShippingAddress: props.shippingAddress ?? null,
+		latestBillingAddress: props.billingAddress ?? null,
 		shippingMethods: asList(props.shippingMethods),
 		totals: props.totals ?? {
 			itemsAsCurrency: '',
@@ -95,6 +95,7 @@ export const SinglePageCheckout = (props) => {
 		onPageShow: null,
 		originalAuthorizeHandler: null,
 		originalSendPayment: null,
+		cardHolderPrefill: { firstName: '', lastName: '' },
 
 		init() {
 			this.$watch('email', () => {
@@ -102,10 +103,14 @@ export const SinglePageCheckout = (props) => {
 					this.syncPayButtons();
 				}
 			});
-			this.$watch('shippingAddressId', () =>
-				this.onSelectionChange('delivery')
-			);
-			this.$watch('useNewAddress', () => this.onSelectionChange('delivery'));
+			this.$watch('shippingAddressId', () => {
+				this.onSelectionChange('delivery');
+				this.$nextTick(() => this.prefillAuthorizeCardHolder());
+			});
+			this.$watch('useNewAddress', () => {
+				this.onSelectionChange('delivery');
+				this.$nextTick(() => this.prefillAuthorizeCardHolder());
+			});
 			this.$watch('shippingMethodHandle', () => {
 				if (!this.syncingFromCart) {
 					this.applySelectedMethodTotals();
@@ -114,13 +119,23 @@ export const SinglePageCheckout = (props) => {
 					this.closePaypalInlineCheckout();
 				}
 			});
-			this.$watch('billingSameAsShipping', () =>
-				this.onSelectionChange('payment')
-			);
-			this.$watch('billingAddressId', () => this.onSelectionChange('payment'));
+			this.$watch('billingSameAsShipping', () => {
+				this.onSelectionChange('payment');
+				this.$nextTick(() => this.prefillAuthorizeCardHolder());
+			});
+			this.$watch('billingAddressId', () => {
+				this.onSelectionChange('payment');
+				this.$nextTick(() => this.prefillAuthorizeCardHolder());
+			});
 			this.$watch('useNewBillingAddress', () => {
 				this.onSelectionChange('payment');
-				this.$nextTick(() => this.refreshNewBillingContent());
+				this.$nextTick(() => {
+					this.refreshNewBillingContent();
+					this.prefillAuthorizeCardHolder();
+				});
+			});
+			this.$watch('gatewayId', () => {
+				this.$nextTick(() => this.prefillAuthorizeCardHolder());
 			});
 			this.$nextTick(() => this.refreshNewBillingContent());
 			this.syncPayButtons();
@@ -136,6 +151,7 @@ export const SinglePageCheckout = (props) => {
 					this.lastSaved = JSON.stringify(this.buildPayload());
 				}
 				this.bindPayOverlay();
+				this.prefillAuthorizeCardHolder();
 			});
 
 			if (!this.cartHasShippingAddress && this.shippingAddressId) {
@@ -1414,6 +1430,119 @@ export const SinglePageCheckout = (props) => {
 			}
 
 			this.syncPayButtons();
+			this.$nextTick(() => this.prefillAuthorizeCardHolder());
+		},
+
+		namePartsFromAddress(address) {
+			if (!address || typeof address !== 'object') {
+				return { firstName: '', lastName: '' };
+			}
+
+			let firstName = String(
+				address.firstName || address.givenName || ''
+			).trim();
+			let lastName = String(
+				address.lastName || address.familyName || ''
+			).trim();
+
+			if (!firstName && !lastName) {
+				const fullName = String(address.fullName || '').trim();
+				if (fullName) {
+					const parts = fullName.split(/\s+/);
+					firstName = parts[0] || '';
+					lastName = parts.slice(1).join(' ');
+				}
+			}
+
+			return { firstName, lastName };
+		},
+
+		cardHolderNameSource() {
+			if (this.billingSameAsShipping) {
+				if (this.latestShippingAddress) {
+					return this.namePartsFromAddress(this.latestShippingAddress);
+				}
+
+				if (!this.useNewAddress && this.shippingAddressId) {
+					return this.namePartsFromAddress(
+						this.addressFields[String(this.shippingAddressId)]
+					);
+				}
+
+				const scope = this.$root.querySelector('[data-fc-new-shipping]');
+				return this.namePartsFromAddress(
+					this.addressFieldsFromPayload(
+						this.collectNamedFields(scope),
+						'shippingAddress['
+					)
+				);
+			}
+
+			if (this.latestBillingAddress) {
+				return this.namePartsFromAddress(this.latestBillingAddress);
+			}
+
+			if (!this.useNewBillingAddress && this.billingAddressId) {
+				return this.namePartsFromAddress(
+					this.addressFields[String(this.billingAddressId)]
+				);
+			}
+
+			const scope = this.$root.querySelector('[data-fc-new-billing]');
+			return this.namePartsFromAddress(
+				this.addressFieldsFromPayload(
+					this.collectNamedFields(scope),
+					'billingAddress['
+				)
+			);
+		},
+
+		canReplaceCardHolderValue(input, prefilled) {
+			if (!input) {
+				return false;
+			}
+
+			const current = String(input.value || '').trim();
+			return current === '' || current === prefilled;
+		},
+
+		prefillAuthorizeCardHolder() {
+			const form = this.$refs.paymentForm;
+			if (!form) {
+				return;
+			}
+
+			const firstInput = form.querySelector('.card-holder-first-name');
+			const lastInput = form.querySelector('.card-holder-last-name');
+			if (!firstInput && !lastInput) {
+				return;
+			}
+
+			const { firstName, lastName } = this.cardHolderNameSource();
+			if (!firstName && !lastName) {
+				return;
+			}
+
+			const previous = this.cardHolderPrefill;
+			const nextPrefill = { ...previous };
+
+			if (
+				this.canReplaceCardHolderValue(firstInput, previous.firstName) &&
+				firstName
+			) {
+				firstInput.value = firstName;
+				nextPrefill.firstName = firstName;
+			}
+
+			if (
+				this.canReplaceCardHolderValue(lastInput, previous.lastName) &&
+				lastName
+			) {
+				lastInput.value = lastName;
+				nextPrefill.lastName = lastName;
+			}
+
+			this.cardHolderPrefill = nextPrefill;
 		},
 
 		async saveAddressBook(addressId) {

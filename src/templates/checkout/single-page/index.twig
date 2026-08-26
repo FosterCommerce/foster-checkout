@@ -77,6 +77,16 @@
 		hasShippingAddress: cart.shippingAddressId ? true : false,
 		couponCode: cart.couponCode ?? '',
 		shippingPreview: live.shippingPreview,
+		shippingAddress: cart.shippingAddress ? {
+			firstName: cart.shippingAddress.firstName ?? '',
+			lastName: cart.shippingAddress.lastName ?? '',
+			fullName: cart.shippingAddress.fullName ?? '',
+		} : null,
+		billingAddress: cart.billingAddress ? {
+			firstName: cart.billingAddress.firstName ?? '',
+			lastName: cart.billingAddress.lastName ?? '',
+			fullName: cart.billingAddress.fullName ?? '',
+		} : null,
 		noAddressLabel: 'misc.noAddress'|t('foster-checkout'),
 		payButtonText: 'payment.payButtonText'|t('foster-checkout'),
 		processingLabel: 'payment.processing'|t('foster-checkout'),
