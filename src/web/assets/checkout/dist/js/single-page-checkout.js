@@ -91,6 +91,7 @@ export const SinglePageCheckout = (props) => {
 		nextSave: null,
 		lastSaved: '',
 		paypalInitTimer: null,
+		paypalInvalidated: false,
 		paying: false,
 		onPageShow: null,
 		originalAuthorizeHandler: null,
@@ -115,8 +116,8 @@ export const SinglePageCheckout = (props) => {
 				if (!this.syncingFromCart) {
 					this.applySelectedMethodTotals();
 					this.syncPayButtons();
+					this.invalidatePaypalCheckout();
 					this.saveIfValid('shipping');
-					this.closePaypalInlineCheckout();
 				}
 			});
 			this.$watch('billingSameAsShipping', () => {
@@ -325,15 +326,25 @@ export const SinglePageCheckout = (props) => {
 			return isManual ? this.placingOrderLabel : this.processingLabel;
 		},
 
-		formatMoney(amount) {
-			try {
-				return new Intl.NumberFormat(undefined, {
-					style: 'currency',
-					currency: this.totals.currency || 'USD',
-				}).format(amount);
-			} catch {
+		formatAmountLikeExisting(amount) {
+			const reference =
+				this.totals.totalAsCurrency ||
+				this.totals.itemsAsCurrency ||
+				this.totals.shippingAsCurrency ||
+				'';
+			const prefixMatch = reference.match(/^[^\d-]+/);
+			const numeric = Number(amount);
+
+			if (!prefixMatch || !Number.isFinite(numeric)) {
 				return String(amount);
 			}
+
+			const formatted = Math.abs(numeric).toLocaleString('en-US', {
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2,
+			});
+
+			return `${numeric < 0 ? '-' : ''}${prefixMatch[0]}${formatted}`;
 		},
 
 		applySelectedMethodTotals() {
@@ -364,7 +375,7 @@ export const SinglePageCheckout = (props) => {
 
 			if (nextTotal !== null) {
 				totals.total = nextTotal;
-				totals.totalAsCurrency = this.formatMoney(nextTotal);
+				totals.totalAsCurrency = this.formatAmountLikeExisting(nextTotal);
 			}
 
 			this.totals = totals;
@@ -439,6 +450,7 @@ export const SinglePageCheckout = (props) => {
 				return;
 			}
 
+			this.invalidatePaypalCheckout();
 			this.saveIfValid(panel);
 		},
 
@@ -586,10 +598,12 @@ export const SinglePageCheckout = (props) => {
 
 				const payload = this.buildPayload();
 				if (JSON.stringify(payload) === this.lastSaved) {
+					this.restorePaypalIfSkipped();
 					return;
 				}
 
 				if (panel === 'delivery' && !this.deliveryNeedsSave(payload)) {
+					this.restorePaypalIfSkipped();
 					return;
 				}
 
@@ -991,11 +1005,14 @@ export const SinglePageCheckout = (props) => {
 			const panel = extra.panel || this.queuedSavePanel || 'delivery';
 			const payload = { ...extra };
 			delete payload.panel;
+			const force = Boolean(payload.force);
+			delete payload.force;
 			const saved = this.buildPayload(payload);
 			const noteName = this.$refs.orderNote?.name;
 			const savingNotes = Boolean(noteName && Object.hasOwn(payload, noteName));
 
 			if (
+				!force &&
 				Object.keys(payload).length === 0 &&
 				JSON.stringify(saved) === this.lastSaved
 			) {
@@ -1014,6 +1031,8 @@ export const SinglePageCheckout = (props) => {
 			this.status = this.savingLabel;
 			this.statusTone = 'saving';
 			this.syncPayButtons();
+
+			let cartSynced = false;
 
 			try {
 				const fields = {
@@ -1066,6 +1085,7 @@ export const SinglePageCheckout = (props) => {
 
 				const cart = data.cart || data.model || (data.data && data.data.cart);
 				this.applyCart(cart, this.shippingRateKey(saved));
+				cartSynced = true;
 
 				const couponError = this.couponRejectedMessage(saved, cart);
 				if (couponError) {
@@ -1105,6 +1125,8 @@ export const SinglePageCheckout = (props) => {
 				this.nextSave = null;
 				if (next) {
 					await this.saveCart(next);
+				} else if (this.paypalInvalidated && cartSynced) {
+					this.maybeReinitPaypalCheckout();
 				}
 			}
 		},
@@ -1116,7 +1138,7 @@ export const SinglePageCheckout = (props) => {
 			}
 
 			this.couponError = '';
-			this.closePaypalInlineCheckout();
+			this.invalidatePaypalCheckout();
 
 			return this.saveCart({
 				couponCode: code,
@@ -1127,7 +1149,7 @@ export const SinglePageCheckout = (props) => {
 		removeCoupon() {
 			this.couponInput = '';
 			this.couponError = '';
-			this.closePaypalInlineCheckout();
+			this.invalidatePaypalCheckout();
 
 			return this.saveCart({
 				couponCode: '',
@@ -1523,22 +1545,42 @@ export const SinglePageCheckout = (props) => {
 
 		cardHolderNameSource() {
 			if (this.billingSameAsShipping) {
-				if (this.latestShippingAddress) {
-					return this.namePartsFromAddress(this.latestShippingAddress);
+				if (this.useNewAddress) {
+					const scope = this.$root.querySelector('[data-fc-new-shipping]');
+					return this.namePartsFromAddress(
+						this.addressFieldsFromPayload(
+							this.collectNamedFields(scope),
+							'shippingAddress['
+						)
+					);
 				}
 
-				if (!this.useNewAddress && this.shippingAddressId) {
+				if (this.shippingAddressId) {
 					return this.namePartsFromAddress(
 						this.addressFields[String(this.shippingAddressId)]
 					);
 				}
 
-				const scope = this.$root.querySelector('[data-fc-new-shipping]');
+				if (this.latestShippingAddress) {
+					return this.namePartsFromAddress(this.latestShippingAddress);
+				}
+
+				return { firstName: '', lastName: '' };
+			}
+
+			if (this.useNewBillingAddress) {
+				const scope = this.$root.querySelector('[data-fc-new-billing]');
 				return this.namePartsFromAddress(
 					this.addressFieldsFromPayload(
 						this.collectNamedFields(scope),
-						'shippingAddress['
+						'billingAddress['
 					)
+				);
+			}
+
+			if (this.billingAddressId) {
+				return this.namePartsFromAddress(
+					this.addressFields[String(this.billingAddressId)]
 				);
 			}
 
@@ -1546,19 +1588,7 @@ export const SinglePageCheckout = (props) => {
 				return this.namePartsFromAddress(this.latestBillingAddress);
 			}
 
-			if (!this.useNewBillingAddress && this.billingAddressId) {
-				return this.namePartsFromAddress(
-					this.addressFields[String(this.billingAddressId)]
-				);
-			}
-
-			const scope = this.$root.querySelector('[data-fc-new-billing]');
-			return this.namePartsFromAddress(
-				this.addressFieldsFromPayload(
-					this.collectNamedFields(scope),
-					'billingAddress['
-				)
-			);
+			return { firstName: '', lastName: '' };
 		},
 
 		canReplaceCardHolderValue(input, prefilled) {
@@ -1633,6 +1663,16 @@ export const SinglePageCheckout = (props) => {
 					? 'payment'
 					: 'delivery';
 
+			const isCurrentShipping =
+				parseInt(this.shippingAddressId, 10) === parseInt(addressId, 10);
+			const isCurrentBilling =
+				!this.billingSameAsShipping &&
+				parseInt(this.billingAddressId, 10) === parseInt(addressId, 10);
+
+			if (isCurrentShipping || isCurrentBilling) {
+				this.invalidatePaypalCheckout();
+			}
+
 			this.pending += 1;
 			this.status = this.savingLabel;
 			this.statusTone = 'saving';
@@ -1652,6 +1692,7 @@ export const SinglePageCheckout = (props) => {
 						this.statusTone = 'error';
 					}
 					this.setPanelStatus(panel, 'error');
+					this.restorePaypalIfSkipped();
 					return;
 				}
 
@@ -1660,7 +1701,10 @@ export const SinglePageCheckout = (props) => {
 					this.shippingPreview = this.addressLabels[String(addressId)];
 				}
 
-				await this.saveCart({ panel });
+				await this.saveCart({
+					panel,
+					force: isCurrentShipping || isCurrentBilling,
+				});
 				if (this.statusTone !== 'error') {
 					this.editExistingAddress = 0;
 					this.editBillingAddressId = 0;
@@ -1671,6 +1715,7 @@ export const SinglePageCheckout = (props) => {
 				this.status = this.failedLabel;
 				this.statusTone = 'error';
 				this.setPanelStatus(panel, 'error');
+				this.restorePaypalIfSkipped();
 			} finally {
 				this.pending = Math.max(0, this.pending - 1);
 				this.syncPayButtons();
@@ -1972,14 +2017,10 @@ export const SinglePageCheckout = (props) => {
 				});
 		},
 
-		closePaypalInlineCheckout() {
+		invalidatePaypalCheckout() {
 			const wrapper = this.$root.querySelector('.paypal-rest-form');
 			const renderDiv = wrapper?.firstElementChild;
-			if (
-				!wrapper ||
-				!renderDiv ||
-				typeof window.initPaypalCheckout !== 'function'
-			) {
+			if (!wrapper || !renderDiv) {
 				return;
 			}
 
@@ -1991,7 +2032,28 @@ export const SinglePageCheckout = (props) => {
 			}
 
 			renderDiv.innerHTML = '';
-			window.initPaypalCheckout();
+			delete wrapper.dataset.fcPaypalInit;
+			this.paypalInvalidated = true;
+		},
+
+		maybeReinitPaypalCheckout() {
+			if (!this.paypalInvalidated) {
+				return;
+			}
+
+			this.paypalInvalidated = false;
+
+			if (!this.$root.querySelector('.paypal-rest-form')) {
+				return;
+			}
+
+			this.initPaypal();
+		},
+
+		restorePaypalIfSkipped() {
+			if (this.paypalInvalidated && !this.saving && !this.saveTimer) {
+				this.maybeReinitPaypalCheckout();
+			}
 		},
 
 		initPaypal(attempt = 0) {
