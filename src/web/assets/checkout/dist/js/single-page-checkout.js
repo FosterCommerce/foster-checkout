@@ -960,7 +960,9 @@ export const SinglePageCheckout = (props) => {
 				if (isJson && response.ok) {
 					this.subscribed = true;
 				}
-			} catch {}
+			} catch {
+				void 0;
+			}
 		},
 
 		applyErrors(data) {
