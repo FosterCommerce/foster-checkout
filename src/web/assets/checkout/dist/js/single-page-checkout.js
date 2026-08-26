@@ -1711,11 +1711,18 @@ export const SinglePageCheckout = (props) => {
 		closePaypalInlineCheckout() {
 			const wrapper = this.$root.querySelector('.paypal-rest-form');
 			const renderDiv = wrapper?.firstElementChild;
-			if (!wrapper || !renderDiv || typeof window.initPaypalCheckout !== 'function') {
+			if (
+				!wrapper ||
+				!renderDiv ||
+				typeof window.initPaypalCheckout !== 'function'
+			) {
 				return;
 			}
 
-			if (!renderDiv.childElementCount && !String(renderDiv.innerHTML || '').trim()) {
+			if (
+				!renderDiv.childElementCount &&
+				!String(renderDiv.innerHTML || '').trim()
+			) {
 				return;
 			}
 
