@@ -106,6 +106,7 @@ export const SinglePageCheckout = (props) => {
 				if (!this.syncingFromCart) {
 					this.applySelectedMethodTotals();
 					this.syncPayButtons();
+					this.saveIfValid('shipping');
 				}
 			});
 			this.$watch('billingSameAsShipping', () =>
@@ -455,6 +456,10 @@ export const SinglePageCheckout = (props) => {
 				this.billingAddressId
 			) {
 				return true;
+			}
+
+			if (panel === 'shipping') {
+				return Boolean(this.shippingMethodHandle);
 			}
 
 			if (panel === 'delivery') {
