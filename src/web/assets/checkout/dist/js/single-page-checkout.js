@@ -947,6 +947,26 @@ export const SinglePageCheckout = (props) => {
 			);
 		},
 
+		async subscribeToKlaviyo(saved, signal) {
+			try {
+				const { response, isJson } = await this.postForm(
+					this.postUrl(),
+					{
+						action: 'klaviyo-connect-plus/api/track',
+						email: saved.email || this.email,
+						list: saved.list,
+						subscribe: '1',
+					},
+					signal
+				);
+				if (isJson && response.ok) {
+					this.subscribed = true;
+				}
+			} catch {
+				// Cart already saved; list subscribe is best-effort.
+			}
+		},
+
 		applyErrors(data) {
 			this.status = data.message || data.error || this.failedLabel;
 			this.statusTone = 'error';
@@ -1002,17 +1022,13 @@ export const SinglePageCheckout = (props) => {
 				};
 				const trackCheckout = this.shouldTrackCheckout(saved);
 				const subscribe = this.shouldSubscribe(saved);
-				const useKlaviyo = trackCheckout || subscribe;
 
-				if (useKlaviyo) {
+				if (trackCheckout) {
 					fields.action = 'klaviyo-connect-plus/api/track';
 					fields.forward = '/commerce/cart/update-cart';
-
-					if (trackCheckout) {
-						fields['event[name]'] = 'Started Checkout';
-						fields['event[trackOrder]'] = '1';
-						fields['event[orderId]'] = String(this.cartId || '');
-					}
+					fields['event[name]'] = 'Started Checkout';
+					fields['event[trackOrder]'] = '1';
+					fields['event[orderId]'] = String(this.cartId || '');
 				}
 
 				const { response, data, isJson } = await this.postForm(
@@ -1041,7 +1057,11 @@ export const SinglePageCheckout = (props) => {
 				}
 
 				if (subscribe) {
-					this.subscribed = true;
+					if (trackCheckout) {
+						this.subscribed = true;
+					} else {
+						await this.subscribeToKlaviyo(saved, signal);
+					}
 				}
 
 				const cart = data.cart || data.model || (data.data && data.data.cart);
