@@ -2,10 +2,10 @@ import stylistic from "@stylistic/eslint-plugin";
 
 export default [
 	{
-		ignores: ["vendor/**"],
+		ignores: ["vendor/**", "src/web/assets/checkout/dist/**"],
 	},
 	{
-		files: ["src/web/assets/checkout/dist/js/*.js"],
+		files: ["src/web/assets/checkout/js/*.js"],
 		plugins: {
 			"@stylistic": stylistic,
 		},
