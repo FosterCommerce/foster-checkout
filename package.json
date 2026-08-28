@@ -4,7 +4,7 @@
 	"version": "1.0.0",
 	"main": "index.js",
 	"scripts": {
-		"build": "esbuild src/web/assets/checkout/js/main.js --bundle --format=esm --outfile=src/web/assets/checkout/dist/js/alpine.js",
+		"build": "vite build",
 		"build:check": "npm run build && git diff --exit-code -- src/web/assets/checkout/dist/js/alpine.js",
 		"lint:check": "eslint",
 		"lint:fix": "eslint --fix",
@@ -28,8 +28,8 @@
 		"@alpinejs/focus": "3.16.1",
 		"@stylistic/eslint-plugin": "^5.10.0",
 		"alpinejs": "3.16.1",
-		"esbuild": "^0.25.0",
 		"eslint": "^10.0.3",
-		"prettier": "^3.8.1"
+		"prettier": "^3.8.1",
+		"vite": "^7.0.0"
 	}
 }

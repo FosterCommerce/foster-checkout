@@ -2,7 +2,7 @@ import stylistic from "@stylistic/eslint-plugin";
 
 export default [
 	{
-		ignores: ["vendor/**", "src/web/assets/checkout/dist/**"],
+		ignores: ["vendor/**", "src/web/assets/checkout/dist/**", "vite.config.js"],
 	},
 	{
 		files: ["src/web/assets/checkout/js/*.js"],
