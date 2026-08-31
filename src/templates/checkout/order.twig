@@ -190,10 +190,11 @@
 					</div>
 				</div>
 
-				{% if order[craft.fostercheckout.settings.customerOrderNotesFieldHandle] %}
+				{% set customerOrderNotesFieldHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
+				{% if customerOrderNotesFieldHandle and order[customerOrderNotesFieldHandle] %}
 					<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
 						<h2 class="text-lg font-medium text-gray-700">Customer Note</h2>
-						{{ order[craft.fostercheckout.settings.customerOrderNotesFieldHandle]|nl2br }}
+						{{ order[customerOrderNotesFieldHandle]|nl2br }}
 					</div>
 				{% endif %}
 

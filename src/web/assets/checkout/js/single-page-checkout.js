@@ -1497,7 +1497,12 @@ export const SinglePageCheckout = (props) => {
 			}
 
 			this.syncPayButtons();
-			this.$nextTick(() => this.ensureAvailableGateway());
+			this.$nextTick(() => {
+				this.ensureAvailableGateway();
+				if (cart.email) {
+					this.retryStripeIfNeeded();
+				}
+			});
 		},
 
 		async saveAddressBook(addressId) {
@@ -1915,6 +1920,18 @@ export const SinglePageCheckout = (props) => {
 			if (this.paypalInvalidated && !this.saving && !this.saveTimer) {
 				this.maybeReinitPaypalCheckout();
 			}
+		},
+
+		retryStripeIfNeeded() {
+			const error = this.$refs.paymentForm?.querySelector(
+				'.stripe-error-message'
+			);
+			if (!error?.textContent?.trim() || typeof initStripe !== 'function') {
+				return;
+			}
+
+			error.textContent = '';
+			initStripe();
 		},
 
 		initPaypal(attempt = 0) {

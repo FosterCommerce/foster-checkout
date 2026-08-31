@@ -6268,7 +6268,12 @@ const SinglePageCheckout = (props) => {
         this.syncingFromCart = false;
       }
       this.syncPayButtons();
-      this.$nextTick(() => this.ensureAvailableGateway());
+      this.$nextTick(() => {
+        this.ensureAvailableGateway();
+        if (cart.email) {
+          this.retryStripeIfNeeded();
+        }
+      });
     },
     async saveAddressBook(addressId) {
       if (!addressId) {
@@ -6588,6 +6593,16 @@ const SinglePageCheckout = (props) => {
       if (this.paypalInvalidated && !this.saving && !this.saveTimer) {
         this.maybeReinitPaypalCheckout();
       }
+    },
+    retryStripeIfNeeded() {
+      const error2 = this.$refs.paymentForm?.querySelector(
+        ".stripe-error-message"
+      );
+      if (!error2?.textContent?.trim() || typeof initStripe !== "function") {
+        return;
+      }
+      error2.textContent = "";
+      initStripe();
     },
     initPaypal(attempt = 0) {
       if (this.paypalInitTimer) {
