@@ -1,650 +1,7135 @@
-import Alpine from 'https://esm.sh/alpinejs@3.16.1';
-import focus from 'https://esm.sh/@alpinejs/focus@3.16.1';
-import { SinglePageCheckout, isValidEmail } from './single-page-checkout.js';
+var flushPending = false;
+var flushing = false;
+var queue = [];
+var lastFlushedIndex = -1;
+var transactionActive = false;
+function scheduler(callback) {
+  queueJob(callback);
+}
+function startTransaction() {
+  transactionActive = true;
+}
+function commitTransaction() {
+  transactionActive = false;
+  queueFlush();
+}
+function queueJob(job) {
+  if (!queue.includes(job))
+    queue.push(job);
+  queueFlush();
+}
+function dequeueJob(job) {
+  let index = queue.indexOf(job);
+  if (index !== -1 && index > lastFlushedIndex)
+    queue.splice(index, 1);
+}
+function queueFlush() {
+  if (!flushing && !flushPending) {
+    if (transactionActive)
+      return;
+    flushPending = true;
+    queueMicrotask(flushJobs);
+  }
+}
+function flushJobs() {
+  flushPending = false;
+  flushing = true;
+  for (let i = 0; i < queue.length; i++) {
+    queue[i]();
+    lastFlushedIndex = i;
+  }
+  queue.length = 0;
+  lastFlushedIndex = -1;
+  flushing = false;
+}
+var reactive;
+var effect;
+var release;
+var raw;
+var shouldSchedule = true;
+function disableEffectScheduling(callback) {
+  shouldSchedule = false;
+  callback();
+  shouldSchedule = true;
+}
+function setReactivityEngine(engine) {
+  reactive = engine.reactive;
+  release = engine.release;
+  effect = (callback) => engine.effect(callback, { scheduler: (task) => {
+    if (shouldSchedule) {
+      scheduler(task);
+    } else {
+      task();
+    }
+  } });
+  raw = engine.raw;
+}
+function overrideEffect(override) {
+  effect = override;
+}
+function elementBoundEffect(el) {
+  let cleanup2 = () => {
+  };
+  let wrappedEffect = (callback) => {
+    let effectReference = effect(callback);
+    if (!el._x_effects) {
+      el._x_effects = /* @__PURE__ */ new Set();
+      el._x_runEffects = () => {
+        el._x_effects.forEach((i) => i());
+      };
+    }
+    el._x_effects.add(effectReference);
+    cleanup2 = () => {
+      if (effectReference === void 0)
+        return;
+      el._x_effects.delete(effectReference);
+      release(effectReference);
+    };
+    return effectReference;
+  };
+  return [wrappedEffect, () => {
+    cleanup2();
+  }];
+}
+function watch(getter, callback) {
+  let firstTime = true;
+  let oldValue;
+  let oldValueJSON;
+  let effectReference = effect(() => {
+    let value = getter();
+    let newJSON = JSON.stringify(value);
+    if (!firstTime) {
+      if (typeof value === "object" || value !== oldValue) {
+        let previousValue = typeof oldValue === "object" ? JSON.parse(oldValueJSON) : oldValue;
+        queueMicrotask(() => {
+          callback(value, previousValue);
+        });
+      }
+    }
+    oldValue = value;
+    oldValueJSON = newJSON;
+    firstTime = false;
+  });
+  return () => release(effectReference);
+}
+async function transaction(callback) {
+  startTransaction();
+  try {
+    await callback();
+    await Promise.resolve();
+  } finally {
+    commitTransaction();
+  }
+}
+var onAttributeAddeds = [];
+var onElRemoveds = [];
+var onElAddeds = [];
+function onElAdded(callback) {
+  onElAddeds.push(callback);
+}
+function onElRemoved(el, callback) {
+  if (typeof callback === "function") {
+    if (!el._x_cleanups)
+      el._x_cleanups = [];
+    el._x_cleanups.push(callback);
+  } else {
+    callback = el;
+    onElRemoveds.push(callback);
+  }
+}
+function onAttributesAdded(callback) {
+  onAttributeAddeds.push(callback);
+}
+function onAttributeRemoved(el, name, callback) {
+  if (!el._x_attributeCleanups)
+    el._x_attributeCleanups = {};
+  if (!el._x_attributeCleanups[name])
+    el._x_attributeCleanups[name] = [];
+  el._x_attributeCleanups[name].push(callback);
+}
+function cleanupAttributes(el, names) {
+  if (!el._x_attributeCleanups)
+    return;
+  Object.entries(el._x_attributeCleanups).forEach(([name, value]) => {
+    if (names === void 0 || names.includes(name)) {
+      value.forEach((i) => i());
+      delete el._x_attributeCleanups[name];
+    }
+  });
+}
+function cleanupElement(el) {
+  el._x_effects?.forEach(dequeueJob);
+  while (el._x_cleanups?.length)
+    el._x_cleanups.pop()();
+}
+var observer = new MutationObserver(onMutate);
+var currentlyObserving = false;
+function startObservingMutations() {
+  observer.observe(document, { subtree: true, childList: true, attributes: true, attributeOldValue: true });
+  currentlyObserving = true;
+}
+function stopObservingMutations() {
+  flushObserver();
+  observer.disconnect();
+  currentlyObserving = false;
+}
+var queuedMutations = [];
+function flushObserver() {
+  let records = observer.takeRecords();
+  queuedMutations.push(() => records.length > 0 && onMutate(records));
+  let queueLengthWhenTriggered = queuedMutations.length;
+  queueMicrotask(() => {
+    if (queuedMutations.length === queueLengthWhenTriggered) {
+      while (queuedMutations.length > 0)
+        queuedMutations.shift()();
+    }
+  });
+}
+function mutateDom(callback) {
+  if (!currentlyObserving)
+    return callback();
+  stopObservingMutations();
+  let result = callback();
+  startObservingMutations();
+  return result;
+}
+var isCollecting = false;
+var deferredMutations = [];
+function deferMutations() {
+  isCollecting = true;
+}
+function flushAndStopDeferringMutations() {
+  isCollecting = false;
+  onMutate(deferredMutations);
+  deferredMutations = [];
+}
+function onMutate(mutations) {
+  if (isCollecting) {
+    deferredMutations = deferredMutations.concat(mutations);
+    return;
+  }
+  let addedNodes = [];
+  let removedNodes = /* @__PURE__ */ new Set();
+  let addedAttributes = /* @__PURE__ */ new Map();
+  let removedAttributes = /* @__PURE__ */ new Map();
+  for (let i = 0; i < mutations.length; i++) {
+    if (mutations[i].target._x_ignoreMutationObserver)
+      continue;
+    if (mutations[i].type === "childList") {
+      mutations[i].removedNodes.forEach((node) => {
+        if (node.nodeType !== 1)
+          return;
+        if (!node._x_marker)
+          return;
+        removedNodes.add(node);
+      });
+      mutations[i].addedNodes.forEach((node) => {
+        if (node.nodeType !== 1)
+          return;
+        if (removedNodes.has(node)) {
+          removedNodes.delete(node);
+          return;
+        }
+        if (node._x_marker)
+          return;
+        addedNodes.push(node);
+      });
+    }
+    if (mutations[i].type === "attributes") {
+      let el = mutations[i].target;
+      let name = mutations[i].attributeName;
+      let oldValue = mutations[i].oldValue;
+      let add2 = () => {
+        if (!addedAttributes.has(el))
+          addedAttributes.set(el, []);
+        addedAttributes.get(el).push({ name, value: el.getAttribute(name) });
+      };
+      let remove = () => {
+        if (!removedAttributes.has(el))
+          removedAttributes.set(el, []);
+        removedAttributes.get(el).push(name);
+      };
+      if (el.hasAttribute(name) && oldValue === null) {
+        add2();
+      } else if (el.hasAttribute(name)) {
+        remove();
+        add2();
+      } else {
+        remove();
+      }
+    }
+  }
+  removedAttributes.forEach((attrs, el) => {
+    cleanupAttributes(el, attrs);
+  });
+  addedAttributes.forEach((attrs, el) => {
+    onAttributeAddeds.forEach((i) => i(el, attrs));
+  });
+  for (let node of removedNodes) {
+    if (addedNodes.some((i) => i.contains(node)))
+      continue;
+    onElRemoveds.forEach((i) => i(node));
+  }
+  for (let node of addedNodes) {
+    if (!node.isConnected)
+      continue;
+    onElAddeds.forEach((i) => i(node));
+  }
+  addedNodes = null;
+  removedNodes = null;
+  addedAttributes = null;
+  removedAttributes = null;
+}
+function scope(node) {
+  return mergeProxies(closestDataStack(node));
+}
+function addScopeToNode(node, data2, referenceNode) {
+  node._x_dataStack = [data2, ...closestDataStack(referenceNode || node)];
+  return () => {
+    node._x_dataStack = node._x_dataStack.filter((i) => i !== data2);
+  };
+}
+function closestDataStack(node) {
+  if (node._x_dataStack)
+    return node._x_dataStack;
+  if (typeof ShadowRoot === "function" && node instanceof ShadowRoot) {
+    return closestDataStack(node.host);
+  }
+  if (!node.parentNode) {
+    return [];
+  }
+  return closestDataStack(node.parentNode);
+}
+function mergeProxies(objects) {
+  return new Proxy({ objects }, mergeProxyTrap);
+}
+function keyInPrototypeChain(obj, key) {
+  if (obj === null || obj === Object.prototype)
+    return null;
+  if (Object.prototype.hasOwnProperty.call(obj, key))
+    return obj;
+  return keyInPrototypeChain(Object.getPrototypeOf(obj), key);
+}
+var mergeProxyTrap = {
+  ownKeys({ objects }) {
+    return Array.from(
+      new Set(objects.flatMap((i) => Object.keys(i)))
+    );
+  },
+  has({ objects }, name) {
+    if (name == Symbol.unscopables)
+      return false;
+    return objects.some(
+      (obj) => Object.prototype.hasOwnProperty.call(obj, name) || Reflect.has(obj, name)
+    );
+  },
+  get({ objects }, name, thisProxy) {
+    if (name == "toJSON")
+      return collapseProxies;
+    return Reflect.get(
+      objects.find(
+        (obj) => Reflect.has(obj, name)
+      ) || {},
+      name,
+      thisProxy
+    );
+  },
+  set({ objects }, name, value, thisProxy) {
+    let target;
+    for (const obj of objects) {
+      target = keyInPrototypeChain(obj, name);
+      if (target)
+        break;
+    }
+    if (!target)
+      target = objects[objects.length - 1];
+    const descriptor = Object.getOwnPropertyDescriptor(target, name);
+    if (descriptor?.set && descriptor?.get)
+      return descriptor.set.call(thisProxy, value) || true;
+    return Reflect.set(target, name, value);
+  }
+};
+function collapseProxies() {
+  let keys = Reflect.ownKeys(this);
+  return keys.reduce((acc, key) => {
+    acc[key] = Reflect.get(this, key);
+    return acc;
+  }, {});
+}
+function initInterceptors(data2, cleanup2 = () => {
+}) {
+  let isObject3 = (val) => typeof val === "object" && !Array.isArray(val) && val !== null;
+  let recurse = (obj, basePath = "") => {
+    Object.entries(Object.getOwnPropertyDescriptors(obj)).forEach(([key, { value, enumerable }]) => {
+      if (enumerable === false || value === void 0)
+        return;
+      if (typeof value === "object" && value !== null && value.__v_skip)
+        return;
+      let path = basePath === "" ? key : `${basePath}.${key}`;
+      if (typeof value === "object" && value !== null && value._x_interceptor) {
+        obj[key] = value.initialize(data2, path, key, cleanup2);
+      } else {
+        if (isObject3(value) && value !== obj && !(value instanceof Element)) {
+          recurse(value, path);
+        }
+      }
+    });
+  };
+  return recurse(data2);
+}
+function interceptor(callback, mutateObj = () => {
+}) {
+  let obj = {
+    initialValue: void 0,
+    _x_interceptor: true,
+    initialize(data2, path, key, cleanup2) {
+      return callback(this.initialValue, () => get(data2, path), (value) => set(data2, path, value), path, key, cleanup2);
+    }
+  };
+  mutateObj(obj);
+  return (initialValue) => {
+    if (typeof initialValue === "object" && initialValue !== null && initialValue._x_interceptor) {
+      let initialize = obj.initialize.bind(obj);
+      obj.initialize = (data2, path, key, cleanup2) => {
+        let innerValue = initialValue.initialize(data2, path, key, cleanup2);
+        obj.initialValue = innerValue;
+        return initialize(data2, path, key, cleanup2);
+      };
+    } else {
+      obj.initialValue = initialValue;
+    }
+    return obj;
+  };
+}
+function get(obj, path) {
+  return path.split(".").reduce((carry, segment) => carry[segment], obj);
+}
+function set(obj, path, value) {
+  if (typeof path === "string")
+    path = path.split(".");
+  if (path.length === 1)
+    obj[path[0]] = value;
+  else if (path.length === 0)
+    throw error;
+  else {
+    if (obj[path[0]])
+      return set(obj[path[0]], path.slice(1), value);
+    else {
+      obj[path[0]] = {};
+      return set(obj[path[0]], path.slice(1), value);
+    }
+  }
+}
+var magics = {};
+function magic(name, callback) {
+  magics[name] = callback;
+}
+function injectMagics(obj, el) {
+  let memoizedUtilities = getUtilities(el);
+  Object.entries(magics).forEach(([name, callback]) => {
+    Object.defineProperty(obj, `$${name}`, {
+      get() {
+        return callback(el, memoizedUtilities);
+      },
+      enumerable: false
+    });
+  });
+  return obj;
+}
+function getUtilities(el) {
+  let [utilities, cleanup2] = getElementBoundUtilities(el);
+  let utils = { interceptor, ...utilities };
+  onElRemoved(el, cleanup2);
+  return utils;
+}
+function tryCatch(el, expression, callback, ...args) {
+  try {
+    return callback(...args);
+  } catch (e) {
+    handleError(e, el, expression);
+  }
+}
+function handleError(...args) {
+  return errorHandler(...args);
+}
+var errorHandler = normalErrorHandler;
+function setErrorHandler(handler4) {
+  errorHandler = handler4;
+}
+function normalErrorHandler(error2, el, expression = void 0) {
+  error2 = Object.assign(
+    error2 ?? { message: "No error message given." },
+    { el, expression }
+  );
+  console.warn(`Alpine Expression Error: ${error2.message}
 
+${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
+  setTimeout(() => {
+    throw error2;
+  }, 0);
+}
+var shouldAutoEvaluateFunctions = true;
+function dontAutoEvaluateFunctions(callback) {
+  let cache = shouldAutoEvaluateFunctions;
+  shouldAutoEvaluateFunctions = false;
+  let result = callback();
+  shouldAutoEvaluateFunctions = cache;
+  return result;
+}
+function evaluate(el, expression, extras = {}) {
+  let result;
+  evaluateLater(el, expression)((value) => result = value, extras);
+  return result;
+}
+function evaluateLater(...args) {
+  return theEvaluatorFunction(...args);
+}
+var theEvaluatorFunction = () => {
+};
+function setEvaluator(newEvaluator) {
+  theEvaluatorFunction = newEvaluator;
+}
+var theRawEvaluatorFunction;
+function setRawEvaluator(newEvaluator) {
+  theRawEvaluatorFunction = newEvaluator;
+}
+function normalEvaluator(el, expression) {
+  let overriddenMagics = {};
+  injectMagics(overriddenMagics, el);
+  let dataStack = [overriddenMagics, ...closestDataStack(el)];
+  let evaluator = typeof expression === "function" ? generateEvaluatorFromFunction(dataStack, expression) : generateEvaluatorFromString(dataStack, expression, el);
+  return tryCatch.bind(null, el, expression, evaluator);
+}
+function generateEvaluatorFromFunction(dataStack, func) {
+  return (receiver = () => {
+  }, { scope: scope2 = {}, params = [], context } = {}) => {
+    if (!shouldAutoEvaluateFunctions) {
+      runIfTypeOfFunction(receiver, func, mergeProxies([scope2, ...dataStack]), params);
+      return;
+    }
+    let result = func.apply(mergeProxies([scope2, ...dataStack]), params);
+    runIfTypeOfFunction(receiver, result);
+  };
+}
+var evaluatorMemo = {};
+function generateFunctionFromString(expression, el) {
+  if (evaluatorMemo[expression]) {
+    return evaluatorMemo[expression];
+  }
+  let AsyncFunction = Object.getPrototypeOf(async function() {
+  }).constructor;
+  let rightSideSafeExpression = /^[\n\s]*if.*\(.*\)/.test(expression.trim()) || /^(let|const)\s/.test(expression.trim()) ? `(async()=>{ ${expression} })()` : expression;
+  const safeAsyncFunction = () => {
+    try {
+      let func2 = new AsyncFunction(
+        ["__self", "scope"],
+        `with (scope) { __self.result = ${rightSideSafeExpression} }; __self.finished = true; return __self.result;`
+      );
+      Object.defineProperty(func2, "name", {
+        value: `[Alpine] ${expression}`
+      });
+      return func2;
+    } catch (error2) {
+      handleError(error2, el, expression);
+      return Promise.resolve();
+    }
+  };
+  let func = safeAsyncFunction();
+  evaluatorMemo[expression] = func;
+  return func;
+}
+function generateEvaluatorFromString(dataStack, expression, el) {
+  let func = generateFunctionFromString(expression, el);
+  return (receiver = () => {
+  }, { scope: scope2 = {}, params = [], context } = {}) => {
+    func.result = void 0;
+    func.finished = false;
+    let completeScope = mergeProxies([scope2, ...dataStack]);
+    if (typeof func === "function") {
+      let promise = func.call(context, func, completeScope).catch((error2) => handleError(error2, el, expression));
+      if (func.finished) {
+        runIfTypeOfFunction(receiver, func.result, completeScope, params, el);
+        func.result = void 0;
+      } else {
+        promise.then((result) => {
+          runIfTypeOfFunction(receiver, result, completeScope, params, el);
+        }).catch((error2) => handleError(error2, el, expression)).finally(() => func.result = void 0);
+      }
+    }
+  };
+}
+function runIfTypeOfFunction(receiver, value, scope2, params, el) {
+  if (shouldAutoEvaluateFunctions && typeof value === "function") {
+    let result = value.apply(scope2, params);
+    if (result instanceof Promise) {
+      result.then((i) => runIfTypeOfFunction(receiver, i, scope2, params)).catch((error2) => handleError(error2, el, value));
+    } else {
+      receiver(result);
+    }
+  } else if (typeof value === "object" && value instanceof Promise) {
+    value.then((i) => receiver(i));
+  } else {
+    receiver(value);
+  }
+}
+function evaluateRaw(...args) {
+  return theRawEvaluatorFunction(...args);
+}
+function normalRawEvaluator(el, expression, extras = {}) {
+  let overriddenMagics = {};
+  injectMagics(overriddenMagics, el);
+  let dataStack = [overriddenMagics, ...closestDataStack(el)];
+  let scope2 = mergeProxies([extras.scope ?? {}, ...dataStack]);
+  let params = extras.params ?? [];
+  if (expression.includes("await")) {
+    let AsyncFunction = Object.getPrototypeOf(async function() {
+    }).constructor;
+    let rightSideSafeExpression = /^[\n\s]*if.*\(.*\)/.test(expression.trim()) || /^(let|const)\s/.test(expression.trim()) ? `(async()=>{ ${expression} })()` : expression;
+    let func = new AsyncFunction(
+      ["scope"],
+      `with (scope) { let __result = ${rightSideSafeExpression}; return __result }`
+    );
+    let result = func.call(extras.context, scope2);
+    return result;
+  } else {
+    let rightSideSafeExpression = /^[\n\s]*if.*\(.*\)/.test(expression.trim()) || /^(let|const)\s/.test(expression.trim()) ? `(()=>{ ${expression} })()` : expression;
+    let func = new Function(
+      ["scope"],
+      `with (scope) { let __result = ${rightSideSafeExpression}; return __result }`
+    );
+    let result = func.call(extras.context, scope2);
+    if (typeof result === "function" && shouldAutoEvaluateFunctions) {
+      return result.apply(scope2, params);
+    }
+    return result;
+  }
+}
+var prefixAsString = "x-";
+function prefix(subject = "") {
+  return prefixAsString + subject;
+}
+function setPrefix(newPrefix) {
+  prefixAsString = newPrefix;
+}
+var directiveHandlers = {};
+function directive(name, callback) {
+  directiveHandlers[name] = callback;
+  return {
+    before(directive2) {
+      if (!directiveHandlers[directive2]) {
+        console.warn(String.raw`Cannot find directive \`${directive2}\`. \`${name}\` will use the default order of execution`);
+        return;
+      }
+      const pos = directiveOrder.indexOf(directive2);
+      directiveOrder.splice(pos >= 0 ? pos : directiveOrder.indexOf("DEFAULT"), 0, name);
+    }
+  };
+}
+function directiveExists(name) {
+  return Object.keys(directiveHandlers).includes(name);
+}
+function directives(el, attributes, originalAttributeOverride) {
+  attributes = Array.from(attributes);
+  if (el._x_virtualDirectives) {
+    let vAttributes = Object.entries(el._x_virtualDirectives).map(([name, value]) => ({ name, value }));
+    let staticAttributes = attributesOnly(vAttributes);
+    vAttributes = vAttributes.map((attribute) => {
+      if (staticAttributes.find((attr) => attr.name === attribute.name)) {
+        return {
+          name: `x-bind:${attribute.name}`,
+          value: `"${attribute.value}"`
+        };
+      }
+      return attribute;
+    });
+    attributes = attributes.concat(vAttributes);
+  }
+  let transformedAttributeMap = {};
+  let directives2 = attributes.map(toTransformedAttributes((newName, oldName) => transformedAttributeMap[newName] = oldName)).filter(outNonAlpineAttributes).map(toParsedDirectives(transformedAttributeMap, originalAttributeOverride)).sort(byPriority);
+  return directives2.map((directive2) => {
+    return getDirectiveHandler(el, directive2);
+  });
+}
+function attributesOnly(attributes) {
+  return Array.from(attributes).map(toTransformedAttributes()).filter((attr) => !outNonAlpineAttributes(attr));
+}
+var isDeferringHandlers = false;
+var directiveHandlerStacks = /* @__PURE__ */ new Map();
+var currentHandlerStackKey = /* @__PURE__ */ Symbol();
+function deferHandlingDirectives(callback) {
+  isDeferringHandlers = true;
+  let key = /* @__PURE__ */ Symbol();
+  currentHandlerStackKey = key;
+  directiveHandlerStacks.set(key, []);
+  let flushHandlers = () => {
+    while (directiveHandlerStacks.get(key).length)
+      directiveHandlerStacks.get(key).shift()();
+    directiveHandlerStacks.delete(key);
+  };
+  let stopDeferring = () => {
+    isDeferringHandlers = false;
+    flushHandlers();
+  };
+  callback(flushHandlers);
+  stopDeferring();
+}
+function getElementBoundUtilities(el) {
+  let cleanups = [];
+  let cleanup2 = (callback) => cleanups.push(callback);
+  let [effect3, cleanupEffect] = elementBoundEffect(el);
+  cleanups.push(cleanupEffect);
+  let utilities = {
+    Alpine: alpine_default,
+    effect: effect3,
+    cleanup: cleanup2,
+    evaluateLater: evaluateLater.bind(evaluateLater, el),
+    evaluate: evaluate.bind(evaluate, el)
+  };
+  let doCleanup = () => cleanups.forEach((i) => i());
+  return [utilities, doCleanup];
+}
+function getDirectiveHandler(el, directive2) {
+  let noop = () => {
+  };
+  let handler4 = directiveHandlers[directive2.type] || noop;
+  let [utilities, cleanup2] = getElementBoundUtilities(el);
+  onAttributeRemoved(el, directive2.original, cleanup2);
+  let fullHandler = () => {
+    if (el._x_ignore || el._x_ignoreSelf)
+      return;
+    handler4.inline && handler4.inline(el, directive2, utilities);
+    handler4 = handler4.bind(handler4, el, directive2, utilities);
+    isDeferringHandlers ? directiveHandlerStacks.get(currentHandlerStackKey).push(handler4) : handler4();
+  };
+  fullHandler.runCleanups = cleanup2;
+  return fullHandler;
+}
+var startingWith = (subject, replacement) => ({ name, value }) => {
+  if (name.startsWith(subject))
+    name = name.replace(subject, replacement);
+  return { name, value };
+};
+var into = (i) => i;
+function toTransformedAttributes(callback = () => {
+}) {
+  return ({ name, value }) => {
+    let { name: newName, value: newValue } = attributeTransformers.reduce((carry, transform) => {
+      return transform(carry);
+    }, { name, value });
+    if (newName !== name)
+      callback(newName, name);
+    return { name: newName, value: newValue };
+  };
+}
+var attributeTransformers = [];
+function mapAttributes(callback) {
+  attributeTransformers.push(callback);
+}
+function outNonAlpineAttributes({ name }) {
+  return alpineAttributeRegex().test(name);
+}
+var alpineAttributeRegex = () => new RegExp(`^${prefixAsString}([^:^.]+)\\b`);
+function toParsedDirectives(transformedAttributeMap, originalAttributeOverride) {
+  return ({ name, value }) => {
+    if (name === value)
+      value = "";
+    let typeMatch = name.match(alpineAttributeRegex());
+    let valueMatch = name.match(/:([a-zA-Z0-9\-_:]+)/);
+    let modifiers = name.match(/\.[^.\]]+(?=[^\]]*$)/g) || [];
+    let original = originalAttributeOverride || transformedAttributeMap[name] || name;
+    return {
+      type: typeMatch ? typeMatch[1] : null,
+      value: valueMatch ? valueMatch[1] : null,
+      modifiers: modifiers.map((i) => i.replace(".", "")),
+      expression: value,
+      original
+    };
+  };
+}
+var DEFAULT = "DEFAULT";
+var directiveOrder = [
+  "ignore",
+  "ref",
+  "id",
+  "data",
+  "anchor",
+  "bind",
+  "init",
+  "for",
+  "model",
+  "modelable",
+  "transition",
+  "show",
+  "if",
+  DEFAULT,
+  "teleport"
+];
+function byPriority(a, b) {
+  let typeA = directiveOrder.indexOf(a.type) === -1 ? DEFAULT : a.type;
+  let typeB = directiveOrder.indexOf(b.type) === -1 ? DEFAULT : b.type;
+  return directiveOrder.indexOf(typeA) - directiveOrder.indexOf(typeB);
+}
+function dispatch(el, name, detail = {}, options = {}) {
+  return el.dispatchEvent(
+    new CustomEvent(name, {
+      detail,
+      bubbles: true,
+      // Allows events to pass the shadow DOM barrier.
+      composed: true,
+      cancelable: true,
+      // Allows overriding the default event options.
+      ...options
+    })
+  );
+}
+function walk(el, callback) {
+  if (typeof ShadowRoot === "function" && el instanceof ShadowRoot) {
+    Array.from(el.children).forEach((el2) => walk(el2, callback));
+    return;
+  }
+  let skip = false;
+  callback(el, () => skip = true);
+  if (skip)
+    return;
+  let node = el.firstElementChild;
+  while (node) {
+    walk(node, callback);
+    node = node.nextElementSibling;
+  }
+}
+function warn(message, ...args) {
+  console.warn(`Alpine Warning: ${message}`, ...args);
+}
+var started = false;
+function start() {
+  if (started)
+    warn("Alpine has already been initialized on this page. Calling Alpine.start() more than once can cause problems.");
+  started = true;
+  if (!document.body)
+    warn("Unable to initialize. Trying to load Alpine before `<body>` is available. Did you forget to add `defer` in Alpine's `<script>` tag?");
+  dispatch(document, "alpine:init");
+  dispatch(document, "alpine:initializing");
+  startObservingMutations();
+  onElAdded((el) => initTree(el, walk));
+  onElRemoved((el) => destroyTree(el));
+  onAttributesAdded((el, attrs) => {
+    directives(el, attrs).forEach((handle) => handle());
+  });
+  let outNestedComponents = (el) => !closestRoot(el.parentElement, true);
+  Array.from(document.querySelectorAll(allSelectors().join(","))).filter(outNestedComponents).forEach((el) => {
+    initTree(el);
+  });
+  dispatch(document, "alpine:initialized");
+  setTimeout(() => {
+    warnAboutMissingPlugins();
+  });
+}
+var rootSelectorCallbacks = [];
+var initSelectorCallbacks = [];
+function rootSelectors() {
+  return rootSelectorCallbacks.map((fn) => fn());
+}
+function allSelectors() {
+  return rootSelectorCallbacks.concat(initSelectorCallbacks).map((fn) => fn());
+}
+function addRootSelector(selectorCallback) {
+  rootSelectorCallbacks.push(selectorCallback);
+}
+function addInitSelector(selectorCallback) {
+  initSelectorCallbacks.push(selectorCallback);
+}
+function closestRoot(el, includeInitSelectors = false) {
+  return findClosest(el, (element) => {
+    const selectors = includeInitSelectors ? allSelectors() : rootSelectors();
+    if (selectors.some((selector) => element.matches(selector)))
+      return true;
+  });
+}
+function findClosest(el, callback) {
+  if (!el)
+    return;
+  if (callback(el))
+    return el;
+  if (el._x_teleportBack)
+    return findClosest(el._x_teleportBack, callback);
+  if (el.parentNode instanceof ShadowRoot) {
+    return findClosest(el.parentNode.host, callback);
+  }
+  if (!el.parentElement)
+    return;
+  return findClosest(el.parentElement, callback);
+}
+function isRoot(el) {
+  return rootSelectors().some((selector) => el.matches(selector));
+}
+var initInterceptors2 = [];
+function interceptInit(callback) {
+  initInterceptors2.push(callback);
+}
+var markerDispenser = 1;
+function initTree(el, walker = walk, intercept = () => {
+}) {
+  if (findClosest(el, (i) => i._x_ignore))
+    return;
+  deferHandlingDirectives(() => {
+    walker(el, (el2, skip) => {
+      if (el2._x_marker)
+        return;
+      intercept(el2, skip);
+      initInterceptors2.forEach((i) => i(el2, skip));
+      directives(el2, el2.attributes).forEach((handle) => handle());
+      if (!el2._x_ignore)
+        el2._x_marker = markerDispenser++;
+      el2._x_ignore && skip();
+    });
+  });
+}
+function destroyTree(root, walker = walk) {
+  walker(root, (el) => {
+    cleanupElement(el);
+    cleanupAttributes(el);
+    delete el._x_marker;
+  });
+}
+function warnAboutMissingPlugins() {
+  let pluginDirectives = [
+    ["ui", "dialog", ["[x-dialog], [x-popover]"]],
+    ["anchor", "anchor", ["[x-anchor]"]],
+    ["sort", "sort", ["[x-sort]"]]
+  ];
+  pluginDirectives.forEach(([plugin2, directive2, selectors]) => {
+    if (directiveExists(directive2))
+      return;
+    selectors.some((selector) => {
+      if (document.querySelector(selector)) {
+        warn(`found "${selector}", but missing ${plugin2} plugin`);
+        return true;
+      }
+    });
+  });
+}
+var tickStack = [];
+var isHolding = false;
+function nextTick(callback = () => {
+}) {
+  queueMicrotask(() => {
+    isHolding || setTimeout(() => {
+      releaseNextTicks();
+    });
+  });
+  return new Promise((res) => {
+    tickStack.push(() => {
+      callback();
+      res();
+    });
+  });
+}
+function releaseNextTicks() {
+  isHolding = false;
+  while (tickStack.length)
+    tickStack.shift()();
+}
+function holdNextTicks() {
+  isHolding = true;
+}
+function setClasses(el, value) {
+  if (Array.isArray(value)) {
+    return setClassesFromString(el, value.join(" "));
+  } else if (typeof value === "object" && value !== null) {
+    return setClassesFromObject(el, value);
+  } else if (typeof value === "function") {
+    return setClasses(el, value());
+  }
+  return setClassesFromString(el, value);
+}
+function splitClasses(classString) {
+  return classString.split(/\s/).filter(Boolean);
+}
+function setClassesFromString(el, classString) {
+  let missingClasses = (classString2) => splitClasses(classString2).filter((i) => !el.classList.contains(i)).filter(Boolean);
+  let addClassesAndReturnUndo = (classes) => {
+    el.classList.add(...classes);
+    return () => {
+      el.classList.remove(...classes);
+    };
+  };
+  classString = classString === true ? classString = "" : classString || "";
+  return addClassesAndReturnUndo(missingClasses(classString));
+}
+function setClassesFromObject(el, classObject) {
+  let forAdd = Object.entries(classObject).flatMap(([classString, bool]) => bool ? splitClasses(classString) : false).filter(Boolean);
+  let forRemove = Object.entries(classObject).flatMap(([classString, bool]) => !bool ? splitClasses(classString) : false).filter(Boolean);
+  let added = [];
+  let removed = [];
+  forRemove.forEach((i) => {
+    if (el.classList.contains(i)) {
+      el.classList.remove(i);
+      removed.push(i);
+    }
+  });
+  forAdd.forEach((i) => {
+    if (!el.classList.contains(i)) {
+      el.classList.add(i);
+      added.push(i);
+    }
+  });
+  return () => {
+    removed.forEach((i) => el.classList.add(i));
+    added.forEach((i) => el.classList.remove(i));
+  };
+}
+function setStyles(el, value) {
+  if (typeof value === "object" && value !== null) {
+    return setStylesFromObject(el, value);
+  }
+  return setStylesFromString(el, value);
+}
+function setStylesFromObject(el, value) {
+  let previousStyles = {};
+  Object.entries(value).forEach(([key, value2]) => {
+    previousStyles[key] = el.style[key];
+    if (!key.startsWith("--")) {
+      key = kebabCase(key);
+    }
+    el.style.setProperty(key, value2);
+  });
+  setTimeout(() => {
+    if (el.style.length === 0) {
+      el.removeAttribute("style");
+    }
+  });
+  return () => {
+    setStyles(el, previousStyles);
+  };
+}
+function setStylesFromString(el, value) {
+  let cache = el.getAttribute("style", value);
+  el.setAttribute("style", value);
+  return () => {
+    el.setAttribute("style", cache || "");
+  };
+}
+function kebabCase(subject) {
+  return subject.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+}
+function once(callback, fallback = () => {
+}) {
+  let called = false;
+  return function() {
+    if (!called) {
+      called = true;
+      callback.apply(this, arguments);
+    } else {
+      fallback.apply(this, arguments);
+    }
+  };
+}
+directive("transition", (el, { value, modifiers, expression }, { evaluate: evaluate2 }) => {
+  if (typeof expression === "function")
+    expression = evaluate2(expression);
+  if (expression === false)
+    return;
+  if (!expression || typeof expression === "boolean") {
+    registerTransitionsFromHelper(el, modifiers, value);
+  } else {
+    registerTransitionsFromClassString(el, expression, value);
+  }
+});
+function registerTransitionsFromClassString(el, classString, stage) {
+  registerTransitionObject(el, setClasses, "");
+  let directiveStorageMap = {
+    "enter": (classes) => {
+      el._x_transition.enter.during = classes;
+    },
+    "enter-start": (classes) => {
+      el._x_transition.enter.start = classes;
+    },
+    "enter-end": (classes) => {
+      el._x_transition.enter.end = classes;
+    },
+    "leave": (classes) => {
+      el._x_transition.leave.during = classes;
+    },
+    "leave-start": (classes) => {
+      el._x_transition.leave.start = classes;
+    },
+    "leave-end": (classes) => {
+      el._x_transition.leave.end = classes;
+    }
+  };
+  directiveStorageMap[stage](classString);
+}
+function registerTransitionsFromHelper(el, modifiers, stage) {
+  registerTransitionObject(el, setStyles);
+  let doesntSpecify = !modifiers.includes("in") && !modifiers.includes("out") && !stage;
+  let transitioningIn = doesntSpecify || modifiers.includes("in") || ["enter"].includes(stage);
+  let transitioningOut = doesntSpecify || modifiers.includes("out") || ["leave"].includes(stage);
+  if (modifiers.includes("in") && !doesntSpecify) {
+    modifiers = modifiers.filter((i, index) => index < modifiers.indexOf("out"));
+  }
+  if (modifiers.includes("out") && !doesntSpecify) {
+    modifiers = modifiers.filter((i, index) => index > modifiers.indexOf("out"));
+  }
+  let wantsAll = !modifiers.includes("opacity") && !modifiers.includes("scale");
+  let wantsOpacity = wantsAll || modifiers.includes("opacity");
+  let wantsScale = wantsAll || modifiers.includes("scale");
+  let opacityValue = wantsOpacity ? 0 : 1;
+  let scaleValue = wantsScale ? modifierValue(modifiers, "scale", 95) / 100 : 1;
+  let delay3 = modifierValue(modifiers, "delay", 0) / 1e3;
+  let origin = modifierValue(modifiers, "origin", "center");
+  let property = "opacity, transform";
+  let durationIn = modifierValue(modifiers, "duration", 150) / 1e3;
+  let durationOut = modifierValue(modifiers, "duration", 75) / 1e3;
+  let easing = `cubic-bezier(0.4, 0.0, 0.2, 1)`;
+  if (transitioningIn) {
+    el._x_transition.enter.during = {
+      transformOrigin: origin,
+      transitionDelay: `${delay3}s`,
+      transitionProperty: property,
+      transitionDuration: `${durationIn}s`,
+      transitionTimingFunction: easing
+    };
+    el._x_transition.enter.start = {
+      opacity: opacityValue,
+      transform: `scale(${scaleValue})`
+    };
+    el._x_transition.enter.end = {
+      opacity: 1,
+      transform: `scale(1)`
+    };
+  }
+  if (transitioningOut) {
+    el._x_transition.leave.during = {
+      transformOrigin: origin,
+      transitionDelay: `${delay3}s`,
+      transitionProperty: property,
+      transitionDuration: `${durationOut}s`,
+      transitionTimingFunction: easing
+    };
+    el._x_transition.leave.start = {
+      opacity: 1,
+      transform: `scale(1)`
+    };
+    el._x_transition.leave.end = {
+      opacity: opacityValue,
+      transform: `scale(${scaleValue})`
+    };
+  }
+}
+function registerTransitionObject(el, setFunction, defaultValue = {}) {
+  if (!el._x_transition)
+    el._x_transition = {
+      enter: { during: defaultValue, start: defaultValue, end: defaultValue },
+      leave: { during: defaultValue, start: defaultValue, end: defaultValue },
+      in(before = () => {
+      }, after = () => {
+      }) {
+        transition(el, setFunction, {
+          during: this.enter.during,
+          start: this.enter.start,
+          end: this.enter.end
+        }, before, after);
+      },
+      out(before = () => {
+      }, after = () => {
+      }) {
+        transition(el, setFunction, {
+          during: this.leave.during,
+          start: this.leave.start,
+          end: this.leave.end
+        }, before, after);
+      }
+    };
+}
+window.Element.prototype._x_toggleAndCascadeWithTransitions = function(el, value, show, hide) {
+  const nextTick2 = document.visibilityState === "visible" ? requestAnimationFrame : setTimeout;
+  let clickAwayCompatibleShow = () => nextTick2(show);
+  if (value) {
+    if (el._x_transition && (el._x_transition.enter || el._x_transition.leave)) {
+      el._x_transition.enter && (Object.entries(el._x_transition.enter.during).length || Object.entries(el._x_transition.enter.start).length || Object.entries(el._x_transition.enter.end).length) ? el._x_transition.in(show) : clickAwayCompatibleShow();
+    } else {
+      el._x_transition ? el._x_transition.in(show) : clickAwayCompatibleShow();
+    }
+    return;
+  }
+  el._x_hidePromise = el._x_transition ? new Promise((resolve, reject) => {
+    el._x_transition.out(() => {
+    }, () => resolve(hide));
+    el._x_transitioning && el._x_transitioning.beforeCancel(() => reject({ isFromCancelledTransition: true }));
+  }) : Promise.resolve(hide);
+  queueMicrotask(() => {
+    let closest = closestHide(el);
+    if (closest) {
+      if (!closest._x_hideChildren)
+        closest._x_hideChildren = [];
+      closest._x_hideChildren.push(el);
+    } else {
+      nextTick2(() => {
+        let hideAfterChildren = (el2) => {
+          let carry = Promise.all([
+            el2._x_hidePromise,
+            ...(el2._x_hideChildren || []).map(hideAfterChildren)
+          ]).then(([i]) => i?.());
+          delete el2._x_hidePromise;
+          delete el2._x_hideChildren;
+          return carry;
+        };
+        hideAfterChildren(el).catch((e) => {
+          if (!e.isFromCancelledTransition)
+            throw e;
+        });
+      });
+    }
+  });
+};
+function closestHide(el) {
+  let parent = el.parentNode;
+  if (!parent)
+    return;
+  return parent._x_hidePromise ? parent : closestHide(parent);
+}
+function transition(el, setFunction, { during, start: start2, end } = {}, before = () => {
+}, after = () => {
+}) {
+  if (el._x_transitioning)
+    el._x_transitioning.cancel();
+  if (Object.keys(during).length === 0 && Object.keys(start2).length === 0 && Object.keys(end).length === 0) {
+    before();
+    after();
+    return;
+  }
+  let undoStart, undoDuring, undoEnd;
+  performTransition(el, {
+    start() {
+      undoStart = setFunction(el, start2);
+    },
+    during() {
+      undoDuring = setFunction(el, during);
+    },
+    before,
+    end() {
+      undoStart();
+      undoEnd = setFunction(el, end);
+    },
+    after,
+    cleanup() {
+      undoDuring();
+      undoEnd();
+    }
+  });
+}
+function performTransition(el, stages) {
+  let interrupted, reachedBefore, reachedEnd;
+  let finish = once(() => {
+    mutateDom(() => {
+      interrupted = true;
+      if (!reachedBefore)
+        stages.before();
+      if (!reachedEnd) {
+        stages.end();
+        releaseNextTicks();
+      }
+      stages.after();
+      if (el.isConnected)
+        stages.cleanup();
+      delete el._x_transitioning;
+    });
+  });
+  el._x_transitioning = {
+    beforeCancels: [],
+    beforeCancel(callback) {
+      this.beforeCancels.push(callback);
+    },
+    cancel: once(function() {
+      while (this.beforeCancels.length) {
+        this.beforeCancels.shift()();
+      }
+      finish();
+    }),
+    finish
+  };
+  mutateDom(() => {
+    stages.start();
+    stages.during();
+  });
+  holdNextTicks();
+  requestAnimationFrame(() => {
+    if (interrupted)
+      return;
+    let duration = Number(getComputedStyle(el).transitionDuration.replace(/,.*/, "").replace("s", "")) * 1e3;
+    let delay3 = Number(getComputedStyle(el).transitionDelay.replace(/,.*/, "").replace("s", "")) * 1e3;
+    if (duration === 0)
+      duration = Number(getComputedStyle(el).animationDuration.replace("s", "")) * 1e3;
+    mutateDom(() => {
+      stages.before();
+    });
+    reachedBefore = true;
+    requestAnimationFrame(() => {
+      if (interrupted)
+        return;
+      mutateDom(() => {
+        stages.end();
+      });
+      releaseNextTicks();
+      setTimeout(el._x_transitioning.finish, duration + delay3);
+      reachedEnd = true;
+    });
+  });
+}
+function modifierValue(modifiers, key, fallback) {
+  if (modifiers.indexOf(key) === -1)
+    return fallback;
+  const rawValue = modifiers[modifiers.indexOf(key) + 1];
+  if (!rawValue)
+    return fallback;
+  if (key === "scale") {
+    if (isNaN(rawValue))
+      return fallback;
+  }
+  if (key === "duration" || key === "delay") {
+    let match = rawValue.match(/([0-9]+)ms/);
+    if (match)
+      return match[1];
+  }
+  if (key === "origin") {
+    if (["top", "right", "left", "center", "bottom"].includes(modifiers[modifiers.indexOf(key) + 2])) {
+      return [rawValue, modifiers[modifiers.indexOf(key) + 2]].join(" ");
+    }
+  }
+  return rawValue;
+}
+var isCloning = false;
+function skipDuringClone(callback, fallback = () => {
+}) {
+  return (...args) => isCloning ? fallback(...args) : callback(...args);
+}
+function onlyDuringClone(callback) {
+  return (...args) => isCloning && callback(...args);
+}
+var interceptors = [];
+function interceptClone(callback) {
+  interceptors.push(callback);
+}
+function cloneNode(from, to) {
+  interceptors.forEach((i) => i(from, to));
+  isCloning = true;
+  dontRegisterReactiveSideEffects(() => {
+    initTree(to, (el, callback) => {
+      callback(el, () => {
+      });
+    });
+  });
+  isCloning = false;
+}
+var isCloningLegacy = false;
+function clone(oldEl, newEl) {
+  if (!newEl._x_dataStack)
+    newEl._x_dataStack = oldEl._x_dataStack;
+  isCloning = true;
+  isCloningLegacy = true;
+  dontRegisterReactiveSideEffects(() => {
+    cloneTree(newEl);
+  });
+  isCloning = false;
+  isCloningLegacy = false;
+}
+function cloneTree(el) {
+  let hasRunThroughFirstEl = false;
+  let shallowWalker = (el2, callback) => {
+    walk(el2, (el3, skip) => {
+      if (hasRunThroughFirstEl && isRoot(el3))
+        return skip();
+      hasRunThroughFirstEl = true;
+      callback(el3, skip);
+    });
+  };
+  initTree(el, shallowWalker);
+}
+function dontRegisterReactiveSideEffects(callback) {
+  let cache = effect;
+  overrideEffect((callback2, el) => {
+    let storedEffect = cache(callback2);
+    release(storedEffect);
+    return () => {
+    };
+  });
+  callback();
+  overrideEffect(cache);
+}
+function bind(el, name, value, modifiers = []) {
+  if (!el._x_bindings)
+    el._x_bindings = reactive({});
+  el._x_bindings[name] = value;
+  name = modifiers.includes("camel") ? camelCase(name) : name;
+  switch (name) {
+    case "value":
+      bindInputValue(el, value);
+      break;
+    case "style":
+      bindStyles(el, value);
+      break;
+    case "class":
+      bindClasses(el, value);
+      break;
+    case "selected":
+    case "checked":
+      bindAttributeAndProperty(el, name, value);
+      break;
+    default:
+      bindAttribute(el, name, value);
+      break;
+  }
+}
+function bindInputValue(el, value) {
+  if (isRadio$1(el)) {
+    if (el.attributes.value === void 0) {
+      el.value = value;
+    }
+  } else if (isCheckbox(el)) {
+    if (Number.isInteger(value)) {
+      el.value = value;
+    } else if (!Array.isArray(value) && typeof value !== "boolean" && ![null, void 0].includes(value)) {
+      el.value = String(value);
+    } else {
+      if (Array.isArray(value)) {
+        el.checked = value.some((val) => checkedAttrLooseCompare(val, el.value));
+      } else {
+        el.checked = !!value;
+      }
+    }
+  } else if (el.tagName === "SELECT") {
+    updateSelect(el, value);
+  } else if (el.tagName === "OPTION") {
+    bindAttribute(el, "value", value);
+  } else {
+    if (el.value === value && (typeof value !== "object" || value === null))
+      return;
+    el.value = value === void 0 ? "" : value;
+  }
+}
+function bindClasses(el, value) {
+  if (el._x_undoAddedClasses)
+    el._x_undoAddedClasses();
+  el._x_undoAddedClasses = setClasses(el, value);
+}
+function bindStyles(el, value) {
+  if (el._x_undoAddedStyles)
+    el._x_undoAddedStyles();
+  el._x_undoAddedStyles = setStyles(el, value);
+}
+function bindAttributeAndProperty(el, name, value) {
+  bindAttribute(el, name, value);
+  setPropertyIfChanged(el, name, value);
+}
+function bindAttribute(el, name, value) {
+  if ([null, void 0, false].includes(value) && attributeShouldntBePreservedIfFalsy(name)) {
+    el.removeAttribute(name);
+  } else {
+    if (isBooleanAttr(name))
+      value = name;
+    if (isObjectAttr(value))
+      value = JSON.stringify(value);
+    setIfChanged(el, name, value);
+  }
+}
+function setIfChanged(el, attrName, value) {
+  if (el.getAttribute(attrName) != value) {
+    el.setAttribute(attrName, value);
+  }
+}
+function setPropertyIfChanged(el, propName, value) {
+  if (el[propName] !== value) {
+    el[propName] = value;
+  }
+}
+function updateSelect(el, value) {
+  const arrayWrappedValue = [].concat(value).map((value2) => {
+    return value2 + "";
+  });
+  Array.from(el.options).forEach((option) => {
+    option.selected = arrayWrappedValue.includes(option.value);
+  });
+}
+function camelCase(subject) {
+  return subject.toLowerCase().replace(/-(\w)/g, (match, char) => char.toUpperCase());
+}
+function checkedAttrLooseCompare(valueA, valueB) {
+  return valueA == valueB;
+}
+function safeParseBoolean(rawValue) {
+  if ([1, "1", "true", "on", "yes", true].includes(rawValue)) {
+    return true;
+  }
+  if ([0, "0", "false", "off", "no", false].includes(rawValue)) {
+    return false;
+  }
+  return rawValue ? Boolean(rawValue) : null;
+}
+var booleanAttributes = /* @__PURE__ */ new Set([
+  "allowfullscreen",
+  "async",
+  "autofocus",
+  "autoplay",
+  "checked",
+  "controls",
+  "default",
+  "defer",
+  "disabled",
+  "formnovalidate",
+  "inert",
+  "ismap",
+  "itemscope",
+  "loop",
+  "multiple",
+  "muted",
+  "nomodule",
+  "novalidate",
+  "open",
+  "playsinline",
+  "readonly",
+  "required",
+  "reversed",
+  "selected",
+  "shadowrootclonable",
+  "shadowrootdelegatesfocus",
+  "shadowrootserializable"
+]);
+function isBooleanAttr(attrName) {
+  return booleanAttributes.has(attrName);
+}
+function attributeShouldntBePreservedIfFalsy(name) {
+  return !["aria-pressed", "aria-checked", "aria-expanded", "aria-selected"].includes(name);
+}
+function isObjectAttr(value) {
+  return typeof value === "object" && value !== null;
+}
+function getBinding(el, name, fallback) {
+  if (el._x_bindings && el._x_bindings[name] !== void 0)
+    return el._x_bindings[name];
+  return getAttributeBinding(el, name, fallback);
+}
+function extractProp(el, name, fallback, extract = true) {
+  if (el._x_bindings && el._x_bindings[name] !== void 0)
+    return el._x_bindings[name];
+  if (el._x_inlineBindings && el._x_inlineBindings[name] !== void 0) {
+    let binding = el._x_inlineBindings[name];
+    binding.extract = extract;
+    return dontAutoEvaluateFunctions(() => {
+      return evaluate(el, binding.expression);
+    });
+  }
+  return getAttributeBinding(el, name, fallback);
+}
+function getAttributeBinding(el, name, fallback) {
+  let attr = el.getAttribute(name);
+  if (attr === null)
+    return typeof fallback === "function" ? fallback() : fallback;
+  if (attr === "")
+    return true;
+  if (isBooleanAttr(name)) {
+    return !![name, "true"].includes(attr);
+  }
+  return attr;
+}
+function isCheckbox(el) {
+  return el.type === "checkbox" || el.localName === "ui-checkbox" || el.localName === "ui-switch";
+}
+function isRadio$1(el) {
+  return el.type === "radio" || el.localName === "ui-radio";
+}
+function debounce(func, wait) {
+  let timeout;
+  return function() {
+    const context = this, args = arguments;
+    const later = function() {
+      timeout = null;
+      func.apply(context, args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+function throttle(func, limit) {
+  let inThrottle;
+  return function() {
+    let context = this, args = arguments;
+    if (!inThrottle) {
+      func.apply(context, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+}
+function entangle({ get: outerGet, set: outerSet }, { get: innerGet, set: innerSet }) {
+  let firstRun = true;
+  let outerHash;
+  let reference = effect(() => {
+    let outer = outerGet();
+    let inner = innerGet();
+    if (firstRun) {
+      innerSet(cloneIfObject(outer));
+      firstRun = false;
+    } else {
+      let outerHashLatest = JSON.stringify(outer);
+      let innerHashLatest = JSON.stringify(inner);
+      if (outerHashLatest !== outerHash) {
+        innerSet(cloneIfObject(outer));
+      } else if (outerHashLatest !== innerHashLatest) {
+        outerSet(cloneIfObject(inner));
+      } else ;
+    }
+    outerHash = JSON.stringify(outerGet());
+    JSON.stringify(innerGet());
+  });
+  return () => {
+    release(reference);
+  };
+}
+function cloneIfObject(value) {
+  return typeof value === "object" ? JSON.parse(JSON.stringify(value)) : value;
+}
+function plugin(callback) {
+  let callbacks = Array.isArray(callback) ? callback : [callback];
+  callbacks.forEach((i) => i(alpine_default));
+}
+var stores = {};
+var isReactive = false;
+function store(name, value) {
+  if (!isReactive) {
+    stores = reactive(stores);
+    isReactive = true;
+  }
+  if (value === void 0) {
+    return stores[name];
+  }
+  stores[name] = value;
+  if (typeof value === "object" && value !== null && value._x_interceptor) {
+    stores[name] = value.initialize(stores, name, name, () => {
+    });
+  } else {
+    initInterceptors(stores[name]);
+  }
+  if (typeof value === "object" && value !== null && value.hasOwnProperty("init") && typeof value.init === "function") {
+    stores[name].init();
+  }
+}
+function getStores() {
+  return stores;
+}
+var binds = {};
+function bind2(name, bindings) {
+  let getBindings = typeof bindings !== "function" ? () => bindings : bindings;
+  if (name instanceof Element) {
+    return applyBindingsObject(name, getBindings());
+  } else {
+    binds[name] = getBindings;
+  }
+  return () => {
+  };
+}
+function injectBindingProviders(obj) {
+  Object.entries(binds).forEach(([name, callback]) => {
+    Object.defineProperty(obj, name, {
+      get() {
+        return (...args) => {
+          return callback(...args);
+        };
+      }
+    });
+  });
+  return obj;
+}
+function applyBindingsObject(el, obj, original) {
+  let cleanupRunners = [];
+  while (cleanupRunners.length)
+    cleanupRunners.pop()();
+  let attributes = Object.entries(obj).map(([name, value]) => ({ name, value }));
+  let staticAttributes = attributesOnly(attributes);
+  attributes = attributes.map((attribute) => {
+    if (staticAttributes.find((attr) => attr.name === attribute.name)) {
+      return {
+        name: `x-bind:${attribute.name}`,
+        value: `"${attribute.value}"`
+      };
+    }
+    return attribute;
+  });
+  directives(el, attributes, original).map((handle) => {
+    cleanupRunners.push(handle.runCleanups);
+    handle();
+  });
+  return () => {
+    while (cleanupRunners.length)
+      cleanupRunners.pop()();
+  };
+}
+var datas = {};
+function data(name, callback) {
+  datas[name] = callback;
+}
+function injectDataProviders(obj, context) {
+  Object.entries(datas).forEach(([name, callback]) => {
+    Object.defineProperty(obj, name, {
+      get() {
+        return (...args) => {
+          return callback.bind(context)(...args);
+        };
+      },
+      enumerable: false
+    });
+  });
+  return obj;
+}
+var Alpine = {
+  get reactive() {
+    return reactive;
+  },
+  get release() {
+    return release;
+  },
+  get effect() {
+    return effect;
+  },
+  get raw() {
+    return raw;
+  },
+  get transaction() {
+    return transaction;
+  },
+  version: "3.16.1",
+  flushAndStopDeferringMutations,
+  dontAutoEvaluateFunctions,
+  disableEffectScheduling,
+  startObservingMutations,
+  stopObservingMutations,
+  setReactivityEngine,
+  onAttributeRemoved,
+  onAttributesAdded,
+  closestDataStack,
+  skipDuringClone,
+  onlyDuringClone,
+  addRootSelector,
+  addInitSelector,
+  setErrorHandler,
+  interceptClone,
+  addScopeToNode,
+  deferMutations,
+  mapAttributes,
+  evaluateLater,
+  interceptInit,
+  initInterceptors,
+  injectMagics,
+  setEvaluator,
+  setRawEvaluator,
+  mergeProxies,
+  extractProp,
+  findClosest,
+  onElRemoved,
+  closestRoot,
+  destroyTree,
+  interceptor,
+  // INTERNAL: not public API and is subject to change without major release.
+  transition,
+  // INTERNAL
+  setStyles,
+  // INTERNAL
+  mutateDom,
+  directive,
+  entangle,
+  throttle,
+  debounce,
+  evaluate,
+  evaluateRaw,
+  initTree,
+  nextTick,
+  prefixed: prefix,
+  prefix: setPrefix,
+  plugin,
+  magic,
+  store,
+  start,
+  clone,
+  // INTERNAL
+  cloneNode,
+  // INTERNAL
+  bound: getBinding,
+  $data: scope,
+  watch,
+  walk,
+  data,
+  bind: bind2
+};
+var alpine_default = Alpine;
+function makeMap(str, expectsLowerCase) {
+  const map = /* @__PURE__ */ Object.create(null);
+  const list = str.split(",");
+  for (let i = 0; i < list.length; i++) {
+    map[list[i]] = true;
+  }
+  return (val) => !!map[val];
+}
+var EMPTY_OBJ = Object.freeze({});
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+var hasOwn = (val, key) => hasOwnProperty.call(val, key);
+var isArray = Array.isArray;
+var isMap = (val) => toTypeString(val) === "[object Map]";
+var isString = (val) => typeof val === "string";
+var isSymbol = (val) => typeof val === "symbol";
+var isObject = (val) => val !== null && typeof val === "object";
+var objectToString = Object.prototype.toString;
+var toTypeString = (value) => objectToString.call(value);
+var toRawType = (value) => {
+  return toTypeString(value).slice(8, -1);
+};
+var isIntegerKey = (key) => isString(key) && key !== "NaN" && key[0] !== "-" && "" + parseInt(key, 10) === key;
+var cacheStringFunction = (fn) => {
+  const cache = /* @__PURE__ */ Object.create(null);
+  return (str) => {
+    const hit = cache[str];
+    return hit || (cache[str] = fn(str));
+  };
+};
+var capitalize = cacheStringFunction((str) => str.charAt(0).toUpperCase() + str.slice(1));
+var hasChanged = (value, oldValue) => value !== oldValue && (value === value || oldValue === oldValue);
+var targetMap = /* @__PURE__ */ new WeakMap();
+var effectStack = [];
+var activeEffect;
+var ITERATE_KEY = /* @__PURE__ */ Symbol("iterate");
+var MAP_KEY_ITERATE_KEY = /* @__PURE__ */ Symbol("Map key iterate");
+function isEffect(fn) {
+  return fn && fn._isEffect === true;
+}
+function effect2(fn, options = EMPTY_OBJ) {
+  if (isEffect(fn)) {
+    fn = fn.raw;
+  }
+  const effect3 = createReactiveEffect(fn, options);
+  if (!options.lazy) {
+    effect3();
+  }
+  return effect3;
+}
+function stop(effect3) {
+  if (effect3.active) {
+    cleanup(effect3);
+    if (effect3.options.onStop) {
+      effect3.options.onStop();
+    }
+    effect3.active = false;
+  }
+}
+var uid = 0;
+function createReactiveEffect(fn, options) {
+  const effect3 = function reactiveEffect() {
+    if (!effect3.active) {
+      return fn();
+    }
+    if (!effectStack.includes(effect3)) {
+      cleanup(effect3);
+      try {
+        enableTracking();
+        effectStack.push(effect3);
+        activeEffect = effect3;
+        return fn();
+      } finally {
+        effectStack.pop();
+        resetTracking();
+        activeEffect = effectStack[effectStack.length - 1];
+      }
+    }
+  };
+  effect3.id = uid++;
+  effect3.allowRecurse = !!options.allowRecurse;
+  effect3._isEffect = true;
+  effect3.active = true;
+  effect3.raw = fn;
+  effect3.deps = [];
+  effect3.options = options;
+  return effect3;
+}
+function cleanup(effect3) {
+  const { deps } = effect3;
+  if (deps.length) {
+    for (let i = 0; i < deps.length; i++) {
+      deps[i].delete(effect3);
+    }
+    deps.length = 0;
+  }
+}
+var shouldTrack = true;
+var trackStack = [];
+function pauseTracking() {
+  trackStack.push(shouldTrack);
+  shouldTrack = false;
+}
+function enableTracking() {
+  trackStack.push(shouldTrack);
+  shouldTrack = true;
+}
+function resetTracking() {
+  const last = trackStack.pop();
+  shouldTrack = last === void 0 ? true : last;
+}
+function track(target, type, key) {
+  if (!shouldTrack || activeEffect === void 0) {
+    return;
+  }
+  let depsMap = targetMap.get(target);
+  if (!depsMap) {
+    targetMap.set(target, depsMap = /* @__PURE__ */ new Map());
+  }
+  let dep = depsMap.get(key);
+  if (!dep) {
+    depsMap.set(key, dep = /* @__PURE__ */ new Set());
+  }
+  if (!dep.has(activeEffect)) {
+    dep.add(activeEffect);
+    activeEffect.deps.push(dep);
+    if (activeEffect.options.onTrack) {
+      activeEffect.options.onTrack({
+        effect: activeEffect,
+        target,
+        type,
+        key
+      });
+    }
+  }
+}
+function trigger(target, type, key, newValue, oldValue, oldTarget) {
+  const depsMap = targetMap.get(target);
+  if (!depsMap) {
+    return;
+  }
+  const effects = /* @__PURE__ */ new Set();
+  const add2 = (effectsToAdd) => {
+    if (effectsToAdd) {
+      effectsToAdd.forEach((effect3) => {
+        if (effect3 !== activeEffect || effect3.allowRecurse) {
+          effects.add(effect3);
+        }
+      });
+    }
+  };
+  if (type === "clear") {
+    depsMap.forEach(add2);
+  } else if (key === "length" && isArray(target)) {
+    depsMap.forEach((dep, key2) => {
+      if (key2 === "length" || key2 >= newValue) {
+        add2(dep);
+      }
+    });
+  } else {
+    if (key !== void 0) {
+      add2(depsMap.get(key));
+    }
+    switch (type) {
+      case "add":
+        if (!isArray(target)) {
+          add2(depsMap.get(ITERATE_KEY));
+          if (isMap(target)) {
+            add2(depsMap.get(MAP_KEY_ITERATE_KEY));
+          }
+        } else if (isIntegerKey(key)) {
+          add2(depsMap.get("length"));
+        }
+        break;
+      case "delete":
+        if (!isArray(target)) {
+          add2(depsMap.get(ITERATE_KEY));
+          if (isMap(target)) {
+            add2(depsMap.get(MAP_KEY_ITERATE_KEY));
+          }
+        }
+        break;
+      case "set":
+        if (isMap(target)) {
+          add2(depsMap.get(ITERATE_KEY));
+        }
+        break;
+    }
+  }
+  const run = (effect3) => {
+    if (effect3.options.onTrigger) {
+      effect3.options.onTrigger({
+        effect: effect3,
+        target,
+        key,
+        type,
+        newValue,
+        oldValue,
+        oldTarget
+      });
+    }
+    if (effect3.options.scheduler) {
+      effect3.options.scheduler(effect3);
+    } else {
+      effect3();
+    }
+  };
+  effects.forEach(run);
+}
+var isNonTrackableKeys = /* @__PURE__ */ makeMap(`__proto__,__v_isRef,__isVue`);
+var builtInSymbols = new Set(Object.getOwnPropertyNames(Symbol).map((key) => Symbol[key]).filter(isSymbol));
+var get2 = /* @__PURE__ */ createGetter();
+var readonlyGet = /* @__PURE__ */ createGetter(true);
+var arrayInstrumentations = /* @__PURE__ */ createArrayInstrumentations();
+function createArrayInstrumentations() {
+  const instrumentations = {};
+  ["includes", "indexOf", "lastIndexOf"].forEach((key) => {
+    instrumentations[key] = function(...args) {
+      const arr = toRaw(this);
+      for (let i = 0, l = this.length; i < l; i++) {
+        track(arr, "get", i + "");
+      }
+      const res = arr[key](...args);
+      if (res === -1 || res === false) {
+        return arr[key](...args.map(toRaw));
+      } else {
+        return res;
+      }
+    };
+  });
+  ["push", "pop", "shift", "unshift", "splice"].forEach((key) => {
+    instrumentations[key] = function(...args) {
+      pauseTracking();
+      const res = toRaw(this)[key].apply(this, args);
+      resetTracking();
+      return res;
+    };
+  });
+  return instrumentations;
+}
+function createGetter(isReadonly = false, shallow = false) {
+  return function get3(target, key, receiver) {
+    if (key === "__v_isReactive") {
+      return !isReadonly;
+    } else if (key === "__v_isReadonly") {
+      return isReadonly;
+    } else if (key === "__v_raw" && receiver === (isReadonly ? shallow ? shallowReadonlyMap : readonlyMap : shallow ? shallowReactiveMap : reactiveMap).get(target)) {
+      return target;
+    }
+    const targetIsArray = isArray(target);
+    if (!isReadonly && targetIsArray && hasOwn(arrayInstrumentations, key)) {
+      return Reflect.get(arrayInstrumentations, key, receiver);
+    }
+    const res = Reflect.get(target, key, receiver);
+    if (isSymbol(key) ? builtInSymbols.has(key) : isNonTrackableKeys(key)) {
+      return res;
+    }
+    if (!isReadonly) {
+      track(target, "get", key);
+    }
+    if (shallow) {
+      return res;
+    }
+    if (isRef(res)) {
+      const shouldUnwrap = !targetIsArray || !isIntegerKey(key);
+      return shouldUnwrap ? res.value : res;
+    }
+    if (isObject(res)) {
+      return isReadonly ? readonly(res) : reactive2(res);
+    }
+    return res;
+  };
+}
+var set2 = /* @__PURE__ */ createSetter();
+function createSetter(shallow = false) {
+  return function set3(target, key, value, receiver) {
+    let oldValue = target[key];
+    if (!shallow) {
+      value = toRaw(value);
+      oldValue = toRaw(oldValue);
+      if (!isArray(target) && isRef(oldValue) && !isRef(value)) {
+        oldValue.value = value;
+        return true;
+      }
+    }
+    const hadKey = isArray(target) && isIntegerKey(key) ? Number(key) < target.length : hasOwn(target, key);
+    const result = Reflect.set(target, key, value, receiver);
+    if (target === toRaw(receiver)) {
+      if (!hadKey) {
+        trigger(target, "add", key, value);
+      } else if (hasChanged(value, oldValue)) {
+        trigger(target, "set", key, value, oldValue);
+      }
+    }
+    return result;
+  };
+}
+function deleteProperty(target, key) {
+  const hadKey = hasOwn(target, key);
+  const oldValue = target[key];
+  const result = Reflect.deleteProperty(target, key);
+  if (result && hadKey) {
+    trigger(target, "delete", key, void 0, oldValue);
+  }
+  return result;
+}
+function has(target, key) {
+  const result = Reflect.has(target, key);
+  if (!isSymbol(key) || !builtInSymbols.has(key)) {
+    track(target, "has", key);
+  }
+  return result;
+}
+function ownKeys$1(target) {
+  track(target, "iterate", isArray(target) ? "length" : ITERATE_KEY);
+  return Reflect.ownKeys(target);
+}
+var mutableHandlers = {
+  get: get2,
+  set: set2,
+  deleteProperty,
+  has,
+  ownKeys: ownKeys$1
+};
+var readonlyHandlers = {
+  get: readonlyGet,
+  set(target, key) {
+    {
+      console.warn(`Set operation on key "${String(key)}" failed: target is readonly.`, target);
+    }
+    return true;
+  },
+  deleteProperty(target, key) {
+    {
+      console.warn(`Delete operation on key "${String(key)}" failed: target is readonly.`, target);
+    }
+    return true;
+  }
+};
+var toReactive = (value) => isObject(value) ? reactive2(value) : value;
+var toReadonly = (value) => isObject(value) ? readonly(value) : value;
+var toShallow = (value) => value;
+var getProto = (v) => Reflect.getPrototypeOf(v);
+function get$1(target, key, isReadonly = false, isShallow = false) {
+  target = target[
+    "__v_raw"
+    /* RAW */
+  ];
+  const rawTarget = toRaw(target);
+  const rawKey = toRaw(key);
+  if (key !== rawKey) {
+    !isReadonly && track(rawTarget, "get", key);
+  }
+  !isReadonly && track(rawTarget, "get", rawKey);
+  const { has: has2 } = getProto(rawTarget);
+  const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive;
+  if (has2.call(rawTarget, key)) {
+    return wrap(target.get(key));
+  } else if (has2.call(rawTarget, rawKey)) {
+    return wrap(target.get(rawKey));
+  } else if (target !== rawTarget) {
+    target.get(key);
+  }
+}
+function has$1(key, isReadonly = false) {
+  const target = this[
+    "__v_raw"
+    /* RAW */
+  ];
+  const rawTarget = toRaw(target);
+  const rawKey = toRaw(key);
+  if (key !== rawKey) {
+    !isReadonly && track(rawTarget, "has", key);
+  }
+  !isReadonly && track(rawTarget, "has", rawKey);
+  return key === rawKey ? target.has(key) : target.has(key) || target.has(rawKey);
+}
+function size(target, isReadonly = false) {
+  target = target[
+    "__v_raw"
+    /* RAW */
+  ];
+  !isReadonly && track(toRaw(target), "iterate", ITERATE_KEY);
+  return Reflect.get(target, "size", target);
+}
+function add(value) {
+  value = toRaw(value);
+  const target = toRaw(this);
+  const proto = getProto(target);
+  const hadKey = proto.has.call(target, value);
+  if (!hadKey) {
+    target.add(value);
+    trigger(target, "add", value, value);
+  }
+  return this;
+}
+function set$1(key, value) {
+  value = toRaw(value);
+  const target = toRaw(this);
+  const { has: has2, get: get3 } = getProto(target);
+  let hadKey = has2.call(target, key);
+  if (!hadKey) {
+    key = toRaw(key);
+    hadKey = has2.call(target, key);
+  } else {
+    checkIdentityKeys(target, has2, key);
+  }
+  const oldValue = get3.call(target, key);
+  target.set(key, value);
+  if (!hadKey) {
+    trigger(target, "add", key, value);
+  } else if (hasChanged(value, oldValue)) {
+    trigger(target, "set", key, value, oldValue);
+  }
+  return this;
+}
+function deleteEntry(key) {
+  const target = toRaw(this);
+  const { has: has2, get: get3 } = getProto(target);
+  let hadKey = has2.call(target, key);
+  if (!hadKey) {
+    key = toRaw(key);
+    hadKey = has2.call(target, key);
+  } else {
+    checkIdentityKeys(target, has2, key);
+  }
+  const oldValue = get3 ? get3.call(target, key) : void 0;
+  const result = target.delete(key);
+  if (hadKey) {
+    trigger(target, "delete", key, void 0, oldValue);
+  }
+  return result;
+}
+function clear() {
+  const target = toRaw(this);
+  const hadItems = target.size !== 0;
+  const oldTarget = isMap(target) ? new Map(target) : new Set(target);
+  const result = target.clear();
+  if (hadItems) {
+    trigger(target, "clear", void 0, void 0, oldTarget);
+  }
+  return result;
+}
+function createForEach(isReadonly, isShallow) {
+  return function forEach(callback, thisArg) {
+    const observed = this;
+    const target = observed[
+      "__v_raw"
+      /* RAW */
+    ];
+    const rawTarget = toRaw(target);
+    const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive;
+    !isReadonly && track(rawTarget, "iterate", ITERATE_KEY);
+    return target.forEach((value, key) => {
+      return callback.call(thisArg, wrap(value), wrap(key), observed);
+    });
+  };
+}
+function createIterableMethod(method, isReadonly, isShallow) {
+  return function(...args) {
+    const target = this[
+      "__v_raw"
+      /* RAW */
+    ];
+    const rawTarget = toRaw(target);
+    const targetIsMap = isMap(rawTarget);
+    const isPair = method === "entries" || method === Symbol.iterator && targetIsMap;
+    const isKeyOnly = method === "keys" && targetIsMap;
+    const innerIterator = target[method](...args);
+    const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive;
+    !isReadonly && track(rawTarget, "iterate", isKeyOnly ? MAP_KEY_ITERATE_KEY : ITERATE_KEY);
+    return {
+      // iterator protocol
+      next() {
+        const { value, done } = innerIterator.next();
+        return done ? { value, done } : {
+          value: isPair ? [wrap(value[0]), wrap(value[1])] : wrap(value),
+          done
+        };
+      },
+      // iterable protocol
+      [Symbol.iterator]() {
+        return this;
+      }
+    };
+  };
+}
+function createReadonlyMethod(type) {
+  return function(...args) {
+    {
+      const key = args[0] ? `on key "${args[0]}" ` : ``;
+      console.warn(`${capitalize(type)} operation ${key}failed: target is readonly.`, toRaw(this));
+    }
+    return type === "delete" ? false : this;
+  };
+}
+function createInstrumentations() {
+  const mutableInstrumentations2 = {
+    get(key) {
+      return get$1(this, key);
+    },
+    get size() {
+      return size(this);
+    },
+    has: has$1,
+    add,
+    set: set$1,
+    delete: deleteEntry,
+    clear,
+    forEach: createForEach(false, false)
+  };
+  const shallowInstrumentations2 = {
+    get(key) {
+      return get$1(this, key, false, true);
+    },
+    get size() {
+      return size(this);
+    },
+    has: has$1,
+    add,
+    set: set$1,
+    delete: deleteEntry,
+    clear,
+    forEach: createForEach(false, true)
+  };
+  const readonlyInstrumentations2 = {
+    get(key) {
+      return get$1(this, key, true);
+    },
+    get size() {
+      return size(this, true);
+    },
+    has(key) {
+      return has$1.call(this, key, true);
+    },
+    add: createReadonlyMethod(
+      "add"
+      /* ADD */
+    ),
+    set: createReadonlyMethod(
+      "set"
+      /* SET */
+    ),
+    delete: createReadonlyMethod(
+      "delete"
+      /* DELETE */
+    ),
+    clear: createReadonlyMethod(
+      "clear"
+      /* CLEAR */
+    ),
+    forEach: createForEach(true, false)
+  };
+  const shallowReadonlyInstrumentations2 = {
+    get(key) {
+      return get$1(this, key, true, true);
+    },
+    get size() {
+      return size(this, true);
+    },
+    has(key) {
+      return has$1.call(this, key, true);
+    },
+    add: createReadonlyMethod(
+      "add"
+      /* ADD */
+    ),
+    set: createReadonlyMethod(
+      "set"
+      /* SET */
+    ),
+    delete: createReadonlyMethod(
+      "delete"
+      /* DELETE */
+    ),
+    clear: createReadonlyMethod(
+      "clear"
+      /* CLEAR */
+    ),
+    forEach: createForEach(true, true)
+  };
+  const iteratorMethods = ["keys", "values", "entries", Symbol.iterator];
+  iteratorMethods.forEach((method) => {
+    mutableInstrumentations2[method] = createIterableMethod(method, false, false);
+    readonlyInstrumentations2[method] = createIterableMethod(method, true, false);
+    shallowInstrumentations2[method] = createIterableMethod(method, false, true);
+    shallowReadonlyInstrumentations2[method] = createIterableMethod(method, true, true);
+  });
+  return [
+    mutableInstrumentations2,
+    readonlyInstrumentations2,
+    shallowInstrumentations2,
+    shallowReadonlyInstrumentations2
+  ];
+}
+var [mutableInstrumentations, readonlyInstrumentations] = /* @__PURE__ */ createInstrumentations();
+function createInstrumentationGetter(isReadonly, shallow) {
+  const instrumentations = isReadonly ? readonlyInstrumentations : mutableInstrumentations;
+  return (target, key, receiver) => {
+    if (key === "__v_isReactive") {
+      return !isReadonly;
+    } else if (key === "__v_isReadonly") {
+      return isReadonly;
+    } else if (key === "__v_raw") {
+      return target;
+    }
+    return Reflect.get(hasOwn(instrumentations, key) && key in target ? instrumentations : target, key, receiver);
+  };
+}
+var mutableCollectionHandlers = {
+  get: /* @__PURE__ */ createInstrumentationGetter(false)
+};
+var readonlyCollectionHandlers = {
+  get: /* @__PURE__ */ createInstrumentationGetter(true)
+};
+function checkIdentityKeys(target, has2, key) {
+  const rawKey = toRaw(key);
+  if (rawKey !== key && has2.call(target, rawKey)) {
+    const type = toRawType(target);
+    console.warn(`Reactive ${type} contains both the raw and reactive versions of the same object${type === `Map` ? ` as keys` : ``}, which can lead to inconsistencies. Avoid differentiating between the raw and reactive versions of an object and only use the reactive version if possible.`);
+  }
+}
+var reactiveMap = /* @__PURE__ */ new WeakMap();
+var shallowReactiveMap = /* @__PURE__ */ new WeakMap();
+var readonlyMap = /* @__PURE__ */ new WeakMap();
+var shallowReadonlyMap = /* @__PURE__ */ new WeakMap();
+function targetTypeMap(rawType) {
+  switch (rawType) {
+    case "Object":
+    case "Array":
+      return 1;
+    case "Map":
+    case "Set":
+    case "WeakMap":
+    case "WeakSet":
+      return 2;
+    default:
+      return 0;
+  }
+}
+function getTargetType(value) {
+  return value[
+    "__v_skip"
+    /* SKIP */
+  ] || !Object.isExtensible(value) ? 0 : targetTypeMap(toRawType(value));
+}
+function reactive2(target) {
+  if (target && target[
+    "__v_isReadonly"
+    /* IS_READONLY */
+  ]) {
+    return target;
+  }
+  return createReactiveObject(target, false, mutableHandlers, mutableCollectionHandlers, reactiveMap);
+}
+function readonly(target) {
+  return createReactiveObject(target, true, readonlyHandlers, readonlyCollectionHandlers, readonlyMap);
+}
+function createReactiveObject(target, isReadonly, baseHandlers, collectionHandlers, proxyMap) {
+  if (!isObject(target)) {
+    {
+      console.warn(`value cannot be made reactive: ${String(target)}`);
+    }
+    return target;
+  }
+  if (target[
+    "__v_raw"
+    /* RAW */
+  ] && !(isReadonly && target[
+    "__v_isReactive"
+    /* IS_REACTIVE */
+  ])) {
+    return target;
+  }
+  const existingProxy = proxyMap.get(target);
+  if (existingProxy) {
+    return existingProxy;
+  }
+  const targetType = getTargetType(target);
+  if (targetType === 0) {
+    return target;
+  }
+  const proxy = new Proxy(target, targetType === 2 ? collectionHandlers : baseHandlers);
+  proxyMap.set(target, proxy);
+  return proxy;
+}
+function toRaw(observed) {
+  return observed && toRaw(observed[
+    "__v_raw"
+    /* RAW */
+  ]) || observed;
+}
+function isRef(r) {
+  return Boolean(r && r.__v_isRef === true);
+}
+magic("nextTick", () => nextTick);
+magic("dispatch", (el) => dispatch.bind(dispatch, el));
+magic("watch", (el, { evaluateLater: evaluateLater2, cleanup: cleanup2 }) => (key, callback) => {
+  let evaluate2 = evaluateLater2(key);
+  let getter = () => {
+    let value;
+    evaluate2((i) => value = i);
+    return value;
+  };
+  let unwatch = watch(getter, callback);
+  cleanup2(unwatch);
+});
+magic("store", getStores);
+magic("data", (el) => scope(el));
+magic("root", (el) => closestRoot(el));
+magic("refs", (el) => {
+  if (el._x_refs_proxy)
+    return el._x_refs_proxy;
+  el._x_refs_proxy = mergeProxies(getArrayOfRefObject(el));
+  return el._x_refs_proxy;
+});
+function getArrayOfRefObject(el) {
+  let refObjects = [];
+  findClosest(el, (i) => {
+    if (i._x_refs)
+      refObjects.push(i._x_refs);
+  });
+  return refObjects;
+}
+var globalIdMemo = {};
+function findAndIncrementId(name) {
+  if (!globalIdMemo[name])
+    globalIdMemo[name] = 0;
+  return ++globalIdMemo[name];
+}
+function closestIdRoot(el, name) {
+  return findClosest(el, (element) => {
+    if (element._x_ids && element._x_ids[name])
+      return true;
+  });
+}
+function setIdRoot(el, name) {
+  if (!el._x_ids)
+    el._x_ids = {};
+  if (!el._x_ids[name])
+    el._x_ids[name] = findAndIncrementId(name);
+}
+magic("id", (el, { cleanup: cleanup2 }) => (name, key = null) => {
+  let cacheKey = `${name}${key ? `-${key}` : ""}`;
+  return cacheIdByNameOnElement(el, cacheKey, cleanup2, () => {
+    let root = closestIdRoot(el, name);
+    let id = root ? root._x_ids[name] : findAndIncrementId(name);
+    return key ? `${name}-${id}-${key}` : `${name}-${id}`;
+  });
+});
+interceptClone((from, to) => {
+  if (from._x_id) {
+    to._x_id = from._x_id;
+  }
+});
+function cacheIdByNameOnElement(el, cacheKey, cleanup2, callback) {
+  if (!el._x_id)
+    el._x_id = {};
+  if (el._x_id[cacheKey])
+    return el._x_id[cacheKey];
+  let output = callback();
+  el._x_id[cacheKey] = output;
+  cleanup2(() => {
+    delete el._x_id[cacheKey];
+  });
+  return output;
+}
+magic("el", (el) => el);
+warnMissingPluginMagic("Focus", "focus", "focus");
+warnMissingPluginMagic("Persist", "persist", "persist");
+function warnMissingPluginMagic(name, magicName, slug) {
+  magic(magicName, (el) => warn(`You can't use [$${magicName}] without first installing the "${name}" plugin here: https://alpinejs.dev/plugins/${slug}`, el));
+}
+directive("modelable", (el, { expression }, { effect: effect3, evaluateLater: evaluateLater2, cleanup: cleanup2 }) => {
+  let func = evaluateLater2(expression);
+  let innerGet = () => {
+    let result;
+    func((i) => result = i);
+    return result;
+  };
+  let evaluateInnerSet = evaluateLater2(`${expression} = __placeholder`);
+  let innerSet = (val) => evaluateInnerSet(() => {
+  }, { scope: { "__placeholder": val } });
+  let initialValue = innerGet();
+  innerSet(initialValue);
+  queueMicrotask(() => {
+    if (!el._x_model)
+      return;
+    el._x_removeModelListeners["default"]();
+    let outerGet = el._x_model.get;
+    let outerSet = el._x_model.setWithModifiers;
+    let releaseEntanglement = entangle(
+      {
+        get() {
+          return outerGet();
+        },
+        set(value) {
+          outerSet(value);
+        }
+      },
+      {
+        get() {
+          return innerGet();
+        },
+        set(value) {
+          innerSet(value);
+        }
+      }
+    );
+    cleanup2(releaseEntanglement);
+  });
+});
+directive("teleport", (el, { modifiers, expression }, { cleanup: cleanup2 }) => {
+  if (el.tagName.toLowerCase() !== "template")
+    warn("x-teleport can only be used on a <template> tag", el);
+  let target = getTarget(expression);
+  let clone2 = el.content.cloneNode(true).firstElementChild;
+  el._x_teleport = clone2;
+  clone2._x_teleportBack = el;
+  el.setAttribute("data-teleport-template", true);
+  clone2.setAttribute("data-teleport-target", true);
+  if (el._x_forwardEvents) {
+    el._x_forwardEvents.forEach((eventName) => {
+      clone2.addEventListener(eventName, (e) => {
+        e.stopPropagation();
+        el.dispatchEvent(new e.constructor(e.type, e));
+      });
+    });
+  }
+  addScopeToNode(clone2, {}, el);
+  let placeInDom = (clone3, target2, modifiers2) => {
+    if (modifiers2.includes("prepend")) {
+      target2.parentNode.insertBefore(clone3, target2);
+    } else if (modifiers2.includes("append")) {
+      target2.parentNode.insertBefore(clone3, target2.nextSibling);
+    } else {
+      target2.appendChild(clone3);
+    }
+  };
+  mutateDom(() => {
+    skipDuringClone(() => {
+      placeInDom(clone2, target, modifiers);
+      initTree(clone2);
+    })();
+  });
+  el._x_teleportPutBack = () => {
+    let target2 = getTarget(expression);
+    mutateDom(() => {
+      placeInDom(el._x_teleport, target2, modifiers);
+    });
+  };
+  cleanup2(
+    () => mutateDom(() => {
+      clone2.remove();
+      destroyTree(clone2);
+    })
+  );
+});
+var teleportContainerDuringClone = document.createElement("div");
+function getTarget(expression) {
+  let target = skipDuringClone(() => {
+    return document.querySelector(expression);
+  }, () => {
+    return teleportContainerDuringClone;
+  })();
+  if (!target)
+    warn(`Cannot find x-teleport element for selector: "${expression}"`);
+  return target;
+}
+var handler = () => {
+};
+handler.inline = (el, { modifiers }, { cleanup: cleanup2 }) => {
+  modifiers.includes("self") ? el._x_ignoreSelf = true : el._x_ignore = true;
+  cleanup2(() => {
+    modifiers.includes("self") ? delete el._x_ignoreSelf : delete el._x_ignore;
+  });
+};
+directive("ignore", handler);
+directive("effect", skipDuringClone((el, { expression }, { effect: effect3 }) => {
+  effect3(evaluateLater(el, expression));
+}));
+function on(el, event, modifiers, callback) {
+  let listenerTarget = el;
+  let handler4 = (e) => callback(e);
+  let options = {};
+  let wrapHandler = (callback2, wrapper) => (e) => wrapper(callback2, e);
+  if (modifiers.includes("dot"))
+    event = dotSyntax(event);
+  if (modifiers.includes("camel"))
+    event = camelCase2(event);
+  if (modifiers.includes("capture"))
+    options.capture = true;
+  if (modifiers.includes("window"))
+    listenerTarget = window;
+  if (modifiers.includes("document"))
+    listenerTarget = document;
+  if (modifiers.includes("passive")) {
+    options.passive = modifiers[modifiers.indexOf("passive") + 1] !== "false";
+  }
+  handler4 = addDebounceOrThrottle(modifiers, handler4);
+  if (modifiers.includes("prevent"))
+    handler4 = wrapHandler(handler4, (next, e) => {
+      e.preventDefault();
+      next(e);
+    });
+  if (modifiers.includes("stop"))
+    handler4 = wrapHandler(handler4, (next, e) => {
+      e.stopPropagation();
+      next(e);
+    });
+  if (modifiers.includes("once")) {
+    handler4 = wrapHandler(handler4, (next, e) => {
+      next(e);
+      listenerTarget.removeEventListener(event, handler4, options);
+    });
+  }
+  if (modifiers.includes("away") || modifiers.includes("outside")) {
+    listenerTarget = document;
+    handler4 = wrapHandler(handler4, (next, e) => {
+      if (el.contains(e.target))
+        return;
+      if (e.target.isConnected === false)
+        return;
+      if (el.offsetWidth < 1 && el.offsetHeight < 1)
+        return;
+      if (el._x_isShown === false)
+        return;
+      next(e);
+    });
+  }
+  if (modifiers.includes("self"))
+    handler4 = wrapHandler(handler4, (next, e) => {
+      e.target === el && next(e);
+    });
+  if (event === "submit") {
+    handler4 = wrapHandler(handler4, (next, e) => {
+      if (e.target._x_pendingModelUpdates) {
+        e.target._x_pendingModelUpdates.forEach((fn) => fn());
+      }
+      next(e);
+    });
+  }
+  if (isKeyEvent(event) || isClickEvent(event)) {
+    handler4 = wrapHandler(handler4, (next, e) => {
+      if (isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers)) {
+        return;
+      }
+      next(e);
+    });
+  }
+  listenerTarget.addEventListener(event, handler4, options);
+  return () => {
+    listenerTarget.removeEventListener(event, handler4, options);
+  };
+}
+function addDebounceOrThrottle(modifiers, handler4) {
+  if (modifiers.includes("debounce")) {
+    let nextModifier = modifiers[modifiers.indexOf("debounce") + 1] || "invalid-wait";
+    let wait = isNumeric(nextModifier.split("ms")[0]) ? Number(nextModifier.split("ms")[0]) : 250;
+    handler4 = debounce(handler4, wait);
+  }
+  if (modifiers.includes("throttle")) {
+    let nextModifier = modifiers[modifiers.indexOf("throttle") + 1] || "invalid-wait";
+    let wait = isNumeric(nextModifier.split("ms")[0]) ? Number(nextModifier.split("ms")[0]) : 250;
+    handler4 = throttle(handler4, wait);
+  }
+  return handler4;
+}
+function dotSyntax(subject) {
+  return subject.replace(/-/g, ".");
+}
+function camelCase2(subject) {
+  return subject.toLowerCase().replace(/-(\w)/g, (match, char) => char.toUpperCase());
+}
+function isNumeric(subject) {
+  return !Array.isArray(subject) && !isNaN(subject);
+}
+function kebabCase2(subject) {
+  if ([" ", "_"].includes(
+    subject
+  ))
+    return subject;
+  return subject.replace(/([a-z])([A-Z])/g, "$1-$2").replace(/[_\s]/, "-").toLowerCase();
+}
+function isKeyEvent(event) {
+  return ["keydown", "keyup"].includes(event);
+}
+function isClickEvent(event) {
+  return ["contextmenu", "click", "mouse"].some((i) => event.includes(i));
+}
+function isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers) {
+  let keyModifiers = modifiers.filter((i) => {
+    return !["window", "document", "prevent", "stop", "once", "capture", "self", "away", "outside", "passive", "preserve-scroll", "blur", "change", "lazy"].includes(i);
+  });
+  if (keyModifiers.includes("debounce")) {
+    let debounceIndex = keyModifiers.indexOf("debounce");
+    keyModifiers.splice(debounceIndex, isNumeric((keyModifiers[debounceIndex + 1] || "invalid-wait").split("ms")[0]) ? 2 : 1);
+  }
+  if (keyModifiers.includes("throttle")) {
+    let debounceIndex = keyModifiers.indexOf("throttle");
+    keyModifiers.splice(debounceIndex, isNumeric((keyModifiers[debounceIndex + 1] || "invalid-wait").split("ms")[0]) ? 2 : 1);
+  }
+  if (keyModifiers.length === 0)
+    return false;
+  if (keyModifiers.length === 1 && keyToModifiers(e.key).includes(keyModifiers[0]))
+    return false;
+  const systemKeyModifiers = ["ctrl", "shift", "alt", "meta", "cmd", "super"];
+  const selectedSystemKeyModifiers = systemKeyModifiers.filter((modifier) => keyModifiers.includes(modifier));
+  keyModifiers = keyModifiers.filter((i) => !selectedSystemKeyModifiers.includes(i));
+  if (selectedSystemKeyModifiers.length > 0) {
+    const activelyPressedKeyModifiers = selectedSystemKeyModifiers.filter((modifier) => {
+      if (modifier === "cmd" || modifier === "super")
+        modifier = "meta";
+      return e[`${modifier}Key`];
+    });
+    if (activelyPressedKeyModifiers.length === selectedSystemKeyModifiers.length) {
+      if (isClickEvent(e.type))
+        return false;
+      if (keyToModifiers(e.key).includes(keyModifiers[0]))
+        return false;
+    }
+  }
+  return true;
+}
+function keyToModifiers(key) {
+  if (!key)
+    return [];
+  key = kebabCase2(key);
+  let modifierToKeyMap = {
+    "ctrl": "control",
+    "slash": "/",
+    "space": " ",
+    "spacebar": " ",
+    "cmd": "meta",
+    "esc": "escape",
+    "up": "arrow-up",
+    "down": "arrow-down",
+    "left": "arrow-left",
+    "right": "arrow-right",
+    "period": ".",
+    "comma": ",",
+    "equal": "=",
+    "minus": "-",
+    "underscore": "_"
+  };
+  modifierToKeyMap[key] = key;
+  return Object.keys(modifierToKeyMap).map((modifier) => {
+    if (modifierToKeyMap[modifier] === key)
+      return modifier;
+  }).filter((modifier) => modifier);
+}
+directive("model", (el, { modifiers, expression }, { effect: effect3, cleanup: cleanup2 }) => {
+  let scopeTarget = el;
+  if (modifiers.includes("parent")) {
+    scopeTarget = findClosest(el, (element) => element !== el);
+  }
+  let evaluateGet = evaluateLater(scopeTarget, expression);
+  let evaluateSet;
+  if (typeof expression === "string") {
+    evaluateSet = evaluateLater(scopeTarget, `${expression} = __placeholder`);
+  } else if (typeof expression === "function" && typeof expression() === "string") {
+    evaluateSet = evaluateLater(scopeTarget, `${expression()} = __placeholder`);
+  } else {
+    evaluateSet = () => {
+    };
+  }
+  let getValue = () => {
+    let result;
+    evaluateGet((value) => result = value);
+    return isGetterSetter(result) ? result.get() : result;
+  };
+  let setValue = (value) => {
+    let result;
+    evaluateGet((value2) => result = value2);
+    if (isGetterSetter(result)) {
+      result.set(value);
+    } else {
+      evaluateSet(() => {
+      }, {
+        scope: { "__placeholder": value }
+      });
+    }
+  };
+  if (typeof expression === "string" && el.type === "radio") {
+    mutateDom(() => {
+      if (!el.hasAttribute("name"))
+        el.setAttribute("name", expression);
+    });
+  }
+  let hasChangeModifier = modifiers.includes("change") || modifiers.includes("lazy");
+  let hasBlurModifier = modifiers.includes("blur");
+  let hasEnterModifier = modifiers.includes("enter");
+  let hasExplicitEventModifiers = hasChangeModifier || hasBlurModifier || hasEnterModifier;
+  let removeListener;
+  if (isCloning) {
+    removeListener = () => {
+    };
+  } else if (hasExplicitEventModifiers) {
+    let listeners = [];
+    let syncValue = (e) => setValue(getInputValue(el, modifiers, e, getValue()));
+    if (hasChangeModifier) {
+      listeners.push(on(el, "change", modifiers, syncValue));
+    }
+    if (hasBlurModifier) {
+      listeners.push(on(el, "blur", modifiers, syncValue));
+      if (el.form) {
+        let form = el.form;
+        let syncCallback = () => syncValue({ target: el });
+        if (!form._x_pendingModelUpdates)
+          form._x_pendingModelUpdates = [];
+        form._x_pendingModelUpdates.push(syncCallback);
+        cleanup2(() => {
+          if (form._x_pendingModelUpdates) {
+            form._x_pendingModelUpdates.splice(form._x_pendingModelUpdates.indexOf(syncCallback), 1);
+          }
+        });
+      }
+    }
+    if (hasEnterModifier) {
+      listeners.push(on(el, "keydown", modifiers, (e) => {
+        if (e.key === "Enter")
+          syncValue(e);
+      }));
+    }
+    removeListener = () => listeners.forEach((remove) => remove());
+  } else {
+    let event = el.tagName.toLowerCase() === "select" || ["checkbox", "radio"].includes(el.type) ? "change" : "input";
+    removeListener = on(el, event, modifiers, (e) => {
+      setValue(getInputValue(el, modifiers, e, getValue()));
+    });
+  }
+  if (modifiers.includes("fill")) {
+    if ([void 0, null, ""].includes(getValue()) || isCheckbox(el) && Array.isArray(getValue()) || el.tagName.toLowerCase() === "select" && el.multiple) {
+      setValue(
+        getInputValue(el, modifiers, { target: el }, getValue())
+      );
+    }
+  }
+  if (!el._x_removeModelListeners)
+    el._x_removeModelListeners = {};
+  el._x_removeModelListeners["default"] = removeListener;
+  cleanup2(() => el._x_removeModelListeners["default"]());
+  if (el.form) {
+    let removeResetListener = on(el.form, "reset", [], (e) => {
+      nextTick(() => el._x_model && el._x_model.set(getInputValue(el, modifiers, { target: el }, getValue())));
+    });
+    cleanup2(() => removeResetListener());
+  }
+  el._x_model = {
+    get() {
+      return getValue();
+    },
+    set(value) {
+      setValue(value);
+    },
+    setWithModifiers: addDebounceOrThrottle(modifiers, setValue)
+  };
+  el._x_forceModelUpdate = (value) => {
+    if (value === void 0 && typeof expression === "string" && expression.match(/\./))
+      value = "";
+    mutateDom(() => {
+      if (isCheckbox(el)) {
+        if (Array.isArray(value)) {
+          el.checked = value.some((val) => val == el.value);
+        } else {
+          el.checked = !!value;
+        }
+      } else if (isRadio$1(el)) {
+        if (typeof value === "boolean") {
+          el.checked = safeParseBoolean(el.value) === value;
+        } else {
+          el.checked = el.value == value;
+        }
+      } else {
+        bind(el, "value", value);
+      }
+    });
+  };
+  if (el.tagName === "SELECT") {
+    let observer2 = new MutationObserver(() => {
+      el._x_forceModelUpdate(getValue());
+    });
+    observer2.observe(el, { childList: true });
+    cleanup2(() => observer2.disconnect());
+  }
+  effect3(() => {
+    let value = getValue();
+    if (modifiers.includes("unintrusive") && document.activeElement.isSameNode(el))
+      return;
+    el._x_forceModelUpdate(value);
+  });
+});
+function getInputValue(el, modifiers, event, currentValue) {
+  return mutateDom(() => {
+    if (event instanceof CustomEvent && event.detail !== void 0)
+      return event.detail !== null && event.detail !== void 0 ? event.detail : event.target.value;
+    else if (isCheckbox(el)) {
+      if (Array.isArray(currentValue)) {
+        let newValue = null;
+        if (modifiers.includes("number")) {
+          newValue = safeParseNumber(event.target.value);
+        } else if (modifiers.includes("boolean")) {
+          newValue = safeParseBoolean(event.target.value);
+        } else {
+          newValue = event.target.value;
+        }
+        return event.target.checked ? currentValue.includes(newValue) ? currentValue : currentValue.concat([newValue]) : currentValue.filter((el2) => !checkedAttrLooseCompare2(el2, newValue));
+      } else {
+        return event.target.checked;
+      }
+    } else if (el.tagName.toLowerCase() === "select" && el.multiple) {
+      if (modifiers.includes("number")) {
+        return Array.from(event.target.selectedOptions).map((option) => {
+          let rawValue = option.value || option.text;
+          return safeParseNumber(rawValue);
+        });
+      } else if (modifiers.includes("boolean")) {
+        return Array.from(event.target.selectedOptions).map((option) => {
+          let rawValue = option.value || option.text;
+          return safeParseBoolean(rawValue);
+        });
+      }
+      return Array.from(event.target.selectedOptions).map((option) => {
+        return option.value || option.text;
+      });
+    } else {
+      let newValue;
+      if (isRadio$1(el)) {
+        if (event.target.checked) {
+          newValue = event.target.value;
+        } else {
+          newValue = currentValue;
+        }
+      } else {
+        newValue = event.target.value;
+      }
+      if (modifiers.includes("number")) {
+        return safeParseNumber(newValue);
+      } else if (modifiers.includes("boolean")) {
+        return safeParseBoolean(newValue);
+      } else if (modifiers.includes("trim")) {
+        return newValue.trim();
+      } else {
+        return newValue;
+      }
+    }
+  });
+}
+function safeParseNumber(rawValue) {
+  let number = rawValue ? parseFloat(rawValue) : null;
+  return isNumeric2(number) ? number : rawValue;
+}
+function checkedAttrLooseCompare2(valueA, valueB) {
+  return valueA == valueB;
+}
+function isNumeric2(subject) {
+  return !Array.isArray(subject) && !isNaN(subject);
+}
+function isGetterSetter(value) {
+  return value !== null && typeof value === "object" && typeof value.get === "function" && typeof value.set === "function";
+}
+directive("cloak", (el) => queueMicrotask(() => mutateDom(() => el.removeAttribute(prefix("cloak")))));
+addInitSelector(() => `[${prefix("init")}]`);
+directive("init", skipDuringClone((el, { expression }, { evaluate: evaluate2 }) => {
+  if (typeof expression === "string") {
+    return !!expression.trim() && evaluate2(expression, {}, false);
+  }
+  return evaluate2(expression, {}, false);
+}));
+directive("text", (el, { expression }, { effect: effect3, evaluateLater: evaluateLater2 }) => {
+  let evaluate2 = evaluateLater2(expression);
+  effect3(() => {
+    evaluate2((value) => {
+      mutateDom(() => {
+        el.textContent = value;
+      });
+    });
+  });
+});
+directive("html", (el, { expression }, { effect: effect3, evaluateLater: evaluateLater2 }) => {
+  let evaluate2 = evaluateLater2(expression);
+  effect3(() => {
+    evaluate2((value) => {
+      mutateDom(() => {
+        el.innerHTML = value ?? "";
+        el._x_ignoreSelf = true;
+        initTree(el);
+        delete el._x_ignoreSelf;
+      });
+    });
+  });
+});
+mapAttributes(startingWith(":", into(prefix("bind:"))));
+var handler2 = (el, { value, modifiers, expression, original }, { effect: effect3, cleanup: cleanup2 }) => {
+  if (!value) {
+    let bindingProviders = {};
+    injectBindingProviders(bindingProviders);
+    let getBindings = evaluateLater(el, expression);
+    getBindings((bindings) => {
+      applyBindingsObject(el, bindings, original);
+    }, { scope: bindingProviders });
+    return;
+  }
+  if (value === "key")
+    return storeKeyForXFor(el, expression);
+  if (el._x_inlineBindings && el._x_inlineBindings[value] && el._x_inlineBindings[value].extract) {
+    return;
+  }
+  let evaluate2 = evaluateLater(el, expression);
+  effect3(() => evaluate2((result) => {
+    if (result === void 0 && typeof expression === "string" && expression.match(/\./)) {
+      result = "";
+    }
+    mutateDom(() => bind(el, value, result, modifiers));
+  }));
+  cleanup2(() => {
+    el._x_undoAddedClasses && el._x_undoAddedClasses();
+    el._x_undoAddedStyles && el._x_undoAddedStyles();
+  });
+};
+handler2.inline = (el, { value, modifiers, expression }) => {
+  if (!value)
+    return;
+  if (!el._x_inlineBindings)
+    el._x_inlineBindings = {};
+  el._x_inlineBindings[value] = { expression, extract: false };
+};
+directive("bind", handler2);
+function storeKeyForXFor(el, expression) {
+  el._x_keyExpression = expression;
+}
+addRootSelector(() => `[${prefix("data")}]`);
+var dataForReconciliation = /* @__PURE__ */ Symbol();
+directive("data", (el, { expression }, { cleanup: cleanup2 }) => {
+  if (shouldSkipRegisteringDataDuringClone(el))
+    return;
+  let dataToReconcile = el[dataForReconciliation];
+  if (dataToReconcile?.expression === expression)
+    return;
+  expression = expression === "" ? "{}" : expression;
+  let magicContext = {};
+  injectMagics(magicContext, el);
+  let dataProviderContext = {};
+  injectDataProviders(dataProviderContext, magicContext);
+  let data2 = evaluate(el, expression, { scope: dataProviderContext });
+  if (data2 === void 0 || data2 === true)
+    data2 = {};
+  injectMagics(data2, el);
+  let reactiveData;
+  if (dataToReconcile?.reactiveData) {
+    reactiveData = dataToReconcile.reactiveData;
+    reconcileData(reactiveData, data2);
+    let initialized = { expression };
+    el[dataForReconciliation] = initialized;
+    queueMicrotask(() => {
+      if (el[dataForReconciliation] === initialized) {
+        delete el[dataForReconciliation];
+      }
+    });
+  } else {
+    reactiveData = reactive(data2);
+  }
+  initInterceptors(reactiveData, cleanup2);
+  let undo = addScopeToNode(el, reactiveData);
+  reactiveData["init"] && evaluate(el, reactiveData["init"]);
+  cleanup2(() => {
+    reactiveData["destroy"] && evaluate(el, reactiveData["destroy"]);
+    undo();
+    let removed = { reactiveData };
+    el[dataForReconciliation] = removed;
+    queueMicrotask(() => {
+      if (el[dataForReconciliation] === removed) {
+        delete el[dataForReconciliation];
+      }
+    });
+  });
+});
+function reconcileData(target, source) {
+  Object.keys(source).forEach((key) => {
+    let descriptor = Object.getOwnPropertyDescriptor(source, key);
+    let existingDescriptor = Object.getOwnPropertyDescriptor(target, key);
+    if (descriptor.get || descriptor.set || existingDescriptor?.get || existingDescriptor?.set) {
+      if (existingDescriptor)
+        delete target[key];
+      if (!existingDescriptor)
+        target[key] = void 0;
+      descriptor.get || descriptor.set ? Object.defineProperty(target, key, descriptor) : target[key] = source[key];
+    } else {
+      target[key] = source[key];
+    }
+  });
+  Object.keys(target).filter((key) => !Object.prototype.hasOwnProperty.call(source, key)).forEach((key) => delete target[key]);
+}
+interceptClone((from, to) => {
+  if (from._x_dataStack) {
+    to._x_dataStack = from._x_dataStack;
+    to.setAttribute("data-has-alpine-state", true);
+  }
+});
+function shouldSkipRegisteringDataDuringClone(el) {
+  if (!isCloning)
+    return false;
+  if (isCloningLegacy)
+    return true;
+  return el.hasAttribute("data-has-alpine-state");
+}
+directive("show", (el, { modifiers, expression }, { effect: effect3 }) => {
+  let evaluate2 = evaluateLater(el, expression);
+  if (!el._x_doHide)
+    el._x_doHide = () => {
+      mutateDom(() => {
+        el.style.setProperty("display", "none", modifiers.includes("important") ? "important" : void 0);
+      });
+    };
+  if (!el._x_doShow)
+    el._x_doShow = () => {
+      mutateDom(() => {
+        if (el.style.length === 1 && el.style.display === "none") {
+          el.removeAttribute("style");
+        } else {
+          el.style.removeProperty("display");
+        }
+      });
+    };
+  let hide = () => {
+    el._x_doHide();
+    el._x_isShown = false;
+  };
+  let show = () => {
+    el._x_doShow();
+    el._x_isShown = true;
+  };
+  let clickAwayCompatibleShow = () => setTimeout(show);
+  let toggle = once(
+    (value) => value ? show() : hide(),
+    (value) => {
+      if (typeof el._x_toggleAndCascadeWithTransitions === "function") {
+        el._x_toggleAndCascadeWithTransitions(el, value, show, hide);
+      } else {
+        value ? clickAwayCompatibleShow() : hide();
+      }
+    }
+  );
+  let oldValue;
+  let firstTime = true;
+  effect3(() => evaluate2((value) => {
+    if (!firstTime && value === oldValue)
+      return;
+    if (modifiers.includes("immediate"))
+      value ? clickAwayCompatibleShow() : hide();
+    toggle(value);
+    oldValue = value;
+    firstTime = false;
+  }));
+});
+directive("for", skipDuringClone((el, { expression }, { effect: effect3, cleanup: cleanup2 }) => {
+  let iteratorNames = parseForExpression(expression);
+  let evaluateItems = evaluateLater(el, iteratorNames.items);
+  let evaluateKey = evaluateLater(
+    el,
+    // the x-bind:key expression is stored for our use instead of evaluated.
+    el._x_keyExpression || "index"
+  );
+  el._x_lookup = /* @__PURE__ */ new Map();
+  effect3(() => loop(el, iteratorNames, evaluateItems, evaluateKey));
+  cleanup2(() => {
+    el._x_lookup.forEach(
+      (el2) => mutateDom(() => {
+        destroyTree(el2);
+        el2.remove();
+      })
+    );
+    delete el._x_lookup;
+    delete el._x_lastRenderedEl;
+  });
+}));
+function refreshScope(scope2) {
+  return (newScope) => {
+    Object.entries(newScope).forEach(([key, value]) => {
+      scope2[key] = value;
+    });
+  };
+}
+function loop(templateEl, iteratorNames, evaluateItems, evaluateKey) {
+  evaluateItems((items) => {
+    if (isNumeric3(items))
+      items = Array.from({ length: items }, (_, i) => i + 1);
+    if (items === void 0 || items === null)
+      items = [];
+    if (items instanceof Set)
+      items = Array.from(items);
+    if (items instanceof Map)
+      items = Array.from(items);
+    let oldLookup = templateEl._x_lookup;
+    let lookup = /* @__PURE__ */ new Map();
+    templateEl._x_lookup = lookup;
+    let hasStringKeys = isObject2(items);
+    let scopeEntries = Object.entries(items).map(([index, item]) => {
+      if (!hasStringKeys)
+        index = parseInt(index);
+      let scope2 = getIterationScopeVariables(iteratorNames, item, index, items);
+      let key;
+      evaluateKey((innerKey) => {
+        if (typeof innerKey === "object")
+          warn("x-for key cannot be an object, it must be a string or an integer", templateEl);
+        if (oldLookup.has(innerKey)) {
+          lookup.set(innerKey, oldLookup.get(innerKey));
+          oldLookup.delete(innerKey);
+        }
+        key = innerKey;
+      }, { scope: { index, ...scope2 } });
+      return [key, scope2];
+    });
+    mutateDom(() => {
+      oldLookup.forEach((el) => {
+        destroyTree(el);
+        el.remove();
+      });
+      let added = /* @__PURE__ */ new Set();
+      let prev = templateEl;
+      scopeEntries.forEach(([key, scope2]) => {
+        if (lookup.has(key)) {
+          let el = lookup.get(key);
+          el._x_refreshXForScope(scope2);
+          if (prev.nextElementSibling !== el) {
+            if (prev.nextElementSibling)
+              el.replaceWith(prev.nextElementSibling);
+            prev.after(el);
+          }
+          prev = el;
+          if (el._x_currentIfEl) {
+            if (el.nextElementSibling !== el._x_currentIfEl)
+              prev.after(el._x_currentIfEl);
+            prev = el._x_currentIfEl;
+          }
+          return;
+        }
+        if (templateEl.content.children.length > 1)
+          warn("x-for templates require a single root element, additional elements will be ignored.", templateEl);
+        let clone2 = document.importNode(templateEl.content, true).firstElementChild;
+        let reactiveScope = reactive(scope2);
+        addScopeToNode(clone2, reactiveScope, templateEl);
+        clone2._x_refreshXForScope = refreshScope(reactiveScope);
+        lookup.set(key, clone2);
+        added.add(clone2);
+        prev.after(clone2);
+        prev = clone2;
+      });
+      added.forEach((clone2) => initTree(clone2));
+      if (prev !== templateEl) {
+        templateEl._x_lastRenderedEl = prev;
+      } else {
+        delete templateEl._x_lastRenderedEl;
+      }
+    });
+  });
+}
+function parseForExpression(expression) {
+  let forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/;
+  let stripParensRE = /^\s*\(|\)\s*$/g;
+  let forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/;
+  let inMatch = expression.match(forAliasRE);
+  if (!inMatch)
+    return;
+  let res = {};
+  res.items = inMatch[2].trim();
+  let item = inMatch[1].replace(stripParensRE, "").trim();
+  let iteratorMatch = item.match(forIteratorRE);
+  if (iteratorMatch) {
+    res.item = item.replace(forIteratorRE, "").trim();
+    res.index = iteratorMatch[1].trim();
+    if (iteratorMatch[2]) {
+      res.collection = iteratorMatch[2].trim();
+    }
+  } else {
+    res.item = item;
+  }
+  return res;
+}
+function getIterationScopeVariables(iteratorNames, item, index, items) {
+  let scopeVariables = {};
+  if (/^\[.*\]$/.test(iteratorNames.item) && Array.isArray(item)) {
+    let names = iteratorNames.item.replace("[", "").replace("]", "").split(",").map((i) => i.trim());
+    names.forEach((name, i) => {
+      scopeVariables[name] = item[i];
+    });
+  } else if (/^\{.*\}$/.test(iteratorNames.item) && !Array.isArray(item) && typeof item === "object") {
+    let names = iteratorNames.item.replace("{", "").replace("}", "").split(",").map((i) => i.trim());
+    names.forEach((name) => {
+      scopeVariables[name] = item[name];
+    });
+  } else {
+    scopeVariables[iteratorNames.item] = item;
+  }
+  if (iteratorNames.index)
+    scopeVariables[iteratorNames.index] = index;
+  if (iteratorNames.collection)
+    scopeVariables[iteratorNames.collection] = items;
+  return scopeVariables;
+}
+function isNumeric3(subject) {
+  return typeof subject !== "object" && !isNaN(subject);
+}
+function isObject2(subject) {
+  return typeof subject === "object" && !Array.isArray(subject);
+}
+function handler3() {
+}
+handler3.inline = (el, { expression }, { cleanup: cleanup2 }) => {
+  let root = closestRoot(el);
+  if (!root)
+    return;
+  if (!root._x_refs)
+    root._x_refs = {};
+  root._x_refs[expression] = el;
+  cleanup2(() => delete root._x_refs[expression]);
+};
+directive("ref", handler3);
+directive("if", skipDuringClone((el, { expression }, { effect: effect3, cleanup: cleanup2 }) => {
+  if (el.tagName.toLowerCase() !== "template")
+    warn("x-if can only be used on a <template> tag", el);
+  let evaluate2 = evaluateLater(el, expression);
+  let show = () => {
+    if (el._x_currentIfEl)
+      return el._x_currentIfEl;
+    let clone2 = el.content.cloneNode(true).firstElementChild;
+    addScopeToNode(clone2, {}, el);
+    mutateDom(() => {
+      el.after(clone2);
+      initTree(clone2);
+    });
+    el._x_currentIfEl = clone2;
+    el._x_lastRenderedEl = clone2;
+    el._x_undoIf = () => {
+      mutateDom(() => {
+        destroyTree(clone2);
+        clone2.remove();
+      });
+      delete el._x_currentIfEl;
+      delete el._x_lastRenderedEl;
+    };
+    return clone2;
+  };
+  let hide = () => {
+    if (!el._x_undoIf)
+      return;
+    el._x_undoIf();
+    delete el._x_undoIf;
+  };
+  effect3(() => evaluate2((value) => {
+    value ? show() : hide();
+  }));
+  cleanup2(() => el._x_undoIf && el._x_undoIf());
+}));
+directive("id", (el, { expression }, { evaluate: evaluate2 }) => {
+  let names = evaluate2(expression);
+  names.forEach((name) => setIdRoot(el, name));
+});
+interceptClone((from, to) => {
+  if (from._x_ids) {
+    to._x_ids = from._x_ids;
+  }
+});
+mapAttributes(startingWith("@", into(prefix("on:"))));
+directive("on", skipDuringClone((el, { value, modifiers, expression }, { cleanup: cleanup2 }) => {
+  let evaluate2 = expression ? evaluateLater(el, expression) : () => {
+  };
+  if (el.tagName.toLowerCase() === "template") {
+    if (!el._x_forwardEvents)
+      el._x_forwardEvents = [];
+    if (!el._x_forwardEvents.includes(value))
+      el._x_forwardEvents.push(value);
+  }
+  let removeListener = on(el, value, modifiers, (e) => {
+    evaluate2(() => {
+    }, { scope: { "$event": e }, params: [e] });
+  });
+  cleanup2(() => removeListener());
+}));
+warnMissingPluginDirective("Collapse", "collapse", "collapse");
+warnMissingPluginDirective("Intersect", "intersect", "intersect");
+warnMissingPluginDirective("Focus", "trap", "focus");
+warnMissingPluginDirective("Mask", "mask", "mask");
+function warnMissingPluginDirective(name, directiveName, slug) {
+  directive(directiveName, (el) => warn(`You can't use [x-${directiveName}] without first installing the "${name}" plugin here: https://alpinejs.dev/plugins/${slug}`, el));
+}
+alpine_default.setEvaluator(normalEvaluator);
+alpine_default.setRawEvaluator(normalRawEvaluator);
+alpine_default.setReactivityEngine({ reactive: reactive2, effect: effect2, release: stop, raw: toRaw });
+var src_default$1 = alpine_default;
+var module_default$1 = src_default$1;
+var candidateSelectors = ["input:not([inert]):not([inert] *)", "select:not([inert]):not([inert] *)", "textarea:not([inert]):not([inert] *)", "a[href]:not([inert]):not([inert] *)", "button:not([inert]):not([inert] *)", "[tabindex]:not(slot):not([inert]):not([inert] *)", "audio[controls]:not([inert]):not([inert] *)", "video[controls]:not([inert]):not([inert] *)", '[contenteditable]:not([contenteditable="false"]):not([inert]):not([inert] *)', "details>summary:first-of-type:not([inert]):not([inert] *)", "details:not([inert]):not([inert] *)"];
+var candidateSelector = /* @__PURE__ */ candidateSelectors.join(",");
+var NoElement = typeof Element === "undefined";
+var matches = NoElement ? function() {
+} : Element.prototype.matches || Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+var getRootNode = !NoElement && Element.prototype.getRootNode ? function(element) {
+  var _element$getRootNode;
+  return element === null || element === void 0 ? void 0 : (_element$getRootNode = element.getRootNode) === null || _element$getRootNode === void 0 ? void 0 : _element$getRootNode.call(element);
+} : function(element) {
+  return element === null || element === void 0 ? void 0 : element.ownerDocument;
+};
+var _isInert = function isInert(node, lookUp) {
+  var _node$getAttribute;
+  if (lookUp === void 0) {
+    lookUp = true;
+  }
+  var inertAtt = node === null || node === void 0 ? void 0 : (_node$getAttribute = node.getAttribute) === null || _node$getAttribute === void 0 ? void 0 : _node$getAttribute.call(node, "inert");
+  var inert = inertAtt === "" || inertAtt === "true";
+  var result = inert || lookUp && node && // closest does not exist on shadow roots, so we fall back to a manual
+  // lookup upward, in case it is not defined.
+  (typeof node.closest === "function" ? node.closest("[inert]") : _isInert(node.parentNode));
+  return result;
+};
+var isContentEditable = function isContentEditable2(node) {
+  var _node$getAttribute2;
+  var attValue = node === null || node === void 0 ? void 0 : (_node$getAttribute2 = node.getAttribute) === null || _node$getAttribute2 === void 0 ? void 0 : _node$getAttribute2.call(node, "contenteditable");
+  return attValue === "" || attValue === "true";
+};
+var getCandidates = function getCandidates2(el, includeContainer, filter) {
+  if (_isInert(el)) {
+    return [];
+  }
+  var candidates = Array.prototype.slice.apply(el.querySelectorAll(candidateSelector));
+  if (includeContainer && matches.call(el, candidateSelector)) {
+    candidates.unshift(el);
+  }
+  candidates = candidates.filter(filter);
+  return candidates;
+};
+var _getCandidatesIteratively = function getCandidatesIteratively(elements, includeContainer, options) {
+  var candidates = [];
+  var elementsToCheck = Array.from(elements);
+  while (elementsToCheck.length) {
+    var element = elementsToCheck.shift();
+    if (_isInert(element, false)) {
+      continue;
+    }
+    if (element.tagName === "SLOT") {
+      var assigned = element.assignedElements();
+      var content = assigned.length ? assigned : element.children;
+      var nestedCandidates = _getCandidatesIteratively(content, true, options);
+      if (options.flatten) {
+        candidates.push.apply(candidates, nestedCandidates);
+      } else {
+        candidates.push({
+          scopeParent: element,
+          candidates: nestedCandidates
+        });
+      }
+    } else {
+      var validCandidate = matches.call(element, candidateSelector);
+      if (validCandidate && options.filter(element) && (includeContainer || !elements.includes(element))) {
+        candidates.push(element);
+      }
+      var shadowRoot = element.shadowRoot || // check for an undisclosed shadow
+      typeof options.getShadowRoot === "function" && options.getShadowRoot(element);
+      var validShadowRoot = !_isInert(shadowRoot, false) && (!options.shadowRootFilter || options.shadowRootFilter(element));
+      if (shadowRoot && validShadowRoot) {
+        var _nestedCandidates = _getCandidatesIteratively(shadowRoot === true ? element.children : shadowRoot.children, true, options);
+        if (options.flatten) {
+          candidates.push.apply(candidates, _nestedCandidates);
+        } else {
+          candidates.push({
+            scopeParent: element,
+            candidates: _nestedCandidates
+          });
+        }
+      } else {
+        elementsToCheck.unshift.apply(elementsToCheck, element.children);
+      }
+    }
+  }
+  return candidates;
+};
+var hasTabIndex = function hasTabIndex2(node) {
+  return !isNaN(parseInt(node.getAttribute("tabindex"), 10));
+};
+var getTabIndex = function getTabIndex2(node) {
+  if (!node) {
+    throw new Error("No node provided");
+  }
+  if (node.tabIndex < 0) {
+    if ((/^(AUDIO|VIDEO|DETAILS)$/.test(node.tagName) || isContentEditable(node)) && !hasTabIndex(node)) {
+      return 0;
+    }
+  }
+  return node.tabIndex;
+};
+var getSortOrderTabIndex = function getSortOrderTabIndex2(node, isScope) {
+  var tabIndex = getTabIndex(node);
+  if (tabIndex < 0 && isScope && !hasTabIndex(node)) {
+    return 0;
+  }
+  return tabIndex;
+};
+var sortOrderedTabbables = function sortOrderedTabbables2(a, b) {
+  return a.tabIndex === b.tabIndex ? a.documentOrder - b.documentOrder : a.tabIndex - b.tabIndex;
+};
+var isInput = function isInput2(node) {
+  return node.tagName === "INPUT";
+};
+var isHiddenInput = function isHiddenInput2(node) {
+  return isInput(node) && node.type === "hidden";
+};
+var isDetailsWithSummary = function isDetailsWithSummary2(node) {
+  var r = node.tagName === "DETAILS" && Array.prototype.slice.apply(node.children).some(function(child) {
+    return child.tagName === "SUMMARY";
+  });
+  return r;
+};
+var getCheckedRadio = function getCheckedRadio2(nodes, form) {
+  for (var i = 0; i < nodes.length; i++) {
+    if (nodes[i].checked && nodes[i].form === form) {
+      return nodes[i];
+    }
+  }
+};
+var isTabbableRadio = function isTabbableRadio2(node) {
+  if (!node.name) {
+    return true;
+  }
+  var radioScope = node.form || getRootNode(node);
+  var queryRadios = function queryRadios2(name) {
+    return radioScope.querySelectorAll('input[type="radio"][name="' + name + '"]');
+  };
+  var radioSet;
+  if (typeof window !== "undefined" && typeof window.CSS !== "undefined" && typeof window.CSS.escape === "function") {
+    radioSet = queryRadios(window.CSS.escape(node.name));
+  } else {
+    try {
+      radioSet = queryRadios(node.name);
+    } catch (err) {
+      console.error("Looks like you have a radio button with a name attribute containing invalid CSS selector characters and need the CSS.escape polyfill: %s", err.message);
+      return false;
+    }
+  }
+  var checked = getCheckedRadio(radioSet, node.form);
+  return !checked || checked === node;
+};
+var isRadio = function isRadio2(node) {
+  return isInput(node) && node.type === "radio";
+};
+var isNonTabbableRadio = function isNonTabbableRadio2(node) {
+  return isRadio(node) && !isTabbableRadio(node);
+};
+var isNodeAttached = function isNodeAttached2(node) {
+  var _nodeRoot;
+  var nodeRoot = node && getRootNode(node);
+  var nodeRootHost = (_nodeRoot = nodeRoot) === null || _nodeRoot === void 0 ? void 0 : _nodeRoot.host;
+  var attached = false;
+  if (nodeRoot && nodeRoot !== node) {
+    var _nodeRootHost, _nodeRootHost$ownerDo, _node$ownerDocument;
+    attached = !!((_nodeRootHost = nodeRootHost) !== null && _nodeRootHost !== void 0 && (_nodeRootHost$ownerDo = _nodeRootHost.ownerDocument) !== null && _nodeRootHost$ownerDo !== void 0 && _nodeRootHost$ownerDo.contains(nodeRootHost) || node !== null && node !== void 0 && (_node$ownerDocument = node.ownerDocument) !== null && _node$ownerDocument !== void 0 && _node$ownerDocument.contains(node));
+    while (!attached && nodeRootHost) {
+      var _nodeRoot2, _nodeRootHost2, _nodeRootHost2$ownerD;
+      nodeRoot = getRootNode(nodeRootHost);
+      nodeRootHost = (_nodeRoot2 = nodeRoot) === null || _nodeRoot2 === void 0 ? void 0 : _nodeRoot2.host;
+      attached = !!((_nodeRootHost2 = nodeRootHost) !== null && _nodeRootHost2 !== void 0 && (_nodeRootHost2$ownerD = _nodeRootHost2.ownerDocument) !== null && _nodeRootHost2$ownerD !== void 0 && _nodeRootHost2$ownerD.contains(nodeRootHost));
+    }
+  }
+  return attached;
+};
+var isZeroArea = function isZeroArea2(node) {
+  var _node$getBoundingClie = node.getBoundingClientRect(), width = _node$getBoundingClie.width, height = _node$getBoundingClie.height;
+  return width === 0 && height === 0;
+};
+var isHidden = function isHidden2(node, _ref) {
+  var displayCheck = _ref.displayCheck, getShadowRoot = _ref.getShadowRoot;
+  if (displayCheck === "full-native") {
+    if ("checkVisibility" in node) {
+      var visible = node.checkVisibility({
+        // Checking opacity might be desirable for some use cases, but natively,
+        // opacity zero elements _are_ focusable and tabbable.
+        checkOpacity: false,
+        opacityProperty: false,
+        contentVisibilityAuto: true,
+        visibilityProperty: true,
+        // This is an alias for `visibilityProperty`. Contemporary browsers
+        // support both. However, this alias has wider browser support (Chrome
+        // >= 105 and Firefox >= 106, vs. Chrome >= 121 and Firefox >= 122), so
+        // we include it anyway.
+        checkVisibilityCSS: true
+      });
+      return !visible;
+    }
+  }
+  if (getComputedStyle(node).visibility === "hidden") {
+    return true;
+  }
+  var isDirectSummary = matches.call(node, "details>summary:first-of-type");
+  var nodeUnderDetails = isDirectSummary ? node.parentElement : node;
+  if (matches.call(nodeUnderDetails, "details:not([open]) *")) {
+    return true;
+  }
+  if (!displayCheck || displayCheck === "full" || // full-native can run this branch when it falls through in case
+  // Element#checkVisibility is unsupported
+  displayCheck === "full-native" || displayCheck === "legacy-full") {
+    if (typeof getShadowRoot === "function") {
+      var originalNode = node;
+      while (node) {
+        var parentElement = node.parentElement;
+        var rootNode = getRootNode(node);
+        if (parentElement && !parentElement.shadowRoot && getShadowRoot(parentElement) === true) {
+          return isZeroArea(node);
+        } else if (node.assignedSlot) {
+          node = node.assignedSlot;
+        } else if (!parentElement && rootNode !== node.ownerDocument) {
+          node = rootNode.host;
+        } else {
+          node = parentElement;
+        }
+      }
+      node = originalNode;
+    }
+    if (isNodeAttached(node)) {
+      return !node.getClientRects().length;
+    }
+    if (displayCheck !== "legacy-full") {
+      return true;
+    }
+  } else if (displayCheck === "non-zero-area") {
+    return isZeroArea(node);
+  }
+  return false;
+};
+var isDisabledFromFieldset = function isDisabledFromFieldset2(node) {
+  if (/^(INPUT|BUTTON|SELECT|TEXTAREA)$/.test(node.tagName)) {
+    var parentNode = node.parentElement;
+    while (parentNode) {
+      if (parentNode.tagName === "FIELDSET" && parentNode.disabled) {
+        for (var i = 0; i < parentNode.children.length; i++) {
+          var child = parentNode.children.item(i);
+          if (child.tagName === "LEGEND") {
+            return matches.call(parentNode, "fieldset[disabled] *") ? true : !child.contains(node);
+          }
+        }
+        return true;
+      }
+      parentNode = parentNode.parentElement;
+    }
+  }
+  return false;
+};
+var isNodeMatchingSelectorFocusable = function isNodeMatchingSelectorFocusable2(options, node) {
+  if (node.disabled || isHiddenInput(node) || isHidden(node, options) || // For a details element with a summary, the summary element gets the focus
+  isDetailsWithSummary(node) || isDisabledFromFieldset(node)) {
+    return false;
+  }
+  return true;
+};
+var isNodeMatchingSelectorTabbable = function isNodeMatchingSelectorTabbable2(options, node) {
+  if (isNonTabbableRadio(node) || getTabIndex(node) < 0 || !isNodeMatchingSelectorFocusable(options, node)) {
+    return false;
+  }
+  return true;
+};
+var isShadowRootTabbable = function isShadowRootTabbable2(shadowHostNode) {
+  var tabIndex = parseInt(shadowHostNode.getAttribute("tabindex"), 10);
+  if (isNaN(tabIndex) || tabIndex >= 0) {
+    return true;
+  }
+  return false;
+};
+var _sortByOrder = function sortByOrder(candidates) {
+  var regularTabbables = [];
+  var orderedTabbables = [];
+  candidates.forEach(function(item, i) {
+    var isScope = !!item.scopeParent;
+    var element = isScope ? item.scopeParent : item;
+    var candidateTabindex = getSortOrderTabIndex(element, isScope);
+    var elements = isScope ? _sortByOrder(item.candidates) : element;
+    if (candidateTabindex === 0) {
+      isScope ? regularTabbables.push.apply(regularTabbables, elements) : regularTabbables.push(element);
+    } else {
+      orderedTabbables.push({
+        documentOrder: i,
+        tabIndex: candidateTabindex,
+        item,
+        isScope,
+        content: elements
+      });
+    }
+  });
+  return orderedTabbables.sort(sortOrderedTabbables).reduce(function(acc, sortable) {
+    sortable.isScope ? acc.push.apply(acc, sortable.content) : acc.push(sortable.content);
+    return acc;
+  }, []).concat(regularTabbables);
+};
+var tabbable = function tabbable2(container, options) {
+  options = options || {};
+  var candidates;
+  if (options.getShadowRoot) {
+    candidates = _getCandidatesIteratively([container], options.includeContainer, {
+      filter: isNodeMatchingSelectorTabbable.bind(null, options),
+      flatten: false,
+      getShadowRoot: options.getShadowRoot,
+      shadowRootFilter: isShadowRootTabbable
+    });
+  } else {
+    candidates = getCandidates(container, options.includeContainer, isNodeMatchingSelectorTabbable.bind(null, options));
+  }
+  return _sortByOrder(candidates);
+};
+var focusable = function focusable2(container, options) {
+  options = options || {};
+  var candidates;
+  if (options.getShadowRoot) {
+    candidates = _getCandidatesIteratively([container], options.includeContainer, {
+      filter: isNodeMatchingSelectorFocusable.bind(null, options),
+      flatten: true,
+      getShadowRoot: options.getShadowRoot
+    });
+  } else {
+    candidates = getCandidates(container, options.includeContainer, isNodeMatchingSelectorFocusable.bind(null, options));
+  }
+  return candidates;
+};
+var isTabbable = function isTabbable2(node, options) {
+  options = options || {};
+  if (!node) {
+    throw new Error("No node provided");
+  }
+  if (matches.call(node, candidateSelector) === false) {
+    return false;
+  }
+  return isNodeMatchingSelectorTabbable(options, node);
+};
+var focusableCandidateSelector = /* @__PURE__ */ candidateSelectors.concat("iframe:not([inert]):not([inert] *)").join(",");
+var isFocusable = function isFocusable2(node, options) {
+  options = options || {};
+  if (!node) {
+    throw new Error("No node provided");
+  }
+  if (matches.call(node, focusableCandidateSelector) === false) {
+    return false;
+  }
+  return isNodeMatchingSelectorFocusable(options, node);
+};
+function _arrayLikeToArray(r, a) {
+  (null == a || a > r.length) && (a = r.length);
+  for (var e = 0, n = Array(a); e < a; e++)
+    n[e] = r[e];
+  return n;
+}
+function _arrayWithoutHoles(r) {
+  if (Array.isArray(r))
+    return _arrayLikeToArray(r);
+}
+function asyncGeneratorStep(n, t, e, r, o, a, c) {
+  try {
+    var i = n[a](c), u = i.value;
+  } catch (n2) {
+    return void e(n2);
+  }
+  i.done ? t(u) : Promise.resolve(u).then(r, o);
+}
+function _asyncToGenerator(n) {
+  return function() {
+    var t = this, e = arguments;
+    return new Promise(function(r, o) {
+      var a = n.apply(t, e);
+      function _next(n2) {
+        asyncGeneratorStep(a, r, o, _next, _throw, "next", n2);
+      }
+      function _throw(n2) {
+        asyncGeneratorStep(a, r, o, _next, _throw, "throw", n2);
+      }
+      _next(void 0);
+    });
+  };
+}
+function _createForOfIteratorHelper(r, e) {
+  var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
+  if (!t) {
+    if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e) {
+      t && (r = t);
+      var n = 0, F = function() {
+      };
+      return {
+        s: F,
+        n: function() {
+          return n >= r.length ? {
+            done: true
+          } : {
+            done: false,
+            value: r[n++]
+          };
+        },
+        e: function(r2) {
+          throw r2;
+        },
+        f: F
+      };
+    }
+    throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  var o, a = true, u = false;
+  return {
+    s: function() {
+      t = t.call(r);
+    },
+    n: function() {
+      var r2 = t.next();
+      return a = r2.done, r2;
+    },
+    e: function(r2) {
+      u = true, o = r2;
+    },
+    f: function() {
+      try {
+        a || null == t.return || t.return();
+      } finally {
+        if (u)
+          throw o;
+      }
+    }
+  };
+}
+function _defineProperty(e, r, t) {
+  return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, {
+    value: t,
+    enumerable: true,
+    configurable: true,
+    writable: true
+  }) : e[r] = t, e;
+}
+function _iterableToArray(r) {
+  if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"])
+    return Array.from(r);
+}
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function(r2) {
+      return Object.getOwnPropertyDescriptor(e, r2).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread2(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), true).forEach(function(r2) {
+      _defineProperty(e, r2, t[r2]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function(r2) {
+      Object.defineProperty(e, r2, Object.getOwnPropertyDescriptor(t, r2));
+    });
+  }
+  return e;
+}
+function _regenerator() {
+  var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag";
+  function i(r2, n2, o2, i2) {
+    var c2 = n2 && n2.prototype instanceof Generator ? n2 : Generator, u2 = Object.create(c2.prototype);
+    return _regeneratorDefine(u2, "_invoke", (function(r3, n3, o3) {
+      var i3, c3, u3, f2 = 0, p = o3 || [], y = false, G = {
+        p: 0,
+        n: 0,
+        v: e,
+        a: d,
+        f: d.bind(e, 4),
+        d: function(t2, r4) {
+          return i3 = t2, c3 = 0, u3 = e, G.n = r4, a;
+        }
+      };
+      function d(r4, n4) {
+        for (c3 = r4, u3 = n4, t = 0; !y && f2 && !o4 && t < p.length; t++) {
+          var o4, i4 = p[t], d2 = G.p, l = i4[2];
+          r4 > 3 ? (o4 = l === n4) && (u3 = i4[(c3 = i4[4]) ? 5 : (c3 = 3, 3)], i4[4] = i4[5] = e) : i4[0] <= d2 && ((o4 = r4 < 2 && d2 < i4[1]) ? (c3 = 0, G.v = n4, G.n = i4[1]) : d2 < l && (o4 = r4 < 3 || i4[0] > n4 || n4 > l) && (i4[4] = r4, i4[5] = n4, G.n = l, c3 = 0));
+        }
+        if (o4 || r4 > 1)
+          return a;
+        throw y = true, n4;
+      }
+      return function(o4, p2, l) {
+        if (f2 > 1)
+          throw TypeError("Generator is already running");
+        for (y && 1 === p2 && d(p2, l), c3 = p2, u3 = l; (t = c3 < 2 ? e : u3) || !y; ) {
+          i3 || (c3 ? c3 < 3 ? (c3 > 1 && (G.n = -1), d(c3, u3)) : G.n = u3 : G.v = u3);
+          try {
+            if (f2 = 2, i3) {
+              if (c3 || (o4 = "next"), t = i3[o4]) {
+                if (!(t = t.call(i3, u3)))
+                  throw TypeError("iterator result is not an object");
+                if (!t.done)
+                  return t;
+                u3 = t.value, c3 < 2 && (c3 = 0);
+              } else
+                1 === c3 && (t = i3.return) && t.call(i3), c3 < 2 && (u3 = TypeError("The iterator does not provide a '" + o4 + "' method"), c3 = 1);
+              i3 = e;
+            } else if ((t = (y = G.n < 0) ? u3 : r3.call(n3, G)) !== a)
+              break;
+          } catch (t2) {
+            i3 = e, c3 = 1, u3 = t2;
+          } finally {
+            f2 = 1;
+          }
+        }
+        return {
+          value: t,
+          done: y
+        };
+      };
+    })(r2, o2, i2), true), u2;
+  }
+  var a = {};
+  function Generator() {
+  }
+  function GeneratorFunction() {
+  }
+  function GeneratorFunctionPrototype() {
+  }
+  t = Object.getPrototypeOf;
+  var c = [][n] ? t(t([][n]())) : (_regeneratorDefine(t = {}, n, function() {
+    return this;
+  }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c);
+  function f(e2) {
+    return Object.setPrototypeOf ? Object.setPrototypeOf(e2, GeneratorFunctionPrototype) : (e2.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine(e2, o, "GeneratorFunction")), e2.prototype = Object.create(u), e2;
+  }
+  return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine(u), _regeneratorDefine(u, o, "Generator"), _regeneratorDefine(u, n, function() {
+    return this;
+  }), _regeneratorDefine(u, "toString", function() {
+    return "[object Generator]";
+  }), (_regenerator = function() {
+    return {
+      w: i,
+      m: f
+    };
+  })();
+}
+function _regeneratorDefine(e, r, n, t) {
+  var i = Object.defineProperty;
+  try {
+    i({}, "", {});
+  } catch (e2) {
+    i = 0;
+  }
+  _regeneratorDefine = function(e2, r2, n2, t2) {
+    function o(r3, n3) {
+      _regeneratorDefine(e2, r3, function(e3) {
+        return this._invoke(r3, n3, e3);
+      });
+    }
+    r2 ? i ? i(e2, r2, {
+      value: n2,
+      enumerable: !t2,
+      configurable: !t2,
+      writable: !t2
+    }) : e2[r2] = n2 : (o("next", 0), o("throw", 1), o("return", 2));
+  }, _regeneratorDefine(e, r, n, t);
+}
+function _toConsumableArray(r) {
+  return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread();
+}
+function _toPrimitive(t, r) {
+  if ("object" != typeof t || !t)
+    return t;
+  var e = t[Symbol.toPrimitive];
+  if (void 0 !== e) {
+    var i = e.call(t, r);
+    if ("object" != typeof i)
+      return i;
+    throw new TypeError("@@toPrimitive must return a primitive value.");
+  }
+  return ("string" === r ? String : Number)(t);
+}
+function _toPropertyKey(t) {
+  var i = _toPrimitive(t, "string");
+  return "symbol" == typeof i ? i : i + "";
+}
+function _unsupportedIterableToArray(r, a) {
+  if (r) {
+    if ("string" == typeof r)
+      return _arrayLikeToArray(r, a);
+    var t = {}.toString.call(r).slice(8, -1);
+    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0;
+  }
+}
+var activeFocusTraps = {
+  // Returns the trap from the top of the stack.
+  getActiveTrap: function getActiveTrap(trapStack) {
+    if ((trapStack === null || trapStack === void 0 ? void 0 : trapStack.length) > 0) {
+      return trapStack[trapStack.length - 1];
+    }
+    return null;
+  },
+  // Pauses the currently active trap, then adds a new trap to the stack.
+  activateTrap: function activateTrap(trapStack, trap) {
+    var activeTrap = activeFocusTraps.getActiveTrap(trapStack);
+    if (trap !== activeTrap) {
+      activeFocusTraps.pauseTrap(trapStack);
+    }
+    var trapIndex = trapStack.indexOf(trap);
+    if (trapIndex === -1) {
+      trapStack.push(trap);
+    } else {
+      trapStack.splice(trapIndex, 1);
+      trapStack.push(trap);
+    }
+  },
+  // Removes the trap from the top of the stack, then unpauses the next trap down.
+  deactivateTrap: function deactivateTrap(trapStack, trap) {
+    var trapIndex = trapStack.indexOf(trap);
+    if (trapIndex !== -1) {
+      trapStack.splice(trapIndex, 1);
+    }
+    activeFocusTraps.unpauseTrap(trapStack);
+  },
+  // Pauses the trap at the top of the stack.
+  pauseTrap: function pauseTrap(trapStack) {
+    var activeTrap = activeFocusTraps.getActiveTrap(trapStack);
+    activeTrap === null || activeTrap === void 0 || activeTrap._setPausedState(true);
+  },
+  // Unpauses the trap at the top of the stack.
+  unpauseTrap: function unpauseTrap(trapStack) {
+    var activeTrap = activeFocusTraps.getActiveTrap(trapStack);
+    if (activeTrap && !activeTrap._isManuallyPaused()) {
+      activeTrap._setPausedState(false);
+    }
+  }
+};
+var isSelectableInput = function isSelectableInput2(node) {
+  return node.tagName && node.tagName.toLowerCase() === "input" && typeof node.select === "function";
+};
+var isEscapeEvent = function isEscapeEvent2(e) {
+  return (e === null || e === void 0 ? void 0 : e.key) === "Escape" || (e === null || e === void 0 ? void 0 : e.key) === "Esc" || (e === null || e === void 0 ? void 0 : e.keyCode) === 27;
+};
+var isTabEvent = function isTabEvent2(e) {
+  return (e === null || e === void 0 ? void 0 : e.key) === "Tab" || (e === null || e === void 0 ? void 0 : e.keyCode) === 9;
+};
+var isKeyForward = function isKeyForward2(e) {
+  return isTabEvent(e) && !e.shiftKey;
+};
+var isKeyBackward = function isKeyBackward2(e) {
+  return isTabEvent(e) && e.shiftKey;
+};
+var delay = function delay2(fn) {
+  return setTimeout(fn, 0);
+};
+var valueOrHandler = function valueOrHandler2(value) {
+  for (var _len = arguments.length, params = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    params[_key - 1] = arguments[_key];
+  }
+  return typeof value === "function" ? value.apply(void 0, params) : value;
+};
+var getActualTarget = function getActualTarget2(event) {
+  return event.target.shadowRoot && typeof event.composedPath === "function" ? event.composedPath()[0] : event.target;
+};
+var internalTrapStack = [];
+var createFocusTrap = function createFocusTrap2(elements, userOptions) {
+  var doc = (userOptions === null || userOptions === void 0 ? void 0 : userOptions.document) || document;
+  var trapStack = (userOptions === null || userOptions === void 0 ? void 0 : userOptions.trapStack) || internalTrapStack;
+  var config = _objectSpread2({
+    returnFocusOnDeactivate: true,
+    escapeDeactivates: true,
+    delayInitialFocus: true,
+    isolateSubtrees: false,
+    isKeyForward,
+    isKeyBackward
+  }, userOptions);
+  var state = {
+    // containers given to createFocusTrap()
+    /** @type {Array<HTMLElement>} */
+    containers: [],
+    // list of objects identifying tabbable nodes in `containers` in the trap
+    // NOTE: it's possible that a group has no tabbable nodes if nodes get removed while the trap
+    //  is active, but the trap should never get to a state where there isn't at least one group
+    //  with at least one tabbable node in it (that would lead to an error condition that would
+    //  result in an error being thrown)
+    /** @type {Array<{
+     *    container: HTMLElement,
+     *    tabbableNodes: Array<HTMLElement>, // empty if none
+     *    focusableNodes: Array<HTMLElement>, // empty if none
+     *    posTabIndexesFound: boolean,
+     *    firstTabbableNode: HTMLElement|undefined,
+     *    lastTabbableNode: HTMLElement|undefined,
+     *    firstDomTabbableNode: HTMLElement|undefined,
+     *    lastDomTabbableNode: HTMLElement|undefined,
+     *    nextTabbableNode: (node: HTMLElement, forward: boolean) => HTMLElement|undefined
+     *  }>}
+     */
+    containerGroups: [],
+    // same order/length as `containers` list
+    // references to objects in `containerGroups`, but only those that actually have
+    //  tabbable nodes in them
+    // NOTE: same order as `containers` and `containerGroups`, but __not necessarily__
+    //  the same length
+    tabbableGroups: [],
+    // references to nodes that are siblings to the ancestors of this trap's containers.
+    /** @type {Set<HTMLElement>} */
+    adjacentElements: /* @__PURE__ */ new Set(),
+    // references to nodes that were inert or aria-hidden before the trap was activated.
+    /** @type {Set<HTMLElement>} */
+    alreadySilent: /* @__PURE__ */ new Set(),
+    nodeFocusedBeforeActivation: null,
+    mostRecentlyFocusedNode: null,
+    active: false,
+    paused: false,
+    manuallyPaused: false,
+    // timer ID for when delayInitialFocus is true and initial focus in this trap
+    //  has been delayed during activation
+    delayInitialFocusTimer: void 0,
+    // the most recent KeyboardEvent for the configured nav key (typically [SHIFT+]TAB), if any
+    recentNavEvent: void 0
+  };
+  var trap;
+  var getOption = function getOption2(configOverrideOptions, optionName, configOptionName) {
+    return configOverrideOptions && configOverrideOptions[optionName] !== void 0 ? configOverrideOptions[optionName] : config[configOptionName || optionName];
+  };
+  var findContainerIndex = function findContainerIndex2(element, event) {
+    var composedPath = typeof (event === null || event === void 0 ? void 0 : event.composedPath) === "function" ? event.composedPath() : void 0;
+    return state.containerGroups.findIndex(function(_ref) {
+      var container = _ref.container, tabbableNodes = _ref.tabbableNodes;
+      return container.contains(element) || // fall back to explicit tabbable search which will take into consideration any
+      //  web components if the `tabbableOptions.getShadowRoot` option was used for
+      //  the trap, enabling shadow DOM support in tabbable (`Node.contains()` doesn't
+      //  look inside web components even if open)
+      (composedPath === null || composedPath === void 0 ? void 0 : composedPath.includes(container)) || tabbableNodes.find(function(node) {
+        return node === element;
+      });
+    });
+  };
+  var getNodeForOption = function getNodeForOption2(optionName) {
+    var _ref2 = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {}, _ref2$hasFallback = _ref2.hasFallback, hasFallback = _ref2$hasFallback === void 0 ? false : _ref2$hasFallback, _ref2$params = _ref2.params, params = _ref2$params === void 0 ? [] : _ref2$params;
+    var optionValue = config[optionName];
+    if (typeof optionValue === "function") {
+      optionValue = optionValue.apply(void 0, _toConsumableArray(params));
+    }
+    if (optionValue === true) {
+      optionValue = void 0;
+    }
+    if (!optionValue) {
+      if (optionValue === void 0 || optionValue === false) {
+        return optionValue;
+      }
+      throw new Error("`".concat(optionName, "` was specified but was not a node, or did not return a node"));
+    }
+    var node = optionValue;
+    if (typeof optionValue === "string") {
+      try {
+        node = doc.querySelector(optionValue);
+      } catch (err) {
+        throw new Error("`".concat(optionName, '` appears to be an invalid selector; error="').concat(err.message, '"'));
+      }
+      if (!node) {
+        if (!hasFallback) {
+          throw new Error("`".concat(optionName, "` as selector refers to no known node"));
+        }
+      }
+    }
+    return node;
+  };
+  var getInitialFocusNode = function getInitialFocusNode2() {
+    var node = getNodeForOption("initialFocus", {
+      hasFallback: true
+    });
+    if (node === false) {
+      return false;
+    }
+    if (node === void 0 || node && !isFocusable(node, config.tabbableOptions)) {
+      if (findContainerIndex(doc.activeElement) >= 0) {
+        node = doc.activeElement;
+      } else {
+        var firstTabbableGroup = state.tabbableGroups[0];
+        var firstTabbableNode = firstTabbableGroup && firstTabbableGroup.firstTabbableNode;
+        node = firstTabbableNode || getNodeForOption("fallbackFocus");
+      }
+    } else if (node === null) {
+      node = getNodeForOption("fallbackFocus");
+    }
+    if (!node) {
+      throw new Error("Your focus-trap needs to have at least one focusable element");
+    }
+    return node;
+  };
+  var updateTabbableNodes = function updateTabbableNodes2() {
+    state.containerGroups = state.containers.map(function(container) {
+      var tabbableNodes = tabbable(container, config.tabbableOptions);
+      var focusableNodes = focusable(container, config.tabbableOptions);
+      var firstTabbableNode = tabbableNodes.length > 0 ? tabbableNodes[0] : void 0;
+      var lastTabbableNode = tabbableNodes.length > 0 ? tabbableNodes[tabbableNodes.length - 1] : void 0;
+      var firstDomTabbableNode = focusableNodes.find(function(node) {
+        return isTabbable(node);
+      });
+      var lastDomTabbableNode = focusableNodes.slice().reverse().find(function(node) {
+        return isTabbable(node);
+      });
+      var posTabIndexesFound = !!tabbableNodes.find(function(node) {
+        return getTabIndex(node) > 0;
+      });
+      return {
+        container,
+        tabbableNodes,
+        focusableNodes,
+        /** True if at least one node with positive `tabindex` was found in this container. */
+        posTabIndexesFound,
+        /** First tabbable node in container, __tabindex__ order; `undefined` if none. */
+        firstTabbableNode,
+        /** Last tabbable node in container, __tabindex__ order; `undefined` if none. */
+        lastTabbableNode,
+        // NOTE: DOM order is NOT NECESSARILY "document position" order, but figuring that out
+        //  would require more than just https://developer.mozilla.org/en-US/docs/Web/API/Node/compareDocumentPosition
+        //  because that API doesn't work with Shadow DOM as well as it should (@see
+        //  https://github.com/whatwg/dom/issues/320) and since this first/last is only needed, so far,
+        //  to address an edge case related to positive tabindex support, this seems like a much easier,
+        //  "close enough most of the time" alternative for positive tabindexes which should generally
+        //  be avoided anyway...
+        /** First tabbable node in container, __DOM__ order; `undefined` if none. */
+        firstDomTabbableNode,
+        /** Last tabbable node in container, __DOM__ order; `undefined` if none. */
+        lastDomTabbableNode,
+        /**
+         * Finds the __tabbable__ node that follows the given node in the specified direction,
+         *  in this container, if any.
+         * @param {HTMLElement} node
+         * @param {boolean} [forward] True if going in forward tab order; false if going
+         *  in reverse.
+         * @returns {HTMLElement|undefined} The next tabbable node, if any.
+         */
+        nextTabbableNode: function nextTabbableNode(node) {
+          var forward = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
+          var nodeIdx = tabbableNodes.indexOf(node);
+          if (nodeIdx < 0) {
+            if (forward) {
+              return focusableNodes.slice(focusableNodes.indexOf(node) + 1).find(function(el) {
+                return isTabbable(el);
+              });
+            }
+            return focusableNodes.slice(0, focusableNodes.indexOf(node)).reverse().find(function(el) {
+              return isTabbable(el);
+            });
+          }
+          return tabbableNodes[nodeIdx + (forward ? 1 : -1)];
+        }
+      };
+    });
+    state.tabbableGroups = state.containerGroups.filter(function(group) {
+      return group.tabbableNodes.length > 0;
+    });
+    if (state.tabbableGroups.length <= 0 && !getNodeForOption("fallbackFocus")) {
+      throw new Error("Your focus-trap must have at least one container with at least one tabbable node in it at all times");
+    }
+    if (state.containerGroups.find(function(g) {
+      return g.posTabIndexesFound;
+    }) && state.containerGroups.length > 1) {
+      throw new Error("At least one node with a positive tabindex was found in one of your focus-trap's multiple containers. Positive tabindexes are only supported in single-container focus-traps.");
+    }
+  };
+  var _getActiveElement = function getActiveElement(el) {
+    var activeElement = el.activeElement;
+    if (!activeElement) {
+      return;
+    }
+    if (activeElement.shadowRoot && activeElement.shadowRoot.activeElement !== null) {
+      return _getActiveElement(activeElement.shadowRoot);
+    }
+    return activeElement;
+  };
+  var _tryFocus = function tryFocus(node) {
+    if (node === false) {
+      return;
+    }
+    if (node === _getActiveElement(document)) {
+      return;
+    }
+    if (!node || !node.focus) {
+      _tryFocus(getInitialFocusNode());
+      return;
+    }
+    node.focus({
+      preventScroll: !!config.preventScroll
+    });
+    state.mostRecentlyFocusedNode = node;
+    if (isSelectableInput(node)) {
+      node.select();
+    }
+  };
+  var getReturnFocusNode = function getReturnFocusNode2(previousActiveElement) {
+    var node = getNodeForOption("setReturnFocus", {
+      params: [previousActiveElement]
+    });
+    return node ? node : node === false ? false : previousActiveElement;
+  };
+  var findNextNavNode = function findNextNavNode2(_ref3) {
+    var target = _ref3.target, event = _ref3.event, _ref3$isBackward = _ref3.isBackward, isBackward = _ref3$isBackward === void 0 ? false : _ref3$isBackward;
+    target = target || getActualTarget(event);
+    updateTabbableNodes();
+    var destinationNode = null;
+    if (state.tabbableGroups.length > 0) {
+      var containerIndex = findContainerIndex(target, event);
+      var containerGroup = containerIndex >= 0 ? state.containerGroups[containerIndex] : void 0;
+      if (containerIndex < 0) {
+        if (isBackward) {
+          destinationNode = state.tabbableGroups[state.tabbableGroups.length - 1].lastTabbableNode;
+        } else {
+          destinationNode = state.tabbableGroups[0].firstTabbableNode;
+        }
+      } else if (isBackward) {
+        var startOfGroupIndex = state.tabbableGroups.findIndex(function(_ref4) {
+          var firstTabbableNode = _ref4.firstTabbableNode;
+          return target === firstTabbableNode;
+        });
+        if (startOfGroupIndex < 0 && (containerGroup.container === target || isFocusable(target, config.tabbableOptions) && !isTabbable(target, config.tabbableOptions) && !containerGroup.nextTabbableNode(target, false))) {
+          startOfGroupIndex = containerIndex;
+        }
+        if (startOfGroupIndex >= 0) {
+          var destinationGroupIndex = startOfGroupIndex === 0 ? state.tabbableGroups.length - 1 : startOfGroupIndex - 1;
+          var destinationGroup = state.tabbableGroups[destinationGroupIndex];
+          destinationNode = getTabIndex(target) >= 0 ? destinationGroup.lastTabbableNode : destinationGroup.lastDomTabbableNode;
+        } else if (!isTabEvent(event)) {
+          destinationNode = containerGroup.nextTabbableNode(target, false);
+        }
+      } else {
+        var lastOfGroupIndex = state.tabbableGroups.findIndex(function(_ref5) {
+          var lastTabbableNode = _ref5.lastTabbableNode;
+          return target === lastTabbableNode;
+        });
+        if (lastOfGroupIndex < 0 && (containerGroup.container === target || isFocusable(target, config.tabbableOptions) && !isTabbable(target, config.tabbableOptions) && !containerGroup.nextTabbableNode(target))) {
+          lastOfGroupIndex = containerIndex;
+        }
+        if (lastOfGroupIndex >= 0) {
+          var _destinationGroupIndex = lastOfGroupIndex === state.tabbableGroups.length - 1 ? 0 : lastOfGroupIndex + 1;
+          var _destinationGroup = state.tabbableGroups[_destinationGroupIndex];
+          destinationNode = getTabIndex(target) >= 0 ? _destinationGroup.firstTabbableNode : _destinationGroup.firstDomTabbableNode;
+        } else if (!isTabEvent(event)) {
+          destinationNode = containerGroup.nextTabbableNode(target);
+        }
+      }
+    } else {
+      destinationNode = getNodeForOption("fallbackFocus");
+    }
+    return destinationNode;
+  };
+  var checkPointerDown = function checkPointerDown2(e) {
+    var target = getActualTarget(e);
+    if (findContainerIndex(target, e) >= 0) {
+      return;
+    }
+    if (valueOrHandler(config.clickOutsideDeactivates, e)) {
+      trap.deactivate({
+        // NOTE: by setting `returnFocus: false`, deactivate() will do nothing,
+        //  which will result in the outside click setting focus to the node
+        //  that was clicked (and if not focusable, to "nothing"); by setting
+        //  `returnFocus: true`, we'll attempt to re-focus the node originally-focused
+        //  on activation (or the configured `setReturnFocus` node), whether the
+        //  outside click was on a focusable node or not
+        returnFocus: config.returnFocusOnDeactivate
+      });
+      return;
+    }
+    if (valueOrHandler(config.allowOutsideClick, e)) {
+      return;
+    }
+    e.preventDefault();
+  };
+  var checkFocusIn = function checkFocusIn2(event) {
+    var target = getActualTarget(event);
+    var targetContained = findContainerIndex(target, event) >= 0;
+    if (targetContained || target instanceof Document) {
+      if (targetContained) {
+        state.mostRecentlyFocusedNode = target;
+      }
+    } else {
+      event.stopImmediatePropagation();
+      var nextNode;
+      var navAcrossContainers = true;
+      if (state.mostRecentlyFocusedNode) {
+        if (getTabIndex(state.mostRecentlyFocusedNode) > 0) {
+          var mruContainerIdx = findContainerIndex(state.mostRecentlyFocusedNode);
+          var tabbableNodes = state.containerGroups[mruContainerIdx].tabbableNodes;
+          if (tabbableNodes.length > 0) {
+            var mruTabIdx = tabbableNodes.findIndex(function(node) {
+              return node === state.mostRecentlyFocusedNode;
+            });
+            if (mruTabIdx >= 0) {
+              if (config.isKeyForward(state.recentNavEvent)) {
+                if (mruTabIdx + 1 < tabbableNodes.length) {
+                  nextNode = tabbableNodes[mruTabIdx + 1];
+                  navAcrossContainers = false;
+                }
+              } else {
+                if (mruTabIdx - 1 >= 0) {
+                  nextNode = tabbableNodes[mruTabIdx - 1];
+                  navAcrossContainers = false;
+                }
+              }
+            }
+          }
+        } else {
+          if (!state.containerGroups.some(function(g) {
+            return g.tabbableNodes.some(function(n) {
+              return getTabIndex(n) > 0;
+            });
+          })) {
+            navAcrossContainers = false;
+          }
+        }
+      } else {
+        navAcrossContainers = false;
+      }
+      if (navAcrossContainers) {
+        nextNode = findNextNavNode({
+          // move FROM the MRU node, not event-related node (which will be the node that is
+          //  outside the trap causing the focus escape we're trying to fix)
+          target: state.mostRecentlyFocusedNode,
+          isBackward: config.isKeyBackward(state.recentNavEvent)
+        });
+      }
+      if (nextNode) {
+        _tryFocus(nextNode);
+      } else {
+        _tryFocus(state.mostRecentlyFocusedNode || getInitialFocusNode());
+      }
+    }
+    state.recentNavEvent = void 0;
+  };
+  var checkKeyNav = function checkKeyNav2(event) {
+    var isBackward = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : false;
+    state.recentNavEvent = event;
+    var destinationNode = findNextNavNode({
+      event,
+      isBackward
+    });
+    if (destinationNode) {
+      if (isTabEvent(event)) {
+        event.preventDefault();
+      }
+      _tryFocus(destinationNode);
+    }
+  };
+  var checkTabKey = function checkTabKey2(event) {
+    if (config.isKeyForward(event) || config.isKeyBackward(event)) {
+      checkKeyNav(event, config.isKeyBackward(event));
+    }
+  };
+  var checkEscapeKey = function checkEscapeKey2(event) {
+    if (isEscapeEvent(event) && valueOrHandler(config.escapeDeactivates, event) !== false) {
+      event.preventDefault();
+      trap.deactivate();
+    }
+  };
+  var checkClick = function checkClick2(e) {
+    var target = getActualTarget(e);
+    if (findContainerIndex(target, e) >= 0) {
+      return;
+    }
+    if (valueOrHandler(config.clickOutsideDeactivates, e)) {
+      return;
+    }
+    if (valueOrHandler(config.allowOutsideClick, e)) {
+      return;
+    }
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  };
+  var addListeners = function addListeners2() {
+    if (!state.active) {
+      return Promise.resolve();
+    }
+    activeFocusTraps.activateTrap(trapStack, trap);
+    var promise;
+    if (config.delayInitialFocus) {
+      promise = new Promise(function(resolve) {
+        state.delayInitialFocusTimer = delay(function() {
+          _tryFocus(getInitialFocusNode());
+          resolve();
+        });
+      });
+    } else {
+      promise = Promise.resolve();
+      _tryFocus(getInitialFocusNode());
+    }
+    doc.addEventListener("focusin", checkFocusIn, true);
+    doc.addEventListener("mousedown", checkPointerDown, {
+      capture: true,
+      passive: false
+    });
+    doc.addEventListener("touchstart", checkPointerDown, {
+      capture: true,
+      passive: false
+    });
+    doc.addEventListener("click", checkClick, {
+      capture: true,
+      passive: false
+    });
+    doc.addEventListener("keydown", checkTabKey, {
+      capture: true,
+      passive: false
+    });
+    doc.addEventListener("keydown", checkEscapeKey);
+    return promise;
+  };
+  var collectAdjacentElements = function collectAdjacentElements2(containers) {
+    if (state.active && !state.paused) {
+      trap._setSubtreeIsolation(false);
+    }
+    state.adjacentElements.clear();
+    state.alreadySilent.clear();
+    var containerAncestors = /* @__PURE__ */ new Set();
+    var adjacentElements = /* @__PURE__ */ new Set();
+    var _iterator = _createForOfIteratorHelper(containers), _step;
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+        var container = _step.value;
+        containerAncestors.add(container);
+        var insideShadowRoot = typeof ShadowRoot !== "undefined" && container.getRootNode() instanceof ShadowRoot;
+        var current = container;
+        while (current) {
+          containerAncestors.add(current);
+          var parent = current.parentElement;
+          var siblings = [];
+          if (parent) {
+            siblings = parent.children;
+          } else if (!parent && insideShadowRoot) {
+            siblings = current.getRootNode().children;
+            parent = current.getRootNode().host;
+            insideShadowRoot = typeof ShadowRoot !== "undefined" && parent.getRootNode() instanceof ShadowRoot;
+          }
+          var _iterator2 = _createForOfIteratorHelper(siblings), _step2;
+          try {
+            for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
+              var child = _step2.value;
+              adjacentElements.add(child);
+            }
+          } catch (err) {
+            _iterator2.e(err);
+          } finally {
+            _iterator2.f();
+          }
+          current = parent;
+        }
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+    containerAncestors.forEach(function(el) {
+      adjacentElements["delete"](el);
+    });
+    state.adjacentElements = adjacentElements;
+  };
+  var removeListeners = function removeListeners2() {
+    if (!state.active) {
+      return;
+    }
+    doc.removeEventListener("focusin", checkFocusIn, true);
+    doc.removeEventListener("mousedown", checkPointerDown, true);
+    doc.removeEventListener("touchstart", checkPointerDown, true);
+    doc.removeEventListener("click", checkClick, true);
+    doc.removeEventListener("keydown", checkTabKey, true);
+    doc.removeEventListener("keydown", checkEscapeKey);
+    return trap;
+  };
+  var checkDomRemoval = function checkDomRemoval2(mutations) {
+    var isFocusedNodeRemoved = mutations.some(function(mutation) {
+      var removedNodes = Array.from(mutation.removedNodes);
+      return removedNodes.some(function(node) {
+        return node === state.mostRecentlyFocusedNode;
+      });
+    });
+    if (isFocusedNodeRemoved) {
+      _tryFocus(getInitialFocusNode());
+    }
+  };
+  var mutationObserver = typeof window !== "undefined" && "MutationObserver" in window ? new MutationObserver(checkDomRemoval) : void 0;
+  var updateObservedNodes = function updateObservedNodes2() {
+    if (!mutationObserver) {
+      return;
+    }
+    mutationObserver.disconnect();
+    if (state.active && !state.paused) {
+      state.containers.map(function(container) {
+        mutationObserver.observe(container, {
+          subtree: true,
+          childList: true
+        });
+      });
+    }
+  };
+  trap = {
+    get active() {
+      return state.active;
+    },
+    get paused() {
+      return state.paused;
+    },
+    activate: function activate(activateOptions) {
+      if (state.active) {
+        return this;
+      }
+      var onActivate = getOption(activateOptions, "onActivate");
+      var onPostActivate = getOption(activateOptions, "onPostActivate");
+      var checkCanFocusTrap = getOption(activateOptions, "checkCanFocusTrap");
+      var preexistingTrap = activeFocusTraps.getActiveTrap(trapStack);
+      var revertState = false;
+      if (preexistingTrap && !preexistingTrap.paused) {
+        var _preexistingTrap$_set;
+        (_preexistingTrap$_set = preexistingTrap._setSubtreeIsolation) === null || _preexistingTrap$_set === void 0 || _preexistingTrap$_set.call(preexistingTrap, false);
+        revertState = true;
+      }
+      try {
+        if (!checkCanFocusTrap) {
+          updateTabbableNodes();
+        }
+        state.active = true;
+        state.paused = false;
+        state.nodeFocusedBeforeActivation = _getActiveElement(doc);
+        onActivate === null || onActivate === void 0 || onActivate();
+        var finishActivation = /* @__PURE__ */ (function() {
+          var _ref6 = _asyncToGenerator(/* @__PURE__ */ _regenerator().m(function _callee() {
+            return _regenerator().w(function(_context) {
+              while (1)
+                switch (_context.n) {
+                  case 0:
+                    if (checkCanFocusTrap) {
+                      updateTabbableNodes();
+                    }
+                    _context.n = 1;
+                    return addListeners();
+                  case 1:
+                    trap._setSubtreeIsolation(true);
+                    updateObservedNodes();
+                    onPostActivate === null || onPostActivate === void 0 || onPostActivate();
+                  case 2:
+                    return _context.a(2);
+                }
+            }, _callee);
+          }));
+          return function finishActivation2() {
+            return _ref6.apply(this, arguments);
+          };
+        })();
+        if (checkCanFocusTrap) {
+          checkCanFocusTrap(state.containers.concat()).then(finishActivation, finishActivation);
+          return this;
+        }
+        finishActivation();
+      } catch (error2) {
+        if (preexistingTrap === activeFocusTraps.getActiveTrap(trapStack) && revertState) {
+          var _preexistingTrap$_set2;
+          (_preexistingTrap$_set2 = preexistingTrap._setSubtreeIsolation) === null || _preexistingTrap$_set2 === void 0 || _preexistingTrap$_set2.call(preexistingTrap, true);
+        }
+        throw error2;
+      }
+      return this;
+    },
+    deactivate: function deactivate(deactivateOptions) {
+      if (!state.active) {
+        return this;
+      }
+      var options = _objectSpread2({
+        onDeactivate: config.onDeactivate,
+        onPostDeactivate: config.onPostDeactivate,
+        checkCanReturnFocus: config.checkCanReturnFocus
+      }, deactivateOptions);
+      clearTimeout(state.delayInitialFocusTimer);
+      state.delayInitialFocusTimer = void 0;
+      if (!state.paused) {
+        trap._setSubtreeIsolation(false);
+      }
+      state.alreadySilent.clear();
+      removeListeners();
+      state.active = false;
+      state.paused = false;
+      updateObservedNodes();
+      activeFocusTraps.deactivateTrap(trapStack, trap);
+      var onDeactivate = getOption(options, "onDeactivate");
+      var onPostDeactivate = getOption(options, "onPostDeactivate");
+      var checkCanReturnFocus = getOption(options, "checkCanReturnFocus");
+      var returnFocus = getOption(options, "returnFocus", "returnFocusOnDeactivate");
+      onDeactivate === null || onDeactivate === void 0 || onDeactivate();
+      var finishDeactivation = function finishDeactivation2() {
+        delay(function() {
+          if (returnFocus) {
+            _tryFocus(getReturnFocusNode(state.nodeFocusedBeforeActivation));
+          }
+          onPostDeactivate === null || onPostDeactivate === void 0 || onPostDeactivate();
+        });
+      };
+      if (returnFocus && checkCanReturnFocus) {
+        checkCanReturnFocus(getReturnFocusNode(state.nodeFocusedBeforeActivation)).then(finishDeactivation, finishDeactivation);
+        return this;
+      }
+      finishDeactivation();
+      return this;
+    },
+    pause: function pause(pauseOptions) {
+      if (!state.active) {
+        return this;
+      }
+      state.manuallyPaused = true;
+      return this._setPausedState(true, pauseOptions);
+    },
+    unpause: function unpause(unpauseOptions) {
+      if (!state.active) {
+        return this;
+      }
+      state.manuallyPaused = false;
+      if (trapStack[trapStack.length - 1] !== this) {
+        return this;
+      }
+      return this._setPausedState(false, unpauseOptions);
+    },
+    updateContainerElements: function updateContainerElements(containerElements) {
+      var elementsAsArray = [].concat(containerElements).filter(Boolean);
+      state.containers = elementsAsArray.map(function(element) {
+        return typeof element === "string" ? doc.querySelector(element) : element;
+      });
+      if (config.isolateSubtrees) {
+        collectAdjacentElements(state.containers);
+      }
+      if (state.active) {
+        updateTabbableNodes();
+        if (!state.paused) {
+          trap._setSubtreeIsolation(true);
+        }
+      }
+      updateObservedNodes();
+      return this;
+    }
+  };
+  Object.defineProperties(trap, {
+    _isManuallyPaused: {
+      value: function value() {
+        return state.manuallyPaused;
+      }
+    },
+    _setPausedState: {
+      value: function value(paused, options) {
+        if (state.paused === paused) {
+          return this;
+        }
+        state.paused = paused;
+        if (paused) {
+          var onPause = getOption(options, "onPause");
+          var onPostPause = getOption(options, "onPostPause");
+          onPause === null || onPause === void 0 || onPause();
+          removeListeners();
+          trap._setSubtreeIsolation(false);
+          updateObservedNodes();
+          onPostPause === null || onPostPause === void 0 || onPostPause();
+        } else {
+          var onUnpause = getOption(options, "onUnpause");
+          var onPostUnpause = getOption(options, "onPostUnpause");
+          onUnpause === null || onUnpause === void 0 || onUnpause();
+          var finishUnpause = /* @__PURE__ */ (function() {
+            var _ref7 = _asyncToGenerator(/* @__PURE__ */ _regenerator().m(function _callee2() {
+              return _regenerator().w(function(_context2) {
+                while (1)
+                  switch (_context2.n) {
+                    case 0:
+                      updateTabbableNodes();
+                      _context2.n = 1;
+                      return addListeners();
+                    case 1:
+                      trap._setSubtreeIsolation(true);
+                      updateObservedNodes();
+                      onPostUnpause === null || onPostUnpause === void 0 || onPostUnpause();
+                    case 2:
+                      return _context2.a(2);
+                  }
+              }, _callee2);
+            }));
+            return function finishUnpause2() {
+              return _ref7.apply(this, arguments);
+            };
+          })();
+          finishUnpause();
+        }
+        return this;
+      }
+    },
+    _setSubtreeIsolation: {
+      value: function value(isEnabled) {
+        if (config.isolateSubtrees) {
+          state.adjacentElements.forEach(function(el) {
+            var _el$getAttribute;
+            if (isEnabled) {
+              switch (config.isolateSubtrees) {
+                case "aria-hidden":
+                  if (el.ariaHidden === "true" || ((_el$getAttribute = el.getAttribute("aria-hidden")) === null || _el$getAttribute === void 0 ? void 0 : _el$getAttribute.toLowerCase()) === "true") {
+                    state.alreadySilent.add(el);
+                  }
+                  el.setAttribute("aria-hidden", "true");
+                  break;
+                default:
+                  if (el.inert || el.hasAttribute("inert")) {
+                    state.alreadySilent.add(el);
+                  }
+                  el.setAttribute("inert", true);
+                  break;
+              }
+            } else {
+              if (state.alreadySilent.has(el))
+                ;
+              else {
+                switch (config.isolateSubtrees) {
+                  case "aria-hidden":
+                    el.removeAttribute("aria-hidden");
+                    break;
+                  default:
+                    el.removeAttribute("inert");
+                    break;
+                }
+              }
+            }
+          });
+        }
+      }
+    }
+  });
+  trap.updateContainerElements(elements);
+  return trap;
+};
+function src_default(Alpine2) {
+  let lastFocused;
+  let currentFocused;
+  window.addEventListener("focusin", () => {
+    lastFocused = currentFocused;
+    currentFocused = document.activeElement;
+  });
+  Alpine2.magic("focus", (el) => {
+    let within = el;
+    return {
+      __noscroll: false,
+      __wrapAround: false,
+      within(el2) {
+        within = el2;
+        return this;
+      },
+      withoutScrolling() {
+        this.__noscroll = true;
+        return this;
+      },
+      noscroll() {
+        this.__noscroll = true;
+        return this;
+      },
+      withWrapAround() {
+        this.__wrapAround = true;
+        return this;
+      },
+      wrap() {
+        return this.withWrapAround();
+      },
+      focusable(el2) {
+        return isFocusable(el2);
+      },
+      previouslyFocused() {
+        return lastFocused;
+      },
+      lastFocused() {
+        return lastFocused;
+      },
+      focused() {
+        return currentFocused;
+      },
+      focusables() {
+        if (Array.isArray(within))
+          return within;
+        return focusable(within, { displayCheck: "none" });
+      },
+      all() {
+        return this.focusables();
+      },
+      isFirst(el2) {
+        let els = this.all();
+        return els[0] && els[0].isSameNode(el2);
+      },
+      isLast(el2) {
+        let els = this.all();
+        return els.length && els.slice(-1)[0].isSameNode(el2);
+      },
+      getFirst() {
+        return this.all()[0];
+      },
+      getLast() {
+        return this.all().slice(-1)[0];
+      },
+      getNext() {
+        let list = this.all();
+        let current = document.activeElement;
+        if (list.indexOf(current) === -1)
+          return;
+        if (this.__wrapAround && list.indexOf(current) === list.length - 1) {
+          return list[0];
+        }
+        return list[list.indexOf(current) + 1];
+      },
+      getPrevious() {
+        let list = this.all();
+        let current = document.activeElement;
+        if (list.indexOf(current) === -1)
+          return;
+        if (this.__wrapAround && list.indexOf(current) === 0) {
+          return list.slice(-1)[0];
+        }
+        return list[list.indexOf(current) - 1];
+      },
+      first() {
+        this.focus(this.getFirst());
+      },
+      last() {
+        this.focus(this.getLast());
+      },
+      next() {
+        this.focus(this.getNext());
+      },
+      previous() {
+        this.focus(this.getPrevious());
+      },
+      prev() {
+        return this.previous();
+      },
+      focus(el2) {
+        if (!el2)
+          return;
+        setTimeout(() => {
+          if (!el2.hasAttribute("tabindex"))
+            el2.setAttribute("tabindex", "0");
+          el2.focus({ preventScroll: this.__noscroll });
+        });
+      }
+    };
+  });
+  Alpine2.directive("trap", Alpine2.skipDuringClone(
+    (el, { expression, modifiers }, { effect: effect3, evaluateLater: evaluateLater2, cleanup: cleanup2 }) => {
+      let evaluator = evaluateLater2(expression);
+      let oldValue = false;
+      let options = {
+        escapeDeactivates: false,
+        allowOutsideClick: true,
+        fallbackFocus: () => el
+      };
+      let undoInert = () => {
+      };
+      if (modifiers.includes("noautofocus")) {
+        options.initialFocus = false;
+      } else {
+        let autofocusEl = el.querySelector("[autofocus]");
+        if (autofocusEl)
+          options.initialFocus = autofocusEl;
+      }
+      if (modifiers.includes("inert")) {
+        options.onPostActivate = () => {
+          Alpine2.nextTick(() => {
+            undoInert = setInert(el);
+          });
+        };
+      }
+      let trap = createFocusTrap(el, options);
+      let undoDisableScrolling = () => {
+      };
+      const releaseFocus = () => {
+        undoInert();
+        undoInert = () => {
+        };
+        undoDisableScrolling();
+        undoDisableScrolling = () => {
+        };
+        trap.deactivate({
+          returnFocus: !modifiers.includes("noreturn")
+        });
+      };
+      effect3(() => evaluator((value) => {
+        if (oldValue === value)
+          return;
+        if (value && !oldValue) {
+          if (modifiers.includes("noscroll"))
+            undoDisableScrolling = disableScrolling();
+          setTimeout(() => {
+            trap.activate();
+          }, 15);
+        }
+        if (!value && oldValue) {
+          releaseFocus();
+        }
+        oldValue = !!value;
+      }));
+      cleanup2(releaseFocus);
+    },
+    // When cloning, we only want to add aria-hidden attributes to the
+    // DOM and not try to actually trap, as trapping can mess with the
+    // live DOM and isn't just isolated to the cloned DOM.
+    (el, { expression, modifiers }, { evaluate: evaluate2 }) => {
+      if (modifiers.includes("inert") && evaluate2(expression))
+        setInert(el);
+    }
+  ));
+}
+function setInert(el) {
+  let undos = [];
+  crawlSiblingsUp(el, (sibling) => {
+    let cache = sibling.hasAttribute("aria-hidden");
+    sibling.setAttribute("aria-hidden", "true");
+    undos.push(() => cache || sibling.removeAttribute("aria-hidden"));
+  });
+  return () => {
+    while (undos.length)
+      undos.pop()();
+  };
+}
+function crawlSiblingsUp(el, callback) {
+  if (el.isSameNode(document.body) || !el.parentNode)
+    return;
+  Array.from(el.parentNode.children).forEach((sibling) => {
+    if (sibling.isSameNode(el)) {
+      crawlSiblingsUp(el.parentNode, callback);
+    } else {
+      callback(sibling);
+    }
+  });
+}
+function disableScrolling() {
+  let overflow = document.documentElement.style.overflow;
+  let paddingRight = document.documentElement.style.paddingRight;
+  let scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+  let scrollbarGutter = window.getComputedStyle(document.documentElement).scrollbarGutter;
+  document.documentElement.style.overflow = "hidden";
+  if (scrollbarGutter && scrollbarGutter !== "auto") {
+    return () => {
+      document.documentElement.style.overflow = overflow;
+    };
+  }
+  document.documentElement.style.paddingRight = `${scrollbarWidth}px`;
+  return () => {
+    document.documentElement.style.overflow = overflow;
+    document.documentElement.style.paddingRight = paddingRight;
+  };
+}
+var module_default = src_default;
+const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+const asList = (value) => Array.isArray(value) ? value : Object.values(value ?? {});
+const CARD_FIELDS = ["number", "month", "year", "cvv"];
+const AUTHORIZE_ERROR_FIELDS = {
+  E_WC_04: "number",
+  E_WC_05: "number",
+  E_WC_06: "month",
+  E_WC_07: "year",
+  E_WC_08: "year",
+  E_WC_15: "cvv"
+};
+const SinglePageCheckout = (props) => {
+  return {
+    loggedIn: props.loggedIn,
+    email: props.email ?? "",
+    cartId: props.cartId ?? null,
+    klaviyoEnabled: Boolean(props.klaviyoEnabled),
+    trackedCheckout: false,
+    subscribed: false,
+    shippingAddressId: props.shippingAddressId,
+    useNewAddress: props.useNewAddress ?? false,
+    shippingMethodHandle: props.shippingMethodHandle ?? "",
+    requireShippingMethod: props.requireShippingMethod ?? false,
+    billingSameAsShipping: props.billingSameAsShipping ?? true,
+    billingAddressId: props.billingAddressId,
+    useNewBillingAddress: props.useNewBillingAddress ?? false,
+    cartHasShippingAddress: props.hasShippingAddress ?? false,
+    couponCode: props.couponCode ?? "",
+    couponInput: props.couponCode ?? "",
+    couponOpen: Boolean(props.couponCode),
+    couponError: "",
+    notesError: "",
+    notesButtonVisible: false,
+    addressLabels: {},
+    addressFields: {},
+    shippingPreview: props.shippingPreview ?? "",
+    latestShippingAddress: null,
+    latestBillingAddress: null,
+    shippingMethods: asList(props.shippingMethods),
+    totals: props.totals ?? {
+      itemsAsCurrency: "",
+      shipping: 0,
+      shippingAsCurrency: "",
+      taxAsCurrency: "",
+      total: 0,
+      totalAsCurrency: "",
+      currency: "USD",
+      discounts: [],
+      vouchers: []
+    },
+    noAddressLabel: props.noAddressLabel ?? "",
+    payButtonText: props.payButtonText ?? "",
+    processingLabel: props.processingLabel ?? "",
+    placingOrderLabel: props.placingOrderLabel ?? "",
+    manualGatewayIds: asList(props.manualGatewayIds),
+    cardNumberError: props.cardNumberError ?? "",
+    cardMonthError: props.cardMonthError ?? "",
+    cardYearError: props.cardYearError ?? "",
+    cardExpiredError: props.cardExpiredError ?? "",
+    cardCvvError: props.cardCvvError ?? "",
+    syncingFromCart: false,
+    hasNewBillingContent: false,
+    editExistingAddress: 0,
+    editBillingAddressId: 0,
+    gatewayId: props.gatewayId,
+    savingLabel: props.savingLabel,
+    savedLabel: props.savedLabel,
+    failedLabel: props.failedLabel,
+    status: "",
+    statusTone: "idle",
+    panelStatus: {
+      contact: "idle",
+      delivery: "idle",
+      shipping: "idle",
+      payment: "idle",
+      coupon: "idle",
+      notes: "idle"
+    },
+    panelStatusTimers: {},
+    queuedSavePanel: null,
+    pending: 0,
+    saveTimer: null,
+    saveAbort: null,
+    saving: false,
+    nextSave: null,
+    lastSaved: "",
+    paypalInitTimer: null,
+    paypalInvalidated: false,
+    paying: false,
+    onPageShow: null,
+    originalAuthorizeHandler: null,
+    originalSendPayment: null,
+    init() {
+      this.$watch("email", () => {
+        if (!this.syncingFromCart) {
+          this.syncPayButtons();
+        }
+      });
+      this.$watch(
+        "shippingAddressId",
+        () => this.onSelectionChange("delivery")
+      );
+      this.$watch("useNewAddress", () => this.onSelectionChange("delivery"));
+      this.$watch("shippingMethodHandle", () => {
+        if (!this.syncingFromCart) {
+          this.applySelectedMethodTotals();
+          this.syncPayButtons();
+          this.invalidatePaypalCheckout();
+          this.saveIfValid("shipping");
+        }
+      });
+      this.$watch(
+        "billingSameAsShipping",
+        () => this.onSelectionChange("payment")
+      );
+      this.$watch("billingAddressId", () => this.onSelectionChange("payment"));
+      this.$watch("useNewBillingAddress", () => {
+        this.onSelectionChange("payment");
+        this.$nextTick(() => this.refreshNewBillingContent());
+      });
+      this.$watch("gatewayId", () => {
+        this.$nextTick(() => this.syncPayButtons());
+      });
+      this.$nextTick(() => this.refreshNewBillingContent());
+      this.syncPayButtons();
+      this.$watch("paying", () => this.syncPayButtons());
+      this.$watch(
+        () => Number(this.totals.total) === 0,
+        () => this.$nextTick(() => this.ensureAvailableGateway())
+      );
+      this.onPageShow = (event) => {
+        if (event.persisted) {
+          this.paying = false;
+        }
+      };
+      window.addEventListener("pageshow", this.onPageShow);
+      this.$nextTick(() => {
+        if (this.cartHasShippingAddress) {
+          this.lastSaved = JSON.stringify(this.buildPayload());
+        }
+        this.bindPayOverlay();
+      });
+      if (!this.cartHasShippingAddress && this.shippingAddressId) {
+        this.saveIfValid("delivery");
+      }
+    },
+    destroy() {
+      if (this.saveTimer) {
+        clearTimeout(this.saveTimer);
+        this.saveTimer = null;
+      }
+      if (this.paypalInitTimer) {
+        clearTimeout(this.paypalInitTimer);
+        this.paypalInitTimer = null;
+      }
+      this.nextSave = null;
+      this.saving = false;
+      if (this.saveAbort) {
+        this.saveAbort.abort();
+        this.saveAbort = null;
+      }
+      if (this.onPageShow) {
+        window.removeEventListener("pageshow", this.onPageShow);
+        this.onPageShow = null;
+      }
+      if (this.originalAuthorizeHandler) {
+        window.responseHandler = this.originalAuthorizeHandler;
+        this.originalAuthorizeHandler = null;
+      }
+      if (this.originalSendPayment) {
+        window.sendPaymentDataToAnet = this.originalSendPayment;
+        this.originalSendPayment = null;
+      }
+      Object.values(this.panelStatusTimers).forEach((timer) => {
+        clearTimeout(timer);
+      });
+      this.panelStatusTimers = {};
+    },
+    guestEmail() {
+      const input = this.$root.querySelector("#email");
+      if (input) {
+        return String(input.value || "").trim();
+      }
+      return String(this.email || "").trim();
+    },
+    get hasShippingMethods() {
+      return this.shippingMethods.length > 0;
+    },
+    get loadingShippingMethods() {
+      return this.panelStatus.delivery === "saving";
+    },
+    get hasEmail() {
+      if (this.loggedIn) {
+        return true;
+      }
+      return isValidEmail(this.email);
+    },
+    get hasShippingMethod() {
+      if (!this.hasShippingMethods) {
+        return !this.requireShippingMethod;
+      }
+      return Boolean(this.shippingMethodHandle);
+    },
+    get hasBilling() {
+      if (this.billingSameAsShipping) {
+        return true;
+      }
+      if (this.useNewBillingAddress) {
+        return this.hasNewBillingContent;
+      }
+      return Boolean(this.billingAddressId);
+    },
+    get hasShippingSelection() {
+      return Boolean(this.useNewAddress) || Boolean(this.shippingAddressId);
+    },
+    get deliveryReadyForPay() {
+      if (!this.useNewAddress && this.shippingAddressId) {
+        return true;
+      }
+      return this.panelFieldsReady("delivery");
+    },
+    get canPay() {
+      return this.pending === 0 && !this.saveTimer && this.statusTone !== "error" && this.hasEmail && this.hasShippingSelection && this.cartHasShippingAddress && this.hasShippingMethod && this.hasBilling && this.deliveryReadyForPay && !this.loadingShippingMethods;
+    },
+    get payButtonLabel() {
+      return `${this.payButtonText} ${this.totals.totalAsCurrency || ""}`.trim();
+    },
+    gatewayFits(el) {
+      const availableAtZero = el?.dataset?.availableAtZero === "1";
+      const zeroOnly = el?.dataset?.zeroOnly === "1";
+      if (Number(this.totals.total) === 0) {
+        return availableAtZero;
+      }
+      return !zeroOnly;
+    },
+    ensureAvailableGateway() {
+      const form = this.$refs.paymentForm;
+      if (!form) {
+        return;
+      }
+      const rows = Array.from(form.querySelectorAll("[data-fc-gateway]"));
+      const available = rows.filter((row) => this.gatewayFits(row));
+      const currentOk = available.some(
+        (row) => Number(row.querySelector('input[name="gatewayId"]')?.value) === Number(this.gatewayId)
+      );
+      if (currentOk) {
+        return;
+      }
+      const next = available[0]?.querySelector('input[name="gatewayId"]');
+      if (next) {
+        this.gatewayId = Number(next.value);
+      }
+    },
+    get processingMessage() {
+      const selected = Number(this.gatewayId);
+      const isManual = this.manualGatewayIds.some(
+        (gatewayId) => Number(gatewayId) === selected
+      );
+      return isManual ? this.placingOrderLabel : this.processingLabel;
+    },
+    formatAmountLikeExisting(amount) {
+      const reference = this.totals.totalAsCurrency || this.totals.itemsAsCurrency || this.totals.shippingAsCurrency || "";
+      const prefixMatch = reference.match(/^[^\d-]+/);
+      const numeric = Number(amount);
+      if (!prefixMatch || !Number.isFinite(numeric)) {
+        return String(amount);
+      }
+      const formatted = Math.abs(numeric).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      return `${numeric < 0 ? "-" : ""}${prefixMatch[0]}${formatted}`;
+    },
+    applySelectedMethodTotals() {
+      const method = this.shippingMethods.find(
+        (item) => item.handle === this.shippingMethodHandle
+      );
+      if (!method) {
+        return;
+      }
+      const nextShipping = Number(method.price);
+      const prevShipping = Number(this.totals.shipping);
+      const prevTotal = Number(this.totals.total);
+      const nextTotal = Number.isFinite(nextShipping) && Number.isFinite(prevShipping) && Number.isFinite(prevTotal) ? prevTotal - prevShipping + nextShipping : null;
+      const totals = {
+        ...this.totals,
+        shipping: Number.isFinite(nextShipping) ? nextShipping : this.totals.shipping,
+        shippingAsCurrency: method.priceAsCurrency
+      };
+      if (nextTotal !== null) {
+        totals.total = nextTotal;
+        totals.totalAsCurrency = this.formatAmountLikeExisting(nextTotal);
+      }
+      this.totals = totals;
+    },
+    panelStatusLabel(panel) {
+      const tone = this.panelStatus[panel];
+      if (tone === "saving") {
+        return this.savingLabel;
+      }
+      if (tone === "saved") {
+        return this.savedLabel;
+      }
+      return "";
+    },
+    clearSavingPanel(panel) {
+      if (!panel || this.panelStatus[panel] !== "saving") {
+        return;
+      }
+      this.setPanelStatus(panel, "idle");
+    },
+    setPanelStatus(panel, tone) {
+      if (!panel) {
+        return;
+      }
+      if (this.panelStatusTimers[panel]) {
+        clearTimeout(this.panelStatusTimers[panel]);
+        this.panelStatusTimers = {
+          ...this.panelStatusTimers,
+          [panel]: null
+        };
+      }
+      this.panelStatus = {
+        ...this.panelStatus,
+        [panel]: tone
+      };
+      if (tone !== "saved") {
+        return;
+      }
+      const timer = setTimeout(() => {
+        if (this.panelStatus[panel] === "saved") {
+          this.panelStatus = {
+            ...this.panelStatus,
+            [panel]: "idle"
+          };
+        }
+      }, 2500);
+      this.panelStatusTimers = {
+        ...this.panelStatusTimers,
+        [panel]: timer
+      };
+    },
+    onSelectionChange(panel = "delivery") {
+      if (this.syncingFromCart) {
+        return;
+      }
+      if (panel === "payment") {
+        this.refreshNewBillingContent();
+        this.syncPayButtons();
+        return;
+      }
+      this.invalidatePaypalCheckout();
+      this.saveIfValid(panel);
+    },
+    onDetailsChange(event) {
+      if (event.target && event.target.name === "email") {
+        this.email = event.target.value;
+      }
+    },
+    panelScope(panel) {
+      if (panel === "delivery" && this.useNewAddress) {
+        return this.$root.querySelector("[data-fc-new-shipping]");
+      }
+      if (panel === "payment" && this.useNewBillingAddress) {
+        return this.$root.querySelector("[data-fc-new-billing]");
+      }
+      const section = this.$root.querySelector(`[data-fc-panel="${panel}"]`);
+      return section ? section.querySelector("[data-fc-collect]") || section : null;
+    },
+    addressFieldHandle(data2) {
+      const name = String(data2.name || "");
+      const match = name.match(/\[([^\]]+)\]$/);
+      return match ? match[1] : name;
+    },
+    panelFieldsReady(panel, handles = null, showRequired = false) {
+      const scope2 = this.panelScope(panel);
+      if (!scope2) {
+        return true;
+      }
+      let ready = true;
+      scope2.querySelectorAll("[data-fc-field]").forEach((element) => {
+        if (element === this.$root) {
+          return;
+        }
+        const data2 = window.Alpine.$data(element);
+        if (!data2 || typeof data2.validate !== "function") {
+          return;
+        }
+        if (handles && !handles.has(this.addressFieldHandle(data2))) {
+          return;
+        }
+        if (!data2.validate(showRequired)) {
+          ready = false;
+        }
+      });
+      return ready;
+    },
+    canSavePanel(panel) {
+      if (panel === "delivery" && !this.useNewAddress && this.shippingAddressId) {
+        return true;
+      }
+      if (panel === "payment" && this.billingSameAsShipping) {
+        return true;
+      }
+      if (panel === "payment" && !this.useNewBillingAddress && this.billingAddressId) {
+        return true;
+      }
+      if (panel === "shipping") {
+        return Boolean(this.shippingMethodHandle);
+      }
+      if (panel === "delivery") {
+        return this.panelFieldsReady(
+          panel,
+          /* @__PURE__ */ new Set([
+            "countryCode",
+            "fullName",
+            "addressLine1",
+            "locality",
+            "administrativeArea",
+            "postalCode"
+          ])
+        );
+      }
+      return this.panelFieldsReady(panel);
+    },
+    shippingRateKey(payload) {
+      return [
+        payload.shippingAddressId ?? "",
+        payload.useNewAddress ?? "",
+        payload["shippingAddress[countryCode]"] ?? "",
+        payload["shippingAddress[administrativeArea]"] ?? "",
+        payload["shippingAddress[postalCode]"] ?? ""
+      ].join("|");
+    },
+    deliveryNeedsSave(payload) {
+      if (!this.lastSaved) {
+        return true;
+      }
+      try {
+        return this.shippingRateKey(payload) !== this.shippingRateKey(JSON.parse(this.lastSaved));
+      } catch {
+        return true;
+      }
+    },
+    saveIfValid(panel, event = null) {
+      if (this.syncingFromCart) {
+        return;
+      }
+      this.$nextTick(() => {
+        if (this.syncingFromCart) {
+          return;
+        }
+        if (panel === "delivery") {
+          this.refreshShippingPreview();
+        }
+        if (!this.canSavePanel(panel)) {
+          return;
+        }
+        const payload = this.buildPayload();
+        if (JSON.stringify(payload) === this.lastSaved) {
+          this.restorePaypalIfSkipped();
+          return;
+        }
+        if (panel === "delivery" && !this.deliveryNeedsSave(payload)) {
+          this.restorePaypalIfSkipped();
+          return;
+        }
+        this.queueSave(0, event, panel);
+      });
+    },
+    queueSave(delay3 = 400, event = null, panel = null) {
+      if (event && event.target && event.target.closest("[data-fc-address-edit]")) {
+        return;
+      }
+      if (this.useNewBillingAddress) {
+        this.refreshNewBillingContent();
+      }
+      const fromEvent = event?.target?.closest("[data-fc-panel]");
+      const nextPanel = fromEvent && fromEvent.getAttribute("data-fc-panel") || panel || this.queuedSavePanel || "delivery";
+      if (this.saveTimer) {
+        clearTimeout(this.saveTimer);
+      }
+      if (this.queuedSavePanel && this.queuedSavePanel !== nextPanel) {
+        this.clearSavingPanel(this.queuedSavePanel);
+      }
+      this.queuedSavePanel = nextPanel;
+      this.setPanelStatus(nextPanel, "saving");
+      this.saveTimer = setTimeout(() => {
+        const queuedPanel = this.queuedSavePanel;
+        this.saveTimer = null;
+        this.syncPayButtons();
+        this.saveCart({ panel: queuedPanel });
+      }, delay3);
+      this.syncPayButtons();
+    },
+    collectNamedFields(scope2) {
+      const payload = {};
+      if (!scope2) {
+        return payload;
+      }
+      scope2.querySelectorAll("input[name], select[name], textarea[name]").forEach((element) => {
+        const name = element.getAttribute("name");
+        const type = element.type;
+        const skipped = element.closest(
+          "[data-fc-skip-collect], [data-fc-address-edit]"
+        );
+        if (!name || element.disabled) {
+          return;
+        }
+        if (skipped && skipped !== scope2) {
+          return;
+        }
+        if (type === "button" || type === "submit") {
+          return;
+        }
+        if ((type === "checkbox" || type === "radio") && !element.checked) {
+          return;
+        }
+        if (name.endsWith("_radio") || name.endsWith("_display")) {
+          return;
+        }
+        payload[name] = element.value;
+      });
+      return payload;
+    },
+    collectDetails() {
+      const payload = {};
+      this.$root.querySelectorAll("[data-fc-collect]").forEach((scope2) => {
+        Object.assign(payload, this.collectNamedFields(scope2));
+      });
+      return payload;
+    },
+    addressGroupHasValues(payload, prefix2) {
+      return Object.keys(payload).some(
+        (key) => key.startsWith(prefix2) && String(payload[key] || "").trim() !== ""
+      );
+    },
+    addressGroupHasContent(payload, prefix2) {
+      return ["fullName", "addressLine1", "locality", "postalCode"].some(
+        (field) => String(payload[`${prefix2}${field}]`] || "").trim() !== ""
+      );
+    },
+    newBillingHasContent() {
+      const scope2 = this.$root ? this.$root.querySelector("[data-fc-new-billing]") : null;
+      return this.addressGroupHasContent(
+        this.collectNamedFields(scope2),
+        "billingAddress["
+      );
+    },
+    refreshNewBillingContent() {
+      this.hasNewBillingContent = this.newBillingHasContent();
+      this.syncPayButtons();
+    },
+    stripAddressGroup(payload, prefix2) {
+      Object.keys(payload).forEach((key) => {
+        if (key.startsWith(prefix2)) {
+          delete payload[key];
+        }
+      });
+    },
+    buildPayload(extra = {}) {
+      const payload = {
+        ...this.collectDetails(),
+        shippingMethodHandle: this.shippingMethodHandle || "",
+        billingAddressSameAsShipping: this.billingSameAsShipping ? "1" : "0",
+        ...extra
+      };
+      if (!this.loggedIn) {
+        this.email = this.guestEmail();
+        payload.email = this.email;
+      }
+      const hasShippingFields = this.addressGroupHasValues(
+        payload,
+        "shippingAddress["
+      );
+      if (!this.useNewAddress && this.shippingAddressId) {
+        this.stripAddressGroup(payload, "shippingAddress[");
+        payload.shippingAddressId = String(this.shippingAddressId);
+        payload.useNewAddress = "0";
+      } else if (hasShippingFields) {
+        delete payload.shippingAddressId;
+        payload.useNewAddress = "1";
+      } else {
+        this.stripAddressGroup(payload, "shippingAddress[");
+        delete payload.shippingAddressId;
+        delete payload.useNewAddress;
+      }
+      const hasBillingFields = this.addressGroupHasValues(
+        payload,
+        "billingAddress["
+      );
+      if (this.billingSameAsShipping) {
+        this.stripAddressGroup(payload, "billingAddress[");
+        payload.billingAddressId = "";
+        payload.useNewBillingAddress = "0";
+      } else if (this.useNewBillingAddress && hasBillingFields) {
+        payload.useNewBillingAddress = "1";
+        payload.billingAddressId = "";
+      } else if (this.billingAddressId) {
+        this.stripAddressGroup(payload, "billingAddress[");
+        payload.billingAddressId = String(this.billingAddressId);
+        payload.useNewBillingAddress = "0";
+      } else {
+        this.stripAddressGroup(payload, "billingAddress[");
+        delete payload.useNewBillingAddress;
+        delete payload.billingAddressId;
+      }
+      return payload;
+    },
+    postUrl() {
+      return window.location.pathname + window.location.search;
+    },
+    async postForm(url, fields, signal) {
+      const body = new FormData();
+      body.set(window.csrfTokenName, window.csrfTokenValue);
+      Object.entries(fields).forEach(([key, value]) => {
+        if (value === void 0 || value === null) {
+          return;
+        }
+        body.set(key, String(value));
+      });
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body,
+        credentials: "same-origin",
+        signal
+      });
+      const text = await response.text();
+      let data2 = {};
+      let isJson = false;
+      try {
+        data2 = text ? JSON.parse(text) : {};
+        isJson = true;
+      } catch {
+        isJson = false;
+      }
+      return { response, data: data2, isJson };
+    },
+    flattenErrors(source, prefix2 = "") {
+      const flattened = {};
+      if (!source || typeof source !== "object" || Array.isArray(source)) {
+        return flattened;
+      }
+      Object.entries(source).forEach(([key, value]) => {
+        const path = prefix2 ? `${prefix2}.${key}` : key;
+        if (Array.isArray(value)) {
+          flattened[path] = value.map((item) => String(item));
+          return;
+        }
+        if (value && typeof value === "object") {
+          Object.assign(flattened, this.flattenErrors(value, path));
+          return;
+        }
+        if (value) {
+          flattened[path] = [String(value)];
+        }
+      });
+      return flattened;
+    },
+    errorKeyToName(key) {
+      if (key.includes("[")) {
+        return key;
+      }
+      const parts = key.split(".");
+      if (parts.length === 1) {
+        return key;
+      }
+      return `${parts[0]}[${parts.slice(1).join("][")}]`;
+    },
+    findNamedInput(name) {
+      return this.$root.querySelector(`[name="${this.escapeName(name)}"]`);
+    },
+    setInputErrors(name, messages) {
+      const input = this.findNamedInput(name);
+      if (!input) {
+        return;
+      }
+      const root = input.closest("[x-data]");
+      if (!root || root === this.$root) {
+        return;
+      }
+      const data2 = window.Alpine.$data(root);
+      if (data2 && Array.isArray(data2.errors)) {
+        data2.errors = messages;
+      }
+    },
+    clearInputErrors() {
+      this.couponError = "";
+      this.notesError = "";
+      this.$root.querySelectorAll(
+        "[data-fc-collect] [x-data], [data-fc-address-edit] [x-data]"
+      ).forEach((root) => {
+        const data2 = window.Alpine.$data(root);
+        if (data2 && Array.isArray(data2.errors)) {
+          data2.errors = [];
+        }
+      });
+    },
+    applyFieldErrors(errors) {
+      this.clearInputErrors();
+      const flattened = this.flattenErrors(errors);
+      const noteName = this.$refs.orderNote?.name;
+      Object.entries(flattened).forEach(([key, messages]) => {
+        const name = this.errorKeyToName(key);
+        this.setInputErrors(name, messages);
+        if (name === "couponCode") {
+          this.couponError = messages.join(" ");
+        }
+        if (noteName && name === noteName) {
+          this.notesError = messages.join(" ");
+        }
+      });
+    },
+    collectResponseErrors(data2) {
+      return {
+        ...data2.errors || {},
+        ...data2.cart && data2.cart.errors || {}
+      };
+    },
+    shouldTrackCheckout(saved) {
+      return this.klaviyoEnabled && !this.loggedIn && !this.trackedCheckout && isValidEmail(saved.email || this.email);
+    },
+    shouldSubscribe(saved) {
+      return this.klaviyoEnabled && !this.loggedIn && !this.subscribed && String(saved.subscribe || "") === "1" && Boolean(saved.list) && isValidEmail(saved.email || this.email);
+    },
+    async subscribeToKlaviyo(saved, signal) {
+      try {
+        const { response, isJson } = await this.postForm(
+          this.postUrl(),
+          {
+            action: "klaviyo-connect-plus/api/track",
+            email: saved.email || this.email,
+            list: saved.list,
+            subscribe: "1"
+          },
+          signal
+        );
+        if (isJson && response.ok) {
+          this.subscribed = true;
+        }
+      } catch {
+      }
+    },
+    applyErrors(data2) {
+      this.status = data2.message || data2.error || this.failedLabel;
+      this.statusTone = "error";
+      this.applyFieldErrors(this.collectResponseErrors(data2));
+    },
+    async saveCart(extra = {}) {
+      if (!this.loggedIn && !this.hasEmail && !this.cartHasShippingAddress) {
+        this.clearSavingPanel(extra.panel || this.queuedSavePanel);
+        return;
+      }
+      if (this.saving) {
+        this.nextSave = { ...this.nextSave || {}, ...extra };
+        this.setPanelStatus(
+          extra.panel || this.queuedSavePanel || "delivery",
+          "saving"
+        );
+        return;
+      }
+      const panel = extra.panel || this.queuedSavePanel || "delivery";
+      const payload = { ...extra };
+      delete payload.panel;
+      const force = Boolean(payload.force);
+      delete payload.force;
+      const saved = this.buildPayload(payload);
+      const noteName = this.$refs.orderNote?.name;
+      const savingNotes = Boolean(noteName && Object.hasOwn(payload, noteName));
+      if (!force && Object.keys(payload).length === 0 && JSON.stringify(saved) === this.lastSaved) {
+        this.clearSavingPanel(panel);
+        return;
+      }
+      this.queuedSavePanel = null;
+      this.setPanelStatus(panel, "saving");
+      this.saving = true;
+      this.saveAbort = new AbortController();
+      const { signal } = this.saveAbort;
+      this.pending += 1;
+      this.status = this.savingLabel;
+      this.statusTone = "saving";
+      this.syncPayButtons();
+      let cartSynced = false;
+      try {
+        const fields = {
+          action: "commerce/cart/update-cart",
+          ...saved
+        };
+        const trackCheckout = this.shouldTrackCheckout(saved);
+        const subscribe = this.shouldSubscribe(saved);
+        if (trackCheckout) {
+          fields.action = "klaviyo-connect-plus/api/track";
+          fields.forward = "/commerce/cart/update-cart";
+          fields["event[name]"] = "Started Checkout";
+          fields["event[trackOrder]"] = "1";
+          fields["event[orderId]"] = String(this.cartId || "");
+        }
+        const { response, data: data2, isJson } = await this.postForm(
+          this.postUrl(),
+          fields,
+          signal
+        );
+        if (!isJson) {
+          this.status = this.failedLabel;
+          this.statusTone = "error";
+          this.setPanelStatus(panel, "error");
+          this.markNotesError(savingNotes);
+          return;
+        }
+        if (!response.ok || data2.success === false) {
+          this.applyErrors(data2);
+          this.setPanelStatus(panel, "error");
+          this.markNotesError(savingNotes);
+          return;
+        }
+        if (trackCheckout) {
+          this.trackedCheckout = true;
+        }
+        if (subscribe) {
+          if (trackCheckout) {
+            this.subscribed = true;
+          } else {
+            await this.subscribeToKlaviyo(saved, signal);
+          }
+        }
+        const cart = data2.cart || data2.model || data2.data && data2.data.cart;
+        this.applyCart(cart, this.shippingRateKey(saved));
+        cartSynced = true;
+        const couponError = this.couponRejectedMessage(saved, cart);
+        if (couponError) {
+          this.applyFieldErrors({
+            couponCode: [couponError]
+          });
+          this.couponOpen = true;
+          this.setPanelStatus(panel, "error");
+          this.status = "";
+          this.statusTone = "idle";
+          return;
+        }
+        this.clearInputErrors();
+        this.status = this.savedLabel;
+        this.statusTone = "saved";
+        this.setPanelStatus(panel, "saved");
+        this.lastSaved = JSON.stringify(saved);
+        if (savingNotes) {
+          this.notesButtonVisible = false;
+        }
+      } catch (error2) {
+        if (error2.name === "AbortError") {
+          return;
+        }
+        this.status = this.failedLabel;
+        this.statusTone = "error";
+        this.setPanelStatus(panel, "error");
+        this.markNotesError(savingNotes);
+      } finally {
+        this.saving = false;
+        this.pending = Math.max(0, this.pending - 1);
+        this.syncPayButtons();
+        const next = this.nextSave;
+        this.nextSave = null;
+        if (next) {
+          await this.saveCart(next);
+        } else if (this.paypalInvalidated && cartSynced) {
+          this.maybeReinitPaypalCheckout();
+        }
+      }
+    },
+    applyCoupon() {
+      const code = String(this.couponInput || "").trim();
+      if (!code) {
+        return;
+      }
+      this.couponError = "";
+      this.invalidatePaypalCheckout();
+      return this.saveCart({
+        couponCode: code,
+        panel: "coupon"
+      });
+    },
+    removeCoupon() {
+      this.couponInput = "";
+      this.couponError = "";
+      this.invalidatePaypalCheckout();
+      return this.saveCart({
+        couponCode: "",
+        panel: "coupon"
+      });
+    },
+    saveNotes() {
+      const input = this.$refs.orderNote;
+      if (!input?.name) {
+        return;
+      }
+      this.notesError = "";
+      return this.saveCart({
+        [input.name]: input.value,
+        panel: "notes"
+      });
+    },
+    markNotesError(savingNotes) {
+      if (!savingNotes) {
+        return;
+      }
+      if (!this.notesError) {
+        this.notesError = this.status || this.failedLabel;
+      }
+      this.notesButtonVisible = true;
+    },
+    couponRejectedMessage(saved, cart) {
+      if (saved.couponCode === void 0 || saved.couponCode === "") {
+        return "";
+      }
+      const live = cart && cart.fosterCheckout || {};
+      if (live.couponCodeError) {
+        return String(live.couponCodeError);
+      }
+      const applied = String(cart && cart.couponCode || "");
+      if (applied.toLowerCase() === String(saved.couponCode).toLowerCase()) {
+        return "";
+      }
+      return this.failedLabel;
+    },
+    addressLabel(addressId, fallback) {
+      return this.addressLabels[String(addressId)] || fallback;
+    },
+    escapeName(name) {
+      return typeof CSS !== "undefined" && CSS.escape ? CSS.escape(name) : name.replaceAll('"', '\\"');
+    },
+    addressToFields(address) {
+      const fields = {};
+      if (!address || typeof address !== "object") {
+        return fields;
+      }
+      [
+        "fullName",
+        "firstName",
+        "lastName",
+        "organization",
+        "addressLine1",
+        "addressLine2",
+        "locality",
+        "dependentLocality",
+        "administrativeArea",
+        "postalCode",
+        "countryCode"
+      ].forEach((key) => {
+        if (address[key] != null && address[key] !== "") {
+          fields[key] = String(address[key]);
+        }
+      });
+      return fields;
+    },
+    countryLabel(address, fields, scope2) {
+      if (address) {
+        if (address.countryName) {
+          return address.countryName;
+        }
+        if (address.country && address.country.name) {
+          return address.country.name;
+        }
+      }
+      const countrySelector = '[name="countryCode"], [name="shippingAddress[countryCode]"], [name="billingAddress[countryCode]"]';
+      const countryInput = scope2 ? scope2.querySelector(countrySelector) : null;
+      const selectRoot = countryInput ? countryInput.closest("[x-data]") : null;
+      const selectData = selectRoot ? window.Alpine.$data(selectRoot) : null;
+      if (selectData && selectData.selectedOption && selectData.selectedOption.label) {
+        return selectData.selectedOption.label;
+      }
+      return fields && fields.countryCode || "";
+    },
+    addressFieldsFromPayload(payload, prefix2) {
+      const fields = {};
+      Object.entries(payload).forEach(([key, value]) => {
+        if (!key.startsWith(prefix2) || !key.endsWith("]")) {
+          return;
+        }
+        fields[key.slice(prefix2.length, -1)] = value;
+      });
+      return fields;
+    },
+    refreshShippingPreview() {
+      if (!this.useNewAddress && this.shippingAddressId) {
+        const label = this.addressLabel(this.shippingAddressId, "");
+        if (label) {
+          this.shippingPreview = label;
+        }
+        return;
+      }
+      const scope2 = this.$root.querySelector("[data-fc-new-shipping]");
+      if (!scope2) {
+        return;
+      }
+      const preview = this.formatAddress(
+        this.addressFieldsFromPayload(
+          this.collectNamedFields(scope2),
+          "shippingAddress["
+        ),
+        scope2
+      );
+      if (preview) {
+        this.shippingPreview = preview;
+      }
+    },
+    formatAddress(fields, scope2, address = null) {
+      if (!fields || typeof fields !== "object") {
+        return "";
+      }
+      return [
+        fields.fullName,
+        fields.addressLine1,
+        fields.addressLine2,
+        fields.locality,
+        fields.administrativeArea,
+        fields.postalCode,
+        this.countryLabel(address, fields, scope2)
+      ].map((part) => String(part || "").trim()).filter(Boolean).join(", ");
+    },
+    rememberAddress(addressId, address, fields, scope2) {
+      if (!addressId) {
+        return;
+      }
+      const id = String(addressId);
+      const snapshot = { ...fields || this.addressToFields(address) };
+      delete snapshot.action;
+      delete snapshot.addressId;
+      this.addressFields = {
+        ...this.addressFields,
+        [id]: snapshot
+      };
+      this.addressLabels = {
+        ...this.addressLabels,
+        [id]: this.formatAddress(snapshot, scope2, address)
+      };
+    },
+    writeAddressToScope(scope2, fields, prefix2 = "") {
+      if (!scope2 || !fields) {
+        return;
+      }
+      const formRoot = scope2.querySelector("[x-data]");
+      const formData = formRoot ? window.Alpine.$data(formRoot) : null;
+      if (formData) {
+        if (fields.countryCode) {
+          formData.countryCode = fields.countryCode;
+        }
+        if (Object.hasOwn(fields, "administrativeArea")) {
+          formData.administrativeArea = fields.administrativeArea;
+        }
+      }
+      Object.entries(fields).forEach(([name, value]) => {
+        const inputName = prefix2 ? `${prefix2}[${name}]` : name;
+        const input = scope2.querySelector(
+          `[name="${this.escapeName(inputName)}"]`
+        );
+        if (!input) {
+          return;
+        }
+        input.value = value;
+        const data2 = window.Alpine.$data(input.closest("[x-data]"));
+        if (!data2) {
+          return;
+        }
+        if (Object.hasOwn(data2, "value")) {
+          data2.value = value;
+        }
+        if (Object.hasOwn(data2, "modelValue")) {
+          data2.modelValue = value;
+        }
+      });
+    },
+    applyAddressFields(addressId) {
+      const stored = this.addressFields[String(addressId)];
+      if (!stored) {
+        return;
+      }
+      this.$nextTick(() => {
+        const scope2 = this.$root.querySelector(
+          `[data-fc-address-edit="${addressId}"]`
+        );
+        this.writeAddressToScope(scope2, stored);
+      });
+    },
+    applyDraftAddress(kind) {
+      const address = kind === "billing" ? this.latestBillingAddress : this.latestShippingAddress;
+      if (!address) {
+        return;
+      }
+      const prefix2 = kind === "billing" ? "billingAddress" : "shippingAddress";
+      const selector = kind === "billing" ? "[data-fc-new-billing]" : "[data-fc-new-shipping]";
+      this.$nextTick(() => {
+        const scope2 = this.$root.querySelector(selector);
+        this.writeAddressToScope(scope2, this.addressToFields(address), prefix2);
+        if (kind === "billing") {
+          this.refreshNewBillingContent();
+        }
+        if (kind === "shipping") {
+          this.refreshShippingPreview();
+        }
+      });
+    },
+    applyCart(cart, savedKey = "") {
+      if (!cart || typeof cart !== "object") {
+        return;
+      }
+      const previousHandle = this.shippingMethodHandle;
+      const cartHandle = cart.shippingMethodHandle || "";
+      const sameAddress = !savedKey || savedKey === this.shippingRateKey(this.buildPayload());
+      this.syncingFromCart = true;
+      try {
+        if (!this.loggedIn && cart.email) {
+          this.email = cart.email;
+        }
+        if (Object.hasOwn(cart, "couponCode")) {
+          const nextCode = cart.couponCode || "";
+          const keepDraft = this.couponInput !== this.couponCode;
+          this.couponCode = nextCode;
+          if (!keepDraft) {
+            this.couponInput = nextCode;
+          }
+        }
+        if ("shippingAddressId" in cart || cart.shippingAddress) {
+          this.cartHasShippingAddress = Boolean(
+            cart.shippingAddressId || cart.shippingAddress
+          );
+        }
+        const live = cart.fosterCheckout || {};
+        if (sameAddress) {
+          if (typeof live.shippingPreview === "string") {
+            this.shippingPreview = live.shippingPreview;
+          }
+          if (cart.shippingAddress && typeof cart.shippingAddress === "object") {
+            this.latestShippingAddress = cart.shippingAddress;
+            this.rememberAddress(
+              cart.sourceShippingAddressId,
+              cart.shippingAddress
+            );
+          }
+          if (Array.isArray(live.shippingMethods)) {
+            this.shippingMethods = live.shippingMethods;
+          }
+          const handles = this.shippingMethods.map((method) => method.handle);
+          const liveHandle = typeof live.shippingMethodHandle === "string" ? live.shippingMethodHandle : cartHandle;
+          if (previousHandle && handles.includes(previousHandle)) {
+            this.shippingMethodHandle = previousHandle;
+          } else if (handles.includes(liveHandle)) {
+            this.shippingMethodHandle = liveHandle;
+          } else {
+            this.shippingMethodHandle = handles[0] || "";
+          }
+          if (live.totals && typeof live.totals === "object") {
+            this.totals = {
+              discounts: [],
+              vouchers: [],
+              ...live.totals
+            };
+          }
+        }
+        if (cart.billingAddress && typeof cart.billingAddress === "object") {
+          this.latestBillingAddress = cart.billingAddress;
+          this.rememberAddress(
+            cart.sourceBillingAddressId,
+            cart.billingAddress
+          );
+        }
+      } finally {
+        this.syncingFromCart = false;
+      }
+      this.syncPayButtons();
+      this.$nextTick(() => {
+        this.ensureAvailableGateway();
+        if (cart.email) {
+          this.retryStripeIfNeeded();
+        }
+      });
+    },
+    async saveAddressBook(addressId) {
+      if (!addressId) {
+        return;
+      }
+      if (this.saveTimer) {
+        clearTimeout(this.saveTimer);
+        this.saveTimer = null;
+      }
+      const scope2 = this.$root.querySelector(
+        `[data-fc-address-edit="${addressId}"]`
+      );
+      const fields = {
+        action: "users/save-address",
+        ...this.collectNamedFields(scope2),
+        addressId: String(addressId)
+      };
+      const panel = parseInt(this.editBillingAddressId, 10) === parseInt(addressId, 10) ? "payment" : "delivery";
+      const isCurrentShipping = parseInt(this.shippingAddressId, 10) === parseInt(addressId, 10);
+      const isCurrentBilling = !this.billingSameAsShipping && parseInt(this.billingAddressId, 10) === parseInt(addressId, 10);
+      if (isCurrentShipping || isCurrentBilling) {
+        this.invalidatePaypalCheckout();
+      }
+      this.pending += 1;
+      this.status = this.savingLabel;
+      this.statusTone = "saving";
+      this.setPanelStatus(panel, "saving");
+      this.syncPayButtons();
+      try {
+        const { response, data: data2, isJson } = await this.postForm(
+          this.postUrl(),
+          fields
+        );
+        if (!isJson || !response.ok || data2.success === false) {
+          if (isJson) {
+            this.applyErrors(data2);
+          } else {
+            this.status = this.failedLabel;
+            this.statusTone = "error";
+          }
+          this.setPanelStatus(panel, "error");
+          this.restorePaypalIfSkipped();
+          return;
+        }
+        this.rememberAddress(addressId, null, fields, scope2);
+        if (parseInt(this.shippingAddressId, 10) === parseInt(addressId, 10)) {
+          this.shippingPreview = this.addressLabels[String(addressId)];
+        }
+        await this.saveCart({
+          panel,
+          force: isCurrentShipping || isCurrentBilling
+        });
+        if (this.statusTone !== "error") {
+          this.editExistingAddress = 0;
+          this.editBillingAddressId = 0;
+        } else {
+          this.setPanelStatus(panel, "error");
+        }
+      } catch {
+        this.status = this.failedLabel;
+        this.statusTone = "error";
+        this.setPanelStatus(panel, "error");
+        this.restorePaypalIfSkipped();
+      } finally {
+        this.pending = Math.max(0, this.pending - 1);
+        this.syncPayButtons();
+      }
+    },
+    async onPaySubmit(event) {
+      if (event.submitter?.id?.endsWith("authorizeSubmit")) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      if (!this.canPay) {
+        return;
+      }
+      if (!this.deliveryReadyForPay) {
+        this.panelFieldsReady("delivery", null, true);
+        return;
+      }
+      if (!this.hasEmail || !this.hasShippingSelection || !this.cartHasShippingAddress || !this.hasShippingMethod || !this.hasBilling) {
+        this.panelFieldsReady("delivery", null, true);
+        return;
+      }
+      const payloadChanged = JSON.stringify(this.buildPayload()) !== this.lastSaved;
+      this.paying = true;
+      if (this.saveTimer || payloadChanged) {
+        if (this.saveTimer) {
+          clearTimeout(this.saveTimer);
+          this.saveTimer = null;
+        }
+        await this.saveCart({ panel: "payment" });
+        if (this.statusTone === "error") {
+          this.paying = false;
+          return;
+        }
+      }
+      this.lastSaved = JSON.stringify(this.buildPayload());
+      this.$refs.paymentForm?.submit();
+    },
+    bindPayOverlay() {
+      const form = this.$refs.paymentForm;
+      if (!form || form.dataset.fcPayOverlay === "true") {
+        return;
+      }
+      form.dataset.fcPayOverlay = "true";
+      form.addEventListener(
+        "click",
+        (event) => {
+          const button = event.target.closest('[id$="authorizeSubmit"]');
+          if (!button || !this.canPay) {
+            return;
+          }
+          this.wrapAuthorizeHandler();
+        },
+        true
+      );
+      form.addEventListener("input", (event) => {
+        const input = event.target;
+        if (input && CARD_FIELDS.some((name) => input.id && input.id.endsWith(name))) {
+          this.clearCardError(input);
+        }
+      });
+    },
+    wrapAuthorizeHandler() {
+      if (!this.cardInput("authorizeSubmit")) {
+        return;
+      }
+      this.wrapCardFields();
+      const checkout = this;
+      if (!this.originalSendPayment && typeof window.sendPaymentDataToAnet === "function") {
+        this.originalSendPayment = window.sendPaymentDataToAnet;
+        window.sendPaymentDataToAnet = async function(...args) {
+          if (!checkout.canPay || !checkout.checkCard()) {
+            checkout.paying = false;
+            return;
+          }
+          checkout.paying = true;
+          if (checkout.saveTimer) {
+            clearTimeout(checkout.saveTimer);
+            checkout.saveTimer = null;
+          }
+          const payloadChanged = JSON.stringify(checkout.buildPayload()) !== checkout.lastSaved;
+          if (payloadChanged || checkout.saving) {
+            await checkout.saveCart({ panel: "payment" });
+            if (checkout.statusTone === "error") {
+              checkout.paying = false;
+              return;
+            }
+          }
+          return checkout.originalSendPayment.apply(this, args);
+        };
+      }
+      if (this.originalAuthorizeHandler || typeof window.responseHandler !== "function") {
+        return;
+      }
+      this.originalAuthorizeHandler = window.responseHandler;
+      window.responseHandler = function(...args) {
+        const response = args[0];
+        if (response?.messages?.resultCode === "Error") {
+          checkout.paying = false;
+          checkout.showAuthorizeErrors(response);
+          return;
+        }
+        return checkout.originalAuthorizeHandler.apply(this, args);
+      };
+    },
+    cardInput(name) {
+      const form = this.$refs.paymentForm;
+      if (!form) {
+        return null;
+      }
+      return form.querySelector(`[id$="${name}"]`);
+    },
+    wrapCardFields() {
+      CARD_FIELDS.forEach((name) => {
+        const input = this.cardInput(name);
+        if (!input?.parentElement || input.parentElement.dataset.fcCardField) {
+          return;
+        }
+        const wrap = document.createElement("div");
+        wrap.dataset.fcCardField = name;
+        wrap.className = "min-w-0";
+        input.parentElement.insertBefore(wrap, input);
+        wrap.appendChild(input);
+      });
+    },
+    clearCardError(input) {
+      if (!input) {
+        return;
+      }
+      input.classList.remove("border-red-500");
+      input.removeAttribute("aria-invalid");
+      const wrap = input.parentElement;
+      const note = wrap && wrap.dataset.fcCardField ? wrap.querySelector("[data-fc-card-error]") : input.nextElementSibling;
+      if (note && note.dataset.fcCardError) {
+        note.remove();
+      }
+    },
+    clearCardErrors() {
+      CARD_FIELDS.forEach((name) => {
+        this.clearCardError(this.cardInput(name));
+      });
+    },
+    showCardErrors(errors) {
+      this.clearCardErrors();
+      this.wrapCardFields();
+      let first = null;
+      Object.entries(errors).forEach(([name, message]) => {
+        const input = this.cardInput(name);
+        if (!input || !message) {
+          return;
+        }
+        input.classList.add("border-red-500");
+        input.setAttribute("aria-invalid", "true");
+        const note = document.createElement("p");
+        note.dataset.fcCardError = name;
+        note.className = "mt-1 text-sm leading-snug text-red-500";
+        note.textContent = message;
+        input.parentElement.appendChild(note);
+        if (!first) {
+          first = input;
+        }
+      });
+      if (first) {
+        first.focus();
+      }
+    },
+    checkCard() {
+      const number = String(this.cardInput("number")?.value || "").replace(
+        /\s+/g,
+        ""
+      );
+      const monthValue = String(this.cardInput("month")?.value || "").trim();
+      const yearValue = String(this.cardInput("year")?.value || "").trim();
+      const cvv = String(this.cardInput("cvv")?.value || "").replace(
+        /\s+/g,
+        ""
+      );
+      const month = parseInt(monthValue, 10);
+      const errors = {};
+      if (!/^\d{13,19}$/.test(number)) {
+        errors.number = this.cardNumberError;
+      }
+      if (!monthValue || month < 1 || month > 12) {
+        errors.month = this.cardMonthError;
+      }
+      if (!/^\d{2}$|^\d{4}$/.test(yearValue)) {
+        errors.year = this.cardYearError;
+      } else if (!errors.month) {
+        const year = yearValue.length === 2 ? 2e3 + parseInt(yearValue, 10) : parseInt(yearValue, 10);
+        const expires = new Date(year, month, 0, 23, 59, 59);
+        if (expires < /* @__PURE__ */ new Date()) {
+          errors.year = this.cardExpiredError;
+        }
+      }
+      if (!/^\d{3,4}$/.test(cvv)) {
+        errors.cvv = this.cardCvvError;
+      }
+      this.showCardErrors(errors);
+      return Object.keys(errors).length === 0;
+    },
+    showAuthorizeErrors(response) {
+      const labels = {
+        E_WC_05: this.cardNumberError,
+        E_WC_06: this.cardMonthError,
+        E_WC_07: this.cardYearError,
+        E_WC_08: this.cardExpiredError,
+        E_WC_15: this.cardCvvError
+      };
+      const errors = {};
+      (response.messages.message || []).forEach((item) => {
+        const name = AUTHORIZE_ERROR_FIELDS[item.code] || "number";
+        errors[name] = labels[item.code] || item.text || this.cardNumberError;
+      });
+      this.showCardErrors(errors);
+    },
+    syncPayButtons() {
+      const form = this.$refs.paymentForm;
+      if (!form) {
+        return;
+      }
+      const allowed = this.canPay && !this.paying;
+      const label = this.payButtonLabel;
+      form.querySelectorAll('button[type="submit"], [id$="authorizeSubmit"]').forEach((button) => {
+        button.disabled = !allowed;
+        if (label && !button.closest(".paypal-rest-form")) {
+          button.textContent = label;
+        }
+      });
+    },
+    invalidatePaypalCheckout() {
+      const wrapper = this.$root.querySelector(".paypal-rest-form");
+      const renderDiv = wrapper?.firstElementChild;
+      if (!wrapper || !renderDiv) {
+        return;
+      }
+      if (!renderDiv.childElementCount && !String(renderDiv.innerHTML || "").trim()) {
+        return;
+      }
+      renderDiv.innerHTML = "";
+      delete wrapper.dataset.fcPaypalInit;
+      this.paypalInvalidated = true;
+    },
+    maybeReinitPaypalCheckout() {
+      if (!this.paypalInvalidated) {
+        return;
+      }
+      this.paypalInvalidated = false;
+      if (!this.$root.querySelector(".paypal-rest-form")) {
+        return;
+      }
+      this.initPaypal();
+    },
+    restorePaypalIfSkipped() {
+      if (this.paypalInvalidated && !this.saving && !this.saveTimer) {
+        this.maybeReinitPaypalCheckout();
+      }
+    },
+    retryStripeIfNeeded() {
+      const error2 = this.$refs.paymentForm?.querySelector(
+        ".stripe-error-message"
+      );
+      if (!error2?.textContent?.trim() || typeof initStripe !== "function") {
+        return;
+      }
+      error2.textContent = "";
+      initStripe();
+    },
+    initPaypal(attempt = 0) {
+      if (this.paypalInitTimer) {
+        clearTimeout(this.paypalInitTimer);
+        this.paypalInitTimer = null;
+      }
+      const wrapper = this.$root.querySelector(".paypal-rest-form");
+      if (!wrapper) {
+        if (attempt >= 5) {
+          return;
+        }
+        this.paypalInitTimer = setTimeout(() => {
+          this.initPaypal(attempt + 1);
+        }, 200);
+        return;
+      }
+      if (wrapper.dataset.fcPaypalInit === "true") {
+        return;
+      }
+      if (typeof window.paypal_checkout_sdk === "undefined" || typeof window.initPaypalCheckout !== "function" || !wrapper.firstElementChild) {
+        if (attempt >= 50) {
+          return;
+        }
+        this.paypalInitTimer = setTimeout(() => {
+          this.initPaypal(attempt + 1);
+        }, 200);
+        return;
+      }
+      wrapper.dataset.fcPaypalInit = "true";
+      window.initPaypalCheckout();
+    }
+  };
+};
 const setErrors = (field, messages) => {
-	const next = messages.filter(Boolean);
-	if (
-		Array.isArray(field.errors) &&
-		field.errors.length === next.length &&
-		field.errors.every((message, index) => message === next[index])
-	) {
-		return;
-	}
-
-	field.errors = next;
+  const next = messages.filter(Boolean);
+  if (Array.isArray(field.errors) && field.errors.length === next.length && field.errors.every((message, index) => message === next[index])) {
+    return;
+  }
+  field.errors = next;
 };
-
 const ClearableInput = (props) => {
-	return {
-		name: props.name,
-		value: props.value,
-		type: props.type || 'text',
-		countryCode: props.countryCode,
-		requiredFields: props.requiredFields,
-		addressScope: props.addressScope ?? false,
-		required: props.required,
-		errors: props.errors,
-		success: props.success,
-		requiredError: props.requiredError || '',
-		invalidEmailError: props.invalidEmailError || '',
-		showButton: false,
-		touched: false,
-		props: props,
-
-		input() {
-			this.showButton = this.value !== '';
-			if (this.touched || String(this.value || '').trim() !== '') {
-				this.validate(false);
-			}
-		},
-		focus() {
-			this.showButton = this.value !== '';
-		},
-		blur() {
-			this.touched = true;
-			this.showButton =
-				this.$refs.button === document.activeElement && this.value !== '';
-			this.validate(true);
-		},
-		clear() {
-			const input = this.$refs.input;
-			this.value = '';
-			this.touched = true;
-			this.showButton = false;
-			input.value = '';
-			input.focus();
-			input.dispatchEvent(new Event('input', { bubbles: true }));
-		},
-		isRequired() {
-			if (typeof this.required === 'boolean') {
-				return this.required;
-			}
-
-			// Only address forms render the country-keyed map these closures read.
-			if (!this.addressScope) {
-				return false;
-			}
-
-			return (
-				this.requiredFields()[this.countryCode()]?.includes(this.name) ?? false
-			);
-		},
-		validate(showRequired = false) {
-			const value = String(this.value || '').trim();
-			const messages = [];
-			let valid = true;
-
-			if (this.isRequired() && value === '') {
-				valid = false;
-				if (showRequired || this.touched) {
-					messages.push(this.requiredError);
-				}
-			} else if (
-				this.type === 'email' &&
-				value !== '' &&
-				!isValidEmail(value)
-			) {
-				valid = false;
-				messages.push(this.invalidEmailError);
-			}
-
-			setErrors(this, messages);
-			return valid;
-		},
-	};
+  return {
+    name: props.name,
+    value: props.value,
+    type: props.type || "text",
+    countryCode: props.countryCode,
+    requiredFields: props.requiredFields,
+    addressScope: props.addressScope ?? false,
+    required: props.required,
+    errors: props.errors,
+    success: props.success,
+    requiredError: props.requiredError || "",
+    invalidEmailError: props.invalidEmailError || "",
+    showButton: false,
+    touched: false,
+    props,
+    input() {
+      this.showButton = this.value !== "";
+      if (this.touched || String(this.value || "").trim() !== "") {
+        this.validate(false);
+      }
+    },
+    focus() {
+      this.showButton = this.value !== "";
+    },
+    blur() {
+      this.touched = true;
+      this.showButton = this.$refs.button === document.activeElement && this.value !== "";
+      this.validate(true);
+    },
+    clear() {
+      const input = this.$refs.input;
+      this.value = "";
+      this.touched = true;
+      this.showButton = false;
+      input.value = "";
+      input.focus();
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    },
+    isRequired() {
+      if (typeof this.required === "boolean") {
+        return this.required;
+      }
+      if (!this.addressScope) {
+        return false;
+      }
+      return this.requiredFields()[this.countryCode()]?.includes(this.name) ?? false;
+    },
+    validate(showRequired = false) {
+      const value = String(this.value || "").trim();
+      const messages = [];
+      let valid = true;
+      if (this.isRequired() && value === "") {
+        valid = false;
+        if (showRequired || this.touched) {
+          messages.push(this.requiredError);
+        }
+      } else if (this.type === "email" && value !== "" && !isValidEmail(value)) {
+        valid = false;
+        messages.push(this.invalidEmailError);
+      }
+      setErrors(this, messages);
+      return valid;
+    }
+  };
 };
-
 const SearchableSelect = (props) => {
-	return {
-		id: props.id || `ss-${Math.random().toString(36).slice(2)}`,
-		name: props.name || 'select',
-		placeholder: props.placeholder || 'Select',
-		options: props.options ?? [],
-		required: props.required || false,
-		errors: props.errors || [],
-		success: props.success || [],
-		requiredError: props.requiredError || '',
-		modelValue: props.value || null,
-		tmpInputEventValue: null, // This is set when the hidden input's input event fires
-		open: false,
-		search: '',
-		activeIndex: 0,
-		selectedOption: null,
-		lastPinned: null,
-		touched: false,
-
-		init() {
-			// Remove the fallback select element
-			const fallbackSelect = this.$refs.fallback;
-			if (fallbackSelect) {
-				fallbackSelect.remove();
-			}
-
-			// Initial sync from modelValue/props to selectedOption
-			if (this.modelValue != null) {
-				const match = this.options.find(
-					(option) =>
-						option.value === this.modelValue || option === this.modelValue
-				);
-				if (match) {
-					this.selectedOption = match;
-				}
-			}
-
-			this.$watch('options', (updatedOptions) => {
-				this.selectedOption = null;
-
-				if (this.tmpInputEventValue) {
-					const value = this.tmpInputEventValue;
-					this.tmpInputEventValue = null;
-
-					this.selectByValue(value);
-				}
-
-				this.$nextTick(() => {
-					const input = this.$refs.button;
-					if (input && input.value && !this.selectedOption) {
-						this.selectByValue(input.value);
-					}
-
-					// Auto-select if there's only one option
-					if (!this.selectedOption && updatedOptions.length === 1) {
-						this.selectedOption = updatedOptions[0];
-					}
-				});
-			});
-
-			// parent -> child
-			this.$watch('modelValue', (newValue, oldValue) => {
-				if (newValue !== oldValue && this.selectedOption?.value !== newValue) {
-					this.selectByValue(newValue);
-				}
-			});
-
-			// child -> parent
-			this.$watch('selectedOption', (option) => {
-				const next = option ? option.value : null;
-				if (this.modelValue !== next) {
-					this.modelValue = next;
-					this.$dispatch('selected', { name: this.name, value: next });
-				}
-
-				if (this.selectedOption) {
-					this.touched = true;
-					this.errors = [];
-					this.$nextTick(() => {
-						// Make sure that the value is set on the hidden input in the next tick so that everything else
-						// in the current tick has completed.
-						this.$refs.hiddenValue.value = this.selectedOption.value;
-					});
-				}
-			});
-
-			if (!this.selectedOption && this.options.length === 1) {
-				// Once the watchers have all been initialized...
-				// If there is only a single available option, then select it automatically
-				this.selectedOption = this.options[0];
-			}
-		},
-
-		/**
-		 * Called when the trigger input receives an `input` event.
-		 * Handles two scenarios:
-		 *   a) Browser autofill just set the value, so match it to an option
-		 *   b) User is typing directly, so open dropdown and pipe text into search
-		 */
-		onTriggerInput(event) {
-			if (this._keydownHandled) {
-				this._keydownHandled = false;
-				event.target.value = this.selectedOption
-					? this.selectedOption.label
-					: '';
-				return;
-			}
-
-			const val = event.target.value;
-
-			// Try autofill match first
-			if (this.selectByValue(val)) {
-				return;
-			}
-
-			// If value was stored as pending (options not loaded yet), don't open dropdown
-			if (this.tmpInputEventValue) {
-				return;
-			}
-
-			// Not an autofill match, so the user is typing.
-			// Open the dropdown and forward their text into the search field.
-			if (!this.open) {
-				this.open = true;
-				this.resetActiveIndex();
-			}
-
-			this.$nextTick(() => {
-				if (this.$refs.search) {
-					this.$refs.search.value = val;
-					this.search = val;
-				}
-				// Reset the trigger input to the current selection
-				event.target.value = this.selectedOption
-					? this.selectedOption.label
-					: '';
-			});
-		},
-
-		/**
-		 * When the user presses a printable key on the trigger input,
-		 * open the dropdown so typing flows into the search field.
-		 */
-		onTriggerKeydown(event) {
-			if (
-				event instanceof KeyboardEvent &&
-				event.key.length === 1 &&
-				!event.ctrlKey &&
-				!event.metaKey &&
-				!event.altKey
-			) {
-				if (!this.open) {
-					this._keydownHandled = true;
-					this.openListbox();
-					// x-trap activates on a 15ms timer, so focus only reaches the search
-					// box after that; seeding it any sooner loses the opening keystroke.
-					setTimeout(() => {
-						if (this.$refs.search) {
-							this.$refs.search.value = event.key;
-							this.search = event.key;
-							const caret = this.$refs.search.value.length;
-							this.$refs.search.setSelectionRange(caret, caret);
-						}
-					}, 50);
-				}
-			}
-		},
-
-		get buttonLabel() {
-			return this.selectedOption ? this.selectedOption.label : this.placeholder;
-		},
-
-		get filteredOptions() {
-			if (!this.search) {
-				return this.options ?? [];
-			}
-			const query = this.search.toLowerCase();
-
-			return this.options
-				.filter((option) => String(option.label).toLowerCase().includes(query))
-				.sort((optionA, optionB) => {
-					const labelA = String(optionA.label).toLowerCase();
-					const labelB = String(optionB.label).toLowerCase();
-
-					const exactA = labelA === query;
-					const exactB = labelB === query;
-
-					const startsA = labelA.startsWith(query);
-					const startsB = labelB.startsWith(query);
-
-					// 1) Exact match first
-					if (exactA && !exactB) {
-						return -1;
-					}
-					if (!exactA && exactB) {
-						return 1;
-					}
-
-					// 2) Starts-with next
-					if (startsA && !startsB) {
-						return -1;
-					}
-					if (!startsA && startsB) {
-						return 1;
-					}
-
-					// 3) Otherwise, both just "includes" and alphabetical
-					return labelA.localeCompare(labelB);
-				});
-		},
-
-		get hasOptions() {
-			// TODO This fires multiple times when a component is initialized, and it also fires whenever a listitem is hovered over
-			return (this.filteredOptions?.length ?? 0) > 0;
-		},
-
-		isLastPinned(option) {
-			const pinned = this.filteredOptions.filter((option) => option.pinned);
-			return pinned?.length && pinned[pinned.length - 1] === option;
-		},
-
-		labelId() {
-			return `${this.id}-label`;
-		},
-
-		buttonId() {
-			return `${this.id}-button`;
-		},
-
-		listboxId() {
-			return `${this.id}-listbox`;
-		},
-
-		errorId() {
-			return `${this.id}-error`;
-		},
-
-		isRequired() {
-			return Boolean(this.required) && this.options.length > 0;
-		},
-
-		validate(showRequired = false) {
-			const value = String(this.modelValue || '').trim();
-			const messages = [];
-			let valid = true;
-
-			if (this.isRequired() && value === '') {
-				valid = false;
-				if (showRequired || this.touched) {
-					messages.push(this.requiredError);
-				}
-			}
-
-			setErrors(this, messages);
-			return valid;
-		},
-
-		optionId(index) {
-			return `${this.id}-option-${index}`;
-		},
-
-		openListbox() {
-			if (this.open) {
-				return;
-			}
-			this.open = true;
-			this.resetActiveIndex();
-			this.lastPinned = this.options.find(
-				(option) => option.isLastPinned === true
-			);
-		},
-
-		closeListbox() {
-			if (!this.open) {
-				return;
-			}
-			this.open = false;
-			this.search = '';
-			if (this.lastPinned) {
-				this.lastPinned.isLastPinned = true;
-			}
-			this.touched = true;
-			this.validate(true);
-		},
-
-		toggleListbox() {
-			if (this.open) {
-				this.closeListbox();
-			} else {
-				this.openListbox();
-			}
-		},
-
-		closeAndFocusButton() {
-			this.closeListbox();
-			this.$refs.button.focus();
-		},
-
-		resetActiveIndex() {
-			if (!this.hasOptions) {
-				this.activeIndex = 0;
-				return;
-			}
-			const selectedIdx = this.filteredOptions.findIndex((option) =>
-				this.isSelected(option)
-			);
-			this.activeIndex = selectedIdx === -1 ? 0 : selectedIdx;
-		},
-
-		moveActive(step) {
-			if (!this.hasOptions) {
-				return;
-			}
-
-			let next = this.activeIndex + step;
-			const max = this.filteredOptions.length - 1;
-			if (next < 0) {
-				next = max;
-			}
-			if (next > max) {
-				next = 0;
-			}
-			this.activeIndex = next;
-			this.scrollActiveIntoView();
-		},
-
-		scrollActiveIntoView() {
-			this.$nextTick(() => {
-				const list = this.$refs.listbox;
-				const active = document.getElementById(this.optionId(this.activeIndex));
-				if (!list || !active) {
-					return;
-				}
-
-				const listRect = list.getBoundingClientRect();
-				const activeRect = active.getBoundingClientRect();
-
-				if (activeRect.top < listRect.top) {
-					list.scrollTop -= listRect.top - activeRect.top;
-				} else if (activeRect.bottom > listRect.bottom) {
-					list.scrollTop += activeRect.bottom - listRect.bottom;
-				}
-			});
-		},
-
-		selectActiveOption() {
-			if (!this.hasOptions) {
-				return;
-			}
-
-			const option = this.filteredOptions[this.activeIndex];
-			if (option) {
-				this.selectOption(option);
-			}
-		},
-
-		// --- selection ---
-		selectOption(option) {
-			const wasOpen = this.open;
-			this.selectedOption = option; // watcher will push value into modelValue
-			if (wasOpen) {
-				this.closeAndFocusButton();
-			} else {
-				this.closeListbox();
-			}
-		},
-
-		isSelected(option) {
-			return this.selectedOption && this.selectedOption.value === option.value;
-		},
-
-		selectByValue(value) {
-			// When the form is autofilled, we can't assume the options will be immediately available if they've
-			// been changed based on some other field's value. So we set a temporary value if we don't match
-			// anything at this point.
-			if (!value) {
-				return null;
-			}
-
-			const searchValue = String(value).toLowerCase().trim();
-
-			// Exact match on label
-			let selectedOption = this.options.find(
-				(option) => String(option.label).toLowerCase() === searchValue
-			);
-
-			// Exact match on value/code (e.g. "CA", "US")
-			if (!selectedOption) {
-				selectedOption = this.options.find(
-					(option) => String(option.value).toLowerCase() === searchValue
-				);
-			}
-
-			// Fuzzy: starts-with on label
-			if (!selectedOption) {
-				selectedOption = this.options.find((option) =>
-					String(option.label).toLowerCase().startsWith(searchValue)
-				);
-			}
-
-			// Fuzzy: includes on label
-			if (!selectedOption) {
-				selectedOption = this.options.find((option) =>
-					String(option.label).toLowerCase().includes(searchValue)
-				);
-			}
-
-			if (selectedOption) {
-				// If we found the option, we can clear this value
-				this.tmpInputEventValue = null;
-				this.selectedOption = selectedOption;
-				return selectedOption;
-			}
-
-			// No match, so store as pending for when options load (e.g. state autofilled before country)
-			this.tmpInputEventValue = value;
-
-			return null;
-		},
-
-		updateLastPinned(event) {
-			if (this.lastPinned) {
-				if (event.target.value === '') {
-					this.lastPinned.isLastPinned = true;
-				} else {
-					this.lastPinned.isLastPinned = false;
-				}
-			}
-		},
-	};
+  return {
+    id: props.id || `ss-${Math.random().toString(36).slice(2)}`,
+    name: props.name || "select",
+    placeholder: props.placeholder || "Select",
+    options: props.options ?? [],
+    required: props.required || false,
+    errors: props.errors || [],
+    success: props.success || [],
+    requiredError: props.requiredError || "",
+    modelValue: props.value || null,
+    tmpInputEventValue: null,
+    // This is set when the hidden input's input event fires
+    open: false,
+    search: "",
+    activeIndex: 0,
+    selectedOption: null,
+    lastPinned: null,
+    touched: false,
+    init() {
+      const fallbackSelect = this.$refs.fallback;
+      if (fallbackSelect) {
+        fallbackSelect.remove();
+      }
+      if (this.modelValue != null) {
+        const match = this.options.find(
+          (option) => option.value === this.modelValue || option === this.modelValue
+        );
+        if (match) {
+          this.selectedOption = match;
+        }
+      }
+      this.$watch("options", (updatedOptions) => {
+        this.selectedOption = null;
+        if (this.tmpInputEventValue) {
+          const value = this.tmpInputEventValue;
+          this.tmpInputEventValue = null;
+          this.selectByValue(value);
+        }
+        this.$nextTick(() => {
+          const input = this.$refs.button;
+          if (input && input.value && !this.selectedOption) {
+            this.selectByValue(input.value);
+          }
+          if (!this.selectedOption && updatedOptions.length === 1) {
+            this.selectedOption = updatedOptions[0];
+          }
+        });
+      });
+      this.$watch("modelValue", (newValue, oldValue) => {
+        if (newValue !== oldValue && this.selectedOption?.value !== newValue) {
+          this.selectByValue(newValue);
+        }
+      });
+      this.$watch("selectedOption", (option) => {
+        const next = option ? option.value : null;
+        if (this.modelValue !== next) {
+          this.modelValue = next;
+          this.$dispatch("selected", { name: this.name, value: next });
+        }
+        if (this.selectedOption) {
+          this.touched = true;
+          this.errors = [];
+          this.$nextTick(() => {
+            this.$refs.hiddenValue.value = this.selectedOption.value;
+          });
+        }
+      });
+      if (!this.selectedOption && this.options.length === 1) {
+        this.selectedOption = this.options[0];
+      }
+    },
+    /**
+     * Called when the trigger input receives an `input` event.
+     * Handles two scenarios:
+     *   a) Browser autofill just set the value, so match it to an option
+     *   b) User is typing directly, so open dropdown and pipe text into search
+     */
+    onTriggerInput(event) {
+      if (this._keydownHandled) {
+        this._keydownHandled = false;
+        event.target.value = this.selectedOption ? this.selectedOption.label : "";
+        return;
+      }
+      const val = event.target.value;
+      if (this.selectByValue(val)) {
+        return;
+      }
+      if (this.tmpInputEventValue) {
+        return;
+      }
+      if (!this.open) {
+        this.open = true;
+        this.resetActiveIndex();
+      }
+      this.$nextTick(() => {
+        if (this.$refs.search) {
+          this.$refs.search.value = val;
+          this.search = val;
+        }
+        event.target.value = this.selectedOption ? this.selectedOption.label : "";
+      });
+    },
+    /**
+     * When the user presses a printable key on the trigger input,
+     * open the dropdown so typing flows into the search field.
+     */
+    onTriggerKeydown(event) {
+      if (event instanceof KeyboardEvent && event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        if (!this.open) {
+          this._keydownHandled = true;
+          this.openListbox();
+          setTimeout(() => {
+            if (this.$refs.search) {
+              this.$refs.search.value = event.key;
+              this.search = event.key;
+              const caret = this.$refs.search.value.length;
+              this.$refs.search.setSelectionRange(caret, caret);
+            }
+          }, 50);
+        }
+      }
+    },
+    get buttonLabel() {
+      return this.selectedOption ? this.selectedOption.label : this.placeholder;
+    },
+    get filteredOptions() {
+      if (!this.search) {
+        return this.options ?? [];
+      }
+      const query = this.search.toLowerCase();
+      return this.options.filter((option) => String(option.label).toLowerCase().includes(query)).sort((optionA, optionB) => {
+        const labelA = String(optionA.label).toLowerCase();
+        const labelB = String(optionB.label).toLowerCase();
+        const exactA = labelA === query;
+        const exactB = labelB === query;
+        const startsA = labelA.startsWith(query);
+        const startsB = labelB.startsWith(query);
+        if (exactA && !exactB) {
+          return -1;
+        }
+        if (!exactA && exactB) {
+          return 1;
+        }
+        if (startsA && !startsB) {
+          return -1;
+        }
+        if (!startsA && startsB) {
+          return 1;
+        }
+        return labelA.localeCompare(labelB);
+      });
+    },
+    get hasOptions() {
+      return (this.filteredOptions?.length ?? 0) > 0;
+    },
+    isLastPinned(option) {
+      const pinned = this.filteredOptions.filter((option2) => option2.pinned);
+      return pinned?.length && pinned[pinned.length - 1] === option;
+    },
+    labelId() {
+      return `${this.id}-label`;
+    },
+    buttonId() {
+      return `${this.id}-button`;
+    },
+    listboxId() {
+      return `${this.id}-listbox`;
+    },
+    errorId() {
+      return `${this.id}-error`;
+    },
+    isRequired() {
+      return Boolean(this.required) && this.options.length > 0;
+    },
+    validate(showRequired = false) {
+      const value = String(this.modelValue || "").trim();
+      const messages = [];
+      let valid = true;
+      if (this.isRequired() && value === "") {
+        valid = false;
+        if (showRequired || this.touched) {
+          messages.push(this.requiredError);
+        }
+      }
+      setErrors(this, messages);
+      return valid;
+    },
+    optionId(index) {
+      return `${this.id}-option-${index}`;
+    },
+    openListbox() {
+      if (this.open) {
+        return;
+      }
+      this.open = true;
+      this.resetActiveIndex();
+      this.lastPinned = this.options.find(
+        (option) => option.isLastPinned === true
+      );
+    },
+    closeListbox() {
+      if (!this.open) {
+        return;
+      }
+      this.open = false;
+      this.search = "";
+      if (this.lastPinned) {
+        this.lastPinned.isLastPinned = true;
+      }
+      this.touched = true;
+      this.validate(true);
+    },
+    toggleListbox() {
+      if (this.open) {
+        this.closeListbox();
+      } else {
+        this.openListbox();
+      }
+    },
+    closeAndFocusButton() {
+      this.closeListbox();
+      this.$refs.button.focus();
+    },
+    resetActiveIndex() {
+      if (!this.hasOptions) {
+        this.activeIndex = 0;
+        return;
+      }
+      const selectedIdx = this.filteredOptions.findIndex(
+        (option) => this.isSelected(option)
+      );
+      this.activeIndex = selectedIdx === -1 ? 0 : selectedIdx;
+    },
+    moveActive(step) {
+      if (!this.hasOptions) {
+        return;
+      }
+      let next = this.activeIndex + step;
+      const max = this.filteredOptions.length - 1;
+      if (next < 0) {
+        next = max;
+      }
+      if (next > max) {
+        next = 0;
+      }
+      this.activeIndex = next;
+      this.scrollActiveIntoView();
+    },
+    scrollActiveIntoView() {
+      this.$nextTick(() => {
+        const list = this.$refs.listbox;
+        const active = document.getElementById(this.optionId(this.activeIndex));
+        if (!list || !active) {
+          return;
+        }
+        const listRect = list.getBoundingClientRect();
+        const activeRect = active.getBoundingClientRect();
+        if (activeRect.top < listRect.top) {
+          list.scrollTop -= listRect.top - activeRect.top;
+        } else if (activeRect.bottom > listRect.bottom) {
+          list.scrollTop += activeRect.bottom - listRect.bottom;
+        }
+      });
+    },
+    selectActiveOption() {
+      if (!this.hasOptions) {
+        return;
+      }
+      const option = this.filteredOptions[this.activeIndex];
+      if (option) {
+        this.selectOption(option);
+      }
+    },
+    // --- selection ---
+    selectOption(option) {
+      const wasOpen = this.open;
+      this.selectedOption = option;
+      if (wasOpen) {
+        this.closeAndFocusButton();
+      } else {
+        this.closeListbox();
+      }
+    },
+    isSelected(option) {
+      return this.selectedOption && this.selectedOption.value === option.value;
+    },
+    selectByValue(value) {
+      if (!value) {
+        return null;
+      }
+      const searchValue = String(value).toLowerCase().trim();
+      let selectedOption = this.options.find(
+        (option) => String(option.label).toLowerCase() === searchValue
+      );
+      if (!selectedOption) {
+        selectedOption = this.options.find(
+          (option) => String(option.value).toLowerCase() === searchValue
+        );
+      }
+      if (!selectedOption) {
+        selectedOption = this.options.find(
+          (option) => String(option.label).toLowerCase().startsWith(searchValue)
+        );
+      }
+      if (!selectedOption) {
+        selectedOption = this.options.find(
+          (option) => String(option.label).toLowerCase().includes(searchValue)
+        );
+      }
+      if (selectedOption) {
+        this.tmpInputEventValue = null;
+        this.selectedOption = selectedOption;
+        return selectedOption;
+      }
+      this.tmpInputEventValue = value;
+      return null;
+    },
+    updateLastPinned(event) {
+      if (this.lastPinned) {
+        if (event.target.value === "") {
+          this.lastPinned.isLastPinned = true;
+        } else {
+          this.lastPinned.isLastPinned = false;
+        }
+      }
+    }
+  };
 };
-
 const LineItem = (options) => {
-	return {
-		...options,
-		sending: false,
-		action: 'update',
-		postTimer: null,
-		justClickedButton: false,
-
-		get maxAllowed() {
-			const hardCap = this.max || Infinity;
-			if (this.unlimitedStock) {
-				return hardCap;
-			}
-
-			return Math.min(hardCap, this.stock ?? 0);
-		},
-
-		// Keep qty within min, max and stock, and flag which limit was hit
-		clamp(value) {
-			let quantity = Number.isFinite(+value) ? +value : this.min || 1;
-
-			this.showErrorMinMessage = !!(this.min && quantity < this.min);
-			if (this.showErrorMinMessage) {
-				quantity = this.min;
-			}
-
-			const stockLimit = this.unlimitedStock ? Infinity : (this.stock ?? 0);
-			const maxLimit = this.max || Infinity;
-
-			this.showErrorStockMessage =
-				Number.isFinite(stockLimit) && quantity > stockLimit;
-			this.showErrorMaxMessage =
-				Number.isFinite(maxLimit) &&
-				quantity > maxLimit &&
-				!this.showErrorStockMessage;
-
-			const limit = this.maxAllowed;
-			if (Number.isFinite(limit) && quantity > limit) {
-				quantity = limit;
-			}
-
-			return quantity;
-		},
-
-		// Left control removes the item at qty 1, otherwise decrements
-		leftClick() {
-			if (this.qty <= 1) {
-				this.remove();
-				return;
-			}
-
-			this.qty = this.clamp(this.qty - 1);
-			this.schedulePost();
-		},
-
-		increment() {
-			this.qty = this.clamp(this.qty + 1);
-			this.schedulePost();
-		},
-
-		input() {
-			this.qty = this.clamp(this.qty);
-		},
-
-		blur() {
-			if (this.justClickedButton) {
-				this.justClickedButton = false;
-				return;
-			}
-
-			this.clearPending();
-			this.qty = this.clamp(this.qty);
-			this.post('update');
-		},
-
-		onButtonMouseDown() {
-			this.justClickedButton = true;
-		},
-
-		remove() {
-			this.clearPending();
-			this.qty = 0;
-			this.post('remove');
-		},
-
-		// Button presses land in bursts, so only the final quantity is posted
-		schedulePost(delay = 500) {
-			this.clearPending();
-			this.postTimer = setTimeout(() => this.post('update'), delay);
-		},
-
-		clearPending() {
-			if (!this.postTimer) {
-				return;
-			}
-
-			clearTimeout(this.postTimer);
-			this.postTimer = null;
-		},
-
-		post(actionType) {
-			this.action = actionType;
-			this.$nextTick(() => {
-				const quantityInput = this.$root.querySelector(
-					`input[name="lineItems[${this.id}][qty]"]`
-				);
-				quantityInput.value = this.qty;
-				this.$root.querySelector('form').requestSubmit();
-			});
-		},
-	};
+  return {
+    ...options,
+    sending: false,
+    action: "update",
+    postTimer: null,
+    justClickedButton: false,
+    get maxAllowed() {
+      const hardCap = this.max || Infinity;
+      if (this.unlimitedStock) {
+        return hardCap;
+      }
+      return Math.min(hardCap, this.stock ?? 0);
+    },
+    // Keep qty within min, max and stock, and flag which limit was hit
+    clamp(value) {
+      let quantity = Number.isFinite(+value) ? +value : this.min || 1;
+      this.showErrorMinMessage = !!(this.min && quantity < this.min);
+      if (this.showErrorMinMessage) {
+        quantity = this.min;
+      }
+      const stockLimit = this.unlimitedStock ? Infinity : this.stock ?? 0;
+      const maxLimit = this.max || Infinity;
+      this.showErrorStockMessage = Number.isFinite(stockLimit) && quantity > stockLimit;
+      this.showErrorMaxMessage = Number.isFinite(maxLimit) && quantity > maxLimit && !this.showErrorStockMessage;
+      const limit = this.maxAllowed;
+      if (Number.isFinite(limit) && quantity > limit) {
+        quantity = limit;
+      }
+      return quantity;
+    },
+    // Left control removes the item at qty 1, otherwise decrements
+    leftClick() {
+      if (this.qty <= 1) {
+        this.remove();
+        return;
+      }
+      this.qty = this.clamp(this.qty - 1);
+      this.schedulePost();
+    },
+    increment() {
+      this.qty = this.clamp(this.qty + 1);
+      this.schedulePost();
+    },
+    input() {
+      this.qty = this.clamp(this.qty);
+    },
+    blur() {
+      if (this.justClickedButton) {
+        this.justClickedButton = false;
+        return;
+      }
+      this.clearPending();
+      this.qty = this.clamp(this.qty);
+      this.post("update");
+    },
+    onButtonMouseDown() {
+      this.justClickedButton = true;
+    },
+    remove() {
+      this.clearPending();
+      this.qty = 0;
+      this.post("remove");
+    },
+    // Button presses land in bursts, so only the final quantity is posted
+    schedulePost(delay3 = 500) {
+      this.clearPending();
+      this.postTimer = setTimeout(() => this.post("update"), delay3);
+    },
+    clearPending() {
+      if (!this.postTimer) {
+        return;
+      }
+      clearTimeout(this.postTimer);
+      this.postTimer = null;
+    },
+    post(actionType) {
+      this.action = actionType;
+      this.$nextTick(() => {
+        const quantityInput = this.$root.querySelector(
+          `input[name="lineItems[${this.id}][qty]"]`
+        );
+        quantityInput.value = this.qty;
+        this.$root.querySelector("form").requestSubmit();
+      });
+    }
+  };
 };
-
-Alpine.plugin(focus);
-Alpine.data('ClearableInput', ClearableInput);
-Alpine.data('SearchableSelect', SearchableSelect);
-Alpine.data('LineItem', LineItem);
-Alpine.data('SinglePageCheckout', SinglePageCheckout);
-
-window.Alpine = Alpine;
-Alpine.start();
+module_default$1.plugin(module_default);
+module_default$1.data("ClearableInput", ClearableInput);
+module_default$1.data("SearchableSelect", SearchableSelect);
+module_default$1.data("LineItem", LineItem);
+module_default$1.data("SinglePageCheckout", SinglePageCheckout);
+window.Alpine = module_default$1;
+module_default$1.start();
