@@ -27,6 +27,7 @@ use yii\base\InvalidConfigException;
 /**
  * Checkout service
  *
+ * @phpstan-import-type RenderableField from GatewayFieldLayouts
  * @phpstan-type LinksTable array<array-key, array{text: non-empty-string, url: non-empty-string}>
  * @phpstan-type CheckoutShippingMethod array{handle: string, name: string, description: string, price: float, priceAsCurrency: string}
  * @phpstan-type CheckoutTotals array{
@@ -301,14 +302,14 @@ class Checkout extends Component
 	}
 
 	/**
-	 * @return array<int, array{handle: string, label: string, instructions: ?string, required: bool, width: int}>
+	 * @return array<int, RenderableField>
 	 */
-	public function gatewayFields(string $gatewayHandle): array
+	public function gatewayFields(string $gatewayHandle, ?Order $order = null): array
 	{
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		return $plugin->gatewayFieldLayouts->getRenderableFields($gatewayHandle);
+		return $plugin->gatewayFieldLayouts->getRenderableFields($gatewayHandle, $order);
 	}
 
 	/**

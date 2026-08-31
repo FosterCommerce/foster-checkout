@@ -276,7 +276,7 @@
 															{% elseif gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
 																{% set manualGatewayConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
 																{% set isManualGateway = true %}
-																{% set manualFields  = craft.fostercheckout.gatewayFields(gateway.handle) %}
+																{% set manualFields  = craft.fostercheckout.gatewayFields(gateway.handle, cart) %}
 																{% set manualColumns = manualGatewayConfig.columns|default(3) %}
 																{% set gatewayNote = craft.fostercheckout.gatewayNote(gateway.handle, {cart}) %}
 															{% endif %}

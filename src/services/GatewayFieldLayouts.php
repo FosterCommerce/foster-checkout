@@ -15,6 +15,8 @@ use yii\base\Component;
  *
  * Layouts are kept in project config, never in the `fieldlayouts` table, because Craft looks that
  * table up by element type and a stored row could come back as the order's own layout.
+ *
+ * @phpstan-type RenderableField array{handle: string, label: string, instructions: ?string, required: bool, width: int, type: string, placeholder: ?string, maxLength: ?int, min: ?int, max: ?int}
  */
 class GatewayFieldLayouts extends Component
 {
@@ -44,21 +46,27 @@ class GatewayFieldLayouts extends Component
 	 *
 	 * Type and bounds come from the Craft field, which a layout cannot express.
 	 *
-	 * @return array<int, array{handle: string, label: string, instructions: ?string, required: bool, width: int, type: string, placeholder: ?string, maxLength: ?int, min: ?int, max: ?int}>
+	 * @return array<int, RenderableField>
 	 */
-	public function getRenderableFields(string $gatewayHandle): array
+	public function getRenderableFields(string $gatewayHandle, ?Order $order = null): array
 	{
 		$fields = [];
+		$layout = $this->getFieldLayout($gatewayHandle);
 
-		foreach ($this->getFieldLayout($gatewayHandle)->getCustomFieldElements() as $customField) {
-			$field = $customField->getField();
+		// Without an order there is nothing to test a visibility condition against, so list them all
+		$layoutElements = $order instanceof Order
+			? $layout->getVisibleCustomFieldElements($order)
+			: $layout->getCustomFieldElements();
+
+		foreach ($layoutElements as $layoutElement) {
+			$field = $layoutElement->getField();
 
 			$fields[] = [
 				'handle' => (string) $field->handle,
-				'label' => $customField->label ?? (string) $field->name,
-				'instructions' => $customField->instructions,
-				'required' => $customField->required,
-				'width' => $customField->width,
+				'label' => $layoutElement->label ?? (string) $field->name,
+				'instructions' => $layoutElement->instructions,
+				'required' => $layoutElement->required,
+				'width' => $layoutElement->width,
 				'type' => $field instanceof Number ? 'number' : 'text',
 				'placeholder' => $field instanceof PlainText ? $field->placeholder : null,
 				'maxLength' => $field instanceof PlainText ? $field->charLimit : null,
