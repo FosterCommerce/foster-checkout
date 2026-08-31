@@ -5184,6 +5184,7 @@ const SinglePageCheckout = (props) => {
     lastSaved: "",
     paypalInitTimer: null,
     paypalInvalidated: false,
+    stripeInvalidated: false,
     paying: false,
     onPageShow: null,
     originalAuthorizeHandler: null,
@@ -5204,6 +5205,7 @@ const SinglePageCheckout = (props) => {
           this.applySelectedMethodTotals();
           this.syncPayButtons();
           this.invalidatePaypalCheckout();
+          this.invalidateStripeCheckout();
           this.saveIfValid("shipping");
         }
       });
@@ -5217,7 +5219,16 @@ const SinglePageCheckout = (props) => {
         this.$nextTick(() => this.refreshNewBillingContent());
       });
       this.$watch("gatewayId", () => {
-        this.$nextTick(() => this.syncPayButtons());
+        this.$nextTick(() => {
+          this.syncPayButtons();
+          this.scheduleStripeReinit();
+        });
+      });
+      this.$watch("canPay", () => {
+        if (this.syncingFromCart) {
+          return;
+        }
+        this.$nextTick(() => this.scheduleStripeReinit());
       });
       this.$nextTick(() => this.refreshNewBillingContent());
       this.syncPayButtons();
@@ -5448,6 +5459,7 @@ const SinglePageCheckout = (props) => {
         return;
       }
       this.invalidatePaypalCheckout();
+      this.invalidateStripeCheckout();
       this.saveIfValid(panel);
     },
     onDetailsChange(event) {
@@ -5557,10 +5569,12 @@ const SinglePageCheckout = (props) => {
         const payload = this.buildPayload();
         if (JSON.stringify(payload) === this.lastSaved) {
           this.restorePaypalIfSkipped();
+          this.restoreStripeIfSkipped();
           return;
         }
         if (panel === "delivery" && !this.deliveryNeedsSave(payload)) {
           this.restorePaypalIfSkipped();
+          this.restoreStripeIfSkipped();
           return;
         }
         this.queueSave(0, event, panel);
@@ -5963,8 +5977,9 @@ const SinglePageCheckout = (props) => {
         this.nextSave = null;
         if (next) {
           await this.saveCart(next);
-        } else if (this.paypalInvalidated && cartSynced) {
+        } else if (cartSynced) {
           this.maybeReinitPaypalCheckout();
+          this.scheduleStripeReinit();
         }
       }
     },
@@ -5975,6 +5990,7 @@ const SinglePageCheckout = (props) => {
       }
       this.couponError = "";
       this.invalidatePaypalCheckout();
+      this.invalidateStripeCheckout();
       return this.saveCart({
         couponCode: code,
         panel: "coupon"
@@ -5984,6 +6000,7 @@ const SinglePageCheckout = (props) => {
       this.couponInput = "";
       this.couponError = "";
       this.invalidatePaypalCheckout();
+      this.invalidateStripeCheckout();
       return this.saveCart({
         couponCode: "",
         panel: "coupon"
@@ -6270,9 +6287,7 @@ const SinglePageCheckout = (props) => {
       this.syncPayButtons();
       this.$nextTick(() => {
         this.ensureAvailableGateway();
-        if (cart.email) {
-          this.retryStripeIfNeeded();
-        }
+        this.scheduleStripeReinit();
       });
     },
     async saveAddressBook(addressId) {
@@ -6296,6 +6311,7 @@ const SinglePageCheckout = (props) => {
       const isCurrentBilling = !this.billingSameAsShipping && parseInt(this.billingAddressId, 10) === parseInt(addressId, 10);
       if (isCurrentShipping || isCurrentBilling) {
         this.invalidatePaypalCheckout();
+        this.invalidateStripeCheckout();
       }
       this.pending += 1;
       this.status = this.savingLabel;
@@ -6316,6 +6332,7 @@ const SinglePageCheckout = (props) => {
           }
           this.setPanelStatus(panel, "error");
           this.restorePaypalIfSkipped();
+          this.restoreStripeIfSkipped();
           return;
         }
         this.rememberAddress(addressId, null, fields, scope2);
@@ -6337,6 +6354,7 @@ const SinglePageCheckout = (props) => {
         this.statusTone = "error";
         this.setPanelStatus(panel, "error");
         this.restorePaypalIfSkipped();
+        this.restoreStripeIfSkipped();
       } finally {
         this.pending = Math.max(0, this.pending - 1);
         this.syncPayButtons();
@@ -6559,7 +6577,9 @@ const SinglePageCheckout = (props) => {
       }
       const allowed = this.canPay && !this.paying;
       const label = this.payButtonLabel;
-      form.querySelectorAll('button[type="submit"], [id$="authorizeSubmit"]').forEach((button) => {
+      form.querySelectorAll(
+        'button[type="submit"], [id$="authorizeSubmit"], .stripe-payment-elements-submit-button'
+      ).forEach((button) => {
         button.disabled = !allowed;
         if (label && !button.closest(".paypal-rest-form")) {
           button.textContent = label;
@@ -6592,6 +6612,58 @@ const SinglePageCheckout = (props) => {
     restorePaypalIfSkipped() {
       if (this.paypalInvalidated && !this.saving && !this.saveTimer) {
         this.maybeReinitPaypalCheckout();
+      }
+    },
+    invalidateStripeCheckout() {
+      const form = this.$root.querySelector(".stripe-payment-elements-form");
+      if (!form) {
+        return;
+      }
+      const paymentElement = form.querySelector(".stripe-payment-element");
+      const hasMounted = Boolean(paymentElement?.childElementCount) || Boolean(String(paymentElement?.innerHTML || "").trim());
+      const hasHandler = Boolean(form.handlerInstance);
+      if (hasMounted || hasHandler) {
+        const clone2 = form.cloneNode(true);
+        const clonePayment = clone2.querySelector(".stripe-payment-element");
+        if (clonePayment) {
+          clonePayment.innerHTML = "";
+        }
+        const cloneError = clone2.querySelector(".stripe-error-message");
+        if (cloneError) {
+          cloneError.textContent = "";
+        }
+        form.replaceWith(clone2);
+      }
+      this.stripeInvalidated = true;
+    },
+    scheduleStripeReinit() {
+      if (!this.canPay || this.paying) {
+        return;
+      }
+      if (!this.$root.querySelector(".stripe-payment-elements-form")) {
+        return;
+      }
+      this.invalidateStripeCheckout();
+      this.stripeInvalidated = true;
+      this.maybeReinitStripeCheckout();
+    },
+    maybeReinitStripeCheckout() {
+      if (!this.stripeInvalidated) {
+        return;
+      }
+      this.stripeInvalidated = false;
+      if (!this.$root.querySelector(".stripe-payment-elements-form")) {
+        return;
+      }
+      if (typeof initStripe !== "function") {
+        return;
+      }
+      initStripe();
+      this.$nextTick(() => this.syncPayButtons());
+    },
+    restoreStripeIfSkipped() {
+      if (this.stripeInvalidated && !this.saving && !this.saveTimer) {
+        this.scheduleStripeReinit();
       }
     },
     retryStripeIfNeeded() {
