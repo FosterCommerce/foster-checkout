@@ -169,6 +169,7 @@
 											{% set zeroValueGatewayHandles = craft.fostercheckout.settings.zeroValueGatewayHandles %}
 											{% set shouldRender = true %}
 											{% set isManualGateway = false %}
+											{% set gatewayNote = null %}
 
 											{% if cart.total != 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual' and gateway.getOnlyAllowForZeroPriceOrders() %}
 												{% set shouldRender = false %}
