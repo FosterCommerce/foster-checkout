@@ -313,6 +313,7 @@ return [
 	'settings.gateways.gateway' => 'Gateway',
 	'settings.gateways.fields' => 'Fields',
 	'settings.gateways.noFields' => 'No extra fields',
+	'settings.gateways.unsupportedFields' => 'These field types cannot be shown at checkout: {fields}. Use a plain text, number, dropdown or radio buttons field instead.',
 	'settings.gateways.unstorableFields' => 'These fields are not on the order, so nothing would be saved: {fields}. Add them to the order field layout first.',
 	'settings.gateways.fieldsHelp' => 'Fields a customer fills in when they pick this payment method. Only fields on the order can be used, since that is where the values are stored.',
 	'settings.gateways.fieldHandle' => 'Handle',

@@ -12,6 +12,7 @@ use craft\services\ProjectConfig;
 use craft\web\Controller;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\Settings;
+use fostercommerce\fostercheckout\services\GatewayFieldLayouts;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -96,6 +97,21 @@ class SettingsController extends Controller
 		if ($unstorable !== []) {
 			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.gateways.unstorableFields', [
 				'fields' => implode(', ', $unstorable),
+			]));
+
+			Craft::$app->getUrlManager()->setRouteParams([
+				'fieldLayout' => $layout,
+			]);
+
+			return null;
+		}
+
+		$unsupported = $this->unsupportedFields($layout, $plugin->gatewayFieldLayouts);
+
+		// The storefront has no input for these, so a customer would meet a text box that accepts anything.
+		if ($unsupported !== []) {
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.gateways.unsupportedFields', [
+				'fields' => implode(', ', $unsupported),
 			]));
 
 			Craft::$app->getUrlManager()->setRouteParams([
@@ -219,6 +235,24 @@ class SettingsController extends Controller
 		}
 
 		return $unstorable;
+	}
+
+	/**
+	 * @return array<int, string>
+	 */
+	private function unsupportedFields(FieldLayout $layout, GatewayFieldLayouts $gatewayFieldLayouts): array
+	{
+		$unsupported = [];
+
+		foreach ($layout->getCustomFieldElements() as $customField) {
+			$field = $customField->getField();
+
+			if ($gatewayFieldLayouts->fieldInputType($field) === null) {
+				$unsupported[] = sprintf('%s (%s)', (string) $field->name, $field::displayName());
+			}
+		}
+
+		return $unsupported;
 	}
 
 	/**

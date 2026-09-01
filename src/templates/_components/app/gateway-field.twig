@@ -1,0 +1,57 @@
+{% set fieldName = 'fields[' ~ field.handle ~ ']' %}
+
+{% if field.type == 'select' %}
+	{# The searchable select writes its value into the including scope, so give it one to write to #}
+	<div x-data="{ gatewayFieldValue: '' }">
+		{% include 'foster-checkout/_components/base/input-select-searchable' with {
+			context: '',
+			id: field.handle,
+			model: 'gatewayFieldValue',
+			name: fieldName,
+			label: field.label,
+			placeholder: 'addressFields.select'|t('foster-checkout'),
+			options: field.options,
+			required: field.required,
+			errors: [],
+		} %}
+	</div>
+{% elseif field.type == 'radio' %}
+	{% include 'foster-checkout/_components/base/input-radio' with {
+		context: '',
+		id: field.handle,
+		name: fieldName,
+		label: field.label,
+		options: field.options,
+		required: field.required,
+		errors: [],
+	} %}
+{% elseif field.type == 'textarea' %}
+	{% include 'foster-checkout/_components/base/input-textarea' with {
+		context: '',
+		id: field.handle,
+		name: fieldName,
+		label: field.label,
+		placeholder: field.placeholder,
+		rows: field.initialRows,
+		maxLength: field.maxLength ?? false,
+		required: field.required,
+		errors: [],
+	} %}
+{% else %}
+	{% include 'foster-checkout/_components/base/input-text-clearable' with {
+		context: '',
+		label: field.label,
+		id: field.handle,
+		name: fieldName,
+		type: field.type,
+		placeholder: field.placeholder,
+		errors: [],
+		minLength: false,
+		maxLength: field.maxLength ?? false,
+		min: field.min ?? false,
+		max: field.max ?? false,
+		required: field.required,
+		options: [],
+		gatewayId: gatewayId,
+	} %}
+{% endif %}

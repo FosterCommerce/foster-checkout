@@ -3,9 +3,13 @@
 namespace fostercommerce\fostercheckout\services;
 
 use Craft;
+use craft\base\FieldInterface;
 use craft\commerce\elements\Order;
+use craft\fields\BaseOptionsField;
+use craft\fields\Dropdown;
 use craft\fields\Number;
 use craft\fields\PlainText;
+use craft\fields\RadioButtons;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
 use yii\base\Component;
@@ -16,7 +20,7 @@ use yii\base\Component;
  * Layouts are kept in project config, never in the `fieldlayouts` table, because Craft looks that
  * table up by element type and a stored row could come back as the order's own layout.
  *
- * @phpstan-type RenderableField array{handle: string, label: string, instructions: ?string, required: bool, width: int, type: string, placeholder: ?string, maxLength: ?int, min: ?int, max: ?int}
+ * @phpstan-type RenderableField array{handle: string, label: string, instructions: ?string, required: bool, width: int, type: string, placeholder: ?string, maxLength: ?int, min: ?int, max: ?int, initialRows: ?int, options: list<array{label: string, value: string}>}
  */
 class GatewayFieldLayouts extends Component
 {
@@ -60,6 +64,12 @@ class GatewayFieldLayouts extends Component
 
 		foreach ($layoutElements as $layoutElement) {
 			$field = $layoutElement->getField();
+			$inputType = $this->fieldInputType($field);
+
+			// A layout saved before the type check existed can still hold a field with no input to render
+			if ($inputType === null) {
+				continue;
+			}
 
 			$fields[] = [
 				'handle' => (string) $field->handle,
@@ -67,15 +77,31 @@ class GatewayFieldLayouts extends Component
 				'instructions' => $layoutElement->instructions,
 				'required' => $layoutElement->required,
 				'width' => $layoutElement->width,
-				'type' => $field instanceof Number ? 'number' : 'text',
+				'type' => $inputType,
 				'placeholder' => $field instanceof PlainText ? $field->placeholder : null,
 				'maxLength' => $field instanceof PlainText ? $field->charLimit : null,
 				'min' => $field instanceof Number ? (int) $field->min : null,
 				'max' => $field instanceof Number && $field->max !== null ? (int) $field->max : null,
+				'initialRows' => $field instanceof PlainText ? $field->initialRows : null,
+				'options' => $this->fieldOptions($field),
 			];
 		}
 
 		return $fields;
+	}
+
+	/**
+	 * The storefront input a field renders as, or null where the plugin has none for its type.
+	 */
+	public function fieldInputType(FieldInterface $field): ?string
+	{
+		return match (true) {
+			$field instanceof PlainText => $field->multiline ? 'textarea' : 'text',
+			$field instanceof Number => 'number',
+			$field instanceof Dropdown => 'select',
+			$field instanceof RadioButtons => 'radio',
+			default => null,
+		};
 	}
 
 	/**
@@ -119,6 +145,33 @@ class GatewayFieldLayouts extends Component
 		]);
 
 		return true;
+	}
+
+	/**
+	 * @return list<array{label: string, value: string}>
+	 */
+	private function fieldOptions(FieldInterface $field): array
+	{
+		if (! $field instanceof BaseOptionsField) {
+			return [];
+		}
+
+		$options = [];
+
+		foreach ($field->options ?? [] as $option) {
+			// An optgroup row carries no value of its own, so its options are listed flat
+			if (isset($option['optgroup'])) {
+				continue;
+			}
+
+			$options[] = [
+				// Craft runs option labels through the site category in a protected method
+				'label' => Craft::t('site', (string) $option['label']),
+				'value' => (string) $option['value'],
+			];
+		}
+
+		return $options;
 	}
 
 	/**

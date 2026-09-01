@@ -290,24 +290,11 @@
 															{% if isManualGateway %}
 																{% if manualFields|length %}
 																	<div class="{{ manualColumns ? 'grid sm:grid-cols-' ~ manualColumns }}">
-																		{# Only namespace additional custom fields if they exist #}
-																		{% for field in manualFields %}
+																				{% for field in manualFields %}
 																			{# The layout stores width as a percentage; the grid is in columns. #}
 																			<div class="sm:col-span-{{ max(1, (field.width / (100 / manualColumns))|round) }}">
-																				{% include 'foster-checkout/_components/base/input-text-clearable' with {
-																					context: '',
-																					label: field.label,
-																					id: field.handle,
-																					name: 'fields[' ~ field.handle ~ ']',
-																					type: field.type,
-																					placeholder: field.placeholder,
-																					errors: [],
-																					minLength: false,
-																					maxLength: field.maxLength ?? false,
-																					min: field.min ?? false,
-																					max: field.max ?? false,
-																					required: field.required,
-																					options: [],
+																				{% include 'foster-checkout/_components/app/gateway-field' with {
+																					field: field,
 																					gatewayId: gateway.id,
 																				} %}
 																			</div>
