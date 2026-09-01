@@ -35,7 +35,7 @@
 					{{ 'order.stepName'|t('foster-checkout') }}
 				</h1>
 
-				{% set note = craft.fostercheckout.note('order', {order}) %}
+				{% set note = craft.fostercheckout.note('confirmation', {order}) %}
 				{% if note %}
 					<div class="mt-4 [&_a]:underline [&_a:hover]:decoration-current">
 						{{ note|raw }}

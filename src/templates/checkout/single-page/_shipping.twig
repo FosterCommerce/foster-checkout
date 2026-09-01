@@ -70,7 +70,7 @@
 		</p>
 		<p x-show="!hasShippingMethods && !loadingShippingMethods">{{ 'shipping.noMethodAvailable'|t('foster-checkout') }}.</p>
 
-		{% set note = craft.fostercheckout.note('shipping', {cart}) %}
+		{% set note = craft.fostercheckout.note('shippingMethod', {cart}) %}
 		{% if note %}
 			<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
 				{{ note|raw }}
