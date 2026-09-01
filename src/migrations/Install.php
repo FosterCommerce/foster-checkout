@@ -8,6 +8,9 @@ use fostercommerce\fostercheckout\db\Table;
 /**
  * Cumulative install reflecting the full schema. Every schema change must also ship an
  * incremental `m*` migration to carry existing installs forward.
+ *
+ * A data migration that reads a site's existing config file must also be replayed in `safeUp()`,
+ * since a fresh install never runs it.
  */
 class Install extends Migration
 {
@@ -29,7 +32,11 @@ class Install extends Migration
 		// One row per translation key, so a concurrent save collides instead of silently duplicating.
 		$this->createIndex(null, Table::CONTENT, ['translationKey'], true);
 
-		return true;
+		// Craft stamps every other migration as applied on a fresh install without running it, so a
+		// site installing the plugin today would keep its config file and get none of its content.
+		return (new m260813_234259_migrate_checkout_content())->safeUp()
+			&& (new m260814_022939_convert_gateway_fields_to_layouts())->safeUp()
+			&& (new m260901_101659_rename_checkout_step_note_keys())->safeUp();
 	}
 
 	#[\Override]
