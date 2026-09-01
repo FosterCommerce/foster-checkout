@@ -16,11 +16,6 @@ class PaymentGatewayConfig extends Model
 	public ValueConfig $note;
 
 	/**
-	 * @var int|null number of columns in this layout
-	 */
-	public null|int $columns = 3;
-
-	/**
 	 * Extra params merged into the gateway's payment form params (e.g. PayPal SDK options like `disable-funding`)
 	 *
 	 * @var array<string, mixed>

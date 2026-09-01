@@ -256,7 +256,7 @@ class SettingsController extends Controller
 	}
 
 	/**
-	 * Layout columns and payment form params sit alongside the field layout rather than in it.
+	 * Payment form params sit alongside the field layout rather than in it.
 	 */
 	private function saveGatewayOptions(string $gatewayHandle): void
 	{
@@ -276,9 +276,6 @@ class SettingsController extends Controller
 		$storedGateways = is_array($storedSettings['paymentGateways'] ?? null) ? $storedSettings['paymentGateways'] : [];
 		$gateway = is_array($storedGateways[$gatewayHandle] ?? null) ? $storedGateways[$gatewayHandle] : [];
 
-		$postedColumns = $this->request->getBodyParam('columns', '');
-		$columns = is_scalar($postedColumns) ? trim((string) $postedColumns) : '';
-		$gateway['columns'] = $columns === '' ? null : (int) $columns;
 		$gateway['params'] = $this->normalizeGatewayParams((array) $this->request->getBodyParam('params', []));
 
 		$storedGateways[$gatewayHandle] = $gateway;
@@ -331,9 +328,6 @@ class SettingsController extends Controller
 			}
 
 			$gateway = is_array($storedGateways[$gatewayHandle] ?? null) ? $storedGateways[$gatewayHandle] : [];
-			$columns = $this->trimmedString($postedGateway, 'columns');
-
-			$gateway['columns'] = $columns === '' ? null : (int) $columns;
 			$gateway['fields'] = $this->normalizeGatewayFields((array) ($postedGateway['fields'] ?? []));
 			$gateway['params'] = $this->normalizeGatewayParams((array) ($postedGateway['params'] ?? []));
 

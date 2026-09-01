@@ -167,7 +167,6 @@ return [
 	// Example:
 	/*
 		'myGatewayHandle' => [
-			'columns' => 3, // number of columns the gateway's fields are laid out across
 			'note' => static fn (array $context): string => 'Computed note',
 			'params' => [
 				// Extra params merged into the gateway's payment form params.

@@ -308,8 +308,6 @@ return [
 
 	'settings.gateways.intro' => 'Extra fields and options shown when a customer picks a payment method. Every gateway configured in Commerce is listed.',
 	'settings.gateways.none' => 'No payment gateways are set up in Commerce yet.',
-	'settings.gateways.columns' => 'Layout columns',
-	'settings.gateways.columnsHelp' => 'How many columns the gateway’s fields are laid out across. Leave blank for the default.',
 	'settings.gateways.gateway' => 'Gateway',
 	'settings.gateways.fields' => 'Fields',
 	'settings.gateways.noFields' => 'No extra fields',

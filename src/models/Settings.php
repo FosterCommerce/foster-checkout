@@ -169,7 +169,11 @@ class Settings extends Model
 				$values['paymentGateways'][$gatewayHandle] = new PaymentGatewayConfig(
 					$gatewayHandle,
 					[
-						...$paymentGateway,
+						// Field widths replaced the per-gateway column count, so a config file still
+						// setting it would fatal on an unknown property.
+						...array_diff_key($paymentGateway, [
+							'columns' => null,
+						]),
 						'fields' => $paymentGateway['fields'] ?? [],
 						'note' => new ValueConfig($paymentGateway['note'] ?? []),
 					]
