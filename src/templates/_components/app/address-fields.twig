@@ -56,137 +56,82 @@ since the array key will be the same #}
 	class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12"
 	@selected.window="if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') { administrativeArea = '' }"
 >
-	<div class="sm:col-span-12">
-		{% include 'foster-checkout/_components/base/input-select-searchable' with {
-			context: context,
-			id: 'countryCode',
-			model: 'countryCode',
-			name: 'countryCode',
-			options: countriesArr,
-			label: 'addressFields.countryLabel'|t('foster-checkout'),
-			placeholder: 'addressFields.select'|t('foster-checkout'),
-			required: true,
-			value: address ? address.countryCode : '',
-			errors: errors.countryCode ?? [],
-			autocomplete: 'country-name'
-		} %}
-		<template x-if="'countryCode' in errors">
-			<div
-				id="{{ 'countryCode'|namespaceInputId(context) }}-error"
-				class="mt-1 text-sm text-red-500"
-				x-text="errors.countryCode ? errors.countryCode.join(' ') : ''">
-			</div>
-		</template>
-	</div>
-
-	<div class="sm:col-span-12">
-		{% include 'foster-checkout/_components/base/input-text-clearable' with {
-			addressScope: true,
-			context: context,
-			label: 'addressFields.fullnameLabel'|t('foster-checkout'),
-			id: 'fullName',
-			name: 'fullName',
-			type: 'text',
-			autocomplete: 'name',
-			placeholder: 'addressFields.fullnamePlaceholder'|t('foster-checkout'),
-			value: address ? address.fullName|e('js') : '',
-			required: true,
-			errors: errors.fullName ?? []
-		} %}
-	</div>
-
-	<div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:col-span-12">
-		{% include 'foster-checkout/_components/base/input-text-clearable' with {
-			addressScope: true,
-			context: context,
-			label: 'addressFields.addressLabel'|t('foster-checkout'),
-			id: 'addressLine1',
-			name: 'addressLine1',
-			type: 'text',
-			autocomplete: 'address-line1',
-			placeholder: 'addressFields.addressPlaceholder'|t('foster-checkout'),
-			value: address ? address.addressLine1|e('js') : '',
-			required: true,
-			errors: errors.addressLine1 ?? []
-		} %}
-
-		{% include 'foster-checkout/_components/base/input-text-clearable' with {
-			addressScope: true,
-			context: context,
-			label: 'addressFields.address2Label'|t('foster-checkout'),
-			hideLabel: true,
-			id: 'addressLine2',
-			name: 'addressLine2',
-			type: 'text',
-			autocomplete: 'address-line2',
-			placeholder: 'addressFields.address2Placeholder'|t('foster-checkout'),
-			value: address ? address.addressLine2|e('js') : '',
-			errors: errors.addressLine2 ?? []
-		} %}
-
-		{% include 'foster-checkout/_components/base/input-text-clearable' with {
-			addressScope: true,
-			context: context,
-			label: 'Line 3',
-			hideLabel: true,
-			id: 'addressLine3',
-			name: 'addressLine3',
-			type: 'text',
-			autocomplete: 'address-line3',
-			placeholder: '',
-			value: address ? address.addressLine3|e('js') : '',
-			errors: errors.addressLine3 ?? []
-		} %}
-	</div>
-
-	<div class="sm:col-span-4">
-		{% include 'foster-checkout/_components/base/input-text-clearable' with {
-			addressScope: true,
-			context: context,
-			label: 'addressFields.cityLabel'|t('foster-checkout'),
-			id: 'locality',
-			name: 'locality',
-			type: 'text',
-			autocomplete: 'address-level2',
-			placeholder: 'addressFields.cityPlaceholder'|t('foster-checkout'),
-			value: address ? address.locality|e('js') : '',
-			required: true,
-			errors: errors.locality ?? []
-		} %}
-	</div>
-
-	{% include 'foster-checkout/_components/app/address-region-field' with {
-		context: context,
-		address: address
-	} %}
-
-	<div class="sm:col-span-4">
-		{% include 'foster-checkout/_components/base/input-text-clearable' with {
-			addressScope: true,
-			context: context,
-			label: 'addressFields.postcodeLabel'|t('foster-checkout'),
-			id: 'postalCode',
-			name: 'postalCode',
-			type: 'text',
-			autocomplete: 'postal-code',
-			placeholder: 'addressFields.postcodePlaceholder'|t('foster-checkout'),
-			value: address ? address.postalCode|e('js') : '',
-			required: true,
-			errors: errors.postalCode ?? []
-		} %}
-	</div>
-
-	{% for field in craft.fostercheckout.addressFields(address) %}
+	{% for element in craft.fostercheckout.addressFields(address) %}
 		{# The layout stores width as a percentage; the grid is in twelfths #}
-		<div class="sm:col-span-{{ (field.width / 100 * 12)|round }}">
-			{# Prefixed so a custom field handle cannot collide with a native address attribute id #}
-			{% include 'foster-checkout/_components/app/checkout-field' with {
-				field: field,
-				context: context,
-				idPrefix: 'custom-field-',
-				value: address ? address[field.handle] : '',
-				errors: errors[field.handle] ?? [],
-			} %}
+		<div class="sm:col-span-{{ (element.width / 100 * 12)|round }}">
+			{% if element.type == 'country' %}
+				{% include 'foster-checkout/_components/base/input-select-searchable' with {
+					context: context,
+					id: 'countryCode',
+					model: 'countryCode',
+					name: 'countryCode',
+					options: countriesArr,
+					label: 'addressFields.countryLabel'|t('foster-checkout'),
+					placeholder: 'addressFields.select'|t('foster-checkout'),
+					required: true,
+					value: address ? address.countryCode : '',
+					errors: errors.countryCode ?? [],
+					autocomplete: 'country-name'
+				} %}
+				<template x-if="'countryCode' in errors">
+					<div
+						id="{{ 'countryCode'|namespaceInputId(context) }}-error"
+						class="mt-1 text-sm text-red-500"
+						x-text="errors.countryCode ? errors.countryCode.join(' ') : ''">
+					</div>
+				</template>
+			{% elseif element.type == 'fullName' %}
+				{% include 'foster-checkout/_components/base/input-text-clearable' with {
+					context: context,
+					label: 'addressFields.fullnameLabel'|t('foster-checkout'),
+					id: 'fullName',
+					name: 'fullName',
+					type: 'text',
+					autocomplete: 'name',
+					placeholder: 'addressFields.fullnamePlaceholder'|t('foster-checkout'),
+					value: address ? address.fullName|e('js') : '',
+					required: element.required,
+					errors: errors.fullName ?? []
+				} %}
+			{% elseif element.type == 'organization' %}
+				{% include 'foster-checkout/_components/base/input-text-clearable' with {
+					context: context,
+					label: 'addressFields.organizationLabel'|t('foster-checkout'),
+					id: 'organization',
+					name: 'organization',
+					type: 'text',
+					autocomplete: 'organization',
+					value: address ? address.organization|e('js') : '',
+					required: element.required,
+					errors: errors.organization ?? []
+				} %}
+			{% elseif element.type == 'organizationTaxId' %}
+				{% include 'foster-checkout/_components/base/input-text-clearable' with {
+					context: context,
+					label: 'addressFields.organizationTaxIdLabel'|t('foster-checkout'),
+					id: 'organizationTaxId',
+					name: 'organizationTaxId',
+					type: 'text',
+					value: address ? address.organizationTaxId|e('js') : '',
+					required: element.required,
+					errors: errors.organizationTaxId ?? []
+				} %}
+			{% elseif element.type == 'address' %}
+				{% include 'foster-checkout/_components/app/address-block' with {
+					context: context,
+					address: address,
+					errors: errors,
+				} %}
+			{% else %}
+				{# Prefixed so a custom field handle cannot collide with a native address attribute id #}
+				{% include 'foster-checkout/_components/app/checkout-field' with {
+					field: element.field,
+					context: context,
+					idPrefix: 'custom-field-',
+					value: address ? address[element.field.handle] : '',
+					errors: errors[element.field.handle] ?? [],
+				} %}
+			{% endif %}
 		</div>
 	{% endfor %}
 

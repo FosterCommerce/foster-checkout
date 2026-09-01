@@ -102,6 +102,8 @@ return [
 	'addressFields.noResultsFound' => 'No results found',
 	'addressFields.countryLabel' => 'Country',
 	'addressFields.fullnameLabel' => 'Full name',
+	'addressFields.organizationLabel' => 'Organization',
+	'addressFields.organizationTaxIdLabel' => 'Tax ID',
 	'addressFields.fullnamePlaceholder' => 'Enter your name',
 	'addressFields.addressLabel' => 'Address',
 	'addressFields.addressPlaceholder' => 'Street address',

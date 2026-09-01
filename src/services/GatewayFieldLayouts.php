@@ -6,6 +6,7 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\FieldInterface;
 use craft\commerce\elements\Order;
+use craft\fieldlayoutelements\CustomField;
 use craft\fields\BaseOptionsField;
 use craft\fields\Dropdown;
 use craft\fields\Number;
@@ -71,31 +72,43 @@ class GatewayFieldLayouts extends Component
 			: $layout->getCustomFieldElements();
 
 		foreach ($layoutElements as $layoutElement) {
-			$field = $layoutElement->getField();
-			$inputType = $this->fieldInputType($field);
+			$field = $this->renderableField($layoutElement);
 
-			// A layout saved before the type check existed can still hold a field with no input to render
-			if ($inputType === null) {
-				continue;
+			if ($field !== null) {
+				$fields[] = $field;
 			}
-
-			$fields[] = [
-				'handle' => (string) $field->handle,
-				'label' => $layoutElement->label ?? (string) $field->name,
-				'instructions' => $layoutElement->instructions,
-				'required' => $layoutElement->required,
-				'width' => $layoutElement->width,
-				'type' => $inputType,
-				'placeholder' => $field instanceof PlainText ? $field->placeholder : null,
-				'maxLength' => $field instanceof PlainText ? $field->charLimit : null,
-				'min' => $field instanceof Number ? (int) $field->min : null,
-				'max' => $field instanceof Number && $field->max !== null ? (int) $field->max : null,
-				'initialRows' => $field instanceof PlainText ? $field->initialRows : null,
-				'options' => $this->fieldOptions($field),
-			];
 		}
 
 		return $fields;
+	}
+
+	/**
+	 * @return RenderableField|null null where the plugin has no input for the field's type
+	 */
+	public function renderableField(CustomField $layoutElement): ?array
+	{
+		$field = $layoutElement->getField();
+		$inputType = $this->fieldInputType($field);
+
+		// A layout saved before the type check existed can still hold a field with no input to render
+		if ($inputType === null) {
+			return null;
+		}
+
+		return [
+			'handle' => (string) $field->handle,
+			'label' => $layoutElement->label ?? (string) $field->name,
+			'instructions' => $layoutElement->instructions,
+			'required' => $layoutElement->required,
+			'width' => $layoutElement->width,
+			'type' => $inputType,
+			'placeholder' => $field instanceof PlainText ? $field->placeholder : null,
+			'maxLength' => $field instanceof PlainText ? $field->charLimit : null,
+			'min' => $field instanceof Number ? (int) $field->min : null,
+			'max' => $field instanceof Number && $field->max !== null ? (int) $field->max : null,
+			'initialRows' => $field instanceof PlainText ? $field->initialRows : null,
+			'options' => $this->fieldOptions($field),
+		];
 	}
 
 	public function fieldInputType(FieldInterface $field): ?string

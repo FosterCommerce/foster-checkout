@@ -1,0 +1,81 @@
+{# Craft's address field layout treats these six as one element, so they move and size together. #}
+{# Required comes from the country's address format at runtime, via addressScope. #}
+<div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12">
+	<div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:col-span-12">
+		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+			addressScope: true,
+			context: context,
+			label: 'addressFields.addressLabel'|t('foster-checkout'),
+			id: 'addressLine1',
+			name: 'addressLine1',
+			type: 'text',
+			autocomplete: 'address-line1',
+			placeholder: 'addressFields.addressPlaceholder'|t('foster-checkout'),
+			value: address ? address.addressLine1|e('js') : '',
+			errors: errors.addressLine1 ?? []
+		} %}
+
+		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+			addressScope: true,
+			context: context,
+			label: 'addressFields.address2Label'|t('foster-checkout'),
+			hideLabel: true,
+			id: 'addressLine2',
+			name: 'addressLine2',
+			type: 'text',
+			autocomplete: 'address-line2',
+			placeholder: 'addressFields.address2Placeholder'|t('foster-checkout'),
+			value: address ? address.addressLine2|e('js') : '',
+			errors: errors.addressLine2 ?? []
+		} %}
+
+		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+			addressScope: true,
+			context: context,
+			label: 'Line 3',
+			hideLabel: true,
+			id: 'addressLine3',
+			name: 'addressLine3',
+			type: 'text',
+			autocomplete: 'address-line3',
+			placeholder: '',
+			value: address ? address.addressLine3|e('js') : '',
+			errors: errors.addressLine3 ?? []
+		} %}
+	</div>
+
+	<div class="sm:col-span-4">
+		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+			addressScope: true,
+			context: context,
+			label: 'addressFields.cityLabel'|t('foster-checkout'),
+			id: 'locality',
+			name: 'locality',
+			type: 'text',
+			autocomplete: 'address-level2',
+			placeholder: 'addressFields.cityPlaceholder'|t('foster-checkout'),
+			value: address ? address.locality|e('js') : '',
+			errors: errors.locality ?? []
+		} %}
+	</div>
+
+	{% include 'foster-checkout/_components/app/address-region-field' with {
+		context: context,
+		address: address
+	} %}
+
+	<div class="sm:col-span-4">
+		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+			addressScope: true,
+			context: context,
+			label: 'addressFields.postcodeLabel'|t('foster-checkout'),
+			id: 'postalCode',
+			name: 'postalCode',
+			type: 'text',
+			autocomplete: 'postal-code',
+			placeholder: 'addressFields.postcodePlaceholder'|t('foster-checkout'),
+			value: address ? address.postalCode|e('js') : '',
+			errors: errors.postalCode ?? []
+		} %}
+	</div>
+</div>
