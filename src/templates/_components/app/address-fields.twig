@@ -23,6 +23,12 @@ since the array key will be the same #}
 	'fc-address-required-fields'
 ) %}
 
+{% do view.registerJs(
+	'window.fcAddressUsedFields = ' ~ craft.fostercheckout.addressUsedFields()|json_encode ~ ';',
+	constant('craft\\web\\View::POS_HEAD'),
+	'fc-address-used-fields'
+) %}
+
 {% if pinnedCountries|length > 0 %}
 	{% set countries = countries|filter((value, key) => key not in pinnedCountries|keys) %}
 {% endif %}
@@ -52,6 +58,11 @@ since the array key will be the same #}
 		pinnedCountries: {{ pinnedCountries|json_encode }},
 		requiredFields: () => window.fcAddressRequiredFields,
 		errors: {{ errors|json_encode }},
+		isUsed(attribute) {
+			const usedFields = window.fcAddressUsedFields[this.countryCode];
+			// Before a country is picked there is no format to go on, so nothing is hidden yet
+			return !usedFields || usedFields.includes(attribute);
+		},
 	}"
 	class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12"
 	@selected.window="if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') { administrativeArea = '' }"

@@ -65,6 +65,11 @@ class Checkout extends Component
 	 */
 	private ?array $addressRequiredFields = null;
 
+	/**
+	 * @var array<string, array<int, string>>|null
+	 */
+	private ?array $addressUsedFields = null;
+
 	public function addressFormatter(): CheckoutAddressFormatter
 	{
 		return new CheckoutAddressFormatter();
@@ -92,6 +97,30 @@ class Checkout extends Component
 		}
 
 		return $this->addressRequiredFields = $requiredFields;
+	}
+
+	/**
+	 * Address fields each country's format actually uses, keyed by country code.
+	 *
+	 * Read through the Addresses service rather than the format repository, so `EVENT_DEFINE_USED_FIELDS`
+	 * applies — this plugin adds the administrative area for GB through it.
+	 *
+	 * @return array<string, array<int, string>>
+	 */
+	public function addressUsedFields(): array
+	{
+		if ($this->addressUsedFields !== null) {
+			return $this->addressUsedFields;
+		}
+
+		$addressesService = Craft::$app->getAddresses();
+		$usedFields = [];
+
+		foreach (array_keys($this->storeCountries()) as $countryCode) {
+			$usedFields[$countryCode] = array_values($addressesService->getUsedFields($countryCode));
+		}
+
+		return $this->addressUsedFields = $usedFields;
 	}
 
 	/**
