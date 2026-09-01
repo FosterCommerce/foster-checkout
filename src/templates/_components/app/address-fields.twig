@@ -1,7 +1,3 @@
-{# Check for any custom fields that are setup in address field layouts (we are only getting plain text fields for now) #}
-{% set addressFieldLayout = craft.app.getAddresses().getFieldLayout() %}
-{% set addressCustomFields = addressFieldLayout.getCustomFields()|filter(field => className(field) == 'craft\\fields\\PlainText') %}
-
 {# Set defaults for context and the address object, in case they are null #}
 {% set context = context ?? '' %}
 {% set address = address ?? null %}
@@ -180,62 +176,17 @@ since the array key will be the same #}
 		} %}
 	</div>
 
-	{% for customField in addressCustomFields %}
-
+	{% for field in craft.fostercheckout.addressFields(address) %}
 		<div class="sm:col-span-3">
-
-			{% if customField.multiline %}
-
-				<label for="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}"
-					   class="block text-sm font-medium text-gray-700">
-					{{ customField.name|t('foster-checkout') }}{% if customField.required %}*{% endif %}
-				</label>
-
-				<textarea
-					id="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}"
-					name="{{ context ? ('fields[' ~ customField.handle ~ ']')|namespaceInputName(context) : ('fields[' ~ customField.handle ~ ']') }}"
-					class="w-full p-4 bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
-					:class="'{{ customField.handle }}' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
-					rows="{{ customField.initialRows }}"
-					{% if not customField.required %}
-						aria-describedby="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}-optional"
-					{% endif %}
-					:aria-invalid="'{{ customField.handle }}' in errors"
-					aria-errormessage="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}-error"
-					placeholder="{{ customField.placeholder }}"
-					@input="if ($el.value) delete errors.{{ customField.handle }}"
-					{% if customField.required %}
-						required
-					{% endif %}
-				>{{ address ? address[customField.handle]|e('js') : '' }}</textarea>
-
-				<template x-if="'{{ customField.handle }}' in errors">
-					<div
-						id="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}-error"
-						class="mt-1 text-sm text-red-500"
-						x-text="errors.{{ customField.handle }} ? errors.{{ customField.handle }}.join(' ') : ''">
-					</div>
-				</template>
-
-
-			{% else %}
-				{% include 'foster-checkout/_components/base/input-text-clearable' with {
-					addressScope: true,
-					context: context,
-					label: customField.name|t('foster-checkout'),
-					id: 'custom-field-' ~ customField.handle,
-					name: 'fields[' ~ customField.handle ~ ']',
-					type: 'text',
-					placeholder: customField.placeholder|t('foster-checkout'),
-					value: address ? address[customField.handle]|e('js') : '',
-					required: customField.layoutElement.required,
-					errors: errors[customField.handle] ?? []
-				} %}
-
-			{% endif %}
-
+			{# Prefixed so a custom field handle cannot collide with a native address attribute id #}
+			{% include 'foster-checkout/_components/app/checkout-field' with {
+				field: field,
+				context: context,
+				idPrefix: 'custom-field-',
+				value: address ? address[field.handle] : '',
+				errors: errors[field.handle] ?? [],
+			} %}
 		</div>
-
 	{% endfor %}
 
 </div>

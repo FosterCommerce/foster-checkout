@@ -248,9 +248,8 @@
 													<div class="{{ manualColumns ? 'grid sm:grid-cols-' ~ manualColumns }}">
 														{% for field in manualFields %}
 															<div class="sm:col-span-{{ max(1, (field.width / (100 / manualColumns))|round) }}">
-																{% include 'foster-checkout/_components/app/gateway-field' with {
+																{% include 'foster-checkout/_components/app/checkout-field' with {
 																	field: field,
-																	gatewayId: gateway.id,
 																} %}
 															</div>
 														{% endfor %}

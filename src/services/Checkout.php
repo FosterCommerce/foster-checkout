@@ -313,6 +313,20 @@ class Checkout extends Component
 	}
 
 	/**
+	 * @return array<int, RenderableField>
+	 */
+	public function addressFields(?Address $address = null): array
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $plugin->gatewayFieldLayouts->renderableFields(
+			Craft::$app->getAddresses()->getFieldLayout(),
+			$address
+		);
+	}
+
+	/**
 	 * @param array<non-empty-string, mixed> $context additional context to pass to the twig template
 	 */
 	public function gatewayNote(string $gatewayHandle, array $context = []): ?string

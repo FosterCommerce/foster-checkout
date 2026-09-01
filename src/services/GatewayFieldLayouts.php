@@ -3,6 +3,7 @@
 namespace fostercommerce\fostercheckout\services;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\base\FieldInterface;
 use craft\commerce\elements\Order;
 use craft\fields\BaseOptionsField;
@@ -46,20 +47,27 @@ class GatewayFieldLayouts extends Component
 	}
 
 	/**
-	 * Fields a gateway asks for, flattened for the storefront.
+	 * @return array<int, RenderableField>
+	 */
+	public function getRenderableFields(string $gatewayHandle, ?Order $order = null): array
+	{
+		return $this->renderableFields($this->getFieldLayout($gatewayHandle), $order);
+	}
+
+	/**
+	 * Fields a layout asks for, flattened for the storefront.
 	 *
 	 * Type and bounds come from the Craft field, which a layout cannot express.
 	 *
 	 * @return array<int, RenderableField>
 	 */
-	public function getRenderableFields(string $gatewayHandle, ?Order $order = null): array
+	public function renderableFields(FieldLayout $layout, ?ElementInterface $element = null): array
 	{
 		$fields = [];
-		$layout = $this->getFieldLayout($gatewayHandle);
 
-		// Without an order there is nothing to test a visibility condition against, so list them all
-		$layoutElements = $order instanceof Order
-			? $layout->getVisibleCustomFieldElements($order)
+		// Without an element there is nothing to test a visibility condition against, so list them all
+		$layoutElements = $element instanceof ElementInterface
+			? $layout->getVisibleCustomFieldElements($element)
 			: $layout->getCustomFieldElements();
 
 		foreach ($layoutElements as $layoutElement) {

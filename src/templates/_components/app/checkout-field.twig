@@ -1,17 +1,18 @@
 {% set common = {
-	context: '',
-	id: field.handle,
+	context: context|default(''),
+	id: idPrefix|default('') ~ field.handle,
 	name: 'fields[' ~ field.handle ~ ']',
 	label: field.label,
 	required: field.required,
-	errors: [],
+	value: value|default(''),
+	errors: errors|default([]),
 } %}
 
 {% if field.type == 'select' %}
 	{# The searchable select writes its value into the including scope, so give it one to write to #}
-	<div x-data="{ gatewayFieldValue: '' }">
+	<div x-data="{ checkoutFieldValue: {{ (value|default(''))|json_encode }} }">
 		{% include 'foster-checkout/_components/base/input-select-searchable' with common|merge({
-			model: 'gatewayFieldValue',
+			model: 'checkoutFieldValue',
 			placeholder: 'addressFields.select'|t('foster-checkout'),
 			options: field.options,
 		}) %}
@@ -35,6 +36,5 @@
 		min: field.min ?? false,
 		max: field.max ?? false,
 		options: [],
-		gatewayId: gatewayId,
 	}) %}
 {% endif %}
