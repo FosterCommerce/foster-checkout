@@ -245,9 +245,10 @@
 															hover:[&_button#paymentForm-authorizeNet-authorizeSubmit]:opacity-90
 															"
 
+															{# The gateway's payment form defines these; a missing one throws and nothing in the panel renders #}
 															x-init="
-																'{{ gateway.className() }}' === 'craft\commerce\paypalcheckout\gateways\Gateway' && initPaypalCheckout();
-																'{{ gateway.className() }}' === 'craft\commerce\stripe\gateways\PaymentIntents' && initStripe();
+																'{{ gateway.className() }}' === 'craft\commerce\paypalcheckout\gateways\Gateway' && typeof initPaypalCheckout === 'function' && initPaypalCheckout();
+																'{{ gateway.className() }}' === 'craft\commerce\stripe\gateways\PaymentIntents' && typeof initStripe === 'function' && initStripe();
 															"
 														>
 															{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
