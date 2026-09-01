@@ -53,10 +53,10 @@ since the array key will be the same #}
 		requiredFields: () => window.fcAddressRequiredFields,
 		errors: {{ errors|json_encode }},
 	}"
-	class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-3"
+	class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12"
 	@selected.window="if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') { administrativeArea = '' }"
 >
-	<div class="sm:col-span-3">
+	<div class="sm:col-span-12">
 		{% include 'foster-checkout/_components/base/input-select-searchable' with {
 			context: context,
 			id: 'countryCode',
@@ -79,7 +79,7 @@ since the array key will be the same #}
 		</template>
 	</div>
 
-	<div class="sm:col-span-3">
+	<div class="sm:col-span-12">
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
 			addressScope: true,
 			context: context,
@@ -95,7 +95,7 @@ since the array key will be the same #}
 		} %}
 	</div>
 
-	<div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:col-span-3">
+	<div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:col-span-12">
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
 			addressScope: true,
 			context: context,
@@ -139,7 +139,7 @@ since the array key will be the same #}
 		} %}
 	</div>
 
-	<div class="sm:col-span-1">
+	<div class="sm:col-span-4">
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
 			addressScope: true,
 			context: context,
@@ -160,7 +160,7 @@ since the array key will be the same #}
 		address: address
 	} %}
 
-	<div class="sm:col-span-1">
+	<div class="sm:col-span-4">
 		{% include 'foster-checkout/_components/base/input-text-clearable' with {
 			addressScope: true,
 			context: context,
@@ -177,7 +177,8 @@ since the array key will be the same #}
 	</div>
 
 	{% for field in craft.fostercheckout.addressFields(address) %}
-		<div class="sm:col-span-3">
+		{# The layout stores width as a percentage; the grid is in twelfths #}
+		<div class="sm:col-span-{{ (field.width / 100 * 12)|round }}">
 			{# Prefixed so a custom field handle cannot collide with a native address attribute id #}
 			{% include 'foster-checkout/_components/app/checkout-field' with {
 				field: field,
