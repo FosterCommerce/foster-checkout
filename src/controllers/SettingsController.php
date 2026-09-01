@@ -108,7 +108,7 @@ class SettingsController extends Controller
 
 		$unsupported = $this->unsupportedFields($layout, $plugin->gatewayFieldLayouts);
 
-		// The storefront has no input for these, so a customer would meet a text box that accepts anything.
+		// No input exists for the type, so it's ignored in the storefront form.
 		if ($unsupported !== []) {
 			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.gateways.unsupportedFields', [
 				'fields' => implode(', ', $unsupported),

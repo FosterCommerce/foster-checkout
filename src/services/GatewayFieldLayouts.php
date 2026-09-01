@@ -90,9 +90,6 @@ class GatewayFieldLayouts extends Component
 		return $fields;
 	}
 
-	/**
-	 * The storefront input a field renders as, or null where the plugin has none for its type.
-	 */
 	public function fieldInputType(FieldInterface $field): ?string
 	{
 		return match (true) {
