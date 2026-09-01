@@ -109,6 +109,7 @@ return [
 	'addressFields.addressPlaceholder' => 'Street address',
 	'addressFields.address2Label' => 'Apt. number, suite',
 	'addressFields.address2Placeholder' => 'Apt. number, suite',
+	'addressFields.address3Label' => 'Address line 3',
 	'addressFields.cityLabel' => 'City',
 	'addressFields.cityPlaceholder' => 'Your City',
 	'addressFields.stateLabel' => 'State / Province',
