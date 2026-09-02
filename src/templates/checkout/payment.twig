@@ -246,10 +246,11 @@
 															"
 
 															{# The gateway's payment form defines these; a missing one throws and nothing in the panel renders #}
-															x-init="
-																'{{ gateway.className() }}' === 'craft\commerce\paypalcheckout\gateways\Gateway' && typeof initPaypalCheckout === 'function' && initPaypalCheckout();
-																'{{ gateway.className() }}' === 'craft\commerce\stripe\gateways\PaymentIntents' && typeof initStripe === 'function' && initStripe();
-															"
+															{% if gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
+																x-init="typeof initPaypalCheckout === 'function' && initPaypalCheckout()"
+															{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+																x-init="typeof initStripe === 'function' && initStripe()"
+															{% endif %}
 														>
 															{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
 
