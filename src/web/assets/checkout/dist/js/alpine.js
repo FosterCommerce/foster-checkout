@@ -6425,10 +6425,6 @@ const SinglePageCheckout = (props) => {
     },
     bindPayOverlay() {
       const form = this.$refs.paymentForm;
-      if (!form || form.dataset.fcPayOverlay === "true") {
-        return;
-      }
-      form.dataset.fcPayOverlay = "true";
       form.addEventListener(
         "click",
         (event) => {
@@ -6567,7 +6563,7 @@ const SinglePageCheckout = (props) => {
       if (!/^\d{13,19}$/.test(number)) {
         errors.number = this.cardNumberError;
       }
-      if (!monthValue || month < 1 || month > 12) {
+      if (!/^\d{1,2}$/.test(monthValue) || month < 1 || month > 12) {
         errors.month = this.cardMonthError;
       }
       if (!/^\d{2}$|^\d{4}$/.test(yearValue)) {
@@ -6970,10 +6966,6 @@ const SearchableSelect = (props) => {
     },
     get hasOptions() {
       return (this.filteredOptions?.length ?? 0) > 0;
-    },
-    isLastPinned(option) {
-      const pinned = this.filteredOptions.filter((option2) => option2.pinned);
-      return pinned?.length && pinned[pinned.length - 1] === option;
     },
     labelId() {
       return `${this.id}-label`;

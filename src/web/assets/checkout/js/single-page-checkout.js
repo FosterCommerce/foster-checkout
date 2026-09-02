@@ -999,6 +999,7 @@ export const SinglePageCheckout = (props) => {
 					signal
 				);
 			} catch {
+				// Marketing is not worth failing a checkout over
 				void 0;
 			}
 		},
@@ -1019,6 +1020,7 @@ export const SinglePageCheckout = (props) => {
 					this.subscribed = true;
 				}
 			} catch {
+				// Marketing is not worth failing a checkout over
 				void 0;
 			}
 		},
@@ -1693,11 +1695,6 @@ export const SinglePageCheckout = (props) => {
 
 		bindPayOverlay() {
 			const form = this.$refs.paymentForm;
-			if (!form || form.dataset.fcPayOverlay === 'true') {
-				return;
-			}
-
-			form.dataset.fcPayOverlay = 'true';
 			form.addEventListener(
 				'click',
 				(event) => {
@@ -1875,7 +1872,7 @@ export const SinglePageCheckout = (props) => {
 				errors.number = this.cardNumberError;
 			}
 
-			if (!monthValue || month < 1 || month > 12) {
+			if (!/^\d{1,2}$/.test(monthValue) || month < 1 || month > 12) {
 				errors.month = this.cardMonthError;
 			}
 

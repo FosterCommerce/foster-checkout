@@ -311,11 +311,6 @@ const SearchableSelect = (props) => {
 			return (this.filteredOptions?.length ?? 0) > 0;
 		},
 
-		isLastPinned(option) {
-			const pinned = this.filteredOptions.filter((option) => option.pinned);
-			return pinned?.length && pinned[pinned.length - 1] === option;
-		},
-
 		labelId() {
 			return `${this.id}-label`;
 		},
@@ -746,6 +741,7 @@ const CheckoutTracking = (props) => {
 				headers: { Accept: 'application/json' },
 				keepalive: true,
 			}).catch(() => {
+				// Marketing is not worth failing a checkout over
 				void 0;
 			});
 		},
