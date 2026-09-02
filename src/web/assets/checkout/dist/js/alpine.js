@@ -5846,6 +5846,22 @@ const SinglePageCheckout = (props) => {
     shouldSubscribe(saved) {
       return this.klaviyoEnabled && !this.loggedIn && !this.subscribed && String(saved.subscribe || "") === "1" && Boolean(saved.list) && isValidEmail(saved.email || this.email);
     },
+    async trackCheckoutStarted(saved, signal) {
+      try {
+        await this.postForm(
+          this.postUrl(),
+          {
+            action: "klaviyo-connect-plus/api/track",
+            email: saved.email || this.email,
+            "event[name]": "Started Checkout",
+            "event[trackOrder]": "1",
+            "event[orderId]": String(this.cartId || "")
+          },
+          signal
+        );
+      } catch {
+      }
+    },
     async subscribeToKlaviyo(saved, signal) {
       try {
         const { response, isJson } = await this.postForm(
@@ -5911,13 +5927,6 @@ const SinglePageCheckout = (props) => {
         };
         const trackCheckout = this.shouldTrackCheckout(saved);
         const subscribe = this.shouldSubscribe(saved);
-        if (trackCheckout) {
-          fields.action = "klaviyo-connect-plus/api/track";
-          fields.forward = "/commerce/cart/update-cart";
-          fields["event[name]"] = "Started Checkout";
-          fields["event[trackOrder]"] = "1";
-          fields["event[orderId]"] = String(this.cartId || "");
-        }
         const { response, data: data2, isJson } = await this.postForm(
           this.postUrl(),
           fields,
@@ -5938,13 +5947,10 @@ const SinglePageCheckout = (props) => {
         }
         if (trackCheckout) {
           this.trackedCheckout = true;
+          this.trackCheckoutStarted(saved, signal);
         }
         if (subscribe) {
-          if (trackCheckout) {
-            this.subscribed = true;
-          } else {
-            await this.subscribeToKlaviyo(saved, signal);
-          }
+          await this.subscribeToKlaviyo(saved, signal);
         }
         const cart = data2.cart || data2.model || data2.data && data2.data.cart;
         this.applyCart(cart, this.shippingRateKey(saved));
@@ -6784,7 +6790,9 @@ const ClearableInput = (props) => {
         }
       } else if (this.type === "email" && value !== "" && !isValidEmail(value)) {
         valid = false;
-        messages.push(this.invalidEmailError);
+        if (showRequired || this.touched) {
+          messages.push(this.invalidEmailError);
+        }
       }
       setErrors(this, messages);
       return valid;
@@ -7238,7 +7246,32 @@ const RadioInput = (props) => {
     }
   };
 };
+const CheckoutTracking = (props) => {
+  return {
+    // Tracking used to carry the cart save, so a rejected event blocked the checkout
+    track() {
+      const body = new FormData();
+      body.append(window.csrfTokenName, window.csrfTokenValue);
+      body.append("action", "klaviyo-connect-plus/api/track");
+      body.append(
+        "email",
+        this.$root.querySelector('[name="email"]')?.value ?? ""
+      );
+      body.append("event[name]", "Started Checkout");
+      body.append("event[trackOrder]", "1");
+      body.append("event[orderId]", String(props.orderId ?? ""));
+      fetch(window.location.href, {
+        method: "POST",
+        body,
+        headers: { Accept: "application/json" },
+        keepalive: true
+      }).catch(() => {
+      });
+    }
+  };
+};
 module_default$1.plugin(module_default);
+module_default$1.data("CheckoutTracking", CheckoutTracking);
 module_default$1.data("ClearableInput", ClearableInput);
 module_default$1.data("RadioInput", RadioInput);
 module_default$1.data("SearchableSelect", SearchableSelect);
