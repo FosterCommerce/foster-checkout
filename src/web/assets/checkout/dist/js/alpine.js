@@ -5097,6 +5097,7 @@ function disableScrolling() {
 }
 var module_default = src_default;
 const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+const isEmptyValue = (value) => Array.isArray(value) ? value.length === 0 : String(value ?? "").trim() === "";
 const asList = (value) => Array.isArray(value) ? value : Object.values(value ?? {});
 const CARD_FIELDS = ["number", "month", "year", "cvv"];
 const AUTHORIZE_ERROR_FIELDS = {
@@ -5336,9 +5337,7 @@ const SinglePageCheckout = (props) => {
         if (!data2?.label || !data2.isRequired?.()) {
           return;
         }
-        const value = data2.value ?? data2.modelValue;
-        const empty = Array.isArray(value) ? value.length === 0 : String(value ?? "").trim() === "";
-        if (empty) {
+        if (isEmptyValue(data2.value ?? data2.modelValue)) {
           labels.push(data2.label);
         }
       });
@@ -7230,7 +7229,7 @@ const LineItem = (options) => {
       this.qty = 0;
       this.post("remove");
     },
-    // Button presses land in bursts, so only the final quantity is posted
+    // Button presses arrive in bursts, so only the final quantity is posted
     schedulePost(delay3 = 500) {
       this.clearPending();
       this.postTimer = setTimeout(() => this.post("update"), delay3);
@@ -7267,8 +7266,7 @@ const SimpleField = (props) => {
       return this.required;
     },
     validate(showRequired = false) {
-      const empty = Array.isArray(this.value) ? this.value.length === 0 : String(this.value ?? "").trim() === "";
-      if (!this.isRequired() || !empty) {
+      if (!this.isRequired() || !isEmptyValue(this.value)) {
         this.errors = [];
         return true;
       }

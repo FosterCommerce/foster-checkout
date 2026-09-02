@@ -63,7 +63,7 @@ class m260814_022939_convert_gateway_fields_to_layouts extends Migration
 
 				$field = Craft::$app->getFields()->getFieldByHandle($fieldHandle);
 
-				// A handle with no matching field never saved a value, so there is nothing to carry over.
+				// A handle with no matching field never saved a value, so there is nothing to convert.
 				if ($field === null) {
 					continue;
 				}

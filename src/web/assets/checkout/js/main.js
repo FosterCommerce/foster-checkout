@@ -1,6 +1,10 @@
 import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
-import { SinglePageCheckout, isValidEmail } from './single-page-checkout.js';
+import {
+	SinglePageCheckout,
+	isEmptyValue,
+	isValidEmail,
+} from './single-page-checkout.js';
 
 const setErrors = (field, messages) => {
 	const next = messages.filter(Boolean);
@@ -617,7 +621,7 @@ const LineItem = (options) => {
 			this.post('remove');
 		},
 
-		// Button presses land in bursts, so only the final quantity is posted
+		// Button presses arrive in bursts, so only the final quantity is posted
 		schedulePost(delay = 500) {
 			this.clearPending();
 			this.postTimer = setTimeout(() => this.post('update'), delay);
@@ -663,11 +667,7 @@ const SimpleField = (props) => {
 		},
 
 		validate(showRequired = false) {
-			const empty = Array.isArray(this.value)
-				? this.value.length === 0
-				: String(this.value ?? '').trim() === '';
-
-			if (!this.isRequired() || !empty) {
+			if (!this.isRequired() || !isEmptyValue(this.value)) {
 				this.errors = [];
 				return true;
 			}

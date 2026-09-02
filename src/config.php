@@ -32,10 +32,8 @@ return [
 		'enableSaveForLater' => false, // true|false
 
 		// Whether or not to show the shipping estimator
-		'enableEstimatedShipping' => false, // true|false
 
 		// Whether or not to show the free shipping message
-		'enableFreeShippingMessage' => false, // true|false
 
 		// Whether or not to show the "No Image" placeholder images
 		'enablePlaceholderImages' => false,

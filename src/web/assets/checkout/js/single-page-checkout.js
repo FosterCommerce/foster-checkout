@@ -1,6 +1,10 @@
 export const isValidEmail = (value) =>
 	/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 
+// Checkboxes hold a list where every other field holds a string
+export const isEmptyValue = (value) =>
+	Array.isArray(value) ? value.length === 0 : String(value ?? '').trim() === '';
+
 const asList = (value) =>
 	Array.isArray(value) ? value : Object.values(value ?? {});
 
@@ -272,12 +276,7 @@ export const SinglePageCheckout = (props) => {
 					return;
 				}
 
-				const value = data.value ?? data.modelValue;
-				const empty = Array.isArray(value)
-					? value.length === 0
-					: String(value ?? '').trim() === '';
-
-				if (empty) {
+				if (isEmptyValue(data.value ?? data.modelValue)) {
 					labels.push(data.label);
 				}
 			});

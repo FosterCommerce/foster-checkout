@@ -508,6 +508,20 @@ class FosterCheckout extends Plugin
 
 	private function attachEventHandlers(): void
 	{
+		$this->registerTwigVariable();
+		$this->registerTemplateRoots();
+		$this->registerPermissions();
+		$this->registerCpRoutes();
+		$this->registerSiteRoutes();
+		$this->addCountyToUkAddresses();
+		$this->labelUkAdministrativeAreaAsCounty();
+		$this->addCheckoutStateToCartResponses();
+		$this->flashOrderNoticesOnce();
+		$this->listUkCounties();
+	}
+
+	private function registerTwigVariable(): void
+	{
 		$this->allowPostieRatesOnSinglePageCheckout();
 		$this->allowEmptyPhoneOnSinglePageCartSave();
 		$this->requireCheckoutAddressFields();
@@ -526,6 +540,10 @@ class FosterCheckout extends Plugin
 		);
 
 		/* Register our plugins templates directory so Craft knows to look there  */
+	}
+
+	private function registerTemplateRoots(): void
+	{
 		Event::on(
 			View::class,
 			View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
@@ -533,7 +551,10 @@ class FosterCheckout extends Plugin
 				$event->roots['foster-checkout'] = __DIR__ . '/templates';
 			}
 		);
+	}
 
+	private function registerPermissions(): void
+	{
 		Event::on(
 			UserPermissions::class,
 			UserPermissions::EVENT_REGISTER_PERMISSIONS,
@@ -563,7 +584,10 @@ class FosterCheckout extends Plugin
 				];
 			}
 		);
+	}
 
+	private function registerCpRoutes(): void
+	{
 		Event::on(
 			UrlManager::class,
 			UrlManager::EVENT_REGISTER_CP_URL_RULES,
@@ -581,6 +605,10 @@ class FosterCheckout extends Plugin
 		);
 
 		/* Register our site URL rules based on the plugins 'paths' setting */
+	}
+
+	private function registerSiteRoutes(): void
+	{
 		Event::on(
 			UrlManager::class,
 			UrlManager::EVENT_REGISTER_SITE_URL_RULES,
@@ -606,8 +634,11 @@ class FosterCheckout extends Plugin
 
 		// The postal service ignores the county, but UK addresses are normally written with one.
 		// County names are inconsistent enough that the field stays optional.
+	}
 
-		// Adds the Administrative area to UK addresses
+	// Adds the Administrative area to UK addresses
+	private function addCountyToUkAddresses(): void
+	{
 		Event::on(
 			Addresses::class,
 			Addresses::EVENT_DEFINE_USED_FIELDS,
@@ -617,8 +648,11 @@ class FosterCheckout extends Plugin
 				}
 			}
 		);
+	}
 
-		// Changes the label of the Administrative area field to "County" for UK addresses
+	// Changes the label of the Administrative area field to "County" for UK addresses
+	private function labelUkAdministrativeAreaAsCounty(): void
+	{
 		Event::on(
 			Addresses::class,
 			Addresses::EVENT_DEFINE_FIELD_LABEL,
@@ -631,7 +665,10 @@ class FosterCheckout extends Plugin
 				}
 			}
 		);
+	}
 
+	private function addCheckoutStateToCartResponses(): void
+	{
 		Event::on(
 			BaseFrontEndController::class,
 			BaseFrontEndController::EVENT_MODIFY_CART_INFO,
@@ -655,9 +692,12 @@ class FosterCheckout extends Plugin
 				$event->cartInfo['fosterCheckout'] = $live;
 			}
 		);
+	}
 
-		// Commerce persists a coupon notice on the order, so the cart page would have to write
-		// on a GET to make it appear only once. A flash survives the redirect and expires itself.
+	// Commerce persists a coupon notice on the order, so the cart page would have to write
+	// on a GET to make it appear only once. A flash survives the redirect and expires itself.
+	private function flashOrderNoticesOnce(): void
+	{
 		Event::on(
 			Order::class,
 			Order::EVENT_BEFORE_APPLY_ADD_NOTICE,
@@ -675,8 +715,11 @@ class FosterCheckout extends Plugin
 				$event->isValid = false;
 			}
 		);
+	}
 
-		// A 'reasonable' list of UK county names
+	// A 'reasonable' list of UK county names
+	private function listUkCounties(): void
+	{
 		Event::on(
 			Addresses::class,
 			Addresses::EVENT_DEFINE_ADDRESS_SUBDIVISIONS,

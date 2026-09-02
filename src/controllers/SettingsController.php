@@ -316,8 +316,8 @@ class SettingsController extends Controller
 	{
 		$handles = [];
 
-		foreach ($layout->getCustomFieldElements() as $layoutElement) {
-			$handles[] = (string) $layoutElement->getField()->handle;
+		foreach ($layout->getCustomFieldElements() as $customField) {
+			$handles[] = (string) $customField->getField()->handle;
 		}
 
 		return $handles;

@@ -7,7 +7,7 @@ use fostercommerce\fostercheckout\db\Table;
 
 /**
  * Cumulative install reflecting the full schema. Every schema change must also ship an
- * incremental `m*` migration to carry existing installs forward.
+ * incremental `m*` migration so existing installs get the same change.
  *
  * A data migration that reads a site's existing config file must also be replayed in `safeUp()`,
  * since a fresh install never runs it.

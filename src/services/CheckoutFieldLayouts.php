@@ -92,8 +92,8 @@ class CheckoutFieldLayouts extends Component
 				continue;
 			}
 
-			foreach ($this->getCheckoutFieldLayout($position)->getCustomFieldElements() as $layoutElement) {
-				$handles[] = (string) $layoutElement->getField()->handle;
+			foreach ($this->getCheckoutFieldLayout($position)->getCustomFieldElements() as $customField) {
+				$handles[] = (string) $customField->getField()->handle;
 			}
 		}
 
@@ -101,8 +101,8 @@ class CheckoutFieldLayouts extends Component
 		$gateways = Commerce::getInstance()?->getGateways()->getAllGateways() ?? [];
 
 		foreach ($gateways as $gateway) {
-			foreach ($this->getFieldLayout((string) $gateway->handle)->getCustomFieldElements() as $layoutElement) {
-				$handles[] = (string) $layoutElement->getField()->handle;
+			foreach ($this->getFieldLayout((string) $gateway->handle)->getCustomFieldElements() as $customField) {
+				$handles[] = (string) $customField->getField()->handle;
 			}
 		}
 
@@ -329,7 +329,7 @@ class CheckoutFieldLayouts extends Component
 		$options = [];
 
 		foreach ($field->options ?? [] as $option) {
-			// An optgroup row carries no value of its own, so its options are listed flat
+			// An optgroup row has no value of its own, so its options are listed flat
 			if (isset($option['optgroup'])) {
 				continue;
 			}

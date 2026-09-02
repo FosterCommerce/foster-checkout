@@ -182,7 +182,7 @@ class Checkout extends Component
 			return null;
 		}
 
-		// A half-filled row would otherwise reach Twig as a missing attribute and fatal the page.
+		// Twig fatals on a missing attribute, so a half-filled row is dropped.
 		$complete = array_filter(
 			$links,
 			static fn ($link): bool => is_array($link) && ($link['text'] ?? '') !== '' && ($link['url'] ?? '') !== ''
@@ -494,6 +494,20 @@ class Checkout extends Component
 	}
 
 	/**
+	 * What a line item would have cost at its original price, before any sale.
+	 */
+	public function lineItemOriginalTotal(LineItem $lineItem): string
+	{
+		/** @var Order $order a line item in a cart always belongs to one */
+		$order = $lineItem->getOrder();
+
+		return Currency::formatAsCurrency(
+			(float) $order->getTeller()->multiply($lineItem->price, (string) $lineItem->qty),
+			$order->currency
+		);
+	}
+
+	/**
 	 * A native field is labelled by the plugin rather than by Craft, so the option an admin picks
 	 * reads the same as the field the customer sees.
 	 */
@@ -614,14 +628,15 @@ class Checkout extends Component
 	 */
 	private function checkoutTotals(Order $cart): array
 	{
-		$lineItemDiscount = 0.0;
+		$teller = $cart->getTeller();
+		$lineItemDiscount = '0';
 		$discounts = [];
 		$vouchers = [];
 
 		foreach ($cart->getAdjustments() ?? [] as $adjustment) {
 			if ($adjustment->type === 'discount') {
 				if ($adjustment->lineItemId) {
-					$lineItemDiscount += $adjustment->amount;
+					$lineItemDiscount = $teller->add($lineItemDiscount, $adjustment->amount);
 					continue;
 				}
 
@@ -640,7 +655,7 @@ class Checkout extends Component
 			}
 		}
 
-		$itemsAmount = (float) $cart->getTeller()->add($cart->getItemSubtotal(), $lineItemDiscount);
+		$itemsAmount = (float) $teller->add($cart->getItemSubtotal(), $lineItemDiscount);
 
 		return [
 			'itemsAsCurrency' => Currency::formatAsCurrency($itemsAmount, $cart->currency),

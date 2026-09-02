@@ -70,7 +70,7 @@
 						<span class="text-sm text-[var(--brandColor)]">{{ adjustment.name|raw }}</span><br>
 					{% endif %}
 				{% endfor %}
-				<span class="line-through text-sm text-gray-500">{{ (lineItem.price * lineItem.qty) | commerceCurrency }}</span> {{ lineItem.totalAsCurrency }}
+				<span class="line-through text-sm text-gray-500">{{ craft.fostercheckout.lineItemOriginalTotal(lineItem) }}</span> {{ lineItem.totalAsCurrency }}
 			{% else %}
 				{{ lineItem.subtotalAsCurrency }}
 			{% endif %}

@@ -2,10 +2,19 @@
 
 namespace fostercommerce\fostercheckout\models;
 
+use Craft;
 use craft\base\Model;
+use fostercommerce\fostercheckout\FosterCheckout;
 
 class OptionConfig extends Model
 {
+	/**
+	 * Settings a config file may still name. Free shipping messaging moved to the advanced discounts plugin.
+	 *
+	 * @var list<string>
+	 */
+	private const array REMOVED_SETTINGS = ['enableFreeShippingMessage'];
+
 	/**
 	 * Whether to serve the single-page checkout. Existing sites stay on the stepped flow until this is turned on.
 	 */
@@ -17,14 +26,9 @@ class OptionConfig extends Model
 	public bool $enableSaveForLater = false;
 
 	/**
-	 * Whether to show the shipping estimator
+	 * Unfinished: `estimated-shipping.twig` has its own condition commented out, so this only gates the include.
 	 */
 	public bool $enableEstimatedShipping = false;
-
-	/**
-	 * Whether to show the free shipping message
-	 */
-	public bool $enableFreeShippingMessage = false;
 
 	/**
 	 * Whether to show the "No Image" placeholder images
@@ -104,6 +108,25 @@ class OptionConfig extends Model
 		}
 
 		parent::__construct($config);
+	}
+
+	/**
+	 * A config file naming a removed setting would otherwise throw and take the whole site down.
+	 */
+	#[\Override]
+	public function __set($name, $value): void
+	{
+		if (in_array($name, self::REMOVED_SETTINGS, true)) {
+			Craft::$app->getDeprecator()->log(
+				sprintf('%s::%s', self::class, $name),
+				"`{$name}` has been removed.",
+				Craft::$app->getConfig()->getConfigFilePath(FosterCheckout::HANDLE)
+			);
+
+			return;
+		}
+
+		parent::__set($name, $value);
 	}
 
 	public function isSinglePageCheckout(): bool
