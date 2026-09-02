@@ -17,6 +17,7 @@ const setErrors = (field, messages) => {
 
 const ClearableInput = (props) => {
 	return {
+		label: props.label || '',
 		name: props.name,
 		value: props.value,
 		type: props.type || 'text',
@@ -29,7 +30,7 @@ const ClearableInput = (props) => {
 		requiredError: props.requiredError || '',
 		invalidEmailError: props.invalidEmailError || '',
 		showButton: false,
-		touched: false,
+		touched: (props.errors || []).length > 0,
 		props: props,
 
 		input() {
@@ -100,6 +101,7 @@ const ClearableInput = (props) => {
 
 const SearchableSelect = (props) => {
 	return {
+		label: props.label || '',
 		id: props.id || `ss-${Math.random().toString(36).slice(2)}`,
 		name: props.name || 'select',
 		placeholder: props.placeholder || 'Select',
@@ -115,7 +117,7 @@ const SearchableSelect = (props) => {
 		activeIndex: 0,
 		selectedOption: null,
 		lastPinned: null,
-		touched: false,
+		touched: (props.errors || []).length > 0,
 
 		init() {
 			// Remove the fallback select element
@@ -648,10 +650,13 @@ const LineItem = (options) => {
  */
 const SimpleField = (props) => {
 	return {
+		label: props.label || '',
 		value: props.value ?? '',
 		required: Boolean(props.required),
 		requiredError: props.requiredError || '',
 		errors: props.errors || [],
+		// A field rendered with an error has already been flagged, so validate keeps reporting it
+		touched: (props.errors || []).length > 0,
 
 		isRequired() {
 			return this.required;
@@ -667,7 +672,7 @@ const SimpleField = (props) => {
 				return true;
 			}
 
-			this.errors = showRequired ? [this.requiredError] : [];
+			this.errors = showRequired || this.touched ? [this.requiredError] : [];
 			return false;
 		},
 	};
@@ -699,13 +704,14 @@ const ScrollableItems = () => {
 
 const RadioInput = (props) => {
 	return {
+		label: props.label || '',
 		name: props.name,
 		value: props.value || '',
 		required: props.required || false,
 		errors: props.errors || [],
 		success: props.success || [],
 		requiredError: props.requiredError || '',
-		touched: false,
+		touched: (props.errors || []).length > 0,
 
 		isRequired() {
 			return Boolean(this.required);

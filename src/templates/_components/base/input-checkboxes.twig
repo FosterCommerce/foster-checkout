@@ -11,6 +11,7 @@
 <fieldset
 	data-fc-field
 	x-data="SimpleField({
+		label: {{ (label|default(''))|json_encode }},
 		{# Twig counts an empty array as empty, and a string here binds every box to one value #}
 		value: {{ selected|json_encode }},
 		required: {{ required|default(false) ? 'true' : 'false' }},

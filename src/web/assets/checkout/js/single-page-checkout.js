@@ -260,10 +260,35 @@ export const SinglePageCheckout = (props) => {
 			return this.panelFieldsReady('delivery');
 		},
 
+		// The pay button is disabled, so nothing submits to raise these the usual way
+		get missingRequiredLabels() {
+			const labels = [];
+
+			this.$root.querySelectorAll('[data-fc-field]').forEach((element) => {
+				const data = window.Alpine.$data(element);
+
+				// validate() writes the field's errors, so the state is read rather than re-run
+				if (!data?.label || !data.isRequired?.()) {
+					return;
+				}
+
+				const value = data.value ?? data.modelValue;
+				const empty = Array.isArray(value)
+					? value.length === 0
+					: String(value ?? '').trim() === '';
+
+				if (empty) {
+					labels.push(data.label);
+				}
+			});
+
+			return labels;
+		},
+
 		// Required fields can be configured in any panel, so payment checks them all
 		get checkoutFieldsReady() {
 			return [...this.$root.querySelectorAll('[data-fc-panel]')].every(
-				(section) => this.panelFieldsReady(section.dataset.fcPanel)
+				(section) => this.fieldsReadyIn(section)
 			);
 		},
 
@@ -497,6 +522,14 @@ export const SinglePageCheckout = (props) => {
 			return this.fieldsReadyIn(this.panelScope(panel), showRequired, handles);
 		},
 
+		// panelScope narrows to the address being edited, which leaves a position's own fields unread
+		panelSectionReady(panel, showRequired = false) {
+			return this.fieldsReadyIn(
+				this.$root.querySelector(`[data-fc-panel="${panel}"]`),
+				showRequired
+			);
+		},
+
 		fieldsReadyIn(scope, showRequired = false, handles = null) {
 			if (!scope) {
 				return true;
@@ -531,11 +564,11 @@ export const SinglePageCheckout = (props) => {
 				!this.useNewAddress &&
 				this.shippingAddressId
 			) {
-				return true;
+				return this.panelSectionReady(panel);
 			}
 
 			if (panel === 'payment' && this.billingSameAsShipping) {
-				return true;
+				return this.panelSectionReady(panel);
 			}
 
 			if (
@@ -543,7 +576,7 @@ export const SinglePageCheckout = (props) => {
 				!this.useNewBillingAddress &&
 				this.billingAddressId
 			) {
-				return true;
+				return this.panelSectionReady(panel);
 			}
 
 			if (panel === 'shipping') {

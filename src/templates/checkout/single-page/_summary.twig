@@ -243,7 +243,7 @@
 				@selected="$nextTick(() => saveIfValid('summary', $event))"
 			>
 				{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'summary' } %}
-				{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'summary', positionFields: summaryFields } %}
+				{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'summary', positionFields: summaryFields, showRequired: true } %}
 			</div>
 		{% endif %}
 	</div>

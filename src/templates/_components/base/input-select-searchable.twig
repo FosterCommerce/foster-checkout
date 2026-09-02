@@ -23,6 +23,7 @@
 <div
 	data-fc-field
 	x-data="SearchableSelect({
+		label: {{ (label|default(''))|json_encode }},
 		id: '{{ fieldId }}',
 		name: '{{ fieldName }}',
 		placeholder: '{{ placeholder }}',

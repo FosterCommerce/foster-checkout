@@ -30,9 +30,9 @@
 	{% set hasImage = false %}
 {% endif %}
 
-<article class="flex justify-between items-stretch gap-4 p-4 bg-gray-200 rounded-lg">
+<article class="flex justify-between items-center gap-4 p-4 bg-gray-200 rounded-lg">
 	{% if hasImage %}
-		<div class="w-[70px] min-w-[70px]">
+		<div class="relative w-[70px] min-w-[70px]">
 			<figure class="rounded-lg overflow-hidden">
 				<img
 					srcset="{{ imageUrl }}"
@@ -42,17 +42,23 @@
 					alt="{{ 'Image of'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
 				/>
 			</figure>
+			{# The figure clips its corners, so the badge sits outside it #}
+			<span class="absolute -top-2 -right-2 flex justify-center items-center w-6 h-6 text-xs font-medium text-white bg-[var(--brandColor)] rounded-full">
+				<span class="sr-only">{{ 'Qty'|t('foster-checkout') }}: </span>{{ lineItem.qty }}
+			</span>
 		</div>
 	{% endif %}
 
-	<div class="flex justify-between items-stretch gap-4 flex-grow">
-		<div class="flex flex-col justify-between items-start gap-1">
+	<div class="flex justify-between items-center gap-4 flex-grow">
+		<div class="flex flex-col justify-center items-start gap-1">
 			{# TODO
 			Using style attribute below because wrap-anywhere is not working as expected
 			When Tailwind 4.1 is adopted, can use `wrap-anywhere` instead and remove style attribute
 			#}
 			<h3 class="font-semibold leading-snug hyphens-auto wrap-anywhere" style="overflow-wrap: anywhere;">{{ lineItem.description }}</h3>
-			<p class="text-sm uppercase text-gray-500">{{ 'Qty'|t('foster-checkout') }}: {{ lineItem.qty }}</p>
+			{% if not hasImage %}
+				<p class="text-sm uppercase text-gray-500">{{ 'Qty'|t('foster-checkout') }}: {{ lineItem.qty }}</p>
+			{% endif %}
 			{% if lineItem.lineItemStatus %}
 				<p class="text-sm uppercase text-gray-500">{{ lineItem.lineItemStatus.name|t('foster-checkout') }}</p>
 			{% endif %}

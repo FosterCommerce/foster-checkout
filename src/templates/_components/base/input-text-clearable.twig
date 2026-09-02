@@ -15,6 +15,7 @@
 <div
 	data-fc-field
 	x-data="ClearableInput({
+		label: {{ (label|default(''))|json_encode }},
 		name: '{{ name|default('') }}',
 		value: '{{ value|default('') }}',
 		{# These closures resolve against the address form's scope, so only address fields may pass them. #}

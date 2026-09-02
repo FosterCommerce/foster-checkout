@@ -11,6 +11,7 @@
 <div
 	data-fc-field
 	x-data="ClearableInput({
+		label: {{ (label|default(''))|json_encode }},
 		name: '{{ name|default('') }}',
 		value: '{{ value|default('') }}',
 		required: {{ required|default(false) ? 'true' : 'false' }},

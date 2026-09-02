@@ -9,6 +9,7 @@
 <div
 	data-fc-field
 	x-data="SimpleField({
+		label: {{ (label|default(''))|json_encode }},
 		value: {{ (value|default(''))|json_encode }},
 		required: {{ required|default(false) ? 'true' : 'false' }},
 		requiredError: {{ 'misc.required'|t('foster-checkout')|json_encode }},

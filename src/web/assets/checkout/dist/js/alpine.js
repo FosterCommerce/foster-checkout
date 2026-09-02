@@ -5328,10 +5328,26 @@ const SinglePageCheckout = (props) => {
       }
       return this.panelFieldsReady("delivery");
     },
+    // The pay button is disabled, so nothing submits to raise these the usual way
+    get missingRequiredLabels() {
+      const labels = [];
+      this.$root.querySelectorAll("[data-fc-field]").forEach((element) => {
+        const data2 = window.Alpine.$data(element);
+        if (!data2?.label || !data2.isRequired?.()) {
+          return;
+        }
+        const value = data2.value ?? data2.modelValue;
+        const empty = Array.isArray(value) ? value.length === 0 : String(value ?? "").trim() === "";
+        if (empty) {
+          labels.push(data2.label);
+        }
+      });
+      return labels;
+    },
     // Required fields can be configured in any panel, so payment checks them all
     get checkoutFieldsReady() {
       return [...this.$root.querySelectorAll("[data-fc-panel]")].every(
-        (section) => this.panelFieldsReady(section.dataset.fcPanel)
+        (section) => this.fieldsReadyIn(section)
       );
     },
     get canPay() {
@@ -5495,6 +5511,13 @@ const SinglePageCheckout = (props) => {
     panelFieldsReady(panel, handles = null, showRequired = false) {
       return this.fieldsReadyIn(this.panelScope(panel), showRequired, handles);
     },
+    // panelScope narrows to the address being edited, which leaves a position's own fields unread
+    panelSectionReady(panel, showRequired = false) {
+      return this.fieldsReadyIn(
+        this.$root.querySelector(`[data-fc-panel="${panel}"]`),
+        showRequired
+      );
+    },
     fieldsReadyIn(scope2, showRequired = false, handles = null) {
       if (!scope2) {
         return true;
@@ -5519,13 +5542,13 @@ const SinglePageCheckout = (props) => {
     },
     canSavePanel(panel) {
       if (panel === "delivery" && !this.useNewAddress && this.shippingAddressId) {
-        return true;
+        return this.panelSectionReady(panel);
       }
       if (panel === "payment" && this.billingSameAsShipping) {
-        return true;
+        return this.panelSectionReady(panel);
       }
       if (panel === "payment" && !this.useNewBillingAddress && this.billingAddressId) {
-        return true;
+        return this.panelSectionReady(panel);
       }
       if (panel === "shipping") {
         return Boolean(this.shippingMethodHandle);
@@ -6746,6 +6769,7 @@ const setErrors = (field, messages) => {
 };
 const ClearableInput = (props) => {
   return {
+    label: props.label || "",
     name: props.name,
     value: props.value,
     type: props.type || "text",
@@ -6758,7 +6782,7 @@ const ClearableInput = (props) => {
     requiredError: props.requiredError || "",
     invalidEmailError: props.invalidEmailError || "",
     showButton: false,
-    touched: false,
+    touched: (props.errors || []).length > 0,
     props,
     input() {
       this.showButton = this.value !== "";
@@ -6814,6 +6838,7 @@ const ClearableInput = (props) => {
 };
 const SearchableSelect = (props) => {
   return {
+    label: props.label || "",
     id: props.id || `ss-${Math.random().toString(36).slice(2)}`,
     name: props.name || "select",
     placeholder: props.placeholder || "Select",
@@ -6830,7 +6855,7 @@ const SearchableSelect = (props) => {
     activeIndex: 0,
     selectedOption: null,
     lastPinned: null,
-    touched: false,
+    touched: (props.errors || []).length > 0,
     init() {
       const fallbackSelect = this.$refs.fallback;
       if (fallbackSelect) {
@@ -7231,10 +7256,13 @@ const LineItem = (options) => {
 };
 const SimpleField = (props) => {
   return {
+    label: props.label || "",
     value: props.value ?? "",
     required: Boolean(props.required),
     requiredError: props.requiredError || "",
     errors: props.errors || [],
+    // A field rendered with an error has already been flagged, so validate keeps reporting it
+    touched: (props.errors || []).length > 0,
     isRequired() {
       return this.required;
     },
@@ -7244,7 +7272,7 @@ const SimpleField = (props) => {
         this.errors = [];
         return true;
       }
-      this.errors = showRequired ? [this.requiredError] : [];
+      this.errors = showRequired || this.touched ? [this.requiredError] : [];
       return false;
     }
   };
@@ -7269,13 +7297,14 @@ const ScrollableItems = () => {
 };
 const RadioInput = (props) => {
   return {
+    label: props.label || "",
     name: props.name,
     value: props.value || "",
     required: props.required || false,
     errors: props.errors || [],
     success: props.success || [],
     requiredError: props.requiredError || "",
-    touched: false,
+    touched: (props.errors || []).length > 0,
     isRequired() {
       return Boolean(this.required);
     },
