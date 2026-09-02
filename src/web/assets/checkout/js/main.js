@@ -679,7 +679,6 @@ const RadioInput = (props) => {
 
 const CheckoutTracking = (props) => {
 	return {
-		// Tracking used to carry the cart save, so a rejected event blocked the checkout
 		track() {
 			const body = new FormData();
 			body.append(window.csrfTokenName, window.csrfTokenValue);
