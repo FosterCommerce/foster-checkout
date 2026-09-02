@@ -163,19 +163,15 @@ class SettingsController extends Controller
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		// The form disables overridden fields, but a disabled input is not a control: without this
-		// the save would write project config that the config file then hides on every request.
-		$configKey = FosterCheckout::settingsConfigKey($section);
-
-		if ($configKey !== null && in_array($configKey, $plugin->getOverriddenSettings(), true)) {
-			throw new ForbiddenHttpException(Craft::t(FosterCheckout::HANDLE, 'error.settingsOverridden'));
-		}
-
 		$postedSettings = $this->request->getBodyParam('settings', []);
 
 		if (! is_array($postedSettings)) {
 			$postedSettings = [];
 		}
+
+		// The form disables overridden fields, but a disabled input is not a control. Dropping them
+		// per key rather than rejecting the save lets one overridden key sit beside editable ones.
+		$postedSettings = array_diff_key($postedSettings, array_flip($plugin->getOverriddenSettings()));
 
 		// savePluginSettings() persists only the keys it is handed and replaces the whole settings
 		// node, so the posted section is merged over what is already stored. The stored config is

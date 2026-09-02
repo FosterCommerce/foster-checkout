@@ -7,8 +7,11 @@
 {% set title = 'nav.general'|t('foster-checkout') %}
 {% set docTitle = title %}
 
-{% set overridden = 'paths' in overriddenSettings %}
-{% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
+{% set adminChangesAllowed = craft.app.config.general.allowAdminChanges %}
+{% set readOnly = not adminChangesAllowed %}
+
+{# This screen edits seven config keys, so one being overridden must not lock the other six. #}
+{% set pathsOverridden = 'paths' in overriddenSettings %}
 
 {% if readOnly %}
 	{% set contentNotice = readOnlyNotice() %}
@@ -28,8 +31,8 @@
 			name: 'settings[paths][cart]',
 			value: settings.paths.cart,
 			placeholder: 'cart',
-			disabled: readOnly,
-			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
+			disabled: pathsOverridden or readOnly,
+			warning: pathsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		{{ forms.lightswitchField({
@@ -38,8 +41,8 @@
 			id: 'paths-use-cart-template',
 			name: 'settings[paths][useCartTemplate]',
 			on: settings.paths.useCartTemplate,
-			disabled: readOnly,
-			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
+			disabled: pathsOverridden or readOnly,
+			warning: pathsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		{{ forms.textField({
@@ -49,8 +52,8 @@
 			name: 'settings[paths][checkout]',
 			value: settings.paths.checkout,
 			placeholder: 'checkout',
-			disabled: readOnly,
-			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
+			disabled: pathsOverridden or readOnly,
+			warning: pathsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		{{ forms.textField({
@@ -60,8 +63,8 @@
 			name: 'settings[paths][account]',
 			value: settings.paths.account,
 			placeholder: 'account',
-			disabled: readOnly,
-			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
+			disabled: pathsOverridden or readOnly,
+			warning: pathsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		{{ forms.textField({
@@ -71,15 +74,14 @@
 			name: 'settings[paths][cancel]',
 			value: settings.paths.cancel,
 			placeholder: '/',
-			disabled: readOnly,
-			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
+			disabled: pathsOverridden or readOnly,
+			warning: pathsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		<hr>
 
 		{# Each of these is its own top-level config key, so each is overridden independently of the paths above. #}
 		{% set includesOverridden = 'includes' in overriddenSettings %}
-		{% set adminChangesAllowed = craft.app.config.general.allowAdminChanges %}
 
 		{{ forms.textField({
 			label: 'settings.general.includesHead'|t('foster-checkout'),
@@ -144,6 +146,7 @@
 			disabled: gatewaysOverridden or not adminChangesAllowed,
 			warning: gatewaysOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'zeroValueGatewayHandles' }),
 		}) }}
+
 
 		<hr>
 

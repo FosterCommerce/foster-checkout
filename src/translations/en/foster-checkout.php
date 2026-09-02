@@ -218,7 +218,6 @@ return [
 	'permission.manageSettings' => 'Manage checkout settings',
 
 	'error.adminChangesDisallowed' => 'Checkout settings are stored in project config, which is read-only in this environment.',
-	'error.settingsOverridden' => 'These settings are set in config/foster-checkout.php and cannot be changed here.',
 	'settings.saveFailed' => 'Couldn’t save checkout settings.',
 	'settings.overridden' => 'This is being overridden by the `{setting}` setting in the `config/foster-checkout.php` file.',
 

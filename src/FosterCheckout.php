@@ -52,15 +52,9 @@ class FosterCheckout extends Plugin
 	public const PERMISSION_MANAGE_SETTINGS = 'foster-checkout-manageSettings';
 
 	/**
-	 * @var array<string, string>
+	 * @var array<int, string>
 	 */
-	private const array SETTINGS_SECTIONS = [
-		'appearance' => 'branding',
-		'features' => 'options',
-		'products' => 'products',
-		'gateways' => 'paymentGateways',
-		'general' => 'paths',
-	];
+	private const array SETTINGS_SECTIONS = ['appearance', 'features', 'products', 'gateways', 'general'];
 
 	/**
 	 * @var array<string, string>
@@ -275,7 +269,7 @@ class FosterCheckout extends Plugin
 			];
 		}
 
-		foreach (array_keys(self::SETTINGS_SECTIONS) as $section) {
+		foreach (self::SETTINGS_SECTIONS as $section) {
 			if (! $userSession->checkPermission(self::settingsPermission($section))) {
 				continue;
 			}
@@ -311,11 +305,6 @@ class FosterCheckout extends Plugin
 	/**
 	 * The top-level config key a settings page edits, or null if the section isn't one of ours.
 	 */
-	public static function settingsConfigKey(string $section): ?string
-	{
-		return self::SETTINGS_SECTIONS[$section] ?? null;
-	}
-
 	public static function settingsPermission(string $section): string
 	{
 		return match ($section) {
@@ -485,7 +474,7 @@ class FosterCheckout extends Plugin
 				$event->rules[self::HANDLE] = self::HANDLE . '/content/edit';
 				$event->rules[self::HANDLE . '/content'] = self::HANDLE . '/content/edit';
 
-				foreach (array_keys(self::SETTINGS_SECTIONS) as $section) {
+				foreach (self::SETTINGS_SECTIONS as $section) {
 					$event->rules[self::HANDLE . "/settings/{$section}"] = self::HANDLE . "/settings/{$section}";
 				}
 
