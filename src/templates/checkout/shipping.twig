@@ -152,26 +152,7 @@
 
 			</main>
 
-			<aside>
-				<div class="grid grid-cols-1 gap-10 lg:sticky lg:top-4 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
-					<div class="grid grid-cols-1 gap-6">
-						<div class="flex justify-between items-center gap-4">
-							<h2 class="text-xl font-bold text-gray-800 leading-snug">
-								{{ 'summary.itemsTitle'|t('foster-checkout') }}
-							</h2>
-							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}" class="inline-block text-[var(--brandColor)] underline">
-								{{ 'misc.edit'|t('foster-checkout') }}
-							</a>
-						</div>
-
-						{% include 'foster-checkout/_components/app/summary-items' %}
-					</div>
-
-					{% include 'foster-checkout/_components/app/summary-cart' %}
-				</div>
-
-				{% include 'foster-checkout/_components/app/global-checkout-note' %}
-			</aside>
+			{% include 'foster-checkout/_components/app/checkout-aside' %}
 
 		</div>
 
