@@ -68,6 +68,14 @@ class Settings extends Model
 	public array $hiddenAddressFields = [];
 
 	/**
+	 * Address fields to require at the checkout beyond what the address layout asks for, named by
+	 * attribute or custom field handle. A hidden field is never required, since it is not rendered.
+	 *
+	 * @var array<string>
+	 */
+	public array $requiredAddressFields = [];
+
+	/**
 	 * @param array<array-key, mixed> $config
 	 */
 	public function __construct(array $config = [])

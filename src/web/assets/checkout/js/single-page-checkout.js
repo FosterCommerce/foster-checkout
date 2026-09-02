@@ -480,7 +480,10 @@ export const SinglePageCheckout = (props) => {
 		},
 
 		panelFieldsReady(panel, handles = null, showRequired = false) {
-			const scope = this.panelScope(panel);
+			return this.fieldsReadyIn(this.panelScope(panel), showRequired, handles);
+		},
+
+		fieldsReadyIn(scope, showRequired = false, handles = null) {
 			if (!scope) {
 				return true;
 			}
@@ -1534,6 +1537,12 @@ export const SinglePageCheckout = (props) => {
 			const scope = this.$root.querySelector(
 				`[data-fc-address-edit="${addressId}"]`
 			);
+
+			// Unlike a panel save this posts straight to Craft, so nothing else checks the form first
+			if (!this.fieldsReadyIn(scope, true)) {
+				return;
+			}
+
 			const fields = {
 				action: 'users/save-address',
 				...this.collectNamedFields(scope),

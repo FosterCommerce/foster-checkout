@@ -5483,7 +5483,9 @@ const SinglePageCheckout = (props) => {
       return match ? match[1] : name;
     },
     panelFieldsReady(panel, handles = null, showRequired = false) {
-      const scope2 = this.panelScope(panel);
+      return this.fieldsReadyIn(this.panelScope(panel), showRequired, handles);
+    },
+    fieldsReadyIn(scope2, showRequired = false, handles = null) {
       if (!scope2) {
         return true;
       }
@@ -6301,6 +6303,9 @@ const SinglePageCheckout = (props) => {
       const scope2 = this.$root.querySelector(
         `[data-fc-address-edit="${addressId}"]`
       );
+      if (!this.fieldsReadyIn(scope2, true)) {
+        return;
+      }
       const fields = {
         action: "users/save-address",
         ...this.collectNamedFields(scope2),

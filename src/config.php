@@ -188,4 +188,9 @@ return [
 	// always shown, since Craft needs it to validate the address.
 	// (ex. ['organization', 'organizationTaxId', 'addressNotes'])
 	'hiddenAddressFields' => [],
+
+	// Address fields to require at the checkout beyond what the address layout asks for, named by
+	// attribute or custom field handle. A hidden field is never required, since it is not rendered.
+	// (ex. ['fullName'])
+	'requiredAddressFields' => [],
 ];

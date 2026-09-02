@@ -14,6 +14,7 @@ use craft\elements\Address;
 use craft\events\DefineAddressFieldLabelEvent;
 use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
+use craft\events\DefineRulesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
@@ -411,10 +412,38 @@ class FosterCheckout extends Plugin
 		);
 	}
 
+	/**
+	 * The address field layout is shared with the control panel, so a field a store only wants from
+	 * customers is required here rather than there.
+	 */
+	private function requireCheckoutAddressFields(): void
+	{
+		Event::on(
+			Address::class,
+			Model::EVENT_DEFINE_RULES,
+			function (DefineRulesEvent $event): void {
+				$request = Craft::$app->getRequest();
+
+				if (! $request instanceof WebRequest || ! $request->getIsSiteRequest()) {
+					return;
+				}
+
+				$requiredFields = $this->checkout->settings()->requiredAddressFields;
+
+				if ($requiredFields === []) {
+					return;
+				}
+
+				$event->rules[] = [$requiredFields, 'required'];
+			}
+		);
+	}
+
 	private function attachEventHandlers(): void
 	{
 		$this->allowPostieRatesOnSinglePageCheckout();
 		$this->allowEmptyPhoneOnSinglePageCartSave();
+		$this->requireCheckoutAddressFields();
 
 		Event::on(
 			CraftVariable::class,

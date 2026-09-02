@@ -367,7 +367,7 @@ class Checkout extends Component
 			: $layout->getAllElements();
 
 		$elements = [];
-		$hiddenFields = $this->settings()->hiddenAddressFields;
+		$settings = $this->settings();
 
 		foreach ($layoutElements as $layoutElement) {
 			$type = $this->addressElementType($layoutElement);
@@ -376,11 +376,13 @@ class Checkout extends Component
 				continue;
 			}
 
-			if (
-				$layoutElement instanceof BaseField
-				&& $this->isHideableAddressField($type, $layoutElement)
-				&& in_array($layoutElement->attribute(), $hiddenFields, true)
-			) {
+			if (! $layoutElement instanceof BaseField) {
+				continue;
+			}
+
+			$configurable = $this->isConfigurableAddressField($type, $layoutElement);
+
+			if ($configurable && in_array($layoutElement->attribute(), $settings->hiddenAddressFields, true)) {
 				continue;
 			}
 
@@ -395,8 +397,9 @@ class Checkout extends Component
 
 			$elements[] = [
 				'type' => $type,
-				'required' => $layoutElement instanceof BaseField && $layoutElement->required,
-				'width' => $layoutElement instanceof BaseField ? $layoutElement->width : 100,
+				'required' => $layoutElement->required
+					|| ($configurable && in_array($layoutElement->attribute(), $settings->requiredAddressFields, true)),
+				'width' => $layoutElement->width,
 				'field' => $field,
 			];
 		}
@@ -442,11 +445,11 @@ class Checkout extends Component
 	}
 
 	/**
-	 * Address fields an admin may leave off the checkout, as control panel options.
+	 * Address fields an admin may hide or require at the checkout, as control panel options.
 	 *
 	 * @return array<int, array{label: string, value: string}>
 	 */
-	public function hideableAddressFields(): array
+	public function configurableAddressFields(): array
 	{
 		$options = [];
 		$layoutElements = Craft::$app->getAddresses()->getFieldLayout()->getAllElements();
@@ -462,7 +465,7 @@ class Checkout extends Component
 				continue;
 			}
 
-			if (! $this->isHideableAddressField($type, $layoutElement)) {
+			if (! $this->isConfigurableAddressField($type, $layoutElement)) {
 				continue;
 			}
 
@@ -476,10 +479,10 @@ class Checkout extends Component
 	}
 
 	/**
-	 * Country and the address block itself are what make an address an address, and a field the
-	 * layout marks required has to be collected for Craft to validate.
+	 * Country and the address block are what an address needs to resolve at all, and a field the
+	 * layout already marks required cannot be loosened without failing Craft's validation.
 	 */
-	private function isHideableAddressField(string $type, BaseField $layoutElement): bool
+	private function isConfigurableAddressField(string $type, BaseField $layoutElement): bool
 	{
 		return ! in_array($type, ['address', 'country'], true) && ! $layoutElement->required;
 	}

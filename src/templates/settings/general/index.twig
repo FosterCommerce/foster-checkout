@@ -154,10 +154,23 @@
 			instructions: 'settings.general.hiddenAddressFieldsHelp'|t('foster-checkout'),
 			id: 'hidden-address-fields',
 			name: 'settings[hiddenAddressFields]',
-			options: hideableAddressFields,
+			options: configurableAddressFields,
 			values: settings.hiddenAddressFields,
 			disabled: hiddenAddressFieldsOverridden or not adminChangesAllowed,
 			warning: hiddenAddressFieldsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'hiddenAddressFields' }),
+		}) }}
+
+		{% set requiredAddressFieldsOverridden = 'requiredAddressFields' in overriddenSettings %}
+
+		{{ forms.checkboxGroupField({
+			label: 'settings.general.requiredAddressFields'|t('foster-checkout'),
+			instructions: 'settings.general.requiredAddressFieldsHelp'|t('foster-checkout'),
+			id: 'required-address-fields',
+			name: 'settings[requiredAddressFields]',
+			options: configurableAddressFields,
+			values: settings.requiredAddressFields,
+			disabled: requiredAddressFieldsOverridden or not adminChangesAllowed,
+			warning: requiredAddressFieldsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'requiredAddressFields' }),
 		}) }}
 
 		<hr>

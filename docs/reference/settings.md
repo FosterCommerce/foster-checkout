@@ -19,6 +19,7 @@ Keys on the General screen that are overridden independently of `paths`:
 | Head include, Body include | `includes` | Template paths injected into every cart and checkout page. See [custom includes](../dev-guide/custom-includes.md) |
 | Priority countries | `priorityCountries` | Country codes shown at the top of country dropdowns, in the order listed |
 | Hidden address fields | `hiddenAddressFields` | Address fields left off the checkout. They stay in the control panel. A field the address layout marks required is always shown |
+| Required address fields | `requiredAddressFields` | Address fields required at the checkout beyond what the address layout asks for. A hidden field is never required |
 | Zero value gateways | `zeroValueGatewayHandles` | Gateways available when an order totals zero |
 | Customer order notes field | `customerOrderNotesFieldHandle` | Field on Orders holding the customer's note. Blank hides the order notes form |
 | Content translation method | `contentTranslationMethod` | See below |
