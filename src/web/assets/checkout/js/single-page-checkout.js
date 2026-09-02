@@ -82,6 +82,7 @@ export const SinglePageCheckout = (props) => {
 			coupon: 'idle',
 			notes: 'idle',
 		},
+		panelErrors: {},
 		panelStatusTimers: {},
 		queuedSavePanel: null,
 		pending: 0,
@@ -414,6 +415,12 @@ export const SinglePageCheckout = (props) => {
 			this.panelStatus = {
 				...this.panelStatus,
 				[panel]: tone,
+			};
+
+			// The page level status is screen reader only, so the panel keeps its own copy to show
+			this.panelErrors = {
+				...this.panelErrors,
+				[panel]: tone === 'error' ? this.status : '',
 			};
 
 			if (tone !== 'saved') {

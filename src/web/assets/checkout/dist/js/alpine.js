@@ -5174,6 +5174,7 @@ const SinglePageCheckout = (props) => {
       coupon: "idle",
       notes: "idle"
     },
+    panelErrors: {},
     panelStatusTimers: {},
     queuedSavePanel: null,
     pending: 0,
@@ -5432,6 +5433,10 @@ const SinglePageCheckout = (props) => {
       this.panelStatus = {
         ...this.panelStatus,
         [panel]: tone
+      };
+      this.panelErrors = {
+        ...this.panelErrors,
+        [panel]: tone === "error" ? this.status : ""
       };
       if (tone !== "saved") {
         return;

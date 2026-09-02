@@ -1,0 +1,10 @@
+{% set panel = panel ?? '' %}
+{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
+
+{# The page level status is screen reader only, so a failed save says why in the panel that failed #}
+<template x-if="panelErrors['{{ panel }}']">
+	<div
+		class="m-4 p-4 text-sm text-red-700 bg-red-100 border border-red-300 {{ isFlat ? 'flat' : 'rounded-lg' }}"
+		x-text="panelErrors['{{ panel }}']"
+	></div>
+</template>
