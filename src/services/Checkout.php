@@ -171,6 +171,18 @@ class Checkout extends Component
 		return $bundleUrl;
 	}
 
+	public function tailwindBundle(): string
+	{
+		/** @var string $bundleUrl */
+		$bundleUrl = Craft::$app->assetManager->getPublishedUrl(
+			'@fostercheckout/web/assets/checkout/vendor',
+			true,
+			'tailwind-3.4.17.js'
+		);
+
+		return $bundleUrl;
+	}
+
 	/**
 	 * @return ?LinksTable
 	 */
