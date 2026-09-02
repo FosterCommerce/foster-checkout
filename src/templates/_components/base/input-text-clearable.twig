@@ -32,8 +32,10 @@
 		errors: {{ errors|default([])|json_encode }},
 		success: {{ success|default([])|json_encode }}
 	})">
-	{% if label|default %}
-		<label for="{{ fieldId }}" class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}" >
+	{% set floatingLabel = label|default and not hideLabel|default %}
+
+	{% if label|default and hideLabel|default %}
+		<label for="{{ fieldId }}" class="sr-only">
 			{{ label }}<span x-text="isRequired() ? '*' : ''"></span>
 		</label>
 	{% endif %}
@@ -50,13 +52,13 @@
 			{{ maxLength ? "maxlength=#{maxLength}" }}
 			{{ min ? "min=#{min}" }}
 			{{ max ? "max=#{max}" }}
-			class="w-full h-12 pl-4 pr-12 bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300 js-clearable"
+			class="peer w-full h-12 pl-4 pr-12 {{ floatingLabel ? 'pt-5 pb-1.5 leading-5' : '' }} bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300 js-clearable"
 			:class="{
 				'text-red-500 border-red-500 focus:border-red-500': errors.length,
 				'text-gray-800 border-green-500 focus:border-green-500': success.length,
 				'text-gray-800 border-gray-250 focus:border-black': !errors.length && !success.length
 			}"
-			placeholder="{{ placeholder|default('') }}"
+			placeholder="{{ floatingLabel ? ' ' : placeholder|default('') }}"
 			:aria-invalid="errors.length ? true : false"
 			aria-errormessage="{{ fieldId }}-error"
 			@input="input"
@@ -65,6 +67,15 @@
 			{%- if action|default -%}x-init="{{ action }}" {%- endif -%}
 			:required="isRequired()"
 		/>
+		{% if floatingLabel %}
+			<label
+				for="{{ fieldId }}"
+				class="absolute left-4 top-1.5 text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-gray-500"
+			>
+				{{ label }}<span x-text="isRequired() ? '*' : ''"></span>
+			</label>
+		{% endif %}
+
 		<button
 			type="button"
 			x-ref="button"

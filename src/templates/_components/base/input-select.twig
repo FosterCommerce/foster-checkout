@@ -6,16 +6,20 @@
 	errors: {{ errors|default([])|json_encode }},
 	success: {{ success|default([])|json_encode }}
 }">
-	{% if label|default %}
-		<label for="{{ fieldId }}" class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}">
+	{% set floatingLabel = label|default and not hideLabel|default %}
+
+	{% if label|default and hideLabel|default %}
+		<label for="{{ fieldId }}" class="sr-only">
 			{{ label ~ (required|default(false) ? '*' : '') }}
 		</label>
 	{% endif %}
+
+	<div class="relative">
 	<select
 		x-model="value"
 		id="{{ fieldId }}"
 		name="{{ name|default('') }}"
-		class="w-full h-12 px-4 bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
+		class="w-full h-12 px-4 {{ floatingLabel ? 'pt-5 pb-1.5 leading-5' : '' }} bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
 		:class="{
 			'border-red-500 focus:border-red-500': errors.length,
 			'border-green-500 focus:border-green-500': success.length,
@@ -31,6 +35,12 @@
 			<option value="{{ option.value }}">{{ option.label }}</option>
 		{% endfor %}
 	</select>
+	{% if floatingLabel %}
+		<label for="{{ fieldId }}" class="absolute left-4 top-1.5 text-xs text-gray-500 pointer-events-none">
+			{{ label ~ (required|default(false) ? '*' : '') }}
+		</label>
+	{% endif %}
+	</div>
 	<template x-if="errors.length" >
 		<p id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500" x-text="errors.join(' ')"></p>
 	</template>
