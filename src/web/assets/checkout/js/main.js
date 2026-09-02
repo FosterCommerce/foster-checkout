@@ -103,7 +103,45 @@ const ClearableInput = (props) => {
 	};
 };
 
+/**
+ * Ranks exact matches first, then starts-with, then alphabetically.
+ */
+const matchOptions = (search, options) => {
+	if (!search) {
+		return options;
+	}
+
+	const query = search.toLowerCase();
+
+	return options
+		.filter((option) => String(option.label).toLowerCase().includes(query))
+		.sort((optionA, optionB) => {
+			const labelA = String(optionA.label).toLowerCase();
+			const labelB = String(optionB.label).toLowerCase();
+
+			const exactA = labelA === query;
+			const exactB = labelB === query;
+
+			const startsA = labelA.startsWith(query);
+			const startsB = labelB.startsWith(query);
+
+			if (exactA !== exactB) {
+				return exactA ? -1 : 1;
+			}
+
+			if (startsA !== startsB) {
+				return startsA ? -1 : 1;
+			}
+
+			return labelA.localeCompare(labelB);
+		});
+};
+
 const SearchableSelect = (props) => {
+	// Hovering an option writes activeIndex, and Alpine then re-runs every getter in scope. Held
+	// outside the returned object so writing it does not itself trigger another pass.
+	let filterCache = { search: null, options: null, result: [] };
+
 	return {
 		label: props.label || '',
 		id: props.id || `ss-${Math.random().toString(36).slice(2)}`,
@@ -268,47 +306,26 @@ const SearchableSelect = (props) => {
 		},
 
 		get filteredOptions() {
-			if (!this.search) {
-				return this.options ?? [];
+			const options = this.options ?? [];
+
+			if (
+				filterCache.search === this.search &&
+				filterCache.options === options
+			) {
+				return filterCache.result;
 			}
-			const query = this.search.toLowerCase();
 
-			return this.options
-				.filter((option) => String(option.label).toLowerCase().includes(query))
-				.sort((optionA, optionB) => {
-					const labelA = String(optionA.label).toLowerCase();
-					const labelB = String(optionB.label).toLowerCase();
+			filterCache = {
+				search: this.search,
+				options,
+				result: matchOptions(this.search, options),
+			};
 
-					const exactA = labelA === query;
-					const exactB = labelB === query;
-
-					const startsA = labelA.startsWith(query);
-					const startsB = labelB.startsWith(query);
-
-					// 1) Exact match first
-					if (exactA && !exactB) {
-						return -1;
-					}
-					if (!exactA && exactB) {
-						return 1;
-					}
-
-					// 2) Starts-with next
-					if (startsA && !startsB) {
-						return -1;
-					}
-					if (!startsA && startsB) {
-						return 1;
-					}
-
-					// 3) Otherwise, both just "includes" and alphabetical
-					return labelA.localeCompare(labelB);
-				});
+			return filterCache.result;
 		},
 
 		get hasOptions() {
-			// TODO This fires multiple times when a component is initialized, and it also fires whenever a listitem is hovered over
-			return (this.filteredOptions?.length ?? 0) > 0;
+			return this.filteredOptions.length > 0;
 		},
 
 		labelId() {

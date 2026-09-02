@@ -86,7 +86,6 @@ class ValueConfig extends Model implements Stringable
 
 		if (is_callable($this->value)) {
 			$callable = $this->value;
-			// TODO we probably want to ensure that this is returning the correct data
 			return $callable($context);
 		}
 

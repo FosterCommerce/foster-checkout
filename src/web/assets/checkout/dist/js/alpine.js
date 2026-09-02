@@ -6810,7 +6810,29 @@ const ClearableInput = (props) => {
     }
   };
 };
+const matchOptions = (search, options) => {
+  if (!search) {
+    return options;
+  }
+  const query = search.toLowerCase();
+  return options.filter((option) => String(option.label).toLowerCase().includes(query)).sort((optionA, optionB) => {
+    const labelA = String(optionA.label).toLowerCase();
+    const labelB = String(optionB.label).toLowerCase();
+    const exactA = labelA === query;
+    const exactB = labelB === query;
+    const startsA = labelA.startsWith(query);
+    const startsB = labelB.startsWith(query);
+    if (exactA !== exactB) {
+      return exactA ? -1 : 1;
+    }
+    if (startsA !== startsB) {
+      return startsA ? -1 : 1;
+    }
+    return labelA.localeCompare(labelB);
+  });
+};
 const SearchableSelect = (props) => {
+  let filterCache = { search: null, options: null, result: [] };
   return {
     label: props.label || "",
     id: props.id || `ss-${Math.random().toString(36).slice(2)}`,
@@ -6938,34 +6960,19 @@ const SearchableSelect = (props) => {
       return this.selectedOption ? this.selectedOption.label : this.placeholder;
     },
     get filteredOptions() {
-      if (!this.search) {
-        return this.options ?? [];
+      const options = this.options ?? [];
+      if (filterCache.search === this.search && filterCache.options === options) {
+        return filterCache.result;
       }
-      const query = this.search.toLowerCase();
-      return this.options.filter((option) => String(option.label).toLowerCase().includes(query)).sort((optionA, optionB) => {
-        const labelA = String(optionA.label).toLowerCase();
-        const labelB = String(optionB.label).toLowerCase();
-        const exactA = labelA === query;
-        const exactB = labelB === query;
-        const startsA = labelA.startsWith(query);
-        const startsB = labelB.startsWith(query);
-        if (exactA && !exactB) {
-          return -1;
-        }
-        if (!exactA && exactB) {
-          return 1;
-        }
-        if (startsA && !startsB) {
-          return -1;
-        }
-        if (!startsA && startsB) {
-          return 1;
-        }
-        return labelA.localeCompare(labelB);
-      });
+      filterCache = {
+        search: this.search,
+        options,
+        result: matchOptions(this.search, options)
+      };
+      return filterCache.result;
     },
     get hasOptions() {
-      return (this.filteredOptions?.length ?? 0) > 0;
+      return this.filteredOptions.length > 0;
     },
     labelId() {
       return `${this.id}-label`;

@@ -51,11 +51,7 @@
 
 	<div class="flex justify-between items-center gap-4 flex-grow">
 		<div class="flex flex-col justify-center items-start gap-1">
-			{# TODO
-			Using style attribute below because wrap-anywhere is not working as expected
-			When Tailwind 4.1 is adopted, can use `wrap-anywhere` instead and remove style attribute
-			#}
-			<h3 class="font-semibold leading-snug hyphens-auto wrap-anywhere" style="overflow-wrap: anywhere;">{{ lineItem.description }}</h3>
+			<h3 class="font-semibold leading-snug hyphens-auto [overflow-wrap:anywhere]">{{ lineItem.description }}</h3>
 			{% if not hasImage %}
 				<p class="text-sm uppercase text-gray-500">{{ 'summary.lineItem.quantity'|t('foster-checkout') }}: {{ lineItem.qty }}</p>
 			{% endif %}
