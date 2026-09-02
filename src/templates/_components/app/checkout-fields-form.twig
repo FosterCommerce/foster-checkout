@@ -1,20 +1,26 @@
 {% set positionFields = craft.fostercheckout.checkoutFields('summary', cart) %}
 
 {% if positionFields|length %}
-	<div class="mt-8" x-data="{ showButton: false }">
-		<form method="post" @focusin="showButton = true">
+	<div class="mt-8" x-data="{
+		showButton: false,
+		buttonText: '{{ 'misc.save'|t('foster-checkout')|e('js') }}'
+	}">
+		<form
+			method="post"
+			@focusin="showButton = true"
+			@submit="buttonText = '{{ 'misc.saving'|t('foster-checkout')|e('js') }}'"
+		>
 			{{ csrfInput() }}
 			{{ actionInput('commerce/cart/update-cart') }}
 
-			{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'summary' } %}
+			{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'summary', showRequired: true } %}
 
 			<button
 				type="submit"
 				class="block px-4 py-3 mt-4 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg text-nowrap"
 				:class="showButton ? 'visible' : 'hidden'"
-			>
-				{{ 'misc.save'|t('foster-checkout') }}
-			</button>
+				x-text="buttonText"
+			></button>
 		</form>
 	</div>
 {% endif %}

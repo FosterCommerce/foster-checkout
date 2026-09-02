@@ -26,7 +26,8 @@
 		id="{{ fieldId }}"
 		name="{{ fieldName }}"
 		x-model="value"
-		class="w-full h-12 px-4 bg-white rounded-lg border border-gray-250 focus:!ring-0 focus:!outline-none focus:border-black transition-color duration-300"
+		class="w-full h-12 px-4 bg-white rounded-lg border focus:!ring-0 focus:!outline-none transition-color duration-300"
+		:class="errors.length ? 'border-red-500 focus:border-red-500' : 'border-gray-250 focus:border-black'"
 		{{ required|default(false) ? 'required' }}
 	>
 

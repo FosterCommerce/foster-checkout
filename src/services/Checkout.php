@@ -363,6 +363,28 @@ class Checkout extends Component
 	}
 
 	/**
+	 * Labels of a position's required fields the order has no value for.
+	 *
+	 * @return list<string>
+	 */
+	public function missingRequiredFields(string $position, ?Order $order = null): array
+	{
+		$missing = [];
+
+		foreach ($this->checkoutFields($position, $order) as $field) {
+			if (! array_key_exists('required', $field)) {
+				continue;
+			}
+
+			if ($field['required'] && ($field['value'] === '' || $field['value'] === [])) {
+				$missing[] = $field['label'];
+			}
+		}
+
+		return $missing;
+	}
+
+	/**
 	 * The address form, in the order and widths the address field layout sets.
 	 *
 	 * @return array<int, AddressFormElement>

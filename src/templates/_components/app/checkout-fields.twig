@@ -19,10 +19,14 @@
 				{% if field.type in ['hr', 'heading', 'linebreak'] %}
 					{% include 'foster-checkout/_components/app/checkout-ui-element' with { field: field } %}
 				{% else %}
+					{% set fieldErrors = cart.getErrors(field.handle) %}
+					{% if showRequired|default(false) and field.required and field.value in ['', []] %}
+						{% set fieldErrors = fieldErrors|merge(['misc.required'|t('foster-checkout')]) %}
+					{% endif %}
 					{% include 'foster-checkout/_components/app/checkout-field' with {
 						field: field,
 						value: field.value,
-						errors: cart.getErrors(field.handle),
+						errors: fieldErrors,
 					} %}
 				{% endif %}
 			</div>

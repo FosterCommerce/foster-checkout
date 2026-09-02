@@ -8,6 +8,7 @@ return [
 	'cart.totalItemsSingle' => 'There is {qty} item in your cart',
 	'cart.totalItemsZero' => 'There are no items in your cart',
 	'cart.isEmpty' => 'Your cart is currently empty',
+	'cart.missingRequiredFields' => 'Fill in {fields} before checking out.',
 	'cart.checkout' => 'Checkout',
 
 	// Cart lineitems

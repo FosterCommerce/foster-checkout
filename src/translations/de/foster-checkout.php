@@ -8,6 +8,7 @@ return [
 	'cart.totalItemsSingle' => 'Es befindet sich {qty} Artikel in Ihrem Warenkorb',
 	'cart.totalItemsZero' => 'Ihr Warenkorb enthält keine Artikel',
 	'cart.isEmpty' => 'Ihr Warenkorb ist derzeit leer',
+	'cart.missingRequiredFields' => 'Bitte füllen Sie {fields} aus, bevor Sie zur Kasse gehen.',
 	'cart.checkout' => 'Zur Kasse',
 
 	// Cart lineitems

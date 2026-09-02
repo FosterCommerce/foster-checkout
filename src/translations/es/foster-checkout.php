@@ -8,6 +8,7 @@ return [
 	'cart.totalItemsSingle' => 'Hay {qty} artículo en tu carrito',
 	'cart.totalItemsZero' => 'No hay artículos en tu carrito',
 	'cart.isEmpty' => 'Tu carrito está vacío',
+	'cart.missingRequiredFields' => 'Rellena {fields} antes de finalizar la compra.',
 	'cart.checkout' => 'Finalizar compra',
 
 	// Cart lineitems

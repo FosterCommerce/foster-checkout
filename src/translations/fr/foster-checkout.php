@@ -8,6 +8,7 @@ return [
 	'cart.totalItemsSingle' => 'Il y a {qty} article dans votre panier',
 	'cart.totalItemsZero' => 'Votre panier est vide',
 	'cart.isEmpty' => 'Votre panier est actuellement vide',
+	'cart.missingRequiredFields' => 'Renseignez {fields} avant de commander.',
 	'cart.checkout' => 'Commander',
 
 	// Cart lineitems
