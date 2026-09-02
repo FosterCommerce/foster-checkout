@@ -3,7 +3,7 @@
 {% set notesValue = notesHandle ? (cart.getFieldValue(notesHandle) ?? '') : '' %}
 
 <aside class="lg:col-start-2 lg:row-start-1 lg:row-span-2">
-	<div class="grid grid-cols-1 gap-10 lg:sticky lg:top-4 lg:max-h-[calc(100vh_-_2rem)] lg:overflow-y-auto lg:p-4 lg:bg-white {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:rounded-lg lg:border lg:border-gray-250' }}">
+	<div class="grid grid-cols-1 gap-10 lg:sticky lg:top-4 lg:p-4 lg:bg-white {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:rounded-lg lg:border lg:border-gray-250' }}">
 		<div class="grid grid-cols-1 gap-6">
 			<div class="flex justify-between items-center gap-4">
 				<h2 class="text-xl font-bold text-gray-800 leading-snug">
@@ -171,6 +171,20 @@
 					>{{ live.totals.totalAsCurrency ?? '' }}</dd>
 				</div>
 			</dl>
+
+			{% set summaryFields = craft.fostercheckout.checkoutFields('summary', cart) %}
+			{% if summaryFields|length %}
+				<div
+					class="mt-4"
+					data-fc-collect
+					@blur.capture="saveIfValid('summary', $event)"
+					@change="saveIfValid('summary', $event)"
+		@selected="$nextTick(() => saveIfValid('summary', $event))"
+				>
+					{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'summary' } %}
+					{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'summary', positionFields: summaryFields } %}
+				</div>
+			{% endif %}
 
 			{% if notesHandle %}
 				<div class="mt-8" data-fc-collect>

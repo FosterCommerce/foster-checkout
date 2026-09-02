@@ -643,6 +643,36 @@ const LineItem = (options) => {
 	};
 };
 
+/**
+ * Validation for inputs the panel scan reads, where the input itself needs no behavior.
+ */
+const SimpleField = (props) => {
+	return {
+		value: props.value ?? '',
+		required: Boolean(props.required),
+		requiredError: props.requiredError || '',
+		errors: props.errors || [],
+
+		isRequired() {
+			return this.required;
+		},
+
+		validate(showRequired = false) {
+			const empty = Array.isArray(this.value)
+				? this.value.length === 0
+				: String(this.value ?? '').trim() === '';
+
+			if (!this.isRequired() || !empty) {
+				this.errors = [];
+				return true;
+			}
+
+			this.errors = showRequired ? [this.requiredError] : [];
+			return false;
+		},
+	};
+};
+
 const RadioInput = (props) => {
 	return {
 		name: props.name,
@@ -704,6 +734,7 @@ const CheckoutTracking = (props) => {
 };
 
 Alpine.plugin(focus);
+Alpine.data('SimpleField', SimpleField);
 Alpine.data('CheckoutTracking', CheckoutTracking);
 Alpine.data('ClearableInput', ClearableInput);
 Alpine.data('RadioInput', RadioInput);

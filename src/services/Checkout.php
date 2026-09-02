@@ -36,6 +36,7 @@ use yii\base\InvalidConfigException;
  * Checkout service
  *
  * @phpstan-import-type RenderableField from CheckoutFieldLayouts
+ * @phpstan-import-type RenderableUiElement from CheckoutFieldLayouts
  * @phpstan-type AddressFormElement array{type: string, required: bool, width: int, field: ?RenderableField}
  * @phpstan-type LinksTable array<array-key, array{text: non-empty-string, url: non-empty-string}>
  * @phpstan-type CheckoutShippingMethod array{handle: string, name: string, description: string, price: float, priceAsCurrency: string}
@@ -340,7 +341,7 @@ class Checkout extends Component
 	}
 
 	/**
-	 * @return array<int, RenderableField>
+	 * @return array<int, RenderableField|RenderableUiElement>
 	 */
 	public function gatewayFields(string $gatewayHandle, ?Order $order = null): array
 	{
@@ -351,7 +352,7 @@ class Checkout extends Component
 	}
 
 	/**
-	 * @return array<int, RenderableField>
+	 * @return array<int, RenderableField|RenderableUiElement>
 	 */
 	public function checkoutFields(string $position, ?Order $order = null): array
 	{

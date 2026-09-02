@@ -31,6 +31,8 @@
 	{% if currentUser %}
 		<div class="p-4">
 			<p class="text-black">{{ cart.email }}</p>
+			{# The signed-in branch renders no email form, so these declare their own collect block #}
+			{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'email', panel: 'contact' } %}
 		</div>
 	{% else %}
 	<div
@@ -39,6 +41,7 @@
 		@input="onDetailsChange($event)"
 		@blur.capture="saveIfValid('contact', $event)"
 		@change="saveIfValid('contact', $event)"
+		@selected="$nextTick(() => saveIfValid('contact', $event))"
 	>
 		<div class="grid grid-cols-1 gap-6">
 			{% include 'foster-checkout/_components/base/input-text-clearable' with {

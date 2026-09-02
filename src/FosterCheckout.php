@@ -418,6 +418,57 @@ class FosterCheckout extends Plugin
 	 * The address field layout is shared with the control panel, so a field a store only wants from
 	 * customers is required here rather than there.
 	 */
+	/**
+	 * Craft reads required from the order's own field layout, so a checkout layout's own flag needs a rule.
+	 */
+	private function requireCheckoutFields(): void
+	{
+		Event::on(
+			Order::class,
+			Model::EVENT_DEFINE_RULES,
+			function (DefineRulesEvent $event): void {
+				$request = Craft::$app->getRequest();
+
+				if (! $request instanceof WebRequest || ! $request->getIsSiteRequest()) {
+					return;
+				}
+
+				// A cart is filled in a step at a time, so these are only required to pay
+				$action = $request->getBodyParam('action');
+
+				if (! is_string($action) || ! str_starts_with($action, 'commerce/payments/')) {
+					return;
+				}
+
+				$order = $event->sender;
+
+				if (! $order instanceof Order) {
+					return;
+				}
+
+				foreach (CheckoutFieldLayouts::CHECKOUT_POSITIONS as $position) {
+					$layout = $this->checkoutFieldLayouts->getCheckoutFieldLayout($position);
+
+					foreach ($layout->getVisibleCustomFieldElements($order) as $layoutElement) {
+						if (! $layoutElement->required) {
+							continue;
+						}
+
+						$field = $layoutElement->getField();
+
+						// A field value can be an object or a bool, which the default emptiness test never
+						// counts as empty, so the field decides for itself as it does in Craft's own rules.
+						$event->rules[] = [
+							"field:{$field->handle}",
+							'required',
+							'isEmpty' => static fn (mixed $value): bool => $field->isValueEmpty($value, $order),
+						];
+					}
+				}
+			}
+		);
+	}
+
 	private function requireCheckoutAddressFields(): void
 	{
 		Event::on(
@@ -460,6 +511,7 @@ class FosterCheckout extends Plugin
 		$this->allowPostieRatesOnSinglePageCheckout();
 		$this->allowEmptyPhoneOnSinglePageCartSave();
 		$this->requireCheckoutAddressFields();
+		$this->requireCheckoutFields();
 
 		Event::on(
 			CraftVariable::class,

@@ -23,7 +23,7 @@
 	{% if not readOnly %}
 		{{ actionInput('foster-checkout/settings/save-field') }}
 		{{ hiddenInput('position', position) }}
-		{{ redirectInput('foster-checkout/settings/fields') }}
+		{{ redirectInput('foster-checkout/settings/fields/' ~ position) }}
 	{% endif %}
 
 	<p>{{ ('settings.fields.position.' ~ position ~ 'Help')|t('foster-checkout') }}</p>

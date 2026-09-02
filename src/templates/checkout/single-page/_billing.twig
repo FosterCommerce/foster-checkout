@@ -147,7 +147,7 @@
 		</div>
 	</div>
 
-	{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'billing' } %}
+	{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'billing', panel: 'payment' } %}
 
 	{% set note = craft.fostercheckout.note('billing', {cart}) %}
 	{% if note %}

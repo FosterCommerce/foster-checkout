@@ -1,0 +1,36 @@
+{% if context|default %}
+	{% set fieldId = id|default ? id|namespaceInputId(context) : '' %}
+	{% set fieldName = name|default ? name|namespaceInputName(context) : '' %}
+{% else %}
+	{% set fieldId = id ?? '' %}
+	{% set fieldName = name ?? '' %}
+{% endif %}
+
+<div
+	data-fc-field
+	x-data="SimpleField({
+		value: {{ (value|default(''))|json_encode }},
+		required: {{ required|default(false) ? 'true' : 'false' }},
+		requiredError: {{ 'misc.required'|t('foster-checkout')|json_encode }},
+		errors: {{ errors|default([])|json_encode }}
+	})"
+>
+	{% if label|default %}
+		<label for="{{ fieldId }}" class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}">
+			{{ label ~ (required|default(false) ? '*' : '') }}
+		</label>
+	{% endif %}
+
+	<input
+		type="{{ type }}"
+		id="{{ fieldId }}"
+		name="{{ fieldName }}"
+		x-model="value"
+		class="w-full h-12 px-4 bg-white rounded-lg border border-gray-250 focus:!ring-0 focus:!outline-none focus:border-black transition-color duration-300"
+		{{ required|default(false) ? 'required' }}
+	>
+
+	<template x-if="errors.length">
+		<p id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500" x-text="errors.join(' ')"></p>
+	</template>
+</div>

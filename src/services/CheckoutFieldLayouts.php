@@ -5,17 +5,27 @@ namespace fostercommerce\fostercheckout\services;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\FieldInterface;
+use craft\base\FieldLayoutElement;
 use craft\commerce\base\GatewayInterface;
 use craft\commerce\elements\Order;
 use craft\commerce\Plugin as Commerce;
 use craft\fieldlayoutelements\CustomField;
+use craft\fieldlayoutelements\Heading;
+use craft\fieldlayoutelements\HorizontalRule;
+use craft\fieldlayoutelements\LineBreak;
 use craft\fields\BaseOptionsField;
+use craft\fields\Checkboxes;
+use craft\fields\data\OptionData;
+use craft\fields\Date;
 use craft\fields\Dropdown;
+use craft\fields\Lightswitch;
 use craft\fields\Number;
 use craft\fields\PlainText;
 use craft\fields\RadioButtons;
+use craft\fields\Time;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
+use DateTime;
 use yii\base\Component;
 
 /**
@@ -24,7 +34,8 @@ use yii\base\Component;
  * Layouts are kept in project config, never in the `fieldlayouts` table, because Craft looks that
  * table up by element type and a stored row could come back as the order's own layout.
  *
- * @phpstan-type RenderableField array{handle: string, label: string, instructions: ?string, required: bool, width: int, type: string, placeholder: ?string, maxLength: ?int, min: ?int, max: ?int, initialRows: ?int, options: list<array{label: string, value: string}>}
+ * @phpstan-type RenderableUiElement array{type: string, label: string, width: int}
+ * @phpstan-type RenderableField array{value: string|list<string>, handle: string, label: string, instructions: ?string, required: bool, width: int, type: string, placeholder: ?string, maxLength: ?int, min: ?int, max: ?int, initialRows: ?int, options: list<array{label: string, value: string}>}
  */
 class CheckoutFieldLayouts extends Component
 {
@@ -50,7 +61,7 @@ class CheckoutFieldLayouts extends Component
 	}
 
 	/**
-	 * @return array<int, RenderableField>
+	 * @return array<int, RenderableField|RenderableUiElement>
 	 */
 	public function getRenderableFields(string $gatewayHandle, ?Order $order = null): array
 	{
@@ -58,7 +69,7 @@ class CheckoutFieldLayouts extends Component
 	}
 
 	/**
-	 * @return array<int, RenderableField>
+	 * @return array<int, RenderableField|RenderableUiElement>
 	 */
 	public function getRenderableCheckoutFields(string $position, ?Order $order = null): array
 	{
@@ -103,7 +114,7 @@ class CheckoutFieldLayouts extends Component
 	 *
 	 * Type and bounds come from the Craft field, which a layout cannot express.
 	 *
-	 * @return array<int, RenderableField>
+	 * @return array<int, RenderableField|RenderableUiElement>
 	 */
 	public function renderableFields(FieldLayout $layout, ?ElementInterface $element = null): array
 	{
@@ -111,14 +122,16 @@ class CheckoutFieldLayouts extends Component
 
 		// Without an element there is nothing to test a visibility condition against, so list them all
 		$layoutElements = $element instanceof ElementInterface
-			? $layout->getVisibleCustomFieldElements($element)
-			: $layout->getCustomFieldElements();
+			? $layout->getVisibleElementsByType(FieldLayoutElement::class, $element)
+			: $layout->getAllElements();
 
 		foreach ($layoutElements as $layoutElement) {
-			$field = $this->renderableField($layoutElement);
+			$renderable = $layoutElement instanceof CustomField
+				? $this->renderableField($layoutElement, $element)
+				: $this->renderableUiElement($layoutElement);
 
-			if ($field !== null) {
-				$fields[] = $field;
+			if ($renderable !== null) {
+				$fields[] = $renderable;
 			}
 		}
 
@@ -126,9 +139,33 @@ class CheckoutFieldLayouts extends Component
 	}
 
 	/**
+	 * @return RenderableUiElement|null null for an element with no storefront equivalent
+	 */
+	public function renderableUiElement(FieldLayoutElement $layoutElement): ?array
+	{
+		[$type, $label] = match (true) {
+			$layoutElement instanceof HorizontalRule => ['hr', ''],
+			$layoutElement instanceof Heading => ['heading', $layoutElement->heading],
+			$layoutElement instanceof LineBreak => ['linebreak', ''],
+			default => [null, ''],
+		};
+
+		if ($type === null) {
+			return null;
+		}
+
+		// A divider or heading spans the row it was placed on
+		return [
+			'type' => $type,
+			'label' => $label,
+			'width' => 100,
+		];
+	}
+
+	/**
 	 * @return RenderableField|null null where the plugin has no input for the field's type
 	 */
-	public function renderableField(CustomField $layoutElement): ?array
+	public function renderableField(CustomField $layoutElement, ?ElementInterface $element = null): ?array
 	{
 		$field = $layoutElement->getField();
 		$inputType = $this->fieldInputType($field);
@@ -139,6 +176,7 @@ class CheckoutFieldLayouts extends Component
 		}
 
 		return [
+			'value' => $this->fieldValue($field, $element),
 			'handle' => (string) $field->handle,
 			'label' => $layoutElement->label ?? (string) $field->name,
 			'instructions' => $layoutElement->instructions,
@@ -161,6 +199,10 @@ class CheckoutFieldLayouts extends Component
 			$field instanceof Number => 'number',
 			$field instanceof Dropdown => 'select',
 			$field instanceof RadioButtons => 'radio',
+			$field instanceof Lightswitch => 'checkbox',
+			$field instanceof Checkboxes => 'checkboxes',
+			$field instanceof Date => $field->showTime ? 'datetime-local' : 'date',
+			$field instanceof Time => 'time',
 			default => null,
 		};
 	}
@@ -235,6 +277,44 @@ class CheckoutFieldLayouts extends Component
 		]);
 
 		return true;
+	}
+
+	/**
+	 * A field's value in the shape its input posts back.
+	 *
+	 * @return string|list<string>
+	 */
+	private function fieldValue(FieldInterface $field, ?ElementInterface $element): string|array
+	{
+		if (! $element instanceof ElementInterface) {
+			return $field instanceof Checkboxes ? [] : '';
+		}
+
+		$value = $element->getFieldValue((string) $field->handle);
+
+		// The input posts a list, so an unset Checkboxes value is still a list
+		if ($field instanceof Checkboxes) {
+			$selected = [];
+
+			foreach (is_iterable($value) ? $value : [] as $option) {
+				$selected[] = $option instanceof OptionData ? (string) $option->value : (string) $option;
+			}
+
+			return $selected;
+		}
+
+		return match (true) {
+			$value instanceof DateTime => $value->format($field instanceof Time ? 'H:i' : $this->dateFormat($field)),
+			$value instanceof OptionData => (string) $value->value,
+			$value === true => '1',
+			! is_scalar($value) => '',
+			default => (string) $value,
+		};
+	}
+
+	private function dateFormat(FieldInterface $field): string
+	{
+		return $field instanceof Date && $field->showTime ? 'Y-m-d\\TH:i' : 'Y-m-d';
 	}
 
 	/**

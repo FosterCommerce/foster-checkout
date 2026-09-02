@@ -1,0 +1,54 @@
+{% if context|default %}
+	{% set fieldId = id|default ? id|namespaceInputId(context) : '' %}
+	{% set fieldName = name|default ? name|namespaceInputName(context) : '' %}
+{% else %}
+	{% set fieldId = id ?? '' %}
+	{% set fieldName = name ?? '' %}
+{% endif %}
+
+{% set selected = value|default([]) %}
+
+<fieldset
+	data-fc-field
+	x-data="SimpleField({
+		{# Twig counts an empty array as empty, and a string here binds every box to one value #}
+		value: {{ selected|json_encode }},
+		required: {{ required|default(false) ? 'true' : 'false' }},
+		requiredError: {{ 'misc.required'|t('foster-checkout')|json_encode }},
+		errors: {{ errors|default([])|json_encode }}
+	})"
+>
+	{% if label|default %}
+		<legend class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}">
+			{{ label ~ (required|default(false) ? '*' : '') }}
+		</legend>
+	{% endif %}
+
+	<input type="hidden" name="{{ fieldName }}[]" value="">
+
+	<div class="flex flex-wrap items-center gap-6">
+		{% for option in options|default([]) %}
+			<div class="checkbox">
+				<input
+					type="checkbox"
+					id="{{ fieldId }}-{{ loop.index }}"
+					name="{{ fieldName }}[]"
+					value="{{ option.value }}"
+					class="sr-only"
+					x-model="value"
+					{{ option.value in selected ? 'checked' }}
+				>
+				<label
+					class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
+					for="{{ fieldId }}-{{ loop.index }}"
+				>
+					{{ option.label }}
+				</label>
+			</div>
+		{% endfor %}
+	</div>
+
+	<template x-if="errors.length">
+		<p id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500" x-text="errors.join(' ')"></p>
+	</template>
+</fieldset>

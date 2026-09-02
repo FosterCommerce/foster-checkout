@@ -260,8 +260,16 @@ export const SinglePageCheckout = (props) => {
 			return this.panelFieldsReady('delivery');
 		},
 
+		// Required fields can be configured in any panel, so payment checks them all
+		get checkoutFieldsReady() {
+			return [...this.$root.querySelectorAll('[data-fc-panel]')].every(
+				(section) => this.panelFieldsReady(section.dataset.fcPanel)
+			);
+		},
+
 		get canPay() {
 			return (
+				this.checkoutFieldsReady &&
 				this.pending === 0 &&
 				!this.saveTimer &&
 				this.statusTone !== 'error' &&
@@ -696,6 +704,11 @@ export const SinglePageCheckout = (props) => {
 						return;
 					}
 
+					if (name.endsWith('[]')) {
+						payload[name] = [...(payload[name] ?? []), element.value];
+						return;
+					}
+
 					payload[name] = element.value;
 				});
 
@@ -818,6 +831,11 @@ export const SinglePageCheckout = (props) => {
 					return;
 				}
 
+				if (Array.isArray(value)) {
+					value.forEach((entry) => body.append(key, String(entry)));
+					return;
+				}
+
 				body.set(key, String(value));
 			});
 
@@ -875,6 +893,11 @@ export const SinglePageCheckout = (props) => {
 		},
 
 		errorKeyToName(key) {
+			// Craft reports a custom field error against field:handle; its input is named fields[handle]
+			if (key.startsWith('field:')) {
+				return `fields[${key.slice(6)}]`;
+			}
+
 			if (key.includes('[')) {
 				return key;
 			}

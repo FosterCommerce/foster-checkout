@@ -5328,8 +5328,14 @@ const SinglePageCheckout = (props) => {
       }
       return this.panelFieldsReady("delivery");
     },
+    // Required fields can be configured in any panel, so payment checks them all
+    get checkoutFieldsReady() {
+      return [...this.$root.querySelectorAll("[data-fc-panel]")].every(
+        (section) => this.panelFieldsReady(section.dataset.fcPanel)
+      );
+    },
     get canPay() {
-      return this.pending === 0 && !this.saveTimer && this.statusTone !== "error" && this.hasEmail && this.hasShippingSelection && this.cartHasShippingAddress && this.hasShippingMethod && this.hasBilling && this.deliveryReadyForPay && !this.loadingShippingMethods;
+      return this.checkoutFieldsReady && this.pending === 0 && !this.saveTimer && this.statusTone !== "error" && this.hasEmail && this.hasShippingSelection && this.cartHasShippingAddress && this.hasShippingMethod && this.hasBilling && this.deliveryReadyForPay && !this.loadingShippingMethods;
     },
     get payButtonLabel() {
       return `${this.payButtonText} ${this.totals.totalAsCurrency || ""}`.trim();
@@ -5637,6 +5643,10 @@ const SinglePageCheckout = (props) => {
         if (name.endsWith("_radio") || name.endsWith("_display")) {
           return;
         }
+        if (name.endsWith("[]")) {
+          payload[name] = [...payload[name] ?? [], element.value];
+          return;
+        }
         payload[name] = element.value;
       });
       return payload;
@@ -5735,6 +5745,10 @@ const SinglePageCheckout = (props) => {
         if (value === void 0 || value === null) {
           return;
         }
+        if (Array.isArray(value)) {
+          value.forEach((entry) => body.append(key, String(entry)));
+          return;
+        }
         body.set(key, String(value));
       });
       const response = await fetch(url, {
@@ -5780,6 +5794,9 @@ const SinglePageCheckout = (props) => {
       return flattened;
     },
     errorKeyToName(key) {
+      if (key.startsWith("field:")) {
+        return `fields[${key.slice(6)}]`;
+      }
       if (key.includes("[")) {
         return key;
       }
@@ -7212,6 +7229,26 @@ const LineItem = (options) => {
     }
   };
 };
+const SimpleField = (props) => {
+  return {
+    value: props.value ?? "",
+    required: Boolean(props.required),
+    requiredError: props.requiredError || "",
+    errors: props.errors || [],
+    isRequired() {
+      return this.required;
+    },
+    validate(showRequired = false) {
+      const empty = Array.isArray(this.value) ? this.value.length === 0 : String(this.value ?? "").trim() === "";
+      if (!this.isRequired() || !empty) {
+        this.errors = [];
+        return true;
+      }
+      this.errors = showRequired ? [this.requiredError] : [];
+      return false;
+    }
+  };
+};
 const RadioInput = (props) => {
   return {
     name: props.name,
@@ -7266,6 +7303,7 @@ const CheckoutTracking = (props) => {
   };
 };
 module_default$1.plugin(module_default);
+module_default$1.data("SimpleField", SimpleField);
 module_default$1.data("CheckoutTracking", CheckoutTracking);
 module_default$1.data("ClearableInput", ClearableInput);
 module_default$1.data("RadioInput", RadioInput);

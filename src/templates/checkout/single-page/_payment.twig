@@ -251,6 +251,7 @@
 															<div class="sm:col-span-{{ (field.width / 100 * 12)|round }}">
 																{% include 'foster-checkout/_components/app/checkout-field' with {
 																	field: field,
+																	value: field.value,
 																} %}
 															</div>
 														{% endfor %}

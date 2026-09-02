@@ -91,7 +91,7 @@
 
 			<aside>
 				<div
-					class="lg:sticky lg:top-4 lg:max-h-[calc(100vh_-_2rem)] lg:overflow-y-auto lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
+					class="lg:sticky lg:top-4 lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 					{% include 'foster-checkout/_components/app/summary-cart' %}
 
 					{% if cart.email and craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
