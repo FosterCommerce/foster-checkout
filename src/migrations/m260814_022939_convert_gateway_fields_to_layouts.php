@@ -21,6 +21,20 @@ class m260814_022939_convert_gateway_fields_to_layouts extends Migration
 	#[\Override]
 	public function safeUp(): bool
 	{
+		// Project config is read-only when a site disallows admin changes, which every write below would hit
+		$projectConfig = Craft::$app->getProjectConfig();
+		$readOnly = $projectConfig->readOnly;
+		$projectConfig->readOnly = false;
+
+		try {
+			return $this->convertGatewayFields();
+		} finally {
+			$projectConfig->readOnly = $readOnly;
+		}
+	}
+
+	private function convertGatewayFields(): bool
+	{
 		$fileConfig = Craft::$app->getConfig()->getConfigFromFile(FosterCheckout::HANDLE);
 		$gateways = is_array($fileConfig) && is_array($fileConfig['paymentGateways'] ?? null)
 			? $fileConfig['paymentGateways']
