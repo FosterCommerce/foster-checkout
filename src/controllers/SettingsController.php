@@ -137,6 +137,96 @@ class SettingsController extends Controller
 		return $this->redirectToPostedUrl();
 	}
 
+	public function actionFields(): Response
+	{
+		return $this->renderSection('fields');
+	}
+
+	/**
+	 * @throws ForbiddenHttpException
+	 * @throws NotFoundHttpException
+	 */
+	public function actionEditField(string $position): Response
+	{
+		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_SETTINGS);
+
+		if (! in_array($position, CheckoutFieldLayouts::CHECKOUT_POSITIONS, true)) {
+			throw new NotFoundHttpException();
+		}
+
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $this->renderTemplate('foster-checkout/settings/fields/_edit', [
+			'position' => $position,
+			'fieldLayout' => $plugin->checkoutFieldLayouts->getCheckoutFieldLayout($position),
+		]);
+	}
+
+	/**
+	 * @throws ForbiddenHttpException
+	 * @throws NotFoundHttpException
+	 */
+	public function actionSaveField(): ?Response
+	{
+		$this->requirePostRequest();
+		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_SETTINGS);
+
+		if (! Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+			throw new ForbiddenHttpException(Craft::t(FosterCheckout::HANDLE, 'error.adminChangesDisallowed'));
+		}
+
+		$postedPosition = $this->request->getRequiredBodyParam('position');
+		$position = is_string($postedPosition) ? $postedPosition : '';
+
+		if (! in_array($position, CheckoutFieldLayouts::CHECKOUT_POSITIONS, true)) {
+			throw new NotFoundHttpException();
+		}
+
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+		$layout = Craft::$app->getFields()->assembleLayoutFromPost();
+		$layout->type = Order::class;
+
+		$unstorable = $this->unstorableFieldHandles($layout, $plugin->checkoutFieldLayouts->orderFieldHandles());
+
+		// An order only saves values for fields in its own layout, so anything else would render,
+		// accept what the customer types, and then be discarded without an error.
+		if ($unstorable !== []) {
+			return $this->fieldLayoutFailure('settings.gateways.unstorableFields', $unstorable, $layout);
+		}
+
+		$unsupported = $this->unsupportedFields($layout, $plugin->checkoutFieldLayouts);
+
+		// No input exists for the type, so it's ignored in the storefront form.
+		if ($unsupported !== []) {
+			return $this->fieldLayoutFailure('settings.gateways.unsupportedFields', $unsupported, $layout);
+		}
+
+		$claimed = array_intersect(
+			$this->layoutFieldHandles($layout),
+			$plugin->checkoutFieldLayouts->claimedFieldHandles($position)
+		);
+
+		if ($claimed !== []) {
+			return $this->fieldLayoutFailure('settings.fields.claimedFields', array_values($claimed), $layout);
+		}
+
+		if (! $plugin->checkoutFieldLayouts->saveCheckoutFieldLayout($position, $layout)) {
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
+
+			Craft::$app->getUrlManager()->setRouteParams([
+				'fieldLayout' => $layout,
+			]);
+
+			return null;
+		}
+
+		$this->setSuccessFlash(Craft::t('app', 'Settings saved.'));
+
+		return $this->redirectToPostedUrl();
+	}
+
 	public function actionGeneral(): Response
 	{
 		return $this->renderSection('general');
@@ -154,8 +244,7 @@ class SettingsController extends Controller
 
 		$this->requirePermission(FosterCheckout::settingsPermission($section));
 
-		// Settings persist to project config, which is read-only when admin changes are
-		// disabled; without this guard the save surfaces a raw NotSupportedException 500.
+		// Without this the save surfaces a raw NotSupportedException 500
 		if (! Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
 			throw new ForbiddenHttpException(Craft::t(FosterCheckout::HANDLE, 'error.adminChangesDisallowed'));
 		}
@@ -181,7 +270,7 @@ class SettingsController extends Controller
 			(array) (Craft::$app->getProjectConfig()->get(ProjectConfig::PATH_PLUGINS . '.' . FosterCheckout::HANDLE . '.settings') ?? [])
 		);
 
-		$allSettings = array_merge($storedSettings, $this->normalizeTables($postedSettings, $storedSettings));
+		$allSettings = array_merge($storedSettings, $this->normalizeTables($postedSettings));
 
 		if (! Craft::$app->getPlugins()->savePluginSettings($plugin, $allSettings)) {
 			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
@@ -203,6 +292,36 @@ class SettingsController extends Controller
 	/**
 	 * @throws NotFoundHttpException
 	 */
+	/**
+	 * @param list<string> $fields
+	 */
+	private function fieldLayoutFailure(string $messageKey, array $fields, FieldLayout $layout): null
+	{
+		$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, $messageKey, [
+			'fields' => implode(', ', $fields),
+		]));
+
+		Craft::$app->getUrlManager()->setRouteParams([
+			'fieldLayout' => $layout,
+		]);
+
+		return null;
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function layoutFieldHandles(FieldLayout $layout): array
+	{
+		$handles = [];
+
+		foreach ($layout->getCustomFieldElements() as $customField) {
+			$handles[] = (string) $customField->getField()->handle;
+		}
+
+		return $handles;
+	}
+
 	private function gateway(string $gatewayHandle): GatewayInterface
 	{
 		$gateway = Commerce::getInstance()?->getGateways()->getGatewayByHandle($gatewayHandle);
@@ -259,8 +378,7 @@ class SettingsController extends Controller
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		// The field layout lives outside plugin settings, so it stays editable. These two do not,
-		// and the config file overrides them.
+		// The field layout is stored outside plugin settings, so it stays editable. These two do not.
 		if (in_array('paymentGateways', $plugin->getOverriddenSettings(), true)) {
 			return;
 		}
@@ -303,75 +421,6 @@ class SettingsController extends Controller
 	}
 
 	/**
-	 * Each gateway's stored config is kept and only the posted keys replaced, so a `note` defined
-	 * as a PHP closure survives a settings save.
-	 *
-	 * @param array<array-key, mixed> $postedGateways
-	 * @param array<array-key, mixed> $storedGateways
-	 * @return array<string, mixed>
-	 */
-	private function normalizeGateways(array $postedGateways, array $storedGateways): array
-	{
-		$gateways = [];
-
-		foreach ($postedGateways as $gatewayHandle => $postedGateway) {
-			if (! is_string($gatewayHandle)) {
-				continue;
-			}
-
-			if (! is_array($postedGateway)) {
-				continue;
-			}
-
-			$gateway = is_array($storedGateways[$gatewayHandle] ?? null) ? $storedGateways[$gatewayHandle] : [];
-			$gateway['fields'] = $this->normalizeGatewayFields((array) ($postedGateway['fields'] ?? []));
-			$gateway['params'] = $this->normalizeGatewayParams((array) ($postedGateway['params'] ?? []));
-
-			$gateways[$gatewayHandle] = $gateway;
-		}
-
-		return $gateways;
-	}
-
-	/**
-	 * @param array<array-key, mixed> $postedFields
-	 * @return array<string, array<string, mixed>>
-	 */
-	private function normalizeGatewayFields(array $postedFields): array
-	{
-		$fields = [];
-
-		foreach ($postedFields as $postedField) {
-			if (! is_array($postedField)) {
-				continue;
-			}
-
-			$fieldHandle = $this->trimmedString($postedField, 'handle');
-
-			if ($fieldHandle === '') {
-				continue;
-			}
-
-			$fieldType = $this->trimmedString($postedField, 'type');
-
-			$fields[$fieldHandle] = [
-				'type' => $fieldType === '' ? 'text' : $fieldType,
-				'label' => $this->trimmedString($postedField, 'label'),
-				'placeholder' => $this->trimmedString($postedField, 'placeholder'),
-				'required' => (bool) ($postedField['required'] ?? false),
-				// The models use `false`, not null or 0, to mean "no bound".
-				'minLength' => $this->boundOrFalse($postedField, 'minLength'),
-				'maxLength' => $this->boundOrFalse($postedField, 'maxLength'),
-				'min' => $this->boundOrFalse($postedField, 'min'),
-				'max' => $this->boundOrFalse($postedField, 'max'),
-				'columns' => $this->trimmedString($postedField, 'columns') === '' ? null : (int) $this->trimmedString($postedField, 'columns'),
-			];
-		}
-
-		return $fields;
-	}
-
-	/**
 	 * @param array<array-key, mixed> $postedParams
 	 * @return array<string, string>
 	 */
@@ -397,16 +446,6 @@ class SettingsController extends Controller
 	/**
 	 * @param array<array-key, mixed> $row
 	 */
-	private function boundOrFalse(array $row, string $key): int|false
-	{
-		$bound = $this->trimmedString($row, $key);
-
-		return $bound === '' ? false : (int) $bound;
-	}
-
-	/**
-	 * @param array<array-key, mixed> $row
-	 */
 	private function trimmedString(array $row, string $key): string
 	{
 		$value = $row[$key] ?? '';
@@ -419,18 +458,10 @@ class SettingsController extends Controller
 	 * product type handle and plain lists of codes and handles.
 	 *
 	 * @param array<array-key, mixed> $postedSettings
-	 * @param array<array-key, mixed> $storedSettings
 	 * @return array<array-key, mixed>
 	 */
-	private function normalizeTables(array $postedSettings, array $storedSettings): array
+	private function normalizeTables(array $postedSettings): array
 	{
-		if (isset($postedSettings['paymentGateways'])) {
-			$postedSettings['paymentGateways'] = $this->normalizeGateways(
-				(array) $postedSettings['paymentGateways'],
-				is_array($storedSettings['paymentGateways'] ?? null) ? $storedSettings['paymentGateways'] : []
-			);
-		}
-
 		if (isset($postedSettings['products'])) {
 			$products = [];
 
@@ -499,6 +530,7 @@ class SettingsController extends Controller
 			'productTypeHandles' => $this->productTypeHandles(),
 			'gateways' => Commerce::getInstance()?->getGateways()->getAllGateways() ?? [],
 			'configurableAddressFields' => $plugin->checkout->configurableAddressFields(),
+			'checkoutPositions' => CheckoutFieldLayouts::CHECKOUT_POSITIONS,
 		]);
 	}
 }

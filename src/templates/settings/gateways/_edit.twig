@@ -31,7 +31,7 @@
 	{% if not readOnly %}
 		{{ actionInput('foster-checkout/settings/save-gateway') }}
 		{{ hiddenInput('gatewayHandle', gateway.handle) }}
-		{{ redirectInput('foster-checkout/settings/gateways') }}
+		{{ redirectInput('foster-checkout/settings/gateways/' ~ gateway.handle) }}
 	{% endif %}
 
 	<p class="light code">{{ gateway.handle }}</p>

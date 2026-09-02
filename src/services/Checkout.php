@@ -36,6 +36,7 @@ use yii\base\InvalidConfigException;
  * Checkout service
  *
  * @phpstan-import-type RenderableField from CheckoutFieldLayouts
+ * @phpstan-import-type RenderableUiElement from CheckoutFieldLayouts
  * @phpstan-type AddressFormElement array{type: string, required: bool, width: int, field: ?RenderableField}
  * @phpstan-type LinksTable array<array-key, array{text: non-empty-string, url: non-empty-string}>
  * @phpstan-type CheckoutShippingMethod array{handle: string, name: string, description: string, price: float, priceAsCurrency: string}
@@ -103,7 +104,7 @@ class Checkout extends Component
 	 * Address fields each country's format actually uses, keyed by country code.
 	 *
 	 * Read through the Addresses service rather than the format repository, so `EVENT_DEFINE_USED_FIELDS`
-	 * applies — this plugin adds the administrative area for GB through it.
+	 * applies, and this plugin adds the administrative area for GB through it.
 	 *
 	 * @return array<string, array<int, string>>
 	 */
@@ -170,6 +171,18 @@ class Checkout extends Component
 		return $bundleUrl;
 	}
 
+	public function tailwindBundle(): string
+	{
+		/** @var string $bundleUrl */
+		$bundleUrl = Craft::$app->assetManager->getPublishedUrl(
+			'@fostercheckout/web/assets/checkout/vendor',
+			true,
+			'tailwind-3.4.17.js'
+		);
+
+		return $bundleUrl;
+	}
+
 	/**
 	 * @return ?LinksTable
 	 */
@@ -181,7 +194,7 @@ class Checkout extends Component
 			return null;
 		}
 
-		// A half-filled row would otherwise reach Twig as a missing attribute and fatal the page.
+		// Twig fatals on a missing attribute, so a half-filled row is dropped.
 		$complete = array_filter(
 			$links,
 			static fn ($link): bool => is_array($link) && ($link['text'] ?? '') !== '' && ($link['url'] ?? '') !== ''
@@ -291,7 +304,6 @@ class Checkout extends Component
 		/** @var array<array-key, array{name: string, value: string}> $options */
 		$options = collect($lineItem->options)
 			->filter(fn ($value, $name): bool =>
-				// If the line item options are not set, or the name does not start with the line item options, return the option
 				$enableLineItemOptions === true || ! str_starts_with((string) $name, $enableLineItemOptions))
 			->map(fn ($value, $name): array => [
 				'name' => $name,
@@ -340,7 +352,7 @@ class Checkout extends Component
 	}
 
 	/**
-	 * @return array<int, RenderableField>
+	 * @return array<int, RenderableField|RenderableUiElement>
 	 */
 	public function gatewayFields(string $gatewayHandle, ?Order $order = null): array
 	{
@@ -348,6 +360,39 @@ class Checkout extends Component
 		$plugin = FosterCheckout::getInstance();
 
 		return $plugin->checkoutFieldLayouts->getRenderableFields($gatewayHandle, $order);
+	}
+
+	/**
+	 * @return array<int, RenderableField|RenderableUiElement>
+	 */
+	public function checkoutFields(string $position, ?Order $order = null): array
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $plugin->checkoutFieldLayouts->getRenderableCheckoutFields($position, $order);
+	}
+
+	/**
+	 * Labels of a position's required fields the order has no value for.
+	 *
+	 * @return list<string>
+	 */
+	public function missingRequiredFields(string $position, ?Order $order = null): array
+	{
+		$missing = [];
+
+		foreach ($this->checkoutFields($position, $order) as $field) {
+			if (! array_key_exists('required', $field)) {
+				continue;
+			}
+
+			if ($field['required'] && ($field['value'] === '' || $field['value'] === [])) {
+				$missing[] = $field['label'];
+			}
+		}
+
+		return $missing;
 	}
 
 	/**
@@ -460,6 +505,40 @@ class Checkout extends Component
 	}
 
 	/**
+	 * The line items total, with any discount belonging to a single item already taken off.
+	 */
+	public function itemsTotal(Order $order): string
+	{
+		$teller = $order->getTeller();
+		$lineItemDiscount = '0';
+
+		foreach ($order->getAdjustments() ?? [] as $adjustment) {
+			if ($adjustment->type === 'discount' && $adjustment->lineItemId) {
+				$lineItemDiscount = $teller->add($lineItemDiscount, $adjustment->amount);
+			}
+		}
+
+		return Currency::formatAsCurrency(
+			$teller->add($order->getItemSubtotal(), $lineItemDiscount),
+			$order->currency
+		);
+	}
+
+	/**
+	 * What a line item would have cost at its original price, before any sale.
+	 */
+	public function lineItemOriginalTotal(LineItem $lineItem): string
+	{
+		/** @var Order $order a line item in a cart always belongs to one */
+		$order = $lineItem->getOrder();
+
+		return Currency::formatAsCurrency(
+			(float) $order->getTeller()->multiply($lineItem->price, (string) $lineItem->qty),
+			$order->currency
+		);
+	}
+
+	/**
 	 * A native field is labelled by the plugin rather than by Craft, so the option an admin picks
 	 * reads the same as the field the customer sees.
 	 */
@@ -565,8 +644,8 @@ class Checkout extends Component
 
 			$methods[] = [
 				'handle' => (string) $handle,
-				'name' => Craft::t('foster-checkout', $method->name ?? (string) $handle),
-				'description' => $description !== '' ? Craft::t('foster-checkout', $description) : '',
+				'name' => Craft::t(FosterCheckout::HANDLE, $method->name ?? (string) $handle),
+				'description' => $description !== '' ? Craft::t(FosterCheckout::HANDLE, $description) : '',
 				'price' => (float) $method->price,
 				'priceAsCurrency' => $method->priceAsCurrency,
 			];
@@ -580,14 +659,12 @@ class Checkout extends Component
 	 */
 	private function checkoutTotals(Order $cart): array
 	{
-		$lineItemDiscount = 0.0;
 		$discounts = [];
 		$vouchers = [];
 
 		foreach ($cart->getAdjustments() ?? [] as $adjustment) {
 			if ($adjustment->type === 'discount') {
 				if ($adjustment->lineItemId) {
-					$lineItemDiscount += $adjustment->amount;
 					continue;
 				}
 
@@ -606,10 +683,8 @@ class Checkout extends Component
 			}
 		}
 
-		$itemsAmount = (float) $cart->getTeller()->add($cart->getItemSubtotal(), $lineItemDiscount);
-
 		return [
-			'itemsAsCurrency' => Currency::formatAsCurrency($itemsAmount, $cart->currency),
+			'itemsAsCurrency' => $this->itemsTotal($cart),
 			'shipping' => $cart->getTotalShippingCost(),
 			'shippingAsCurrency' => $cart->totalShippingCostAsCurrency,
 			'taxAsCurrency' => $cart->totalTaxAsCurrency,
@@ -621,14 +696,18 @@ class Checkout extends Component
 		];
 	}
 
+	/**
+	 * Gift Voucher snapshots the code element, whose description is translated and so cannot be parsed.
+	 */
 	private function voucherLabel(OrderAdjustment $adjustment): string
 	{
-		$parts = explode('code ', (string) $adjustment->description, 2);
-		if (isset($parts[1])) {
-			return trim($parts[1], "'\" ");
+		$codeKey = $adjustment->sourceSnapshot['codeKey'] ?? null;
+
+		if (is_string($codeKey) && $codeKey !== '') {
+			return $codeKey;
 		}
 
-		return 'Voucher/Gift Card';
+		return Craft::t(FosterCheckout::HANDLE, 'voucher.fallbackLabel');
 	}
 
 	/**

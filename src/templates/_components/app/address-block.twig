@@ -1,3 +1,5 @@
+{% set stackedLabels = craft.fostercheckout.settings.branding.labelStyle|default('floating') != 'floating' %}
+
 {# Craft's address field layout treats these six as one element, so they move and size together. #}
 {# Which fields are used and which are required both come from the country's address format at runtime. #}
 {# Chrome mobile skips display:none inputs when autofilling, so unused fields collapse with h-0 instead. #}
@@ -18,12 +20,13 @@
 			} %}
 		</div>
 
+		{# The placeholder names this field, so a stacked label repeats it #}
 		<div :class="isUsed('addressLine2') ? '' : 'h-0 overflow-hidden absolute'">
 			{% include 'foster-checkout/_components/base/input-text-clearable' with {
 				addressScope: true,
 				context: context,
 				label: 'addressFields.address2Label'|t('foster-checkout'),
-				hideLabel: true,
+				hideLabel: stackedLabels,
 				id: 'addressLine2',
 				name: 'addressLine2',
 				type: 'text',
@@ -34,17 +37,18 @@
 			} %}
 		</div>
 
+		{# The placeholder names this field, so a stacked label repeats it #}
 		<div :class="isUsed('addressLine3') ? '' : 'h-0 overflow-hidden absolute'">
 			{% include 'foster-checkout/_components/base/input-text-clearable' with {
 				addressScope: true,
 				context: context,
 				label: 'addressFields.address3Label'|t('foster-checkout'),
-				hideLabel: true,
+				hideLabel: stackedLabels,
 				id: 'addressLine3',
 				name: 'addressLine3',
 				type: 'text',
 				autocomplete: 'address-line3',
-				placeholder: '',
+				placeholder: 'addressFields.address3Label'|t('foster-checkout'),
 				value: address ? address.addressLine3|e('js') : '',
 				errors: errors.addressLine3 ?? []
 			} %}

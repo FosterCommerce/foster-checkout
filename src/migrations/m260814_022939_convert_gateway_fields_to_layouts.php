@@ -21,6 +21,19 @@ class m260814_022939_convert_gateway_fields_to_layouts extends Migration
 	#[\Override]
 	public function safeUp(): bool
 	{
+		$projectConfig = Craft::$app->getProjectConfig();
+		$readOnly = $projectConfig->readOnly;
+		$projectConfig->readOnly = false;
+
+		try {
+			return $this->convertGatewayFields();
+		} finally {
+			$projectConfig->readOnly = $readOnly;
+		}
+	}
+
+	private function convertGatewayFields(): bool
+	{
 		$fileConfig = Craft::$app->getConfig()->getConfigFromFile(FosterCheckout::HANDLE);
 		$gateways = is_array($fileConfig) && is_array($fileConfig['paymentGateways'] ?? null)
 			? $fileConfig['paymentGateways']
@@ -63,7 +76,7 @@ class m260814_022939_convert_gateway_fields_to_layouts extends Migration
 
 				$field = Craft::$app->getFields()->getFieldByHandle($fieldHandle);
 
-				// A handle with no matching field never saved a value, so there is nothing to carry over.
+				// A handle with no matching field never saved a value, so there is nothing to convert.
 				if ($field === null) {
 					continue;
 				}

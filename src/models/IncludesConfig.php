@@ -23,7 +23,6 @@ class IncludesConfig extends Model
 	{
 		parent::__construct($config);
 
-		// Always ensure there's no leading or trailing slashes
 		$this->head = trim($this->head, '/');
 		$this->body = trim($this->body, '/');
 	}

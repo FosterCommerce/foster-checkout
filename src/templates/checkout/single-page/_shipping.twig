@@ -72,6 +72,8 @@
 		</p>
 		<p x-show="!hasShippingMethods && !loadingShippingMethods">{{ 'shipping.noMethodAvailable'|t('foster-checkout') }}.</p>
 
+		{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'shippingMethod', panel: 'shipping', showRequired: true } %}
+
 		{% set note = craft.fostercheckout.note('shippingMethod', {cart}) %}
 		{% if note %}
 			<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">

@@ -1,0 +1,37 @@
+{% extends "foster-checkout/_layouts/settings" %}
+{% import "_includes/forms" as forms %}
+
+{% set selectedSubnavItem = 'fields' %}
+{% set title = ('settings.fields.position.' ~ position)|t('foster-checkout') %}
+{% set docTitle = title %}
+
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
+{% set fullPageForm = not readOnly %}
+
+{% if readOnly %}
+	{% set contentNotice = readOnlyNotice() %}
+{% endif %}
+
+{% set crumbs = [
+	{ label: 'Settings'|t('app'), url: url('settings') },
+	{ label: 'Plugins'|t('app'), url: url('settings/plugins') },
+	{ label: 'nav.checkout'|t('foster-checkout'), url: url('foster-checkout/settings/appearance') },
+	{ label: 'nav.fields'|t('foster-checkout'), url: url('foster-checkout/settings/fields') },
+] %}
+
+{% block content %}
+	{% if not readOnly %}
+		{{ actionInput('foster-checkout/settings/save-field') }}
+		{{ hiddenInput('position', position) }}
+		{{ redirectInput('foster-checkout/settings/fields/' ~ position) }}
+	{% endif %}
+
+	<p>{{ ('settings.fields.position.' ~ position ~ 'Help')|t('foster-checkout') }}</p>
+
+	<p>{{ 'settings.fields.help'|t('foster-checkout') }}</p>
+
+	{{ forms.fieldLayoutDesignerField({
+		fieldLayout: fieldLayout,
+		disabled: readOnly,
+	}) }}
+{% endblock %}

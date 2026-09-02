@@ -1,0 +1,39 @@
+{% extends "foster-checkout/_layouts/settings" %}
+
+{% set selectedSubnavItem = 'fields' %}
+{% set title = 'nav.fields'|t('foster-checkout') %}
+{% set docTitle = title %}
+
+{% block content %}
+
+	<p>{{ 'settings.fields.intro'|t('foster-checkout') }}</p>
+
+	<table class="data fullwidth">
+		<thead>
+			<tr>
+				<th scope="col">{{ 'settings.fields.position'|t('foster-checkout') }}</th>
+				<th scope="col">{{ 'settings.gateways.fields'|t('foster-checkout') }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for position in checkoutPositions %}
+				{% set positionFields = craft.fostercheckout.checkoutFields(position) %}
+				<tr>
+					<th scope="row" data-title="{{ 'settings.fields.position'|t('foster-checkout') }}">
+						<a href="{{ url('foster-checkout/settings/fields/' ~ position) }}">
+							{{ ('settings.fields.position.' ~ position)|t('foster-checkout') }}
+						</a>
+						<span class="light code">{{ position }}</span>
+					</th>
+					<td data-title="{{ 'settings.gateways.fields'|t('foster-checkout') }}">
+						{%- if positionFields|length -%}
+							{{ positionFields|column('label')|join(', ') }}
+						{%- else -%}
+							<span class="light">{{ 'settings.gateways.noFields'|t('foster-checkout') }}</span>
+						{%- endif -%}
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+{% endblock %}

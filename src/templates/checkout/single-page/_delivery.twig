@@ -147,6 +147,8 @@
 			</template>
 		</div>
 
+		{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'shippingAddress', showRequired: true } %}
+
 		{% set note = craft.fostercheckout.note('shippingAddress', {cart}) %}
 		{% if note %}
 			<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">

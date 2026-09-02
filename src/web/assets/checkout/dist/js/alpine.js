@@ -5097,6 +5097,7 @@ function disableScrolling() {
 }
 var module_default = src_default;
 const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+const isEmptyValue = (value) => Array.isArray(value) ? value.length === 0 : String(value ?? "").trim() === "";
 const asList = (value) => Array.isArray(value) ? value : Object.values(value ?? {});
 const CARD_FIELDS = ["number", "month", "year", "cvv"];
 const AUTHORIZE_ERROR_FIELDS = {
@@ -5146,7 +5147,6 @@ const SinglePageCheckout = (props) => {
       discounts: [],
       vouchers: []
     },
-    noAddressLabel: props.noAddressLabel ?? "",
     payButtonText: props.payButtonText ?? "",
     processingLabel: props.processingLabel ?? "",
     placingOrderLabel: props.placingOrderLabel ?? "",
@@ -5329,8 +5329,28 @@ const SinglePageCheckout = (props) => {
       }
       return this.panelFieldsReady("delivery");
     },
+    // The pay button is disabled, so nothing submits to raise these the usual way
+    get missingRequiredLabels() {
+      const labels = [];
+      this.$root.querySelectorAll("[data-fc-field]").forEach((element) => {
+        const data2 = window.Alpine.$data(element);
+        if (!data2?.label || !data2.isRequired?.()) {
+          return;
+        }
+        if (isEmptyValue(data2.value ?? data2.modelValue)) {
+          labels.push(data2.label);
+        }
+      });
+      return labels;
+    },
+    // Required fields can be configured in any panel, so payment checks them all
+    get checkoutFieldsReady() {
+      return [...this.$root.querySelectorAll("[data-fc-panel]")].every(
+        (section) => this.fieldsReadyIn(section)
+      );
+    },
     get canPay() {
-      return this.pending === 0 && !this.saveTimer && this.statusTone !== "error" && this.hasEmail && this.hasShippingSelection && this.cartHasShippingAddress && this.hasShippingMethod && this.hasBilling && this.deliveryReadyForPay && !this.loadingShippingMethods;
+      return this.checkoutFieldsReady && this.pending === 0 && !this.saveTimer && this.statusTone !== "error" && this.hasEmail && this.hasShippingSelection && this.cartHasShippingAddress && this.hasShippingMethod && this.hasBilling && this.deliveryReadyForPay && !this.loadingShippingMethods;
     },
     get payButtonLabel() {
       return `${this.payButtonText} ${this.totals.totalAsCurrency || ""}`.trim();
@@ -5368,19 +5388,7 @@ const SinglePageCheckout = (props) => {
       );
       return isManual ? this.placingOrderLabel : this.processingLabel;
     },
-    formatAmountLikeExisting(amount) {
-      const reference = this.totals.totalAsCurrency || this.totals.itemsAsCurrency || this.totals.shippingAsCurrency || "";
-      const prefixMatch = reference.match(/^[^\d-]+/);
-      const numeric = Number(amount);
-      if (!prefixMatch || !Number.isFinite(numeric)) {
-        return String(amount);
-      }
-      const formatted = Math.abs(numeric).toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-      return `${numeric < 0 ? "-" : ""}${prefixMatch[0]}${formatted}`;
-    },
+    // The order total is left to the save that follows, which returns it formatted for the store
     applySelectedMethodTotals() {
       const method = this.shippingMethods.find(
         (item) => item.handle === this.shippingMethodHandle
@@ -5388,20 +5396,11 @@ const SinglePageCheckout = (props) => {
       if (!method) {
         return;
       }
-      const nextShipping = Number(method.price);
-      const prevShipping = Number(this.totals.shipping);
-      const prevTotal = Number(this.totals.total);
-      const nextTotal = Number.isFinite(nextShipping) && Number.isFinite(prevShipping) && Number.isFinite(prevTotal) ? prevTotal - prevShipping + nextShipping : null;
-      const totals = {
+      this.totals = {
         ...this.totals,
-        shipping: Number.isFinite(nextShipping) ? nextShipping : this.totals.shipping,
+        shipping: Number(method.price),
         shippingAsCurrency: method.priceAsCurrency
       };
-      if (nextTotal !== null) {
-        totals.total = nextTotal;
-        totals.totalAsCurrency = this.formatAmountLikeExisting(nextTotal);
-      }
-      this.totals = totals;
     },
     panelStatusLabel(panel) {
       const tone = this.panelStatus[panel];
@@ -5490,6 +5489,13 @@ const SinglePageCheckout = (props) => {
     panelFieldsReady(panel, handles = null, showRequired = false) {
       return this.fieldsReadyIn(this.panelScope(panel), showRequired, handles);
     },
+    // panelScope narrows to the address being edited, which leaves a position's own fields unread
+    panelSectionReady(panel, showRequired = false) {
+      return this.fieldsReadyIn(
+        this.$root.querySelector(`[data-fc-panel="${panel}"]`),
+        showRequired
+      );
+    },
     fieldsReadyIn(scope2, showRequired = false, handles = null) {
       if (!scope2) {
         return true;
@@ -5514,13 +5520,13 @@ const SinglePageCheckout = (props) => {
     },
     canSavePanel(panel) {
       if (panel === "delivery" && !this.useNewAddress && this.shippingAddressId) {
-        return true;
+        return this.panelSectionReady(panel);
       }
       if (panel === "payment" && this.billingSameAsShipping) {
-        return true;
+        return this.panelSectionReady(panel);
       }
       if (panel === "payment" && !this.useNewBillingAddress && this.billingAddressId) {
-        return true;
+        return this.panelSectionReady(panel);
       }
       if (panel === "shipping") {
         return Boolean(this.shippingMethodHandle);
@@ -5638,6 +5644,10 @@ const SinglePageCheckout = (props) => {
         if (name.endsWith("_radio") || name.endsWith("_display")) {
           return;
         }
+        if (name.endsWith("[]")) {
+          payload[name] = [...payload[name] ?? [], element.value];
+          return;
+        }
         payload[name] = element.value;
       });
       return payload;
@@ -5736,6 +5746,10 @@ const SinglePageCheckout = (props) => {
         if (value === void 0 || value === null) {
           return;
         }
+        if (Array.isArray(value)) {
+          value.forEach((entry) => body.append(key, String(entry)));
+          return;
+        }
         body.set(key, String(value));
       });
       const response = await fetch(url, {
@@ -5781,6 +5795,9 @@ const SinglePageCheckout = (props) => {
       return flattened;
     },
     errorKeyToName(key) {
+      if (key.startsWith("field:")) {
+        return `fields[${key.slice(6)}]`;
+      }
       if (key.includes("[")) {
         return key;
       }
@@ -6123,16 +6140,13 @@ const SinglePageCheckout = (props) => {
       if (!scope2) {
         return;
       }
-      const preview = this.formatAddress(
+      this.shippingPreview = this.formatAddress(
         this.addressFieldsFromPayload(
           this.collectNamedFields(scope2),
           "shippingAddress["
         ),
         scope2
       );
-      if (preview) {
-        this.shippingPreview = preview;
-      }
     },
     formatAddress(fields, scope2, address = null) {
       if (!fields || typeof fields !== "object") {
@@ -6411,10 +6425,6 @@ const SinglePageCheckout = (props) => {
     },
     bindPayOverlay() {
       const form = this.$refs.paymentForm;
-      if (!form || form.dataset.fcPayOverlay === "true") {
-        return;
-      }
-      form.dataset.fcPayOverlay = "true";
       form.addEventListener(
         "click",
         (event) => {
@@ -6553,7 +6563,7 @@ const SinglePageCheckout = (props) => {
       if (!/^\d{13,19}$/.test(number)) {
         errors.number = this.cardNumberError;
       }
-      if (!monthValue || month < 1 || month > 12) {
+      if (!/^\d{1,2}$/.test(monthValue) || month < 1 || month > 12) {
         errors.month = this.cardMonthError;
       }
       if (!/^\d{2}$|^\d{4}$/.test(yearValue)) {
@@ -6733,6 +6743,7 @@ const setErrors = (field, messages) => {
 };
 const ClearableInput = (props) => {
   return {
+    label: props.label || "",
     name: props.name,
     value: props.value,
     type: props.type || "text",
@@ -6745,7 +6756,7 @@ const ClearableInput = (props) => {
     requiredError: props.requiredError || "",
     invalidEmailError: props.invalidEmailError || "",
     showButton: false,
-    touched: false,
+    touched: (props.errors || []).length > 0,
     props,
     input() {
       this.showButton = this.value !== "";
@@ -6801,6 +6812,7 @@ const ClearableInput = (props) => {
 };
 const SearchableSelect = (props) => {
   return {
+    label: props.label || "",
     id: props.id || `ss-${Math.random().toString(36).slice(2)}`,
     name: props.name || "select",
     placeholder: props.placeholder || "Select",
@@ -6817,7 +6829,7 @@ const SearchableSelect = (props) => {
     activeIndex: 0,
     selectedOption: null,
     lastPinned: null,
-    touched: false,
+    touched: (props.errors || []).length > 0,
     init() {
       const fallbackSelect = this.$refs.fallback;
       if (fallbackSelect) {
@@ -6955,10 +6967,6 @@ const SearchableSelect = (props) => {
     get hasOptions() {
       return (this.filteredOptions?.length ?? 0) > 0;
     },
-    isLastPinned(option) {
-      const pinned = this.filteredOptions.filter((option2) => option2.pinned);
-      return pinned?.length && pinned[pinned.length - 1] === option;
-    },
     labelId() {
       return `${this.id}-label`;
     },
@@ -7073,7 +7081,6 @@ const SearchableSelect = (props) => {
         this.selectOption(option);
       }
     },
-    // --- selection ---
     selectOption(option) {
       const wasOpen = this.open;
       this.selectedOption = option;
@@ -7192,7 +7199,7 @@ const LineItem = (options) => {
       this.qty = 0;
       this.post("remove");
     },
-    // Button presses land in bursts, so only the final quantity is posted
+    // Button presses arrive in bursts, so only the final quantity is posted
     schedulePost(delay3 = 500) {
       this.clearPending();
       this.postTimer = setTimeout(() => this.post("update"), delay3);
@@ -7216,15 +7223,56 @@ const LineItem = (options) => {
     }
   };
 };
+const SimpleField = (props) => {
+  return {
+    label: props.label || "",
+    value: props.value ?? "",
+    required: Boolean(props.required),
+    requiredError: props.requiredError || "",
+    errors: props.errors || [],
+    // A field rendered with an error has already been flagged, so validate keeps reporting it
+    touched: (props.errors || []).length > 0,
+    isRequired() {
+      return this.required;
+    },
+    validate(showRequired = false) {
+      if (!this.isRequired() || !isEmptyValue(this.value)) {
+        this.errors = [];
+        return true;
+      }
+      this.errors = showRequired || this.touched ? [this.requiredError] : [];
+      return false;
+    }
+  };
+};
+const ScrollableItems = () => {
+  return {
+    overflowing: false,
+    atEnd: false,
+    init() {
+      new ResizeObserver(() => this.measure()).observe(this.$refs.items);
+    },
+    measure() {
+      const viewport = this.$refs.viewport;
+      this.overflowing = viewport.scrollHeight > viewport.clientHeight;
+      this.measurePosition();
+    },
+    measurePosition() {
+      const viewport = this.$refs.viewport;
+      this.atEnd = viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 4;
+    }
+  };
+};
 const RadioInput = (props) => {
   return {
+    label: props.label || "",
     name: props.name,
     value: props.value || "",
     required: props.required || false,
     errors: props.errors || [],
     success: props.success || [],
     requiredError: props.requiredError || "",
-    touched: false,
+    touched: (props.errors || []).length > 0,
     isRequired() {
       return Boolean(this.required);
     },
@@ -7270,6 +7318,8 @@ const CheckoutTracking = (props) => {
   };
 };
 module_default$1.plugin(module_default);
+module_default$1.data("ScrollableItems", ScrollableItems);
+module_default$1.data("SimpleField", SimpleField);
 module_default$1.data("CheckoutTracking", CheckoutTracking);
 module_default$1.data("ClearableInput", ClearableInput);
 module_default$1.data("RadioInput", RadioInput);

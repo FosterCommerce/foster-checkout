@@ -56,7 +56,7 @@ class FosterCheckout extends Plugin
 	/**
 	 * @var array<int, string>
 	 */
-	private const array SETTINGS_SECTIONS = ['appearance', 'features', 'products', 'gateways', 'general'];
+	private const array SETTINGS_SECTIONS = ['appearance', 'features', 'products', 'gateways', 'fields', 'general'];
 
 	/**
 	 * @var array<string, string>
@@ -196,7 +196,6 @@ class FosterCheckout extends Plugin
 		'Worcestershire' => 'Worcestershire',
 	];
 
-	// Craft only runs pending migrations when this is greater than the version it has stored.
 	public string $schemaVersion = '1.3.0';
 
 	public bool $hasCpSection = true;
@@ -216,13 +215,11 @@ class FosterCheckout extends Plugin
 
 		Craft::setAlias('@fostercheckout', __DIR__);
 
-		// Defer most setup tasks until Craft is fully initialized
 		Craft::$app->onInit(function (): void {
 			$this->registerComponents();
 			$this->attachEventHandlers();
 		});
 
-		// Translations
 		Craft::$app->i18n->translations['foster-checkout'] = [
 			'class' => PhpMessageSource::class,
 			'sourceLanguage' => 'en',
@@ -283,7 +280,7 @@ class FosterCheckout extends Plugin
 			];
 		}
 
-		return $navItem['subnav'] === [] ? null : $navItem;
+		return ($navItem['subnav'] ?? []) === [] ? null : $navItem;
 	}
 
 	#[\Override]
@@ -415,6 +412,57 @@ class FosterCheckout extends Plugin
 	}
 
 	/**
+	 * Craft reads required from the order's own field layout, so a checkout layout's own flag needs a rule.
+	 */
+	private function requireCheckoutFields(): void
+	{
+		Event::on(
+			Order::class,
+			Model::EVENT_DEFINE_RULES,
+			function (DefineRulesEvent $event): void {
+				$request = Craft::$app->getRequest();
+
+				if (! $request instanceof WebRequest || ! $request->getIsSiteRequest()) {
+					return;
+				}
+
+				// A cart is filled in a step at a time, so these are only required to pay
+				$action = $request->getBodyParam('action');
+
+				if (! is_string($action) || ! str_starts_with($action, 'commerce/payments/')) {
+					return;
+				}
+
+				$order = $event->sender;
+
+				if (! $order instanceof Order) {
+					return;
+				}
+
+				foreach (CheckoutFieldLayouts::CHECKOUT_POSITIONS as $position) {
+					$layout = $this->checkoutFieldLayouts->getCheckoutFieldLayout($position);
+
+					foreach ($layout->getVisibleCustomFieldElements($order) as $layoutElement) {
+						if (! $layoutElement->required) {
+							continue;
+						}
+
+						$field = $layoutElement->getField();
+
+						// A field value can be an object or a bool, which the default emptiness test never
+						// counts as empty, so the field decides for itself as it does in Craft's own rules.
+						$event->rules[] = [
+							"field:{$field->handle}",
+							'required',
+							'isEmpty' => static fn (mixed $value): bool => $field->isValueEmpty($value, $order),
+						];
+					}
+				}
+			}
+		);
+	}
+
+	/**
 	 * The address field layout is shared with the control panel, so a field a store only wants from
 	 * customers is required here rather than there.
 	 */
@@ -457,9 +505,24 @@ class FosterCheckout extends Plugin
 
 	private function attachEventHandlers(): void
 	{
+		$this->registerTwigVariable();
+		$this->registerTemplateRoots();
+		$this->registerPermissions();
+		$this->registerCpRoutes();
+		$this->registerSiteRoutes();
+		$this->addCountyToUkAddresses();
+		$this->labelUkAdministrativeAreaAsCounty();
+		$this->addCheckoutStateToCartResponses();
+		$this->flashOrderNoticesOnce();
+		$this->listUkCounties();
+	}
+
+	private function registerTwigVariable(): void
+	{
 		$this->allowPostieRatesOnSinglePageCheckout();
 		$this->allowEmptyPhoneOnSinglePageCartSave();
 		$this->requireCheckoutAddressFields();
+		$this->requireCheckoutFields();
 
 		Event::on(
 			CraftVariable::class,
@@ -468,12 +531,15 @@ class FosterCheckout extends Plugin
 				/** @var CraftVariable $variable */
 				$variable = $e->sender;
 
-				// Attach a service:
 				$variable->set('fostercheckout', Checkout::class);
 			}
 		);
 
 		/* Register our plugins templates directory so Craft knows to look there  */
+	}
+
+	private function registerTemplateRoots(): void
+	{
 		Event::on(
 			View::class,
 			View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
@@ -481,7 +547,10 @@ class FosterCheckout extends Plugin
 				$event->roots['foster-checkout'] = __DIR__ . '/templates';
 			}
 		);
+	}
 
+	private function registerPermissions(): void
+	{
 		Event::on(
 			UserPermissions::class,
 			UserPermissions::EVENT_REGISTER_PERMISSIONS,
@@ -511,7 +580,10 @@ class FosterCheckout extends Plugin
 				];
 			}
 		);
+	}
 
+	private function registerCpRoutes(): void
+	{
 		Event::on(
 			UrlManager::class,
 			UrlManager::EVENT_REGISTER_CP_URL_RULES,
@@ -524,15 +596,19 @@ class FosterCheckout extends Plugin
 				}
 
 				$event->rules[self::HANDLE . '/settings/gateways/<gatewayHandle:{handle}>'] = self::HANDLE . '/settings/edit-gateway';
+				$event->rules[self::HANDLE . '/settings/fields/<position:{handle}>'] = self::HANDLE . '/settings/edit-field';
 			}
 		);
 
 		/* Register our site URL rules based on the plugins 'paths' setting */
+	}
+
+	private function registerSiteRoutes(): void
+	{
 		Event::on(
 			UrlManager::class,
 			UrlManager::EVENT_REGISTER_SITE_URL_RULES,
 			function (RegisterUrlRulesEvent $event): void {
-				// Get the paths from the settings
 				$paths = $this->checkout->settings()->paths;
 				$checkoutPath = $paths->checkout;
 
@@ -553,8 +629,10 @@ class FosterCheckout extends Plugin
 
 		// The postal service ignores the county, but UK addresses are normally written with one.
 		// County names are inconsistent enough that the field stays optional.
+	}
 
-		// Adds the Administrative area to UK addresses
+	private function addCountyToUkAddresses(): void
+	{
 		Event::on(
 			Addresses::class,
 			Addresses::EVENT_DEFINE_USED_FIELDS,
@@ -564,8 +642,10 @@ class FosterCheckout extends Plugin
 				}
 			}
 		);
+	}
 
-		// Changes the label of the Administrative area field to "County" for UK addresses
+	private function labelUkAdministrativeAreaAsCounty(): void
+	{
 		Event::on(
 			Addresses::class,
 			Addresses::EVENT_DEFINE_FIELD_LABEL,
@@ -578,7 +658,10 @@ class FosterCheckout extends Plugin
 				}
 			}
 		);
+	}
 
+	private function addCheckoutStateToCartResponses(): void
+	{
 		Event::on(
 			BaseFrontEndController::class,
 			BaseFrontEndController::EVENT_MODIFY_CART_INFO,
@@ -602,9 +685,12 @@ class FosterCheckout extends Plugin
 				$event->cartInfo['fosterCheckout'] = $live;
 			}
 		);
+	}
 
-		// Commerce persists a coupon notice on the order, so the cart page would have to write
-		// on a GET to make it appear only once. A flash survives the redirect and expires itself.
+	// Commerce persists a coupon notice on the order, so the cart page would have to write
+	// on a GET to make it appear only once. A flash survives the redirect and expires itself.
+	private function flashOrderNoticesOnce(): void
+	{
 		Event::on(
 			Order::class,
 			Order::EVENT_BEFORE_APPLY_ADD_NOTICE,
@@ -622,8 +708,11 @@ class FosterCheckout extends Plugin
 				$event->isValid = false;
 			}
 		);
+	}
 
-		// A 'reasonable' list of UK county names
+	// A 'reasonable' list of UK county names
+	private function listUkCounties(): void
+	{
 		Event::on(
 			Addresses::class,
 			Addresses::EVENT_DEFINE_ADDRESS_SUBDIVISIONS,

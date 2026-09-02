@@ -9,12 +9,14 @@
 {% set autocomplete = autocomplete ?? false %}
 {% set minLength = minLength ?? false %}
 {% set maxLength = maxLength ?? false %}
-{% set max = max ?? false %}
-{% set min = min ?? false %}
+{% set max = max ?? null %}
+{% set min = min ?? null %}
+{% set step = step ?? null %}
 
 <div
 	data-fc-field
 	x-data="ClearableInput({
+		label: {{ (label|default(''))|json_encode }},
 		name: '{{ name|default('') }}',
 		value: '{{ value|default('') }}',
 		{# These closures resolve against the address form's scope, so only address fields may pass them. #}
@@ -32,8 +34,10 @@
 		errors: {{ errors|default([])|json_encode }},
 		success: {{ success|default([])|json_encode }}
 	})">
-	{% if label|default %}
-		<label for="{{ fieldId }}" class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}" >
+	{% set floatingLabel = label|default and not hideLabel|default and craft.fostercheckout.settings.branding.labelStyle|default('floating') == 'floating' %}
+
+	{% if label|default and not floatingLabel %}
+		<label for="{{ fieldId }}" class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}">
 			{{ label }}<span x-text="isRequired() ? '*' : ''"></span>
 		</label>
 	{% endif %}
@@ -48,15 +52,16 @@
 			{{ autocomplete ? "autocomplete=#{autocomplete|default('')}" }}
 			{{ minLength ? "minlength=#{minLength}" }}
 			{{ maxLength ? "maxlength=#{maxLength}" }}
-			{{ min ? "min=#{min}" }}
-			{{ max ? "max=#{max}" }}
-			class="w-full h-12 pl-4 pr-12 bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300 js-clearable"
+			{{ min is not null ? "min=#{min}" }}
+			{{ max is not null ? "max=#{max}" }}
+			{{ step is not null ? "step=#{step}" }}
+			class="peer w-full h-12 pl-4 pr-12 {{ floatingLabel ? 'pt-5 pb-1.5 leading-5' : '' }} bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300 js-clearable"
 			:class="{
 				'text-red-500 border-red-500 focus:border-red-500': errors.length,
 				'text-gray-800 border-green-500 focus:border-green-500': success.length,
 				'text-gray-800 border-gray-250 focus:border-black': !errors.length && !success.length
 			}"
-			placeholder="{{ placeholder|default('') }}"
+			placeholder="{{ floatingLabel ? ' ' : placeholder|default('') }}"
 			:aria-invalid="errors.length ? true : false"
 			aria-errormessage="{{ fieldId }}-error"
 			@input="input"
@@ -65,6 +70,15 @@
 			{%- if action|default -%}x-init="{{ action }}" {%- endif -%}
 			:required="isRequired()"
 		/>
+		{% if floatingLabel %}
+			<label
+				for="{{ fieldId }}"
+				class="absolute left-4 top-1.5 text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-gray-500"
+			>
+				{{ label }}<span x-text="isRequired() ? '*' : ''"></span>
+			</label>
+		{% endif %}
+
 		<button
 			type="button"
 			x-ref="button"
@@ -76,7 +90,7 @@
 			@blur="showButton = false"
 			@click="clear()"
 		>
-			<span class="sr-only">{{ 'Clear this field'|t('foster-checkout') }}</span>
+			<span class="sr-only">{{ 'misc.clearField'|t('foster-checkout') }}</span>
 			<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" class="fill-current"
 					 aria-hidden="true">
 				<path

@@ -38,7 +38,7 @@
 
 
 	<div class="mt-10 pb-28 lg:pb-32">
-		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6 xl:gap-8">
 			<main
 				x-data="{
 				// billing selection
@@ -231,6 +231,8 @@
 
 									</div>
 
+									{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'billing' } %}
+
 									{% set note = craft.fostercheckout.note('billing', {cart}) %}
 									{% if note %}
 										<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
@@ -258,7 +260,7 @@
 			</main>
 
 			<aside>
-				<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
+				<div class="grid grid-cols-1 gap-10 lg:sticky lg:top-4 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 					<div class="grid grid-cols-1 gap-6">
 						<div class="flex justify-between items-center gap-4">
 							<h2 class="text-xl font-bold text-gray-800 leading-snug">
@@ -269,13 +271,7 @@
 							</a>
 						</div>
 
-						<ul class="grid grid-cols-1 gap-4">
-							{% for lineItem in cart.lineItems %}
-								<li>
-									{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem } %}
-								</li>
-							{% endfor %}
-						</ul>
+						{% include 'foster-checkout/_components/app/summary-items' %}
 					</div>
 
 					{% include 'foster-checkout/_components/app/summary-cart' with { estimated: false } %}

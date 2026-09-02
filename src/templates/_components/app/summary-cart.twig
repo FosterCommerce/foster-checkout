@@ -1,16 +1,8 @@
 <article>
 
-	{% set lineItemDiscount = 0 %}
-	{% set orderDiscountAdjustments = [] %}
-	{% for adjustment in cart.adjustments %}
-		{% if adjustment.type == 'discount' %}
-			{% if adjustment.lineItemId %}
-				{% set lineItemDiscount = lineItemDiscount + adjustment.amount %}
-			{% else %}
-				{% set orderDiscountAdjustments = orderDiscountAdjustments|merge([adjustment]) %}
-			{% endif %}
-		{% endif %}
-	{% endfor %}
+	{% set orderDiscountAdjustments = cart.adjustments|filter(
+		adjustment => adjustment.type == 'discount' and not adjustment.lineItemId
+	) %}
 
 	<div class="mb-6">
 		{% include 'foster-checkout/_components/app/coupon-code' %}
@@ -20,7 +12,7 @@
 
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">{{ 'summary.itemsLabel'|t('foster-checkout') }}</dt>
-			<dd class="text-right text-black">{{ (cart.itemSubtotal + lineItemDiscount)|commerceCurrency }}</dd>
+			<dd class="text-right text-black">{{ craft.fostercheckout.itemsTotal(cart) }}</dd>
 		</div>
 
 		{% if not cart.shippingAddressId %}
@@ -28,14 +20,6 @@
 				{% include 'foster-checkout/_components/app/estimated-shipping' %}
 			{% endif %}
 
-			{% if craft.fostercheckout.settings.options.enableFreeShippingMessage %}
-				{# TODO: Complete this #}
-				{# <p class="max-w-[210px] -mt-[8px] text-sm text-gray-500">
-					{{ 'summary.addFreeShipping'|t('foster-checkout') }}
-					<strong class="text-black">$24.15</strong>
-					{{ 'summary.freeShippingQualifyMessage.'|t('foster-checkout') }}
-				</p> #}
-			{% endif %}
 
 		{% else %}
 			<div class="flex justify-between items-center gap-4">
@@ -72,7 +56,7 @@
 
 					{% for adj in voucherAdjustments %}
 						{% set matches = adj.description|split('code ') %}
-						{% set code = matches|length > 1 ? matches[1]|trim("'") : 'Voucher/Gift Card' %}
+						{% set code = matches|length > 1 ? matches[1]|trim("'") : 'voucher.fallbackLabel'|t('foster-checkout') %}
 
 						<div class="flex justify-between items-center">
 							<dt class="text-gray-500">{{ code }}</dt>
@@ -118,6 +102,8 @@
 			</div>
 		{% endif %}
 	</dl>
+
+	{% include 'foster-checkout/_components/app/checkout-fields-form' %}
 
 	{% include('foster-checkout/_components/app/order-notes-form') %}
 

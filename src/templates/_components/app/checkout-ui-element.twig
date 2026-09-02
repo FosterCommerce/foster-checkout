@@ -1,0 +1,5 @@
+{% if field.type == 'hr' %}
+	<hr class="border-gray-250">
+{% elseif field.type == 'heading' %}
+	<h3 class="font-medium text-gray-800">{{ field.label }}</h3>
+{% endif %}

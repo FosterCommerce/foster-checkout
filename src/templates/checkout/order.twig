@@ -27,7 +27,7 @@
 {% block body %}
 
 	<div
-		class="grid grid-cols-1 gap-4 mt-10 pb-10 lg:grid-cols-[1fr_380px] lg:gap-6 lg:mt-20 lg:pb-20 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+		class="grid grid-cols-1 gap-4 mt-10 pb-10 lg:grid-cols-[1fr_42%] lg:gap-6 lg:mt-20 lg:pb-20 xl:gap-8">
 
 		<main class="grid grid-cols-1 gap-8">
 			<header>
@@ -193,7 +193,7 @@
 				{% set customerOrderNotesFieldHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
 				{% if customerOrderNotesFieldHandle and order[customerOrderNotesFieldHandle] %}
 					<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
-						<h2 class="text-lg font-medium text-gray-700">Customer Note</h2>
+						<h2 class="text-lg font-medium text-gray-700">{{ 'order.customerNoteHeading'|t('foster-checkout') }}</h2>
 						{{ order[customerOrderNotesFieldHandle]|nl2br }}
 					</div>
 				{% endif %}
@@ -219,7 +219,7 @@
 
 		<aside>
 			<div
-				class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
+				class="grid grid-cols-1 gap-10 lg:sticky lg:top-4 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
 

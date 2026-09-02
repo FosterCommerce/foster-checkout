@@ -1,6 +1,10 @@
 import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
-import { SinglePageCheckout, isValidEmail } from './single-page-checkout.js';
+import {
+	SinglePageCheckout,
+	isEmptyValue,
+	isValidEmail,
+} from './single-page-checkout.js';
 
 const setErrors = (field, messages) => {
 	const next = messages.filter(Boolean);
@@ -17,6 +21,7 @@ const setErrors = (field, messages) => {
 
 const ClearableInput = (props) => {
 	return {
+		label: props.label || '',
 		name: props.name,
 		value: props.value,
 		type: props.type || 'text',
@@ -29,7 +34,7 @@ const ClearableInput = (props) => {
 		requiredError: props.requiredError || '',
 		invalidEmailError: props.invalidEmailError || '',
 		showButton: false,
-		touched: false,
+		touched: (props.errors || []).length > 0,
 		props: props,
 
 		input() {
@@ -100,6 +105,7 @@ const ClearableInput = (props) => {
 
 const SearchableSelect = (props) => {
 	return {
+		label: props.label || '',
 		id: props.id || `ss-${Math.random().toString(36).slice(2)}`,
 		name: props.name || 'select',
 		placeholder: props.placeholder || 'Select',
@@ -115,16 +121,14 @@ const SearchableSelect = (props) => {
 		activeIndex: 0,
 		selectedOption: null,
 		lastPinned: null,
-		touched: false,
+		touched: (props.errors || []).length > 0,
 
 		init() {
-			// Remove the fallback select element
 			const fallbackSelect = this.$refs.fallback;
 			if (fallbackSelect) {
 				fallbackSelect.remove();
 			}
 
-			// Initial sync from modelValue/props to selectedOption
 			if (this.modelValue != null) {
 				const match = this.options.find(
 					(option) =>
@@ -151,21 +155,18 @@ const SearchableSelect = (props) => {
 						this.selectByValue(input.value);
 					}
 
-					// Auto-select if there's only one option
 					if (!this.selectedOption && updatedOptions.length === 1) {
 						this.selectedOption = updatedOptions[0];
 					}
 				});
 			});
 
-			// parent -> child
 			this.$watch('modelValue', (newValue, oldValue) => {
 				if (newValue !== oldValue && this.selectedOption?.value !== newValue) {
 					this.selectByValue(newValue);
 				}
 			});
 
-			// child -> parent
 			this.$watch('selectedOption', (option) => {
 				const next = option ? option.value : null;
 				if (this.modelValue !== next) {
@@ -185,8 +186,6 @@ const SearchableSelect = (props) => {
 			});
 
 			if (!this.selectedOption && this.options.length === 1) {
-				// Once the watchers have all been initialized...
-				// If there is only a single available option, then select it automatically
 				this.selectedOption = this.options[0];
 			}
 		},
@@ -208,7 +207,6 @@ const SearchableSelect = (props) => {
 
 			const val = event.target.value;
 
-			// Try autofill match first
 			if (this.selectByValue(val)) {
 				return;
 			}
@@ -230,7 +228,6 @@ const SearchableSelect = (props) => {
 					this.$refs.search.value = val;
 					this.search = val;
 				}
-				// Reset the trigger input to the current selection
 				event.target.value = this.selectedOption
 					? this.selectedOption.label
 					: '';
@@ -312,11 +309,6 @@ const SearchableSelect = (props) => {
 		get hasOptions() {
 			// TODO This fires multiple times when a component is initialized, and it also fires whenever a listitem is hovered over
 			return (this.filteredOptions?.length ?? 0) > 0;
-		},
-
-		isLastPinned(option) {
-			const pinned = this.filteredOptions.filter((option) => option.pinned);
-			return pinned?.length && pinned[pinned.length - 1] === option;
 		},
 
 		labelId() {
@@ -454,7 +446,6 @@ const SearchableSelect = (props) => {
 			}
 		},
 
-		// --- selection ---
 		selectOption(option) {
 			const wasOpen = this.open;
 			this.selectedOption = option; // watcher will push value into modelValue
@@ -506,7 +497,6 @@ const SearchableSelect = (props) => {
 			}
 
 			if (selectedOption) {
-				// If we found the option, we can clear this value
 				this.tmpInputEventValue = null;
 				this.selectedOption = selectedOption;
 				return selectedOption;
@@ -615,7 +605,7 @@ const LineItem = (options) => {
 			this.post('remove');
 		},
 
-		// Button presses land in bursts, so only the final quantity is posted
+		// Button presses arrive in bursts, so only the final quantity is posted
 		schedulePost(delay = 500) {
 			this.clearPending();
 			this.postTimer = setTimeout(() => this.post('update'), delay);
@@ -643,15 +633,69 @@ const LineItem = (options) => {
 	};
 };
 
+/**
+ * Validation for inputs the panel scan reads, where the input itself needs no behavior.
+ */
+const SimpleField = (props) => {
+	return {
+		label: props.label || '',
+		value: props.value ?? '',
+		required: Boolean(props.required),
+		requiredError: props.requiredError || '',
+		errors: props.errors || [],
+		// A field rendered with an error has already been flagged, so validate keeps reporting it
+		touched: (props.errors || []).length > 0,
+
+		isRequired() {
+			return this.required;
+		},
+
+		validate(showRequired = false) {
+			if (!this.isRequired() || !isEmptyValue(this.value)) {
+				this.errors = [];
+				return true;
+			}
+
+			this.errors = showRequired || this.touched ? [this.requiredError] : [];
+			return false;
+		},
+	};
+};
+
+const ScrollableItems = () => {
+	return {
+		overflowing: false,
+		atEnd: false,
+
+		init() {
+			// Thumbnails load after this runs and change the list height, so watch it rather than measure once
+			new ResizeObserver(() => this.measure()).observe(this.$refs.items);
+		},
+
+		measure() {
+			const viewport = this.$refs.viewport;
+			this.overflowing = viewport.scrollHeight > viewport.clientHeight;
+			this.measurePosition();
+		},
+
+		measurePosition() {
+			const viewport = this.$refs.viewport;
+			this.atEnd =
+				viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 4;
+		},
+	};
+};
+
 const RadioInput = (props) => {
 	return {
+		label: props.label || '',
 		name: props.name,
 		value: props.value || '',
 		required: props.required || false,
 		errors: props.errors || [],
 		success: props.success || [],
 		requiredError: props.requiredError || '',
-		touched: false,
+		touched: (props.errors || []).length > 0,
 
 		isRequired() {
 			return Boolean(this.required);
@@ -697,6 +741,7 @@ const CheckoutTracking = (props) => {
 				headers: { Accept: 'application/json' },
 				keepalive: true,
 			}).catch(() => {
+				// Marketing is not worth failing a checkout over
 				void 0;
 			});
 		},
@@ -704,6 +749,8 @@ const CheckoutTracking = (props) => {
 };
 
 Alpine.plugin(focus);
+Alpine.data('ScrollableItems', ScrollableItems);
+Alpine.data('SimpleField', SimpleField);
 Alpine.data('CheckoutTracking', CheckoutTracking);
 Alpine.data('ClearableInput', ClearableInput);
 Alpine.data('RadioInput', RadioInput);

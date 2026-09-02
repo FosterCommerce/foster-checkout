@@ -24,9 +24,10 @@
 						<span class="block" :class="{ 'font-medium text-black': billingSameAsShipping }">
 							{{ 'billing.sameAsShippingAddress'|t('foster-checkout') }}
 						</span>
-						<span class="block mt-2 text-gray-500">
+						{# An unfilled shipping address is not a missing one, so it goes unremarked #}
+						<span class="block mt-2 text-gray-500" x-show="shippingPreview">
 							<p>
-								<span class="block" x-text="shippingPreview || noAddressLabel">{{ live.shippingPreview ?? 'misc.noAddress'|t('foster-checkout') }}</span>
+								<span class="block" x-text="shippingPreview">{{ live.shippingPreview ?? '' }}</span>
 							</p>
 						</span>
 					</span>
@@ -145,6 +146,8 @@
 			</template>
 		</div>
 	</div>
+
+	{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'billing', panel: 'payment', showRequired: true } %}
 
 	{% set note = craft.fostercheckout.note('billing', {cart}) %}
 	{% if note %}

@@ -1,0 +1,30 @@
+{% if context|default %}
+	{% set fieldId = id|default ? id|namespaceInputId(context) : '' %}
+	{% set fieldName = name|default ? name|namespaceInputName(context) : '' %}
+{% else %}
+	{% set fieldId = id ?? '' %}
+	{% set fieldName = name ?? '' %}
+{% endif %}
+
+<div class="checkbox">
+	{# An unticked box posts nothing, so the hidden input before it clears the value #}
+	<input type="hidden" name="{{ fieldName }}" value="">
+	<input
+		type="checkbox"
+		id="{{ fieldId }}"
+		name="{{ fieldName }}"
+		value="1"
+		class="sr-only"
+		{{ value|default('') ? 'checked' }}
+	>
+	<label
+		class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
+		for="{{ fieldId }}"
+	>
+		{{ label ~ (required|default(false) ? '*' : '') }}
+	</label>
+
+	{% if errors|default([])|length %}
+		<p id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500">{{ errors|join(' ') }}</p>
+	{% endif %}
+</div>

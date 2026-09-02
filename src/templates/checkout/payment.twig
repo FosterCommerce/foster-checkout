@@ -40,7 +40,7 @@
 		  gatewayId: {{ _initialGatewayId ?: 'null' }},
 		}"
 	>
-		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6 xl:gap-8">
 			<main class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
 					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
@@ -132,7 +132,7 @@
 												<ul class="text-gray-500 m-0 list-disc">
 													{% for adj in voucherAdjustments %}
 														{% set matches = adj.description|split('code ') %}
-														{% set code = matches|length > 1 ? matches[1]|trim("'") : 'Voucher/Gift Card' %}
+														{% set code = matches|length > 1 ? matches[1]|trim("'") : 'voucher.fallbackLabel'|t('foster-checkout') %}
 														<li class="ml-5">{{ code }}
 															({{ adj.amount|abs|currency }}
 															applied)</li>
@@ -296,6 +296,7 @@
 																			<div class="sm:col-span-{{ (field.width / 100 * 12)|round }}">
 																				{% include 'foster-checkout/_components/app/checkout-field' with {
 																					field: field,
+																					value: field.value,
 																				} %}
 																			</div>
 																		{% endfor %}
@@ -328,7 +329,7 @@
 			</main>
 
 			<aside>
-				<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
+				<div class="grid grid-cols-1 gap-10 lg:sticky lg:top-4 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 					<div class="grid grid-cols-1 gap-6">
 						<div class="flex justify-between items-center gap-4">
 							<h2 class="text-xl font-bold text-gray-800 leading-snug">
@@ -339,13 +340,7 @@
 							</a>
 						</div>
 
-						<ul class="grid grid-cols-1 gap-4">
-							{% for lineItem in cart.lineItems %}
-								<li>
-									{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem } %}
-								</li>
-							{% endfor %}
-						</ul>
+						{% include 'foster-checkout/_components/app/summary-items' %}
 					</div>
 
 					{% include 'foster-checkout/_components/app/summary-cart' with { estimated: false } %}
@@ -361,23 +356,17 @@
 	</div>
 
 	{% js %}
-	var $paymentForms = document.querySelectorAll('.paymentForm');
+	const paymentForm = document.getElementById('paymentForm');
 
-	if ($paymentForms.length) {
-		$paymentForms.forEach(($paymentForm) => {
+	// A second submit would take a second payment, so the first one claims the form
+	paymentForm.addEventListener('submit', function (event) {
+		if (event.defaultPrevented || paymentForm.dataset.processing) {
+			event.preventDefault();
+			return false;
+		}
 
-			// Only allow the payment form submit to be triggered once.
-			$paymentForm.addEventListener('submit', function(ev) {
-
-				if ($paymentForm.dataset.processing) {
-					ev.preventDefault();
-					return false;
-				}
-
-				$paymentForm.dataset.processing = true;
-			});
-		});
-	}
+		paymentForm.dataset.processing = true;
+	});
 	{% endjs %}
 {% endblock %}
 

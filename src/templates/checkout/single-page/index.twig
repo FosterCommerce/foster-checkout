@@ -77,7 +77,6 @@
 		hasShippingAddress: cart.shippingAddressId ? true : false,
 		couponCode: cart.couponCode ?? '',
 		shippingPreview: live.shippingPreview,
-		noAddressLabel: 'misc.noAddress'|t('foster-checkout'),
 		payButtonText: 'payment.payButtonText'|t('foster-checkout'),
 		processingLabel: 'payment.processing'|t('foster-checkout'),
 		placingOrderLabel: 'payment.placingOrder'|t('foster-checkout'),
@@ -101,7 +100,7 @@
 		{{ include('foster-checkout/_components/app/flash-message') }}
 		{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
 
-		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6 xl:gap-8">
 			<main class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0 lg:col-start-1 lg:row-start-1">
 				<p class="sr-only" role="status" aria-live="polite" aria-atomic="true" x-text="status"></p>
 				<div class="grid grid-cols-1 gap-6">
@@ -131,20 +130,17 @@
 	</div>
 
 	{% js %}
-	var paymentForms = document.querySelectorAll('#paymentForm');
+	const paymentForm = document.getElementById('paymentForm');
 
-	if (paymentForms.length) {
-		paymentForms.forEach((paymentForm) => {
-			paymentForm.addEventListener('submit', function (event) {
-				if (event.defaultPrevented || paymentForm.dataset.processing) {
-					event.preventDefault();
-					return false;
-				}
+	// A second submit would take a second payment, so the first one claims the form
+	paymentForm.addEventListener('submit', function (event) {
+		if (event.defaultPrevented || paymentForm.dataset.processing) {
+			event.preventDefault();
+			return false;
+		}
 
-				paymentForm.dataset.processing = true;
-			});
-		});
-	}
+		paymentForm.dataset.processing = true;
+	});
 	{% endjs %}
 {% endblock %}
 

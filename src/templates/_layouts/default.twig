@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="{{ craft.app.language }}" dir="{{ craft.app.locale.getOrientation() }}">
 <head>
 	<meta charset="UTF-8"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -30,15 +30,13 @@
 
 	<link rel="preconnect" href="https://fonts.googleapis.com"/>
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-	{# The JS bundle is not parsed until the end of the body, so the browser would otherwise
-	   only discover esm.sh once Alpine is already needed. #}
-	<link rel="preconnect" href="https://esm.sh" crossorigin/>
 	<link
 		href="https://fonts.googleapis.com/css2?family={{ craft.fostercheckout.settings.branding.font|split(' ')|join('+') }}:wght@300;400;500;600;700&display=swap"
 		rel="stylesheet"
 	/>
 
-	<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+	{# Self-hosted so the payment page loads no unpinned third-party script #}
+	<script src="{{ craft.fostercheckout.tailwindBundle }}"></script>
 	{# TODO: Move these Tailwind configs to the build chain instead when we get that running #}
 	<script>
 		tailwind.config = {
@@ -73,10 +71,6 @@
 		}
 	</script>
 	<style>
-		[v-cloak] {
-			opacity: 0;
-		}
-
 		[x-cloak] { display: none !important; }
 
 		{% if craft.fostercheckout.settings.options.enablePageTransitions %}
@@ -92,7 +86,7 @@
 	<style type="text/tailwindcss">
 		@layer utilities {
 			body {
-				font-family: {{ craft.fostercheckout.settings.branding.font ?? 'Rubik' | raw }};
+				font-family: {{ craft.fostercheckout.settings.branding.font }};
 			}
 
 			/* Place any additional custom CSS classes here */
@@ -114,6 +108,16 @@
 				@apply border-[var(--brandColor)];
 			}
 
+			/* A gateway cannot be chosen until the address is complete, so its dot reads inert */
+			.radio-muted input[type="radio"]:checked + label::before {
+				background: radial-gradient(
+					10px circle at center,
+					#9CA3AF 50%,
+					white 51%
+				);
+				@apply border-gray-400;
+			}
+
 			.checkbox {
 				@apply relative;
 			}
@@ -128,7 +132,7 @@
 			}
 
 			.checkbox input[type="checkbox"]:checked + label::before {
-				background: var(--brandColor) 10%;
+				background: var(--brandColor);
 				transform: scale(0.5);
 				@apply border-[var(--brandColor)];
 			}
@@ -145,14 +149,14 @@
 	{% endblock %}
 </head>
 
-<body style="--brandColor: {{ craft.fostercheckout.settings.branding.color ?? '#1F2937' }}; --headerBgColor: {{ craft.fostercheckout.settings.branding.headerBgColor ?? '#F3F3F3' }};">
+<body style="--brandColor: {{ craft.fostercheckout.settings.branding.color }}; --headerBgColor: {{ craft.fostercheckout.settings.branding.headerBgColor }};">
 
 <div>
 
 	{# Main header #}
 	{% include 'foster-checkout/_components/app/header' %}
 
-	<div class="max-w-[1328px] mx-auto px-4 text-gray-800 bg-white sm:px-6">
+	<div class="max-w-[1200px] mx-auto px-4 text-gray-800 bg-white sm:px-6">
 		{# Main body block #}
 		{% block body %}
 		{% endblock %}

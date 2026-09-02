@@ -60,7 +60,7 @@
 							<ul class="text-gray-500 m-0 list-disc">
 								{% for adj in voucherAdjustments %}
 									{% set matches = adj.description|split('code ') %}
-									{% set code = matches|length > 1 ? matches[1]|trim("'") : 'Voucher/Gift Card' %}
+									{% set code = matches|length > 1 ? matches[1]|trim("'") : 'voucher.fallbackLabel'|t('foster-checkout') %}
 									<li class="ml-5">{{ code }}{% if adj.amount %} ({{ adj.amountAsCurrency }} applied){% endif %}</li>
 								{% endfor %}
 							</ul>
@@ -77,6 +77,7 @@
 
 			<p x-show="!canPay && !paying" x-cloak class="mb-4 text-sm text-gray-500">
 				{{ 'checkout.payIncomplete'|t('foster-checkout') }}
+				<span x-show="missingRequiredLabels.length" x-text="missingRequiredLabels.join(', ')"></span>
 			</p>
 
 			<div
@@ -140,7 +141,7 @@
 									x-show="gatewayFits($el)"
 									:class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }"
 								>
-									<div class="relative flex justify-between items-center gap-4 radio">
+									<div class="relative flex justify-between items-center gap-4 radio" :class="{ 'radio-muted': !canPay }">
 										<input
 											id="sp_gateway_{{ gateway.id }}"
 											name="gatewayId"
@@ -251,6 +252,7 @@
 															<div class="sm:col-span-{{ (field.width / 100 * 12)|round }}">
 																{% include 'foster-checkout/_components/app/checkout-field' with {
 																	field: field,
+																	value: field.value,
 																} %}
 															</div>
 														{% endfor %}

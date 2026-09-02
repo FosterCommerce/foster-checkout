@@ -2,9 +2,32 @@
 {% set notesHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
 {% set notesValue = notesHandle ? (cart.getFieldValue(notesHandle) ?? '') : '' %}
 
-<aside class="lg:col-start-2 lg:row-start-1 lg:row-span-2">
-	<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:rounded-lg lg:border lg:border-gray-250' }}">
-		<div class="grid grid-cols-1 gap-6">
+<aside
+	class="order-first lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2"
+	x-data="{ summaryOpen: false }"
+>
+	{# Stacked on a phone the summary would push the form down, so it opens on demand #}
+	<button
+		type="button"
+		class="lg:hidden flex justify-between items-center gap-4 w-full p-4 bg-white border border-gray-250 {{ isFlat ? '' : 'rounded-lg' }}"
+		:aria-expanded="summaryOpen"
+		@click="summaryOpen = !summaryOpen"
+	>
+		<span class="inline-flex items-center gap-2 font-semibold">
+			{{ 'summary.title'|t('foster-checkout') }}
+			<svg class="h-5 w-5 transition-transform duration-150" :class="summaryOpen ? 'rotate-180' : ''" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+				<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"></path>
+			</svg>
+		</span>
+		<span class="font-semibold" x-text="totals.totalAsCurrency">{{ live.totals.totalAsCurrency ?? '' }}</span>
+	</button>
+
+	<div class="grid grid-cols-1 gap-10 mt-4 lg:mt-0 lg:sticky lg:top-4 lg:p-4 lg:bg-white {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:rounded-lg lg:border lg:border-gray-250' }}">
+		{# The fields below take input, so only what a customer reads collapses #}
+		<div
+			class="grid-cols-1 gap-6"
+			:class="summaryOpen ? 'grid' : 'hidden lg:grid'"
+		>
 			<div class="flex justify-between items-center gap-4">
 				<h2 class="text-xl font-bold text-gray-800 leading-snug">
 					{{ 'summary.itemsTitle'|t('foster-checkout') }}
@@ -14,16 +37,9 @@
 				</a>
 			</div>
 
-			<ul class="grid grid-cols-1 gap-4">
-				{% for lineItem in cart.lineItems %}
-					<li>
-						{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem } %}
-					</li>
-				{% endfor %}
-			</ul>
-		</div>
+			{% include 'foster-checkout/_components/app/summary-items' %}
 
-		<article data-fc-panel="summary">
+			<article>
 			<div
 				class="mb-6 px-4 border border-gray-250 {{ isFlat ? '' : 'rounded-lg' }}"
 			>
@@ -214,7 +230,22 @@
 					</form>
 				</div>
 			{% endif %}
-		</article>
+			</article>
+		</div>
+
+		{% set summaryFields = craft.fostercheckout.checkoutFields('summary', cart) %}
+		{% if summaryFields|length %}
+			<div
+				data-fc-panel="summary"
+				data-fc-collect
+				@blur.capture="saveIfValid('summary', $event)"
+				@change="saveIfValid('summary', $event)"
+				@selected="$nextTick(() => saveIfValid('summary', $event))"
+			>
+				{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'summary' } %}
+				{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'summary', positionFields: summaryFields, showRequired: true } %}
+			</div>
+		{% endif %}
 	</div>
 
 	{% include 'foster-checkout/_components/app/global-checkout-note' %}

@@ -21,6 +21,16 @@
 	{% include 'foster-checkout/_components/base/input-radio' with common|merge({
 		options: field.options,
 	}) %}
+{% elseif field.type == 'checkboxes' %}
+	{% include 'foster-checkout/_components/base/input-checkboxes' with common|merge({
+		options: field.options,
+	}) %}
+{% elseif field.type in ['date', 'datetime-local', 'time'] %}
+	{% include 'foster-checkout/_components/base/input-datetime' with common|merge({
+		type: field.type,
+	}) %}
+{% elseif field.type == 'checkbox' %}
+	{% include 'foster-checkout/_components/base/input-checkbox' with common %}
 {% elseif field.type == 'textarea' %}
 	{% include 'foster-checkout/_components/base/input-textarea' with common|merge({
 		placeholder: field.placeholder,
@@ -33,8 +43,9 @@
 		placeholder: field.placeholder,
 		minLength: false,
 		maxLength: field.maxLength ?? false,
-		min: field.min ?? false,
-		max: field.max ?? false,
+		min: field.min,
+		max: field.max,
+		step: field.step,
 		options: [],
 	}) %}
 {% endif %}

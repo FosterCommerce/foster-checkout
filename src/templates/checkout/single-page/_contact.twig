@@ -1,5 +1,6 @@
 {% set subscribeText = craft.fostercheckout.subscribeText()|striptags|trim %}
 {% set klaviyoListId = craft.fostercheckout.settings.options.klaviyoListId %}
+{% set klaviyoEnabled = craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 
 <section
@@ -30,6 +31,8 @@
 	{% if currentUser %}
 		<div class="p-4">
 			<p class="text-black">{{ cart.email }}</p>
+			{# The signed-in branch renders no email form, so these declare their own collect block #}
+			{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'email', panel: 'contact', showRequired: true } %}
 		</div>
 	{% else %}
 	<div
@@ -38,6 +41,7 @@
 		@input="onDetailsChange($event)"
 		@blur.capture="saveIfValid('contact', $event)"
 		@change="saveIfValid('contact', $event)"
+		@selected="$nextTick(() => saveIfValid('contact', $event))"
 	>
 		<div class="grid grid-cols-1 gap-6">
 			{% include 'foster-checkout/_components/base/input-text-clearable' with {
@@ -71,7 +75,7 @@
 			</div>
 		</div>
 
-		{% if klaviyoListId and subscribeText %}
+		{% if klaviyoEnabled and klaviyoListId and subscribeText %}
 			<div
 				x-data="{
 					subscribe: JSON.parse(localStorage.getItem(window.FC_SUBSCRIBE_KEY) ?? 'false'),
@@ -91,6 +95,8 @@
 				</label>
 			</div>
 		{% endif %}
+
+		{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'email', showRequired: true } %}
 
 		{% set note = craft.fostercheckout.note('email', {cart}) %}
 		{% if note %}

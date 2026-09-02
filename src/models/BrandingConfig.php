@@ -12,7 +12,7 @@ class BrandingConfig extends Model
 	public string $color = '#1F2937';
 
 	/**
-	 * The background colour of the header in HEX color
+	 * The background color of the header in HEX color
 	 */
 	public string $headerBgColor = '#F3F3F3';
 
@@ -32,6 +32,11 @@ class BrandingConfig extends Model
 	 * The general component styles. Either 'rounded' (default) or 'flat'
 	 */
 	public string $style = 'rounded';
+
+	/**
+	 * Where field labels sit. Either 'floating' (default), inside the field, or 'above' it
+	 */
+	public string $labelStyle = 'floating';
 
 	/**
 	 * The first part of the text in the title meta tag.

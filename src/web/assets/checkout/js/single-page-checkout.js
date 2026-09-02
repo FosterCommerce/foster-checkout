@@ -1,6 +1,10 @@
 export const isValidEmail = (value) =>
 	/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 
+// Checkboxes hold a list where every other field holds a string
+export const isEmptyValue = (value) =>
+	Array.isArray(value) ? value.length === 0 : String(value ?? '').trim() === '';
+
 const asList = (value) =>
 	Array.isArray(value) ? value : Object.values(value ?? {});
 
@@ -54,7 +58,6 @@ export const SinglePageCheckout = (props) => {
 			discounts: [],
 			vouchers: [],
 		},
-		noAddressLabel: props.noAddressLabel ?? '',
 		payButtonText: props.payButtonText ?? '',
 		processingLabel: props.processingLabel ?? '',
 		placingOrderLabel: props.placingOrderLabel ?? '',
@@ -261,8 +264,36 @@ export const SinglePageCheckout = (props) => {
 			return this.panelFieldsReady('delivery');
 		},
 
+		// The pay button is disabled, so nothing submits to raise these the usual way
+		get missingRequiredLabels() {
+			const labels = [];
+
+			this.$root.querySelectorAll('[data-fc-field]').forEach((element) => {
+				const data = window.Alpine.$data(element);
+
+				// validate() writes the field's errors, so the state is read rather than re-run
+				if (!data?.label || !data.isRequired?.()) {
+					return;
+				}
+
+				if (isEmptyValue(data.value ?? data.modelValue)) {
+					labels.push(data.label);
+				}
+			});
+
+			return labels;
+		},
+
+		// Required fields can be configured in any panel, so payment checks them all
+		get checkoutFieldsReady() {
+			return [...this.$root.querySelectorAll('[data-fc-panel]')].every(
+				(section) => this.fieldsReadyIn(section)
+			);
+		},
+
 		get canPay() {
 			return (
+				this.checkoutFieldsReady &&
 				this.pending === 0 &&
 				!this.saveTimer &&
 				this.statusTone !== 'error' &&
@@ -323,27 +354,7 @@ export const SinglePageCheckout = (props) => {
 			return isManual ? this.placingOrderLabel : this.processingLabel;
 		},
 
-		formatAmountLikeExisting(amount) {
-			const reference =
-				this.totals.totalAsCurrency ||
-				this.totals.itemsAsCurrency ||
-				this.totals.shippingAsCurrency ||
-				'';
-			const prefixMatch = reference.match(/^[^\d-]+/);
-			const numeric = Number(amount);
-
-			if (!prefixMatch || !Number.isFinite(numeric)) {
-				return String(amount);
-			}
-
-			const formatted = Math.abs(numeric).toLocaleString('en-US', {
-				minimumFractionDigits: 2,
-				maximumFractionDigits: 2,
-			});
-
-			return `${numeric < 0 ? '-' : ''}${prefixMatch[0]}${formatted}`;
-		},
-
+		// The order total is left to the save that follows, which returns it formatted for the store
 		applySelectedMethodTotals() {
 			const method = this.shippingMethods.find(
 				(item) => item.handle === this.shippingMethodHandle
@@ -352,30 +363,11 @@ export const SinglePageCheckout = (props) => {
 				return;
 			}
 
-			const nextShipping = Number(method.price);
-			const prevShipping = Number(this.totals.shipping);
-			const prevTotal = Number(this.totals.total);
-			const nextTotal =
-				Number.isFinite(nextShipping) &&
-				Number.isFinite(prevShipping) &&
-				Number.isFinite(prevTotal)
-					? prevTotal - prevShipping + nextShipping
-					: null;
-
-			const totals = {
+			this.totals = {
 				...this.totals,
-				shipping: Number.isFinite(nextShipping)
-					? nextShipping
-					: this.totals.shipping,
+				shipping: Number(method.price),
 				shippingAsCurrency: method.priceAsCurrency,
 			};
-
-			if (nextTotal !== null) {
-				totals.total = nextTotal;
-				totals.totalAsCurrency = this.formatAmountLikeExisting(nextTotal);
-			}
-
-			this.totals = totals;
 		},
 
 		panelStatusLabel(panel) {
@@ -490,6 +482,14 @@ export const SinglePageCheckout = (props) => {
 			return this.fieldsReadyIn(this.panelScope(panel), showRequired, handles);
 		},
 
+		// panelScope narrows to the address being edited, which leaves a position's own fields unread
+		panelSectionReady(panel, showRequired = false) {
+			return this.fieldsReadyIn(
+				this.$root.querySelector(`[data-fc-panel="${panel}"]`),
+				showRequired
+			);
+		},
+
 		fieldsReadyIn(scope, showRequired = false, handles = null) {
 			if (!scope) {
 				return true;
@@ -524,11 +524,11 @@ export const SinglePageCheckout = (props) => {
 				!this.useNewAddress &&
 				this.shippingAddressId
 			) {
-				return true;
+				return this.panelSectionReady(panel);
 			}
 
 			if (panel === 'payment' && this.billingSameAsShipping) {
-				return true;
+				return this.panelSectionReady(panel);
 			}
 
 			if (
@@ -536,7 +536,7 @@ export const SinglePageCheckout = (props) => {
 				!this.useNewBillingAddress &&
 				this.billingAddressId
 			) {
-				return true;
+				return this.panelSectionReady(panel);
 			}
 
 			if (panel === 'shipping') {
@@ -697,6 +697,11 @@ export const SinglePageCheckout = (props) => {
 						return;
 					}
 
+					if (name.endsWith('[]')) {
+						payload[name] = [...(payload[name] ?? []), element.value];
+						return;
+					}
+
 					payload[name] = element.value;
 				});
 
@@ -819,6 +824,11 @@ export const SinglePageCheckout = (props) => {
 					return;
 				}
 
+				if (Array.isArray(value)) {
+					value.forEach((entry) => body.append(key, String(entry)));
+					return;
+				}
+
 				body.set(key, String(value));
 			});
 
@@ -876,6 +886,11 @@ export const SinglePageCheckout = (props) => {
 		},
 
 		errorKeyToName(key) {
+			// Craft reports a custom field error against field:handle; its input is named fields[handle]
+			if (key.startsWith('field:')) {
+				return `fields[${key.slice(6)}]`;
+			}
+
 			if (key.includes('[')) {
 				return key;
 			}
@@ -984,6 +999,7 @@ export const SinglePageCheckout = (props) => {
 					signal
 				);
 			} catch {
+				// Marketing is not worth failing a checkout over
 				void 0;
 			}
 		},
@@ -1004,6 +1020,7 @@ export const SinglePageCheckout = (props) => {
 					this.subscribed = true;
 				}
 			} catch {
+				// Marketing is not worth failing a checkout over
 				void 0;
 			}
 		},
@@ -1312,17 +1329,13 @@ export const SinglePageCheckout = (props) => {
 				return;
 			}
 
-			const preview = this.formatAddress(
+			this.shippingPreview = this.formatAddress(
 				this.addressFieldsFromPayload(
 					this.collectNamedFields(scope),
 					'shippingAddress['
 				),
 				scope
 			);
-
-			if (preview) {
-				this.shippingPreview = preview;
-			}
 		},
 
 		formatAddress(fields, scope, address = null) {
@@ -1682,11 +1695,6 @@ export const SinglePageCheckout = (props) => {
 
 		bindPayOverlay() {
 			const form = this.$refs.paymentForm;
-			if (!form || form.dataset.fcPayOverlay === 'true') {
-				return;
-			}
-
-			form.dataset.fcPayOverlay = 'true';
 			form.addEventListener(
 				'click',
 				(event) => {
@@ -1864,7 +1872,7 @@ export const SinglePageCheckout = (props) => {
 				errors.number = this.cardNumberError;
 			}
 
-			if (!monthValue || month < 1 || month > 12) {
+			if (!/^\d{1,2}$/.test(monthValue) || month < 1 || month > 12) {
 				errors.month = this.cardMonthError;
 			}
 
