@@ -344,9 +344,9 @@ return [
 	'settings.general.zeroValueGateways' => 'Zero value gateways',
 	'settings.general.zeroValueGatewaysHelp' => 'Gateways available when an order totals zero.',
 	'settings.general.hiddenAddressFields' => 'Hidden address fields',
-	'settings.general.hiddenAddressFieldsHelp' => 'Address fields to leave off the checkout. They stay available in the control panel. A field the address layout marks required cannot be hidden, since Craft needs it to validate the address.',
-	'settings.general.requiredAddressFields' => 'Required address fields',
-	'settings.general.requiredAddressFieldsHelp' => 'Address fields to require at the checkout on top of what the address layout asks for. A hidden field is never required, since it is not rendered.',
+	'settings.general.hiddenAddressFieldsHelp' => 'Check the fields to hide from checkout address forms.',
+	'settings.general.requiredAddressFields' => 'Additional required address fields',
+	'settings.general.requiredAddressFieldsHelp' => 'These fields are not required by Craft. Check the ones you want to require on checkout address forms.',
 
 	'settings.general.cart' => 'Cart path',
 	'settings.general.cartHelp' => 'Site-relative path where the cart is accessible.',
