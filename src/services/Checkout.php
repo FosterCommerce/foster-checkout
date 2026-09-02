@@ -292,7 +292,6 @@ class Checkout extends Component
 		/** @var array<array-key, array{name: string, value: string}> $options */
 		$options = collect($lineItem->options)
 			->filter(fn ($value, $name): bool =>
-				// If the line item options are not set, or the name does not start with the line item options, return the option
 				$enableLineItemOptions === true || ! str_starts_with((string) $name, $enableLineItemOptions))
 			->map(fn ($value, $name): array => [
 				'name' => $name,

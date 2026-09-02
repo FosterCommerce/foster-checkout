@@ -7089,7 +7089,6 @@ const SearchableSelect = (props) => {
         this.selectOption(option);
       }
     },
-    // --- selection ---
     selectOption(option) {
       const wasOpen = this.open;
       this.selectedOption = option;

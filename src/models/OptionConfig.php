@@ -110,9 +110,6 @@ class OptionConfig extends Model
 		parent::__construct($config);
 	}
 
-	/**
-	 * A config file naming a removed setting would otherwise throw and take the whole site down.
-	 */
 	#[\Override]
 	public function __set($name, $value): void
 	{

@@ -16,7 +16,7 @@ use yii\web\Response;
 /**
  * Renders the checkout copy screen and handles saves.
  *
- * Copy lives in the database rather than project config so it stays editable on production,
+ * Copy is stored in the database rather than project config so it stays editable on production,
  * where admin changes are disallowed.
  */
 class ContentController extends Controller

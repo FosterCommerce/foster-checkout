@@ -39,7 +39,6 @@ class PathConfig extends Model
 	{
 		parent::__construct($config);
 
-		// Always ensure there's no leading or trailing slashes
 		$this->cart = trim($this->cart, '/');
 		$this->checkout = trim($this->checkout, '/');
 	}

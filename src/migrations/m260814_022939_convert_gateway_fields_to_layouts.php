@@ -21,7 +21,6 @@ class m260814_022939_convert_gateway_fields_to_layouts extends Migration
 	#[\Override]
 	public function safeUp(): bool
 	{
-		// Craft refuses project config writes on a site that disallows admin changes
 		$projectConfig = Craft::$app->getProjectConfig();
 		$readOnly = $projectConfig->readOnly;
 		$projectConfig->readOnly = false;

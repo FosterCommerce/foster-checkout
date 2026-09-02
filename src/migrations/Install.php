@@ -19,7 +19,7 @@ class Install extends Migration
 	{
 		$this->archiveTableIfExists(Table::CONTENT);
 
-		// Checkout copy is admin-editable on production, so it cannot live in project config.
+		// Checkout copy is admin-editable on production, so project config cannot hold it.
 		$this->createTable(Table::CONTENT, [
 			'id' => $this->primaryKey(),
 			'translationKey' => $this->string()->notNull(),

@@ -124,13 +124,11 @@ const SearchableSelect = (props) => {
 		touched: (props.errors || []).length > 0,
 
 		init() {
-			// Remove the fallback select element
 			const fallbackSelect = this.$refs.fallback;
 			if (fallbackSelect) {
 				fallbackSelect.remove();
 			}
 
-			// Initial sync from modelValue/props to selectedOption
 			if (this.modelValue != null) {
 				const match = this.options.find(
 					(option) =>
@@ -157,21 +155,18 @@ const SearchableSelect = (props) => {
 						this.selectByValue(input.value);
 					}
 
-					// Auto-select if there's only one option
 					if (!this.selectedOption && updatedOptions.length === 1) {
 						this.selectedOption = updatedOptions[0];
 					}
 				});
 			});
 
-			// parent -> child
 			this.$watch('modelValue', (newValue, oldValue) => {
 				if (newValue !== oldValue && this.selectedOption?.value !== newValue) {
 					this.selectByValue(newValue);
 				}
 			});
 
-			// child -> parent
 			this.$watch('selectedOption', (option) => {
 				const next = option ? option.value : null;
 				if (this.modelValue !== next) {
@@ -191,8 +186,6 @@ const SearchableSelect = (props) => {
 			});
 
 			if (!this.selectedOption && this.options.length === 1) {
-				// Once the watchers have all been initialized...
-				// If there is only a single available option, then select it automatically
 				this.selectedOption = this.options[0];
 			}
 		},
@@ -214,7 +207,6 @@ const SearchableSelect = (props) => {
 
 			const val = event.target.value;
 
-			// Try autofill match first
 			if (this.selectByValue(val)) {
 				return;
 			}
@@ -236,7 +228,6 @@ const SearchableSelect = (props) => {
 					this.$refs.search.value = val;
 					this.search = val;
 				}
-				// Reset the trigger input to the current selection
 				event.target.value = this.selectedOption
 					? this.selectedOption.label
 					: '';
@@ -460,7 +451,6 @@ const SearchableSelect = (props) => {
 			}
 		},
 
-		// --- selection ---
 		selectOption(option) {
 			const wasOpen = this.open;
 			this.selectedOption = option; // watcher will push value into modelValue
@@ -512,7 +502,6 @@ const SearchableSelect = (props) => {
 			}
 
 			if (selectedOption) {
-				// If we found the option, we can clear this value
 				this.tmpInputEventValue = null;
 				this.selectedOption = selectedOption;
 				return selectedOption;

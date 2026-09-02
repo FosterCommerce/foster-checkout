@@ -196,7 +196,6 @@ class FosterCheckout extends Plugin
 		'Worcestershire' => 'Worcestershire',
 	];
 
-	// Craft only runs pending migrations when this is greater than the version it has stored.
 	public string $schemaVersion = '1.3.0';
 
 	public bool $hasCpSection = true;
@@ -216,13 +215,11 @@ class FosterCheckout extends Plugin
 
 		Craft::setAlias('@fostercheckout', __DIR__);
 
-		// Defer most setup tasks until Craft is fully initialized
 		Craft::$app->onInit(function (): void {
 			$this->registerComponents();
 			$this->attachEventHandlers();
 		});
 
-		// Translations
 		Craft::$app->i18n->translations['foster-checkout'] = [
 			'class' => PhpMessageSource::class,
 			'sourceLanguage' => 'en',
@@ -534,7 +531,6 @@ class FosterCheckout extends Plugin
 				/** @var CraftVariable $variable */
 				$variable = $e->sender;
 
-				// Attach a service:
 				$variable->set('fostercheckout', Checkout::class);
 			}
 		);
@@ -613,7 +609,6 @@ class FosterCheckout extends Plugin
 			UrlManager::class,
 			UrlManager::EVENT_REGISTER_SITE_URL_RULES,
 			function (RegisterUrlRulesEvent $event): void {
-				// Get the paths from the settings
 				$paths = $this->checkout->settings()->paths;
 				$checkoutPath = $paths->checkout;
 
@@ -636,7 +631,6 @@ class FosterCheckout extends Plugin
 		// County names are inconsistent enough that the field stays optional.
 	}
 
-	// Adds the Administrative area to UK addresses
 	private function addCountyToUkAddresses(): void
 	{
 		Event::on(
@@ -650,7 +644,6 @@ class FosterCheckout extends Plugin
 		);
 	}
 
-	// Changes the label of the Administrative area field to "County" for UK addresses
 	private function labelUkAdministrativeAreaAsCounty(): void
 	{
 		Event::on(
