@@ -12,7 +12,8 @@
 {% set autocomplete = autocomplete ?? 'off' %}
 
 {% set fallbackOptions = fallbackOptions|default ? fallbackOptions : options %}
-{% set fallbackClasses = ['w-full h-12 px-4 pt-5 pb-1.5 leading-5 bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300'] %}
+{% set floatingLabel = label|default and craft.fostercheckout.settings.branding.labelStyle|default('floating') == 'floating' %}
+{% set fallbackClasses = ['w-full h-12 px-4 ' ~ (floatingLabel ? 'pt-5 pb-1.5 leading-5' : '') ~ ' bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300'] %}
 {% if errors|default %}
 	{% set fallbackClasses = fallbackClasses|merge(['border-red-500 focus:border-red-500']) %}
 {% else %}
@@ -50,6 +51,11 @@
 
 	<!-- No JS Fallback (standard select element styled to match) -->
 	<div x-ref="fallback" class="relative">
+		{% if label|default and not floatingLabel %}
+			<label for="{{ fieldId }}" class="block mb-2 font-medium text-gray-500">
+				{{ label ~ (required|default ? '*' : '') }}
+			</label>
+		{% endif %}
 		<select
 			id="{{ fieldId }}"
 			name="{{ fieldName }}"
@@ -72,7 +78,7 @@
 				{% endfor %}
 			{% endif %}
 		</select>
-		{% if label|default %}
+		{% if floatingLabel %}
 			<label for="{{ fieldId }}" class="absolute left-4 top-1.5 text-xs text-gray-500 pointer-events-none">
 				{{ label ~ (required|default ? '*' : '') }}
 			</label>
@@ -81,6 +87,16 @@
 
 	<!-- JS Version -->
 	<div x-cloak>
+		{% if label|default and not floatingLabel %}
+			<label
+				:id="labelId()"
+				class="block mb-2 font-medium text-gray-500"
+				@click="openListbox()"
+			>
+				{{ label ~ (required|default ? '*' : '') }}
+			</label>
+		{% endif %}
+
 		<!-- Text input trigger, visible to browsers for autofill, styled like a select -->
 		<div class="relative">
 			<input
@@ -89,7 +105,7 @@
 				:id="buttonId()"
 				:required="required && options.length > 0"
 				:value="buttonLabel === placeholder ? '' : buttonLabel"
-				placeholder=" "
+				{% if floatingLabel %}placeholder=" "{% else %}:placeholder="placeholder"{% endif %}
 				autocomplete="{{ autocomplete }}"
 				@click="toggleListbox()"
 				@keydown.arrow-down.prevent="openListbox()"
@@ -98,14 +114,14 @@
 				@keydown="onTriggerKeydown"
 				@input="onTriggerInput"
 				@change="onTriggerInput"
-				class="peer w-full h-12 pt-5 pb-1.5 leading-5 pl-4 pr-10 rounded-lg cursor-default border bg-white text-left focus:!ring-0 focus:!outline-none transition-color duration-300 caret-transparent"
+				class="peer w-full {{ floatingLabel ? 'h-12 pt-5 pb-1.5 leading-5 pl-4' : 'py-[11px] pl-3' }} pr-10 rounded-lg cursor-default border bg-white text-left focus:!ring-0 focus:!outline-none transition-color duration-300 caret-transparent"
 				:class="errors.length ? 'border-red-500 focus:border-red-500' : 'border-gray-250 focus:border-black'"
 				aria-haspopup="listbox"
 				:aria-expanded="open ? 'true' : 'false'"
 				:aria-labelledby="labelId()"
 				:aria-controls="listboxId()"
 			/>
-			{% if label|default %}
+			{% if floatingLabel %}
 				<label
 					:id="labelId()"
 					class="absolute left-4 top-1.5 text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-gray-500"

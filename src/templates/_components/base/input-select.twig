@@ -6,10 +6,10 @@
 	errors: {{ errors|default([])|json_encode }},
 	success: {{ success|default([])|json_encode }}
 }">
-	{% set floatingLabel = label|default and not hideLabel|default %}
+	{% set floatingLabel = label|default and not hideLabel|default and craft.fostercheckout.settings.branding.labelStyle|default('floating') == 'floating' %}
 
-	{% if label|default and hideLabel|default %}
-		<label for="{{ fieldId }}" class="sr-only">
+	{% if label|default and not floatingLabel %}
+		<label for="{{ fieldId }}" class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}">
 			{{ label ~ (required|default(false) ? '*' : '') }}
 		</label>
 	{% endif %}

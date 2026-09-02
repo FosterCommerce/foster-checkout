@@ -277,6 +277,10 @@ return [
 	'settings.appearance.styleHelp' => 'Whether components have rounded or square corners.',
 	'settings.appearance.styleRounded' => 'Rounded',
 	'settings.appearance.styleFlat' => 'Flat',
+	'settings.appearance.labelStyle' => 'Field labels',
+	'settings.appearance.labelStyleHelp' => 'Whether a field’s label sits inside the field or above it.',
+	'settings.appearance.labelStyleFloating' => 'Inside the field',
+	'settings.appearance.labelStyleAbove' => 'Above the field',
 	'settings.appearance.title' => 'Title prefix',
 	'settings.appearance.titleHelp' => 'First part of the page title. Leave blank to use the site name.',
 

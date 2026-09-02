@@ -34,6 +34,11 @@ class BrandingConfig extends Model
 	public string $style = 'rounded';
 
 	/**
+	 * Where field labels sit. Either 'floating' (default), inside the field, or 'above' it
+	 */
+	public string $labelStyle = 'floating';
+
+	/**
 	 * The first part of the text in the title meta tag.
 	 * Leave blank to use the Craft's siteName
 	 */

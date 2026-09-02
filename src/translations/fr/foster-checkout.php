@@ -275,6 +275,10 @@ return [
 	'settings.appearance.styleHelp' => 'Si les composants ont des angles arrondis ou droits.',
 	'settings.appearance.styleRounded' => 'Arrondi',
 	'settings.appearance.styleFlat' => 'Droit',
+	'settings.appearance.labelStyle' => 'Libellés des champs',
+	'settings.appearance.labelStyleHelp' => 'Si le libellé d’un champ s’affiche dans le champ ou au-dessus.',
+	'settings.appearance.labelStyleFloating' => 'Dans le champ',
+	'settings.appearance.labelStyleAbove' => 'Au-dessus du champ',
 	'settings.appearance.title' => 'Préfixe du titre',
 	'settings.appearance.titleHelp' => 'Première partie du titre de la page. Laisser vide pour utiliser le nom du site.',
 

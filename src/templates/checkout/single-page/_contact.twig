@@ -1,5 +1,6 @@
 {% set subscribeText = craft.fostercheckout.subscribeText()|striptags|trim %}
 {% set klaviyoListId = craft.fostercheckout.settings.options.klaviyoListId %}
+{% set klaviyoEnabled = craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 
 <section
@@ -71,7 +72,7 @@
 			</div>
 		</div>
 
-		{% if klaviyoListId and subscribeText %}
+		{% if klaviyoEnabled and klaviyoListId and subscribeText %}
 			<div
 				x-data="{
 					subscribe: JSON.parse(localStorage.getItem(window.FC_SUBSCRIBE_KEY) ?? 'false'),

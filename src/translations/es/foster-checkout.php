@@ -276,6 +276,10 @@ return [
 	'settings.appearance.styleHelp' => 'Si los componentes tienen esquinas redondeadas o rectas.',
 	'settings.appearance.styleRounded' => 'Redondeadas',
 	'settings.appearance.styleFlat' => 'Rectas',
+	'settings.appearance.labelStyle' => 'Etiquetas de los campos',
+	'settings.appearance.labelStyleHelp' => 'Si la etiqueta de un campo se muestra dentro del campo o encima.',
+	'settings.appearance.labelStyleFloating' => 'Dentro del campo',
+	'settings.appearance.labelStyleAbove' => 'Encima del campo',
 	'settings.appearance.title' => 'Prefijo del título',
 	'settings.appearance.titleHelp' => 'Primera parte del título de la página. Déjalo en blanco para usar el nombre del sitio.',
 

@@ -6,7 +6,7 @@ Every setting is editable in the control panel under **Checkout**. A site may al
 
 | Screen | Config key | Holds |
 | --- | --- | --- |
-| **Appearance** | `branding` | Brand colour, header background, Google font family, logo path, component style, title prefix |
+| **Appearance** | `branding` | Brand color, header background, Google font family, logo path, component style, field label placement, title prefix |
 | **Features** | `options` | Checkout page layout format, the other `enable*` switches, and the Klaviyo list ID. Blank list ID hides the newsletter checkbox. Multi-page is the default |
 | **Products** | `products` | Per product type, the field holding the cart preview image. Blank falls back to the product's own image |
 | **Gateways** | `paymentGateways` | Per gateway: a field layout and extra payment form parameters |

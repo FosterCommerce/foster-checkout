@@ -275,6 +275,10 @@ return [
 	'settings.appearance.styleHelp' => 'Ob Komponenten abgerundete oder eckige Ecken haben.',
 	'settings.appearance.styleRounded' => 'Abgerundet',
 	'settings.appearance.styleFlat' => 'Eckig',
+	'settings.appearance.labelStyle' => 'Feldbeschriftungen',
+	'settings.appearance.labelStyleHelp' => 'Ob die Beschriftung eines Feldes im Feld oder darüber steht.',
+	'settings.appearance.labelStyleFloating' => 'Im Feld',
+	'settings.appearance.labelStyleAbove' => 'Über dem Feld',
 	'settings.appearance.title' => 'Titelpräfix',
 	'settings.appearance.titleHelp' => 'Erster Teil des Seitentitels. Leer lassen, um den Site-Namen zu verwenden.',
 

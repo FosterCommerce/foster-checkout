@@ -76,6 +76,20 @@
 			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'branding' }),
 		}) }}
 
+		{{ forms.selectField({
+			label: 'settings.appearance.labelStyle'|t('foster-checkout'),
+			instructions: 'settings.appearance.labelStyleHelp'|t('foster-checkout'),
+			id: 'branding-labelStyle',
+			name: 'settings[branding][labelStyle]',
+			value: settings.branding.labelStyle,
+			options: [
+				{ label: 'settings.appearance.labelStyleFloating'|t('foster-checkout'), value: 'floating' },
+				{ label: 'settings.appearance.labelStyleAbove'|t('foster-checkout'), value: 'above' },
+			],
+			disabled: readOnly,
+			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'branding' }),
+		}) }}
+
 		{{ forms.textField({
 			label: 'settings.appearance.title'|t('foster-checkout'),
 			instructions: 'settings.appearance.titleHelp'|t('foster-checkout'),
