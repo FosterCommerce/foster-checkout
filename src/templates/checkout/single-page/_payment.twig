@@ -140,7 +140,7 @@
 									x-show="gatewayFits($el)"
 									:class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }"
 								>
-									<div class="relative flex justify-between items-center gap-4 radio">
+									<div class="relative flex justify-between items-center gap-4 radio" :class="{ 'radio-muted': !canPay }">
 										<input
 											id="sp_gateway_{{ gateway.id }}"
 											name="gatewayId"

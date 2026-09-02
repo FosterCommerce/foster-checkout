@@ -114,6 +114,16 @@
 				@apply border-[var(--brandColor)];
 			}
 
+			/* A gateway cannot be chosen until the address is complete, so its dot reads inert */
+			.radio-muted input[type="radio"]:checked + label::before {
+				background: radial-gradient(
+					10px circle at center,
+					#9CA3AF 50%,
+					white 51%
+				);
+				@apply border-gray-400;
+			}
+
 			.checkbox {
 				@apply relative;
 			}
