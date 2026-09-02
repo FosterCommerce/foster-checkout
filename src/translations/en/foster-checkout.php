@@ -67,7 +67,6 @@ return [
 	'email.previousStep' => 'Return to cart',
 	'email.nextStep' => 'Next step',
 	'email.createAccount' => 'Create an account?',
-	'checkout.delivery' => 'Delivery',
 
 	'checkout.payIncomplete' => 'Complete the required details above before paying.',
 
