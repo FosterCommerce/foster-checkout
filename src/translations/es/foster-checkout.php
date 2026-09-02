@@ -142,6 +142,7 @@ return [
 	'payment.voucherApplied' => 'Cupón aplicado',
 
 	// Gift vouchers
+	'voucher.fallbackLabel' => 'Cupón/tarjeta regalo',
 	'voucher.voucherHeading' => 'Aplicar cupón',
 	'voucher.voucherCode' => 'Código de cupón',
 	'voucher.enterCode' => 'Introduce el código de cupón',
@@ -151,6 +152,7 @@ return [
 	// Order Confirmation page
 	'order.stepTitle' => 'Pedido',
 	'order.stepName' => '¡Gracias por tu pedido!',
+	'order.customerNoteHeading' => 'Nota del cliente',
 	'order.orderNumberLabel' => 'Tu número de pedido es',
 	'order.receiptEmailMessage' => 'Recibirás un correo de confirmación en breve.',
 	'order.contactInformation' => 'Información de contacto',
@@ -188,6 +190,7 @@ return [
 	'misc.saving' => 'Guardando',
 	'misc.saved' => 'Guardado',
 	'misc.saveFailed' => 'No se pudieron guardar tus datos. Inténtalo de nuevo.',
+	'misc.clearField' => 'Borrar este campo',
 	'misc.required' => 'Este campo es obligatorio.',
 	'misc.update' => 'Actualizar',
 	'misc.returnToCart' => 'Volver al carrito',

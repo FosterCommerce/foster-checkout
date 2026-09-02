@@ -141,6 +141,7 @@ return [
 	'payment.voucherApplied' => 'Coupon / carte-cadeau appliqué(e)',
 
 	// Gift vouchers
+	'voucher.fallbackLabel' => 'Coupon/carte-cadeau',
 	'voucher.voucherHeading' => 'Appliquer un coupon / carte-cadeau',
 	'voucher.voucherCode' => 'Code coupon',
 	'voucher.enterCode' => 'Entre le code du coupon / carte-cadeau',
@@ -150,6 +151,7 @@ return [
 	// Order Confirmation page
 	'order.stepTitle' => 'Commande',
 	'order.stepName' => 'Merci pour votre commande !',
+	'order.customerNoteHeading' => 'Note du client',
 	'order.orderNumberLabel' => 'Votre numéro de commande est',
 	'order.receiptEmailMessage' => 'Vous recevrez un e-mail de confirmation sous peu.',
 	'order.contactInformation' => 'Informations de contact',
@@ -187,6 +189,7 @@ return [
 	'misc.saving' => 'Enregistrement',
 	'misc.saved' => 'Enregistré',
 	'misc.saveFailed' => 'Impossible d’enregistrer vos informations. Réessayez.',
+	'misc.clearField' => 'Effacer ce champ',
 	'misc.required' => 'Ce champ est obligatoire.',
 	'misc.update' => 'Mettre à jour',
 	'misc.returnToCart' => 'Retour au panier',

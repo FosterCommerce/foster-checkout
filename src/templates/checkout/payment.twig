@@ -132,7 +132,7 @@
 												<ul class="text-gray-500 m-0 list-disc">
 													{% for adj in voucherAdjustments %}
 														{% set matches = adj.description|split('code ') %}
-														{% set code = matches|length > 1 ? matches[1]|trim("'") : 'Voucher/Gift Card' %}
+														{% set code = matches|length > 1 ? matches[1]|trim("'") : 'voucher.fallbackLabel'|t('foster-checkout') %}
 														<li class="ml-5">{{ code }}
 															({{ adj.amount|abs|currency }}
 															applied)</li>

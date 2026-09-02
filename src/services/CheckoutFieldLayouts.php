@@ -35,7 +35,7 @@ use yii\base\Component;
  * table up by element type and a stored row could come back as the order's own layout.
  *
  * @phpstan-type RenderableUiElement array{type: string, label: string, width: int}
- * @phpstan-type RenderableField array{value: string|list<string>, handle: string, label: string, instructions: ?string, required: bool, width: int, type: string, placeholder: ?string, maxLength: ?int, min: ?int, max: ?int, initialRows: ?int, options: list<array{label: string, value: string}>}
+ * @phpstan-type RenderableField array{value: string|list<string>, handle: string, label: string, instructions: ?string, required: bool, width: int, type: string, placeholder: ?string, maxLength: ?int, min: int|float|null, max: int|float|null, step: float|null, initialRows: ?int, options: list<array{label: string, value: string}>}
  */
 class CheckoutFieldLayouts extends Component
 {
@@ -185,8 +185,9 @@ class CheckoutFieldLayouts extends Component
 			'type' => $inputType,
 			'placeholder' => $field instanceof PlainText ? $field->placeholder : null,
 			'maxLength' => $field instanceof PlainText ? $field->charLimit : null,
-			'min' => $field instanceof Number ? (int) $field->min : null,
-			'max' => $field instanceof Number && $field->max !== null ? (int) $field->max : null,
+			'min' => $field instanceof Number ? $field->min : null,
+			'max' => $field instanceof Number ? $field->max : null,
+			'step' => $field instanceof Number && $field->decimals > 0 ? 10 ** -$field->decimals : null,
 			'initialRows' => $field instanceof PlainText ? $field->initialRows : null,
 			'options' => $this->fieldOptions($field),
 		];

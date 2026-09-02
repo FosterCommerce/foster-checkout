@@ -9,8 +9,9 @@
 {% set autocomplete = autocomplete ?? false %}
 {% set minLength = minLength ?? false %}
 {% set maxLength = maxLength ?? false %}
-{% set max = max ?? false %}
-{% set min = min ?? false %}
+{% set max = max ?? null %}
+{% set min = min ?? null %}
+{% set step = step ?? null %}
 
 <div
 	data-fc-field
@@ -51,8 +52,9 @@
 			{{ autocomplete ? "autocomplete=#{autocomplete|default('')}" }}
 			{{ minLength ? "minlength=#{minLength}" }}
 			{{ maxLength ? "maxlength=#{maxLength}" }}
-			{{ min ? "min=#{min}" }}
-			{{ max ? "max=#{max}" }}
+			{{ min is not null ? "min=#{min}" }}
+			{{ max is not null ? "max=#{max}" }}
+			{{ step is not null ? "step=#{step}" }}
 			class="peer w-full h-12 pl-4 pr-12 {{ floatingLabel ? 'pt-5 pb-1.5 leading-5' : '' }} bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300 js-clearable"
 			:class="{
 				'text-red-500 border-red-500 focus:border-red-500': errors.length,
@@ -88,7 +90,7 @@
 			@blur="showButton = false"
 			@click="clear()"
 		>
-			<span class="sr-only">{{ 'Clear this field'|t('foster-checkout') }}</span>
+			<span class="sr-only">{{ 'misc.clearField'|t('foster-checkout') }}</span>
 			<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" class="fill-current"
 					 aria-hidden="true">
 				<path

@@ -141,6 +141,7 @@ return [
 	'payment.voucherApplied' => 'Gutschein/Geschenkkarte angewendet',
 
 	// Gift vouchers
+	'voucher.fallbackLabel' => 'Gutschein/Geschenkkarte',
 	'voucher.voucherHeading' => 'Gutschein / Geschenkkarte einlösen',
 	'voucher.voucherCode' => 'Gutscheincode',
 	'voucher.enterCode' => 'Gutschein- oder Geschenkkartencode eingeben',
@@ -150,6 +151,7 @@ return [
 	// Order Confirmation page
 	'order.stepTitle' => 'Bestellung',
 	'order.stepName' => 'Vielen Dank für Ihre Bestellung!',
+	'order.customerNoteHeading' => 'Notiz des Kunden',
 	'order.orderNumberLabel' => 'Ihre Bestellnummer lautet',
 	'order.receiptEmailMessage' => 'Sie erhalten in Kürze eine Bestellbestätigung per E-Mail.',
 	'order.contactInformation' => 'Kontaktinformationen',
@@ -187,6 +189,7 @@ return [
 	'misc.saving' => 'Wird gespeichert',
 	'misc.saved' => 'Gespeichert',
 	'misc.saveFailed' => 'Ihre Angaben konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.',
+	'misc.clearField' => 'Dieses Feld leeren',
 	'misc.required' => 'Dieses Feld ist erforderlich.',
 	'misc.update' => 'Aktualisieren',
 	'misc.returnToCart' => 'Zurück zum Warenkorb',

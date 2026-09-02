@@ -12,7 +12,7 @@ class BrandingConfig extends Model
 	public string $color = '#1F2937';
 
 	/**
-	 * The background colour of the header in HEX color
+	 * The background color of the header in HEX color
 	 */
 	public string $headerBgColor = '#F3F3F3';
 

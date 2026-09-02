@@ -39,12 +39,12 @@
 					sizes="(min-width: 768px) 200px, 80px"
 					width="70"
 					height="70"
-					alt="{{ 'Image of'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
+					alt="{{ 'misc.imageOf'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
 				/>
 			</figure>
 			{# The figure clips its corners, so the badge sits outside it #}
 			<span class="absolute -top-2 -right-2 flex justify-center items-center w-6 h-6 text-xs font-medium text-white bg-[var(--brandColor)] rounded-full">
-				<span class="sr-only">{{ 'Qty'|t('foster-checkout') }}: </span>{{ lineItem.qty }}
+				<span class="sr-only">{{ 'summary.lineItem.quantity'|t('foster-checkout') }}: </span>{{ lineItem.qty }}
 			</span>
 		</div>
 	{% endif %}
@@ -57,7 +57,7 @@
 			#}
 			<h3 class="font-semibold leading-snug hyphens-auto wrap-anywhere" style="overflow-wrap: anywhere;">{{ lineItem.description }}</h3>
 			{% if not hasImage %}
-				<p class="text-sm uppercase text-gray-500">{{ 'Qty'|t('foster-checkout') }}: {{ lineItem.qty }}</p>
+				<p class="text-sm uppercase text-gray-500">{{ 'summary.lineItem.quantity'|t('foster-checkout') }}: {{ lineItem.qty }}</p>
 			{% endif %}
 			{% if lineItem.lineItemStatus %}
 				<p class="text-sm uppercase text-gray-500">{{ lineItem.lineItemStatus.name|t('foster-checkout') }}</p>

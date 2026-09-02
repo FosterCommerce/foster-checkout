@@ -104,7 +104,7 @@ class Checkout extends Component
 	 * Address fields each country's format actually uses, keyed by country code.
 	 *
 	 * Read through the Addresses service rather than the format repository, so `EVENT_DEFINE_USED_FIELDS`
-	 * applies — this plugin adds the administrative area for GB through it.
+	 * applies, and this plugin adds the administrative area for GB through it.
 	 *
 	 * @return array<string, array<int, string>>
 	 */
@@ -632,8 +632,8 @@ class Checkout extends Component
 
 			$methods[] = [
 				'handle' => (string) $handle,
-				'name' => Craft::t('foster-checkout', $method->name ?? (string) $handle),
-				'description' => $description !== '' ? Craft::t('foster-checkout', $description) : '',
+				'name' => Craft::t(FosterCheckout::HANDLE, $method->name ?? (string) $handle),
+				'description' => $description !== '' ? Craft::t(FosterCheckout::HANDLE, $description) : '',
 				'price' => (float) $method->price,
 				'priceAsCurrency' => $method->priceAsCurrency,
 			];
@@ -691,7 +691,7 @@ class Checkout extends Component
 			return trim($parts[1], "'\" ");
 		}
 
-		return 'Voucher/Gift Card';
+		return Craft::t(FosterCheckout::HANDLE, 'voucher.fallbackLabel');
 	}
 
 	/**

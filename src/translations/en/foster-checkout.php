@@ -146,6 +146,7 @@ return [
 	'payment.voucherApplied' => 'Voucher/Gift card applied',
 
 	// Gift vouchers
+	'voucher.fallbackLabel' => 'Voucher/gift card',
 	'voucher.voucherHeading' => 'Apply voucher/gift card',
 	'voucher.voucherCode' => 'Voucher code',
 	'voucher.enterCode' => 'Enter voucher/gift card code',
@@ -155,6 +156,7 @@ return [
 	// Order Confirmation page
 	'order.stepTitle' => 'Order',
 	'order.stepName' => 'Thank you for your order!',
+	'order.customerNoteHeading' => 'Customer note',
 	'order.orderNumberLabel' => 'Your Order Number is',
 	'order.receiptEmailMessage' => 'You will receive an order confirmation email shortly.',
 	'order.contactInformation' => 'Contact Information',
@@ -192,6 +194,7 @@ return [
 	'misc.saving' => 'Saving',
 	'misc.saved' => 'Saved',
 	'misc.saveFailed' => 'Could not save your details. Try again.',
+	'misc.clearField' => 'Clear this field',
 	'misc.required' => 'This field is required.',
 	'misc.update' => 'Update',
 	'misc.returnToCart' => 'Return to cart',

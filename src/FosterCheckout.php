@@ -412,10 +412,6 @@ class FosterCheckout extends Plugin
 	}
 
 	/**
-	 * The address field layout is shared with the control panel, so a field a store only wants from
-	 * customers is required here rather than there.
-	 */
-	/**
 	 * Craft reads required from the order's own field layout, so a checkout layout's own flag needs a rule.
 	 */
 	private function requireCheckoutFields(): void
@@ -466,6 +462,10 @@ class FosterCheckout extends Plugin
 		);
 	}
 
+	/**
+	 * The address field layout is shared with the control panel, so a field a store only wants from
+	 * customers is required here rather than there.
+	 */
 	private function requireCheckoutAddressFields(): void
 	{
 		Event::on(

@@ -43,8 +43,9 @@
 		placeholder: field.placeholder,
 		minLength: false,
 		maxLength: field.maxLength ?? false,
-		min: field.min ?? false,
-		max: field.max ?? false,
+		min: field.min,
+		max: field.max,
+		step: field.step,
 		options: [],
 	}) %}
 {% endif %}
