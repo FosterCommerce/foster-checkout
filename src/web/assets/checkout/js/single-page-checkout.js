@@ -1090,7 +1090,6 @@ export const SinglePageCheckout = (props) => {
 					return;
 				}
 
-				// Tracking used to carry the cart save, so a rejected event blocked the checkout
 				if (trackCheckout) {
 					this.trackedCheckout = true;
 					this.trackCheckoutStarted(saved, signal);
