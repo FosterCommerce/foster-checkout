@@ -684,11 +684,15 @@ class Checkout extends Component
 		];
 	}
 
+	/**
+	 * Gift Voucher snapshots the code element, whose description is translated and so cannot be parsed.
+	 */
 	private function voucherLabel(OrderAdjustment $adjustment): string
 	{
-		$parts = explode('code ', (string) $adjustment->description, 2);
-		if (isset($parts[1])) {
-			return trim($parts[1], "'\" ");
+		$codeKey = $adjustment->sourceSnapshot['codeKey'] ?? null;
+
+		if (is_string($codeKey) && $codeKey !== '') {
+			return $codeKey;
 		}
 
 		return Craft::t(FosterCheckout::HANDLE, 'voucher.fallbackLabel');
