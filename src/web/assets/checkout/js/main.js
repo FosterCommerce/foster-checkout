@@ -673,6 +673,30 @@ const SimpleField = (props) => {
 	};
 };
 
+const ScrollableItems = () => {
+	return {
+		overflowing: false,
+		atEnd: false,
+
+		init() {
+			// Thumbnails load after this runs and change the list height, so watch it rather than measure once
+			new ResizeObserver(() => this.measure()).observe(this.$refs.items);
+		},
+
+		measure() {
+			const viewport = this.$refs.viewport;
+			this.overflowing = viewport.scrollHeight > viewport.clientHeight;
+			this.measurePosition();
+		},
+
+		measurePosition() {
+			const viewport = this.$refs.viewport;
+			this.atEnd =
+				viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 4;
+		},
+	};
+};
+
 const RadioInput = (props) => {
 	return {
 		name: props.name,
@@ -734,6 +758,7 @@ const CheckoutTracking = (props) => {
 };
 
 Alpine.plugin(focus);
+Alpine.data('ScrollableItems', ScrollableItems);
 Alpine.data('SimpleField', SimpleField);
 Alpine.data('CheckoutTracking', CheckoutTracking);
 Alpine.data('ClearableInput', ClearableInput);

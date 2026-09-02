@@ -32,6 +32,7 @@ return [
 
 	// Cart Summary
 	'summary.title' => 'Bestellübersicht',
+	'summary.scrollForMore' => 'Für weitere Artikel scrollen',
 	'summary.itemsTitle' => 'Artikel',
 	'summary.itemsLabel' => 'Zwischensumme',
 	'summary.discountLabel' => 'Rabatt',

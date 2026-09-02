@@ -32,6 +32,7 @@ return [
 
 	// Cart Summary
 	'summary.title' => 'Order summary',
+	'summary.scrollForMore' => 'Scroll for more items',
 	'summary.itemsTitle' => 'Item(s)',
 	'summary.itemsLabel' => 'Subtotal',
 	'summary.discountLabel' => 'Discount',

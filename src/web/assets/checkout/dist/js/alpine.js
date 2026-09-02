@@ -7249,6 +7249,24 @@ const SimpleField = (props) => {
     }
   };
 };
+const ScrollableItems = () => {
+  return {
+    overflowing: false,
+    atEnd: false,
+    init() {
+      new ResizeObserver(() => this.measure()).observe(this.$refs.items);
+    },
+    measure() {
+      const viewport = this.$refs.viewport;
+      this.overflowing = viewport.scrollHeight > viewport.clientHeight;
+      this.measurePosition();
+    },
+    measurePosition() {
+      const viewport = this.$refs.viewport;
+      this.atEnd = viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 4;
+    }
+  };
+};
 const RadioInput = (props) => {
   return {
     name: props.name,
@@ -7303,6 +7321,7 @@ const CheckoutTracking = (props) => {
   };
 };
 module_default$1.plugin(module_default);
+module_default$1.data("ScrollableItems", ScrollableItems);
 module_default$1.data("SimpleField", SimpleField);
 module_default$1.data("CheckoutTracking", CheckoutTracking);
 module_default$1.data("ClearableInput", ClearableInput);

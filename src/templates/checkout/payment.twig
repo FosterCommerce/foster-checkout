@@ -340,13 +340,7 @@
 							</a>
 						</div>
 
-						<ul class="grid grid-cols-1 gap-4">
-							{% for lineItem in cart.lineItems %}
-								<li>
-									{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem } %}
-								</li>
-							{% endfor %}
-						</ul>
+						{% include 'foster-checkout/_components/app/summary-items' %}
 					</div>
 
 					{% include 'foster-checkout/_components/app/summary-cart' with { estimated: false } %}

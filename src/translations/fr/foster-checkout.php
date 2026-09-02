@@ -32,6 +32,7 @@ return [
 
 	// Cart Summary
 	'summary.title' => 'Résumé de la commande',
+	'summary.scrollForMore' => 'Faites défiler pour voir plus d’articles',
 	'summary.itemsTitle' => 'Article(s)',
 	'summary.itemsLabel' => 'Sous-total',
 	'summary.discountLabel' => 'Remise',

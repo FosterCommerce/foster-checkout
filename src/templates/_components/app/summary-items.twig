@@ -1,0 +1,28 @@
+<div class="relative" x-data="ScrollableItems">
+	<div
+		x-ref="viewport"
+		class="max-h-96 overflow-y-auto"
+		@scroll="measurePosition()"
+	>
+		<ul x-ref="items" class="grid grid-cols-1 gap-4">
+			{% for lineItem in cart.lineItems %}
+				<li>
+					{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem } %}
+				</li>
+			{% endfor %}
+		</ul>
+	</div>
+
+	<div
+		x-show="overflowing && !atEnd"
+		x-cloak
+		class="pointer-events-none absolute inset-x-0 bottom-2 flex justify-center"
+	>
+		<span class="inline-flex items-center gap-2 px-4 py-2 text-sm text-white bg-gray-800 rounded-full shadow">
+			{{ 'summary.scrollForMore'|t('foster-checkout') }}
+			<svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+				<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 4v12m0 0l-4-4m4 4l4-4"></path>
+			</svg>
+		</span>
+	</div>
+</div>
