@@ -1,0 +1,40 @@
+{% set common = {
+	context: context|default(''),
+	id: idPrefix|default('') ~ field.handle,
+	name: 'fields[' ~ field.handle ~ ']',
+	label: field.label,
+	required: field.required,
+	value: value|default(''),
+	errors: errors|default([]),
+} %}
+
+{% if field.type == 'select' %}
+	{# The searchable select writes its value into the including scope, so give it one to write to #}
+	<div x-data="{ checkoutFieldValue: {{ (value|default(''))|json_encode }} }">
+		{% include 'foster-checkout/_components/base/input-select-searchable' with common|merge({
+			model: 'checkoutFieldValue',
+			placeholder: 'addressFields.select'|t('foster-checkout'),
+			options: field.options,
+		}) %}
+	</div>
+{% elseif field.type == 'radio' %}
+	{% include 'foster-checkout/_components/base/input-radio' with common|merge({
+		options: field.options,
+	}) %}
+{% elseif field.type == 'textarea' %}
+	{% include 'foster-checkout/_components/base/input-textarea' with common|merge({
+		placeholder: field.placeholder,
+		rows: field.initialRows,
+		maxLength: field.maxLength ?? false,
+	}) %}
+{% else %}
+	{% include 'foster-checkout/_components/base/input-text-clearable' with common|merge({
+		type: field.type,
+		placeholder: field.placeholder,
+		minLength: false,
+		maxLength: field.maxLength ?? false,
+		min: field.min ?? false,
+		max: field.max ?? false,
+		options: [],
+	}) %}
+{% endif %}

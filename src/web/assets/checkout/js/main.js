@@ -640,8 +640,43 @@ const LineItem = (options) => {
 	};
 };
 
+const RadioInput = (props) => {
+	return {
+		name: props.name,
+		value: props.value || '',
+		required: props.required || false,
+		errors: props.errors || [],
+		success: props.success || [],
+		requiredError: props.requiredError || '',
+		touched: false,
+
+		isRequired() {
+			return Boolean(this.required);
+		},
+		select() {
+			this.touched = true;
+			this.validate(true);
+		},
+		validate(showRequired = false) {
+			const messages = [];
+			let valid = true;
+
+			if (this.isRequired() && String(this.value || '') === '') {
+				valid = false;
+				if (showRequired || this.touched) {
+					messages.push(this.requiredError);
+				}
+			}
+
+			setErrors(this, messages);
+			return valid;
+		},
+	};
+};
+
 Alpine.plugin(focus);
 Alpine.data('ClearableInput', ClearableInput);
+Alpine.data('RadioInput', RadioInput);
 Alpine.data('SearchableSelect', SearchableSelect);
 Alpine.data('LineItem', LineItem);
 Alpine.data('SinglePageCheckout', SinglePageCheckout);

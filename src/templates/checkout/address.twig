@@ -52,11 +52,11 @@
 				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0"
 			>
 				<div class="grid grid-cols-1 gap-4 xl:gap-6 ">
+					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
+
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'address' } %}
 
 					{{ include('foster-checkout/_components/app/flash-message') }}
-
-					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
 
 					<form method="post">
 						{{ csrfInput() }}
@@ -210,7 +210,7 @@
 									</div>
 								</div>
 
-								{% set note = craft.fostercheckout.note('address', {cart}) %}
+								{% set note = craft.fostercheckout.note('shippingAddress', {cart}) %}
 								{% if note %}
 									<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
 										{{ note|raw }}

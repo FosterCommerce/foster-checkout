@@ -60,6 +60,22 @@ class Settings extends Model
 	public array $priorityCountries = [];
 
 	/**
+	 * Address fields to leave off the checkout, named by attribute or custom field handle. A field
+	 * the address layout marks required is always shown, so Craft can still validate the address.
+	 *
+	 * @var array<string>
+	 */
+	public array $hiddenAddressFields = [];
+
+	/**
+	 * Address fields to require at the checkout beyond what the address layout asks for, named by
+	 * attribute or custom field handle. A hidden field is never required, since it is not rendered.
+	 *
+	 * @var array<string>
+	 */
+	public array $requiredAddressFields = [];
+
+	/**
 	 * @param array<array-key, mixed> $config
 	 */
 	public function __construct(array $config = [])
@@ -169,7 +185,11 @@ class Settings extends Model
 				$values['paymentGateways'][$gatewayHandle] = new PaymentGatewayConfig(
 					$gatewayHandle,
 					[
-						...$paymentGateway,
+						// Field widths replaced the per-gateway column count, so a config file still
+						// setting it would fatal on an unknown property.
+						...array_diff_key($paymentGateway, [
+							'columns' => null,
+						]),
 						'fields' => $paymentGateway['fields'] ?? [],
 						'note' => new ValueConfig($paymentGateway['note'] ?? []),
 					]

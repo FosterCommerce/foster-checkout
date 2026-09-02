@@ -5483,7 +5483,9 @@ const SinglePageCheckout = (props) => {
       return match ? match[1] : name;
     },
     panelFieldsReady(panel, handles = null, showRequired = false) {
-      const scope2 = this.panelScope(panel);
+      return this.fieldsReadyIn(this.panelScope(panel), showRequired, handles);
+    },
+    fieldsReadyIn(scope2, showRequired = false, handles = null) {
       if (!scope2) {
         return true;
       }
@@ -6301,6 +6303,9 @@ const SinglePageCheckout = (props) => {
       const scope2 = this.$root.querySelector(
         `[data-fc-address-edit="${addressId}"]`
       );
+      if (!this.fieldsReadyIn(scope2, true)) {
+        return;
+      }
       const fields = {
         action: "users/save-address",
         ...this.collectNamedFields(scope2),
@@ -7198,8 +7203,39 @@ const LineItem = (options) => {
     }
   };
 };
+const RadioInput = (props) => {
+  return {
+    name: props.name,
+    value: props.value || "",
+    required: props.required || false,
+    errors: props.errors || [],
+    success: props.success || [],
+    requiredError: props.requiredError || "",
+    touched: false,
+    isRequired() {
+      return Boolean(this.required);
+    },
+    select() {
+      this.touched = true;
+      this.validate(true);
+    },
+    validate(showRequired = false) {
+      const messages = [];
+      let valid = true;
+      if (this.isRequired() && String(this.value || "") === "") {
+        valid = false;
+        if (showRequired || this.touched) {
+          messages.push(this.requiredError);
+        }
+      }
+      setErrors(this, messages);
+      return valid;
+    }
+  };
+};
 module_default$1.plugin(module_default);
 module_default$1.data("ClearableInput", ClearableInput);
+module_default$1.data("RadioInput", RadioInput);
 module_default$1.data("SearchableSelect", SearchableSelect);
 module_default$1.data("LineItem", LineItem);
 module_default$1.data("SinglePageCheckout", SinglePageCheckout);

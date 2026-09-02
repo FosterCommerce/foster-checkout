@@ -1,0 +1,57 @@
+{% if context|default %}
+	{% set fieldId = id|default ? id|namespaceInputId(context) : '' %}
+	{% set fieldName = name|default ? name|namespaceInputName(context) : '' %}
+{% else %}
+	{% set fieldId = id ?? '' %}
+	{% set fieldName = name ?? '' %}
+{% endif %}
+
+<div
+	data-fc-field
+	x-data="RadioInput({
+		name: '{{ name|default('') }}',
+		value: '{{ value|default('') }}',
+		required: {{ required|default(false) ? 'true' : 'false' }},
+		requiredError: {{ 'misc.required'|t('foster-checkout')|json_encode }},
+		errors: {{ errors|default([])|json_encode }},
+		success: {{ success|default([])|json_encode }}
+	})">
+	<fieldset :aria-invalid="errors.length ? true : false" aria-errormessage="{{ fieldId }}-error">
+		{% if label|default %}
+			<legend class="{{ hideLabel|default ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}">
+				{{ label }}<span x-text="isRequired() ? '*' : ''"></span>
+			</legend>
+		{% endif %}
+
+		<div class="flex flex-wrap items-center gap-6">
+			{% for option in options|default([]) %}
+				<div class="radio">
+					<input
+						x-model="value"
+						id="{{ fieldId }}_{{ loop.index }}"
+						name="{{ fieldName }}"
+						type="radio"
+						class="sr-only"
+						value="{{ option.value }}"
+						@change="select()"
+					/>
+					<label
+						for="{{ fieldId }}_{{ loop.index }}"
+						class="inline-flex justify-start items-center gap-4 cursor-pointer"
+						:class="{ 'font-medium text-black': value === {{ option.value|json_encode }} }"
+					>
+						{{ option.label }}
+					</label>
+				</div>
+			{% endfor %}
+		</div>
+	</fieldset>
+
+	<template x-if="errors.length">
+		<p id="{{ fieldId }}-error" class="mt-1 text-sm text-red-500" x-text="errors.join(' ')"></p>
+	</template>
+
+	<template x-if="success.length">
+		<p class="mt-1 text-sm text-green-500" x-text="success.join(' ')"></p>
+	</template>
+</div>

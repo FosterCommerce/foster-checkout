@@ -6,7 +6,7 @@
 {% set docTitle = title %}
 
 {# The field layout is stored outside plugin settings, so a config file cannot override it.
-   Only the columns and params below come from settings. #}
+   Only the params below come from settings. #}
 {% set optionsOverridden = 'paymentGateways' in overriddenSettings %}
 {% set readOnly = not craft.app.config.general.allowAdminChanges %}
 {% set fullPageForm = not readOnly %}
@@ -44,19 +44,6 @@
 	}) }}
 
 	<hr>
-
-
-	{{ forms.textField({
-		label: 'settings.gateways.columns'|t('foster-checkout'),
-		instructions: 'settings.gateways.columnsHelp'|t('foster-checkout'),
-		id: 'columns',
-		name: 'columns',
-		value: gatewayConfig ? gatewayConfig.columns : '',
-		size: 3,
-		type: 'number',
-		disabled: readOnly or optionsOverridden,
-		warning: optionsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paymentGateways' }),
-	}) }}
 
 	{{ forms.editableTableField({
 		label: 'settings.gateways.params'|t('foster-checkout'),

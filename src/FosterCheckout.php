@@ -4,6 +4,7 @@ namespace fostercommerce\fostercheckout;
 
 use CommerceGuys\Addressing\AddressFormat\AddressField;
 use Craft;
+use craft\base\FieldInterface;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\commerce\controllers\BaseFrontEndController;
@@ -14,6 +15,7 @@ use craft\elements\Address;
 use craft\events\DefineAddressFieldLabelEvent;
 use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
+use craft\events\DefineRulesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
@@ -28,14 +30,14 @@ use craft\web\UrlManager;
 use craft\web\View;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\services\Checkout;
+use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
 use fostercommerce\fostercheckout\services\Content;
-use fostercommerce\fostercheckout\services\GatewayFieldLayouts;
 use yii\base\Event;
 
 /**
  * @property-read Checkout $checkout
  * @property-read Content $content
- * @property-read GatewayFieldLayouts $gatewayFieldLayouts
+ * @property-read CheckoutFieldLayouts $checkoutFieldLayouts
  */
 class FosterCheckout extends Plugin
 {
@@ -52,15 +54,9 @@ class FosterCheckout extends Plugin
 	public const PERMISSION_MANAGE_SETTINGS = 'foster-checkout-manageSettings';
 
 	/**
-	 * @var array<string, string>
+	 * @var array<int, string>
 	 */
-	private const array SETTINGS_SECTIONS = [
-		'appearance' => 'branding',
-		'features' => 'options',
-		'products' => 'products',
-		'gateways' => 'paymentGateways',
-		'general' => 'paths',
-	];
+	private const array SETTINGS_SECTIONS = ['appearance', 'features', 'products', 'gateways', 'general'];
 
 	/**
 	 * @var array<string, string>
@@ -276,7 +272,7 @@ class FosterCheckout extends Plugin
 			];
 		}
 
-		foreach (array_keys(self::SETTINGS_SECTIONS) as $section) {
+		foreach (self::SETTINGS_SECTIONS as $section) {
 			if (! $userSession->checkPermission(self::settingsPermission($section))) {
 				continue;
 			}
@@ -312,11 +308,6 @@ class FosterCheckout extends Plugin
 	/**
 	 * The top-level config key a settings page edits, or null if the section isn't one of ours.
 	 */
-	public static function settingsConfigKey(string $section): ?string
-	{
-		return self::SETTINGS_SECTIONS[$section] ?? null;
-	}
-
 	public static function settingsPermission(string $section): string
 	{
 		return match ($section) {
@@ -369,7 +360,7 @@ class FosterCheckout extends Plugin
 		$this->setComponents([
 			'checkout' => Checkout::class,
 			'content' => Content::class,
-			'gatewayFieldLayouts' => GatewayFieldLayouts::class,
+			'checkoutFieldLayouts' => CheckoutFieldLayouts::class,
 		]);
 	}
 
@@ -423,10 +414,52 @@ class FosterCheckout extends Plugin
 		);
 	}
 
+	/**
+	 * The address field layout is shared with the control panel, so a field a store only wants from
+	 * customers is required here rather than there.
+	 */
+	private function requireCheckoutAddressFields(): void
+	{
+		Event::on(
+			Address::class,
+			Model::EVENT_DEFINE_RULES,
+			function (DefineRulesEvent $event): void {
+				$request = Craft::$app->getRequest();
+
+				if (! $request instanceof WebRequest || ! $request->getIsSiteRequest()) {
+					return;
+				}
+
+				$address = $event->sender;
+
+				if (! $address instanceof Address) {
+					return;
+				}
+
+				$layout = $address->getFieldLayout();
+
+				foreach ($this->checkout->settings()->requiredAddressFields as $attribute) {
+					$field = $layout?->getFieldByHandle($attribute);
+
+					// A field value can be an object or a bool, which the default emptiness test never
+					// counts as empty, so the field decides for itself as it does in Craft's own rules.
+					$event->rules[] = $field instanceof FieldInterface
+						? [
+							$attribute,
+							'required',
+							'isEmpty' => static fn (mixed $value): bool => $field->isValueEmpty($value, $address),
+						]
+						: [$attribute, 'required'];
+				}
+			}
+		);
+	}
+
 	private function attachEventHandlers(): void
 	{
 		$this->allowPostieRatesOnSinglePageCheckout();
 		$this->allowEmptyPhoneOnSinglePageCartSave();
+		$this->requireCheckoutAddressFields();
 
 		Event::on(
 			CraftVariable::class,
@@ -486,7 +519,7 @@ class FosterCheckout extends Plugin
 				$event->rules[self::HANDLE] = self::HANDLE . '/content/edit';
 				$event->rules[self::HANDLE . '/content'] = self::HANDLE . '/content/edit';
 
-				foreach (array_keys(self::SETTINGS_SECTIONS) as $section) {
+				foreach (self::SETTINGS_SECTIONS as $section) {
 					$event->rules[self::HANDLE . "/settings/{$section}"] = self::HANDLE . "/settings/{$section}";
 				}
 

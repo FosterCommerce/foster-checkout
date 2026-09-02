@@ -47,11 +47,11 @@
 				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0"
 			>
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
+					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
+
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'shipping' } %}
 
 					{{ include('foster-checkout/_components/app/flash-message') }}
-
-					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
 
 					<form method="post" x-data x-ref="shippingForm" x-on:submit="$el.querySelector('[data-next]')?.setAttribute('disabled','disabled')">
 						{# --- CSRF, not namespaced for the auto-submit version below --- #}
@@ -119,7 +119,7 @@
 									<p>{{ 'shipping.noMethodAvailable'|t('foster-checkout') }}.</p>
 								{% endif %}
 
-								{% set note = craft.fostercheckout.note('shipping', {cart}) %}
+								{% set note = craft.fostercheckout.note('shippingMethod', {cart}) %}
 								{% if note %}
 									<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
 										{{ note|raw }}

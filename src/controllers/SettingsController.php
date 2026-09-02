@@ -12,6 +12,7 @@ use craft\services\ProjectConfig;
 use craft\web\Controller;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\Settings;
+use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -62,7 +63,7 @@ class SettingsController extends Controller
 			'gateway' => $gateway,
 			'settings' => $settings,
 			'gatewayConfig' => $settings->paymentGateways[$gatewayHandle] ?? null,
-			'fieldLayout' => $plugin->gatewayFieldLayouts->getFieldLayout($gatewayHandle),
+			'fieldLayout' => $plugin->checkoutFieldLayouts->getFieldLayout($gatewayHandle),
 			'overriddenSettings' => $plugin->getOverriddenSettings(),
 		]);
 	}
@@ -89,7 +90,7 @@ class SettingsController extends Controller
 		$layout = Craft::$app->getFields()->assembleLayoutFromPost();
 		$layout->type = Order::class;
 
-		$unstorable = $this->unstorableFieldHandles($layout, $plugin->gatewayFieldLayouts->orderFieldHandles());
+		$unstorable = $this->unstorableFieldHandles($layout, $plugin->checkoutFieldLayouts->orderFieldHandles());
 
 		// An order only saves values for fields in its own layout, so anything else would render,
 		// accept what the customer types, and then be discarded without an error.
@@ -105,7 +106,22 @@ class SettingsController extends Controller
 			return null;
 		}
 
-		if (! $plugin->gatewayFieldLayouts->saveFieldLayout($gatewayHandle, $layout)) {
+		$unsupported = $this->unsupportedFields($layout, $plugin->checkoutFieldLayouts);
+
+		// No input exists for the type, so it's ignored in the storefront form.
+		if ($unsupported !== []) {
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.gateways.unsupportedFields', [
+				'fields' => implode(', ', $unsupported),
+			]));
+
+			Craft::$app->getUrlManager()->setRouteParams([
+				'fieldLayout' => $layout,
+			]);
+
+			return null;
+		}
+
+		if (! $plugin->checkoutFieldLayouts->saveFieldLayout($gatewayHandle, $layout)) {
 			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
 
 			Craft::$app->getUrlManager()->setRouteParams([
@@ -147,19 +163,15 @@ class SettingsController extends Controller
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		// The form disables overridden fields, but a disabled input is not a control: without this
-		// the save would write project config that the config file then hides on every request.
-		$configKey = FosterCheckout::settingsConfigKey($section);
-
-		if ($configKey !== null && in_array($configKey, $plugin->getOverriddenSettings(), true)) {
-			throw new ForbiddenHttpException(Craft::t(FosterCheckout::HANDLE, 'error.settingsOverridden'));
-		}
-
 		$postedSettings = $this->request->getBodyParam('settings', []);
 
 		if (! is_array($postedSettings)) {
 			$postedSettings = [];
 		}
+
+		// The form disables overridden fields, but a disabled input is not a control. Dropping them
+		// per key rather than rejecting the save lets one overridden key sit beside editable ones.
+		$postedSettings = array_diff_key($postedSettings, array_flip($plugin->getOverriddenSettings()));
 
 		// savePluginSettings() persists only the keys it is handed and replaces the whole settings
 		// node, so the posted section is merged over what is already stored. The stored config is
@@ -222,7 +234,25 @@ class SettingsController extends Controller
 	}
 
 	/**
-	 * Layout columns and payment form params sit alongside the field layout rather than in it.
+	 * @return array<int, string>
+	 */
+	private function unsupportedFields(FieldLayout $layout, CheckoutFieldLayouts $checkoutFieldLayouts): array
+	{
+		$unsupported = [];
+
+		foreach ($layout->getCustomFieldElements() as $customField) {
+			$field = $customField->getField();
+
+			if ($checkoutFieldLayouts->fieldInputType($field) === null) {
+				$unsupported[] = sprintf('%s (%s)', (string) $field->name, $field::displayName());
+			}
+		}
+
+		return $unsupported;
+	}
+
+	/**
+	 * Payment form params sit alongside the field layout rather than in it.
 	 */
 	private function saveGatewayOptions(string $gatewayHandle): void
 	{
@@ -242,9 +272,6 @@ class SettingsController extends Controller
 		$storedGateways = is_array($storedSettings['paymentGateways'] ?? null) ? $storedSettings['paymentGateways'] : [];
 		$gateway = is_array($storedGateways[$gatewayHandle] ?? null) ? $storedGateways[$gatewayHandle] : [];
 
-		$postedColumns = $this->request->getBodyParam('columns', '');
-		$columns = is_scalar($postedColumns) ? trim((string) $postedColumns) : '';
-		$gateway['columns'] = $columns === '' ? null : (int) $columns;
 		$gateway['params'] = $this->normalizeGatewayParams((array) $this->request->getBodyParam('params', []));
 
 		$storedGateways[$gatewayHandle] = $gateway;
@@ -297,9 +324,6 @@ class SettingsController extends Controller
 			}
 
 			$gateway = is_array($storedGateways[$gatewayHandle] ?? null) ? $storedGateways[$gatewayHandle] : [];
-			$columns = $this->trimmedString($postedGateway, 'columns');
-
-			$gateway['columns'] = $columns === '' ? null : (int) $columns;
 			$gateway['fields'] = $this->normalizeGatewayFields((array) ($postedGateway['fields'] ?? []));
 			$gateway['params'] = $this->normalizeGatewayParams((array) ($postedGateway['params'] ?? []));
 
@@ -474,6 +498,7 @@ class SettingsController extends Controller
 			'overriddenSettings' => $plugin->getOverriddenSettings(),
 			'productTypeHandles' => $this->productTypeHandles(),
 			'gateways' => Commerce::getInstance()?->getGateways()->getAllGateways() ?? [],
+			'configurableAddressFields' => $plugin->checkout->configurableAddressFields(),
 		]);
 	}
 }

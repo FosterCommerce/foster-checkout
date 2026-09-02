@@ -167,7 +167,6 @@ return [
 	// Example:
 	/*
 		'myGatewayHandle' => [
-			'columns' => 3, // number of columns the gateway's fields are laid out across
 			'note' => static fn (array $context): string => 'Computed note',
 			'params' => [
 				// Extra params merged into the gateway's payment form params.
@@ -183,4 +182,15 @@ return [
 
 	// An array of country codes that will be shown first in the country select dropdowns
 	'priorityCountries' => [],
+
+	// Address fields to leave off the checkout, named by attribute or custom field handle.
+	// They stay available in the control panel. A field the address layout marks required is
+	// always shown, since Craft needs it to validate the address.
+	// (ex. ['organization', 'organizationTaxId', 'addressNotes'])
+	'hiddenAddressFields' => [],
+
+	// Address fields to require at the checkout beyond what the address layout asks for, named by
+	// attribute or custom field handle. A hidden field is never required, since it is not rendered.
+	// (ex. ['fullName'])
+	'requiredAddressFields' => [],
 ];

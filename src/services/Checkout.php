@@ -3,6 +3,7 @@
 namespace fostercommerce\fostercheckout\services;
 
 use Craft;
+use craft\base\FieldLayoutElement;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
@@ -14,6 +15,13 @@ use craft\commerce\Plugin as Commerce;
 use craft\elements\Address;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
+use craft\fieldlayoutelements\addresses\AddressField;
+use craft\fieldlayoutelements\addresses\CountryCodeField;
+use craft\fieldlayoutelements\addresses\OrganizationField;
+use craft\fieldlayoutelements\addresses\OrganizationTaxIdField;
+use craft\fieldlayoutelements\BaseField;
+use craft\fieldlayoutelements\CustomField;
+use craft\fieldlayoutelements\FullNameField;
 use DateTime;
 use fostercommerce\fostercheckout\formatters\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\FosterCheckout;
@@ -27,6 +35,8 @@ use yii\base\InvalidConfigException;
 /**
  * Checkout service
  *
+ * @phpstan-import-type RenderableField from CheckoutFieldLayouts
+ * @phpstan-type AddressFormElement array{type: string, required: bool, width: int, field: ?RenderableField}
  * @phpstan-type LinksTable array<array-key, array{text: non-empty-string, url: non-empty-string}>
  * @phpstan-type CheckoutShippingMethod array{handle: string, name: string, description: string, price: float, priceAsCurrency: string}
  * @phpstan-type CheckoutTotals array{
@@ -55,6 +65,11 @@ class Checkout extends Component
 	 */
 	private ?array $addressRequiredFields = null;
 
+	/**
+	 * @var array<string, array<int, string>>|null
+	 */
+	private ?array $addressUsedFields = null;
+
 	public function addressFormatter(): CheckoutAddressFormatter
 	{
 		return new CheckoutAddressFormatter();
@@ -82,6 +97,30 @@ class Checkout extends Component
 		}
 
 		return $this->addressRequiredFields = $requiredFields;
+	}
+
+	/**
+	 * Address fields each country's format actually uses, keyed by country code.
+	 *
+	 * Read through the Addresses service rather than the format repository, so `EVENT_DEFINE_USED_FIELDS`
+	 * applies — this plugin adds the administrative area for GB through it.
+	 *
+	 * @return array<string, array<int, string>>
+	 */
+	public function addressUsedFields(): array
+	{
+		if ($this->addressUsedFields !== null) {
+			return $this->addressUsedFields;
+		}
+
+		$addressesService = Craft::$app->getAddresses();
+		$usedFields = [];
+
+		foreach (array_keys($this->storeCountries()) as $countryCode) {
+			$usedFields[$countryCode] = array_values($addressesService->getUsedFields($countryCode));
+		}
+
+		return $this->addressUsedFields = $usedFields;
 	}
 
 	/**
@@ -301,14 +340,62 @@ class Checkout extends Component
 	}
 
 	/**
-	 * @return array<int, array{handle: string, label: string, instructions: ?string, required: bool, width: int}>
+	 * @return array<int, RenderableField>
 	 */
-	public function gatewayFields(string $gatewayHandle): array
+	public function gatewayFields(string $gatewayHandle, ?Order $order = null): array
 	{
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		return $plugin->gatewayFieldLayouts->getRenderableFields($gatewayHandle);
+		return $plugin->checkoutFieldLayouts->getRenderableFields($gatewayHandle, $order);
+	}
+
+	/**
+	 * The address form, in the order and widths the address field layout sets.
+	 *
+	 * @return array<int, AddressFormElement>
+	 */
+	public function addressFields(?Address $address = null): array
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+		$layout = Craft::$app->getAddresses()->getFieldLayout();
+
+		// Without an address there is nothing to test a visibility condition against, so list them all
+		$layoutElements = $address instanceof Address
+			? $layout->getVisibleElementsByType(FieldLayoutElement::class, $address)
+			: $layout->getAllElements();
+
+		$elements = [];
+		$settings = $this->settings();
+
+		foreach ($this->addressLayoutFields($layoutElements) as $type => $layoutElement) {
+			$configurable = $this->isConfigurableAddressField($type, $layoutElement);
+			$attribute = $layoutElement->attribute();
+
+			if ($configurable && in_array($attribute, $settings->hiddenAddressFields, true)) {
+				continue;
+			}
+
+			$field = $layoutElement instanceof CustomField
+				? $plugin->checkoutFieldLayouts->renderableField($layoutElement)
+				: null;
+
+			// A custom field whose type has no storefront input has nothing to show the customer
+			if ($type === 'custom' && $field === null) {
+				continue;
+			}
+
+			$elements[] = [
+				'type' => $type,
+				'required' => $layoutElement->required
+					|| ($configurable && in_array($attribute, $settings->requiredAddressFields, true)),
+				'width' => $layoutElement->width,
+				'field' => $field,
+			];
+		}
+
+		return $elements;
 	}
 
 	/**
@@ -346,6 +433,98 @@ class Checkout extends Component
 			'totals' => $this->checkoutTotals($cart),
 			'shippingPreview' => $this->checkoutAddressPreview($cart->getShippingAddress()),
 		];
+	}
+
+	/**
+	 * Address fields an admin may hide or require at the checkout, as control panel options.
+	 *
+	 * @return array<int, array{label: string, value: string}>
+	 */
+	public function configurableAddressFields(): array
+	{
+		$options = [];
+		$layoutElements = Craft::$app->getAddresses()->getFieldLayout()->getAllElements();
+
+		foreach ($this->addressLayoutFields($layoutElements) as $type => $layoutElement) {
+			if (! $this->isConfigurableAddressField($type, $layoutElement)) {
+				continue;
+			}
+
+			$options[] = [
+				'label' => $this->addressFieldLabel($type, $layoutElement),
+				'value' => $layoutElement->attribute(),
+			];
+		}
+
+		return $options;
+	}
+
+	/**
+	 * A native field is labelled by the plugin rather than by Craft, so the option an admin picks
+	 * reads the same as the field the customer sees.
+	 */
+	private function addressFieldLabel(string $type, BaseField $layoutElement): string
+	{
+		$label = match ($type) {
+			'country' => 'addressFields.countryLabel',
+			'fullName' => 'addressFields.fullnameLabel',
+			'organization' => 'addressFields.organizationLabel',
+			'organizationTaxId' => 'addressFields.organizationTaxIdLabel',
+			default => null,
+		};
+
+		return $label === null
+			? (string) $layoutElement->label()
+			: Craft::t(FosterCheckout::HANDLE, $label);
+	}
+
+	/**
+	 * The layout's elements the storefront can render, keyed by the type it renders them as.
+	 *
+	 * @param array<int, FieldLayoutElement> $layoutElements
+	 * @return \Generator<string, BaseField>
+	 */
+	private function addressLayoutFields(array $layoutElements): \Generator
+	{
+		foreach ($layoutElements as $layoutElement) {
+			$type = $this->addressElementType($layoutElement);
+
+			if ($type === null) {
+				continue;
+			}
+
+			if (! $layoutElement instanceof BaseField) {
+				continue;
+			}
+
+			yield $type => $layoutElement;
+		}
+	}
+
+	/**
+	 * Country and the address block are what an address needs to resolve at all, and a field the
+	 * layout already marks required cannot be loosened without failing Craft's validation.
+	 */
+	private function isConfigurableAddressField(string $type, BaseField $layoutElement): bool
+	{
+		return ! in_array($type, ['address', 'country'], true) && ! $layoutElement->required;
+	}
+
+	/**
+	 * Commerce overwrites an order address's `title`, and lat/long is not something a customer types,
+	 * so neither reaches the storefront.
+	 */
+	private function addressElementType(FieldLayoutElement $layoutElement): ?string
+	{
+		return match (true) {
+			$layoutElement instanceof CountryCodeField => 'country',
+			$layoutElement instanceof FullNameField => 'fullName',
+			$layoutElement instanceof OrganizationTaxIdField => 'organizationTaxId',
+			$layoutElement instanceof OrganizationField => 'organization',
+			$layoutElement instanceof AddressField => 'address',
+			$layoutElement instanceof CustomField => 'custom',
+			default => null,
+		};
 	}
 
 	private function checkoutAddressPreview(?Address $address): string
