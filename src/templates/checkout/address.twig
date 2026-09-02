@@ -52,11 +52,11 @@
 				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0"
 			>
 				<div class="grid grid-cols-1 gap-4 xl:gap-6 ">
+					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
+
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'address' } %}
 
 					{{ include('foster-checkout/_components/app/flash-message') }}
-
-					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
 
 					<form method="post">
 						{{ csrfInput() }}

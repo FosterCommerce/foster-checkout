@@ -63,11 +63,11 @@
 
 
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
+					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
+
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'billing' } %}
 
 					{{ include('foster-checkout/_components/app/flash-message') }}
-
-					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
 
 					<form method="post">
 						{{ csrfInput() }}
