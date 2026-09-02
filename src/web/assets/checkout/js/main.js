@@ -86,7 +86,10 @@ const ClearableInput = (props) => {
 				!isValidEmail(value)
 			) {
 				valid = false;
-				messages.push(this.invalidEmailError);
+				// A half typed address is not yet wrong, so it only reads as an error once they leave
+				if (showRequired || this.touched) {
+					messages.push(this.invalidEmailError);
+				}
 			}
 
 			setErrors(this, messages);
@@ -674,7 +677,35 @@ const RadioInput = (props) => {
 	};
 };
 
+const CheckoutTracking = (props) => {
+	return {
+		// Tracking used to carry the cart save, so a rejected event blocked the checkout
+		track() {
+			const body = new FormData();
+			body.append(window.csrfTokenName, window.csrfTokenValue);
+			body.append('action', 'klaviyo-connect-plus/api/track');
+			body.append(
+				'email',
+				this.$root.querySelector('[name="email"]')?.value ?? ''
+			);
+			body.append('event[name]', 'Started Checkout');
+			body.append('event[trackOrder]', '1');
+			body.append('event[orderId]', String(props.orderId ?? ''));
+
+			fetch(window.location.href, {
+				method: 'POST',
+				body,
+				headers: { Accept: 'application/json' },
+				keepalive: true,
+			}).catch(() => {
+				void 0;
+			});
+		},
+	};
+};
+
 Alpine.plugin(focus);
+Alpine.data('CheckoutTracking', CheckoutTracking);
 Alpine.data('ClearableInput', ClearableInput);
 Alpine.data('RadioInput', RadioInput);
 Alpine.data('SearchableSelect', SearchableSelect);

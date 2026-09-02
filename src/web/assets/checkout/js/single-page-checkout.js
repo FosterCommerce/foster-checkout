@@ -970,6 +970,24 @@ export const SinglePageCheckout = (props) => {
 			);
 		},
 
+		async trackCheckoutStarted(saved, signal) {
+			try {
+				await this.postForm(
+					this.postUrl(),
+					{
+						action: 'klaviyo-connect-plus/api/track',
+						email: saved.email || this.email,
+						'event[name]': 'Started Checkout',
+						'event[trackOrder]': '1',
+						'event[orderId]': String(this.cartId || ''),
+					},
+					signal
+				);
+			} catch {
+				void 0;
+			}
+		},
+
 		async subscribeToKlaviyo(saved, signal) {
 			try {
 				const { response, isJson } = await this.postForm(
@@ -1051,14 +1069,6 @@ export const SinglePageCheckout = (props) => {
 				const trackCheckout = this.shouldTrackCheckout(saved);
 				const subscribe = this.shouldSubscribe(saved);
 
-				if (trackCheckout) {
-					fields.action = 'klaviyo-connect-plus/api/track';
-					fields.forward = '/commerce/cart/update-cart';
-					fields['event[name]'] = 'Started Checkout';
-					fields['event[trackOrder]'] = '1';
-					fields['event[orderId]'] = String(this.cartId || '');
-				}
-
 				const { response, data, isJson } = await this.postForm(
 					this.postUrl(),
 					fields,
@@ -1080,16 +1090,14 @@ export const SinglePageCheckout = (props) => {
 					return;
 				}
 
+				// Tracking used to carry the cart save, so a rejected event blocked the checkout
 				if (trackCheckout) {
 					this.trackedCheckout = true;
+					this.trackCheckoutStarted(saved, signal);
 				}
 
 				if (subscribe) {
-					if (trackCheckout) {
-						this.subscribed = true;
-					} else {
-						await this.subscribeToKlaviyo(saved, signal);
-					}
+					await this.subscribeToKlaviyo(saved, signal);
 				}
 
 				const cart = data.cart || data.model || (data.data && data.data.cart);
