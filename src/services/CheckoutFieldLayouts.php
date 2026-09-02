@@ -5,7 +5,9 @@ namespace fostercommerce\fostercheckout\services;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\FieldInterface;
+use craft\commerce\base\GatewayInterface;
 use craft\commerce\elements\Order;
+use craft\commerce\Plugin as Commerce;
 use craft\fieldlayoutelements\CustomField;
 use craft\fields\BaseOptionsField;
 use craft\fields\Dropdown;
@@ -29,23 +31,22 @@ class CheckoutFieldLayouts extends Component
 	// Renaming this path would orphan every layout already stored under it.
 	public const CONFIG_KEY = 'foster-checkout.gatewayFieldLayouts';
 
+	// A gateway can be handled 'billing', so checkout layouts are stored apart from gateway ones.
+	public const CHECKOUT_CONFIG_KEY = 'foster-checkout.checkoutFieldLayouts';
+
+	/**
+	 * Where in the checkout a layout's fields render.
+	 */
+	public const CHECKOUT_POSITIONS = ['email', 'shippingAddress', 'shippingMethod', 'billing', 'summary'];
+
 	public function getFieldLayout(string $gatewayHandle): FieldLayout
 	{
-		$stored = $this->storedLayout($gatewayHandle);
+		return $this->layoutAt(self::CONFIG_KEY, $gatewayHandle);
+	}
 
-		if ($stored === null) {
-			return new FieldLayout([
-				'type' => Order::class,
-			]);
-		}
-
-		$config = reset($stored);
-		$layout = FieldLayout::createFromConfig(is_array($config) ? $config : []);
-		$layout->uid = (string) key($stored);
-		// The designer asks the type for its thumb settings, and these are order fields.
-		$layout->type = Order::class;
-
-		return $layout;
+	public function getCheckoutFieldLayout(string $position): FieldLayout
+	{
+		return $this->layoutAt(self::CHECKOUT_CONFIG_KEY, $position);
 	}
 
 	/**
@@ -54,6 +55,47 @@ class CheckoutFieldLayouts extends Component
 	public function getRenderableFields(string $gatewayHandle, ?Order $order = null): array
 	{
 		return $this->renderableFields($this->getFieldLayout($gatewayHandle), $order);
+	}
+
+	/**
+	 * @return array<int, RenderableField>
+	 */
+	public function getRenderableCheckoutFields(string $position, ?Order $order = null): array
+	{
+		return $this->renderableFields($this->getCheckoutFieldLayout($position), $order);
+	}
+
+	/**
+	 * Handles already claimed by another layout.
+	 *
+	 * Two layouts holding one handle render two inputs posting the same name, and the last one wins.
+	 *
+	 * @return list<string>
+	 */
+	public function claimedFieldHandles(string $exceptPosition): array
+	{
+		$handles = [];
+
+		foreach (self::CHECKOUT_POSITIONS as $position) {
+			if ($position === $exceptPosition) {
+				continue;
+			}
+
+			foreach ($this->getCheckoutFieldLayout($position)->getCustomFieldElements() as $layoutElement) {
+				$handles[] = (string) $layoutElement->getField()->handle;
+			}
+		}
+
+		/** @var array<int, GatewayInterface> $gateways */
+		$gateways = Commerce::getInstance()?->getGateways()->getAllGateways() ?? [];
+
+		foreach ($gateways as $gateway) {
+			foreach ($this->getFieldLayout((string) $gateway->handle)->getCustomFieldElements() as $layoutElement) {
+				$handles[] = (string) $layoutElement->getField()->handle;
+			}
+		}
+
+		return array_values(array_unique($handles));
 	}
 
 	/**
@@ -152,6 +194,35 @@ class CheckoutFieldLayouts extends Component
 
 	public function saveFieldLayout(string $gatewayHandle, FieldLayout $layout): bool
 	{
+		return $this->storeLayout(self::CONFIG_KEY, $gatewayHandle, $layout);
+	}
+
+	public function saveCheckoutFieldLayout(string $position, FieldLayout $layout): bool
+	{
+		return $this->storeLayout(self::CHECKOUT_CONFIG_KEY, $position, $layout);
+	}
+
+	private function layoutAt(string $configKey, string $key): FieldLayout
+	{
+		$stored = $this->storedLayout($configKey, $key);
+
+		if ($stored === null) {
+			return new FieldLayout([
+				'type' => Order::class,
+			]);
+		}
+
+		$config = reset($stored);
+		$layout = FieldLayout::createFromConfig(is_array($config) ? $config : []);
+		$layout->uid = (string) key($stored);
+		// The designer asks the type for its thumb settings, and these are order fields.
+		$layout->type = Order::class;
+
+		return $layout;
+	}
+
+	private function storeLayout(string $configKey, string $key, FieldLayout $layout): bool
+	{
 		if (! $layout->validate()) {
 			return false;
 		}
@@ -159,7 +230,7 @@ class CheckoutFieldLayouts extends Component
 		$layout->uid ??= StringHelper::UUID();
 		$layout->type = Order::class;
 
-		Craft::$app->getProjectConfig()->set(self::CONFIG_KEY . '.' . $gatewayHandle, [
+		Craft::$app->getProjectConfig()->set($configKey . '.' . $key, [
 			$layout->uid => $layout->getConfig() ?? [],
 		]);
 
@@ -196,9 +267,9 @@ class CheckoutFieldLayouts extends Component
 	/**
 	 * @return array<string, array<string, mixed>>|null
 	 */
-	private function storedLayout(string $gatewayHandle): ?array
+	private function storedLayout(string $configKey, string $key): ?array
 	{
-		$stored = Craft::$app->getProjectConfig()->get(self::CONFIG_KEY . '.' . $gatewayHandle);
+		$stored = Craft::$app->getProjectConfig()->get($configKey . '.' . $key);
 
 		if (! is_array($stored) || $stored === []) {
 			return null;

@@ -351,6 +351,17 @@ class Checkout extends Component
 	}
 
 	/**
+	 * @return array<int, RenderableField>
+	 */
+	public function checkoutFields(string $position, ?Order $order = null): array
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $plugin->checkoutFieldLayouts->getRenderableCheckoutFields($position, $order);
+	}
+
+	/**
 	 * The address form, in the order and widths the address field layout sets.
 	 *
 	 * @return array<int, AddressFormElement>

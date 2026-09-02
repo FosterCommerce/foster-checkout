@@ -137,6 +137,96 @@ class SettingsController extends Controller
 		return $this->redirectToPostedUrl();
 	}
 
+	public function actionFields(): Response
+	{
+		return $this->renderSection('fields');
+	}
+
+	/**
+	 * @throws ForbiddenHttpException
+	 * @throws NotFoundHttpException
+	 */
+	public function actionEditField(string $position): Response
+	{
+		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_SETTINGS);
+
+		if (! in_array($position, CheckoutFieldLayouts::CHECKOUT_POSITIONS, true)) {
+			throw new NotFoundHttpException();
+		}
+
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $this->renderTemplate('foster-checkout/settings/fields/_edit', [
+			'position' => $position,
+			'fieldLayout' => $plugin->checkoutFieldLayouts->getCheckoutFieldLayout($position),
+		]);
+	}
+
+	/**
+	 * @throws ForbiddenHttpException
+	 * @throws NotFoundHttpException
+	 */
+	public function actionSaveField(): ?Response
+	{
+		$this->requirePostRequest();
+		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_SETTINGS);
+
+		if (! Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+			throw new ForbiddenHttpException(Craft::t(FosterCheckout::HANDLE, 'error.adminChangesDisallowed'));
+		}
+
+		$postedPosition = $this->request->getRequiredBodyParam('position');
+		$position = is_string($postedPosition) ? $postedPosition : '';
+
+		if (! in_array($position, CheckoutFieldLayouts::CHECKOUT_POSITIONS, true)) {
+			throw new NotFoundHttpException();
+		}
+
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+		$layout = Craft::$app->getFields()->assembleLayoutFromPost();
+		$layout->type = Order::class;
+
+		$unstorable = $this->unstorableFieldHandles($layout, $plugin->checkoutFieldLayouts->orderFieldHandles());
+
+		// An order only saves values for fields in its own layout, so anything else would render,
+		// accept what the customer types, and then be discarded without an error.
+		if ($unstorable !== []) {
+			return $this->fieldLayoutFailure('settings.gateways.unstorableFields', $unstorable, $layout);
+		}
+
+		$unsupported = $this->unsupportedFields($layout, $plugin->checkoutFieldLayouts);
+
+		// No input exists for the type, so it's ignored in the storefront form.
+		if ($unsupported !== []) {
+			return $this->fieldLayoutFailure('settings.gateways.unsupportedFields', $unsupported, $layout);
+		}
+
+		$claimed = array_intersect(
+			$this->layoutFieldHandles($layout),
+			$plugin->checkoutFieldLayouts->claimedFieldHandles($position)
+		);
+
+		if ($claimed !== []) {
+			return $this->fieldLayoutFailure('settings.fields.claimedFields', array_values($claimed), $layout);
+		}
+
+		if (! $plugin->checkoutFieldLayouts->saveCheckoutFieldLayout($position, $layout)) {
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
+
+			Craft::$app->getUrlManager()->setRouteParams([
+				'fieldLayout' => $layout,
+			]);
+
+			return null;
+		}
+
+		$this->setSuccessFlash(Craft::t('app', 'Settings saved.'));
+
+		return $this->redirectToPostedUrl();
+	}
+
 	public function actionGeneral(): Response
 	{
 		return $this->renderSection('general');
@@ -203,6 +293,36 @@ class SettingsController extends Controller
 	/**
 	 * @throws NotFoundHttpException
 	 */
+	/**
+	 * @param list<string> $fields
+	 */
+	private function fieldLayoutFailure(string $messageKey, array $fields, FieldLayout $layout): null
+	{
+		$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, $messageKey, [
+			'fields' => implode(', ', $fields),
+		]));
+
+		Craft::$app->getUrlManager()->setRouteParams([
+			'fieldLayout' => $layout,
+		]);
+
+		return null;
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function layoutFieldHandles(FieldLayout $layout): array
+	{
+		$handles = [];
+
+		foreach ($layout->getCustomFieldElements() as $layoutElement) {
+			$handles[] = (string) $layoutElement->getField()->handle;
+		}
+
+		return $handles;
+	}
+
 	private function gateway(string $gatewayHandle): GatewayInterface
 	{
 		$gateway = Commerce::getInstance()?->getGateways()->getGatewayByHandle($gatewayHandle);
@@ -499,6 +619,7 @@ class SettingsController extends Controller
 			'productTypeHandles' => $this->productTypeHandles(),
 			'gateways' => Commerce::getInstance()?->getGateways()->getAllGateways() ?? [],
 			'configurableAddressFields' => $plugin->checkout->configurableAddressFields(),
+			'checkoutPositions' => CheckoutFieldLayouts::CHECKOUT_POSITIONS,
 		]);
 	}
 }

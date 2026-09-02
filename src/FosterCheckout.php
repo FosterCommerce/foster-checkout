@@ -56,7 +56,7 @@ class FosterCheckout extends Plugin
 	/**
 	 * @var array<int, string>
 	 */
-	private const array SETTINGS_SECTIONS = ['appearance', 'features', 'products', 'gateways', 'general'];
+	private const array SETTINGS_SECTIONS = ['appearance', 'features', 'products', 'gateways', 'fields', 'general'];
 
 	/**
 	 * @var array<string, string>
@@ -524,6 +524,7 @@ class FosterCheckout extends Plugin
 				}
 
 				$event->rules[self::HANDLE . '/settings/gateways/<gatewayHandle:{handle}>'] = self::HANDLE . '/settings/edit-gateway';
+				$event->rules[self::HANDLE . '/settings/fields/<position:{handle}>'] = self::HANDLE . '/settings/edit-field';
 			}
 		);
 
