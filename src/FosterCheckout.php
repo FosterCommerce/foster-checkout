@@ -228,6 +228,7 @@ class FosterCheckout extends Plugin
 			'sourceLanguage' => 'en',
 			'basePath' => __DIR__ . '/translations',
 			'allowOverrides' => true,
+			'forceTranslation' => true,
 		];
 	}
 
