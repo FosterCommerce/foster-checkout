@@ -13,11 +13,23 @@
 			</h2>
 			{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'contact' } %}
 		</div>
-		<a href="{{ loginUrl }}" class="text-sm text-[var(--brandColor)] underline">
-			{{ 'email.signIn'|t('foster-checkout') }}
-		</a>
+		{% if currentUser %}
+			<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}" target="_blank"
+			   class="text-sm text-[var(--brandColor)] underline">
+				{{ 'misc.viewAccount'|t('foster-checkout') }}
+			</a>
+		{% else %}
+			<a href="{{ loginUrl }}" class="text-sm text-[var(--brandColor)] underline">
+				{{ 'email.signIn'|t('foster-checkout') }}
+			</a>
+		{% endif %}
 	</div>
 
+	{% if currentUser %}
+		<div class="p-4">
+			<p class="text-black">{{ cart.email }}</p>
+		</div>
+	{% else %}
 	<div
 		class="p-4"
 		data-fc-collect
@@ -85,4 +97,5 @@
 			</div>
 		{% endif %}
 	</div>
+	{% endif %}
 </section>
