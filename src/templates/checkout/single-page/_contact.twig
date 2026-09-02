@@ -25,6 +25,8 @@
 		{% endif %}
 	</div>
 
+	{% include 'foster-checkout/checkout/single-page/_panel-error' with { panel: 'contact' } %}
+
 	{% if currentUser %}
 		<div class="p-4">
 			<p class="text-black">{{ cart.email }}</p>
