@@ -35,7 +35,7 @@ use yii\base\InvalidConfigException;
 /**
  * Checkout service
  *
- * @phpstan-import-type RenderableField from GatewayFieldLayouts
+ * @phpstan-import-type RenderableField from CheckoutFieldLayouts
  * @phpstan-type AddressFormElement array{type: string, required: bool, width: int, field: ?RenderableField}
  * @phpstan-type LinksTable array<array-key, array{text: non-empty-string, url: non-empty-string}>
  * @phpstan-type CheckoutShippingMethod array{handle: string, name: string, description: string, price: float, priceAsCurrency: string}
@@ -347,7 +347,7 @@ class Checkout extends Component
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		return $plugin->gatewayFieldLayouts->getRenderableFields($gatewayHandle, $order);
+		return $plugin->checkoutFieldLayouts->getRenderableFields($gatewayHandle, $order);
 	}
 
 	/**
@@ -369,28 +369,19 @@ class Checkout extends Component
 		$elements = [];
 		$settings = $this->settings();
 
-		foreach ($layoutElements as $layoutElement) {
-			$type = $this->addressElementType($layoutElement);
-
-			if ($type === null) {
-				continue;
-			}
-
-			if (! $layoutElement instanceof BaseField) {
-				continue;
-			}
-
+		foreach ($this->addressLayoutFields($layoutElements) as $type => $layoutElement) {
 			$configurable = $this->isConfigurableAddressField($type, $layoutElement);
+			$attribute = $layoutElement->attribute();
 
-			if ($configurable && in_array($layoutElement->attribute(), $settings->hiddenAddressFields, true)) {
+			if ($configurable && in_array($attribute, $settings->hiddenAddressFields, true)) {
 				continue;
 			}
 
 			$field = $layoutElement instanceof CustomField
-				? $plugin->gatewayFieldLayouts->renderableField($layoutElement)
+				? $plugin->checkoutFieldLayouts->renderableField($layoutElement)
 				: null;
 
-			// A custom field whose type has no storefront input is dropped, same as elsewhere
+			// A custom field whose type has no storefront input has nothing to show the customer
 			if ($type === 'custom' && $field === null) {
 				continue;
 			}
@@ -398,7 +389,7 @@ class Checkout extends Component
 			$elements[] = [
 				'type' => $type,
 				'required' => $layoutElement->required
-					|| ($configurable && in_array($layoutElement->attribute(), $settings->requiredAddressFields, true)),
+					|| ($configurable && in_array($attribute, $settings->requiredAddressFields, true)),
 				'width' => $layoutElement->width,
 				'field' => $field,
 			];
@@ -454,28 +445,60 @@ class Checkout extends Component
 		$options = [];
 		$layoutElements = Craft::$app->getAddresses()->getFieldLayout()->getAllElements();
 
-		foreach ($layoutElements as $layoutElement) {
-			if (! $layoutElement instanceof BaseField) {
+		foreach ($this->addressLayoutFields($layoutElements) as $type => $layoutElement) {
+			if (! $this->isConfigurableAddressField($type, $layoutElement)) {
 				continue;
 			}
 
+			$options[] = [
+				'label' => $this->addressFieldLabel($type, $layoutElement),
+				'value' => $layoutElement->attribute(),
+			];
+		}
+
+		return $options;
+	}
+
+	/**
+	 * A native field is labelled by the plugin rather than by Craft, so the option an admin picks
+	 * reads the same as the field the customer sees.
+	 */
+	private function addressFieldLabel(string $type, BaseField $layoutElement): string
+	{
+		$label = match ($type) {
+			'country' => 'addressFields.countryLabel',
+			'fullName' => 'addressFields.fullnameLabel',
+			'organization' => 'addressFields.organizationLabel',
+			'organizationTaxId' => 'addressFields.organizationTaxIdLabel',
+			default => null,
+		};
+
+		return $label === null
+			? (string) $layoutElement->label()
+			: Craft::t(FosterCheckout::HANDLE, $label);
+	}
+
+	/**
+	 * The layout's elements the storefront can render, keyed by the type it renders them as.
+	 *
+	 * @param array<int, FieldLayoutElement> $layoutElements
+	 * @return \Generator<string, BaseField>
+	 */
+	private function addressLayoutFields(array $layoutElements): \Generator
+	{
+		foreach ($layoutElements as $layoutElement) {
 			$type = $this->addressElementType($layoutElement);
 
 			if ($type === null) {
 				continue;
 			}
 
-			if (! $this->isConfigurableAddressField($type, $layoutElement)) {
+			if (! $layoutElement instanceof BaseField) {
 				continue;
 			}
 
-			$options[] = [
-				'label' => (string) $layoutElement->label(),
-				'value' => $layoutElement->attribute(),
-			];
+			yield $type => $layoutElement;
 		}
-
-		return $options;
 	}
 
 	/**

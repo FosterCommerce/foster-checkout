@@ -12,7 +12,7 @@ use craft\services\ProjectConfig;
 use craft\web\Controller;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\Settings;
-use fostercommerce\fostercheckout\services\GatewayFieldLayouts;
+use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -63,7 +63,7 @@ class SettingsController extends Controller
 			'gateway' => $gateway,
 			'settings' => $settings,
 			'gatewayConfig' => $settings->paymentGateways[$gatewayHandle] ?? null,
-			'fieldLayout' => $plugin->gatewayFieldLayouts->getFieldLayout($gatewayHandle),
+			'fieldLayout' => $plugin->checkoutFieldLayouts->getFieldLayout($gatewayHandle),
 			'overriddenSettings' => $plugin->getOverriddenSettings(),
 		]);
 	}
@@ -90,7 +90,7 @@ class SettingsController extends Controller
 		$layout = Craft::$app->getFields()->assembleLayoutFromPost();
 		$layout->type = Order::class;
 
-		$unstorable = $this->unstorableFieldHandles($layout, $plugin->gatewayFieldLayouts->orderFieldHandles());
+		$unstorable = $this->unstorableFieldHandles($layout, $plugin->checkoutFieldLayouts->orderFieldHandles());
 
 		// An order only saves values for fields in its own layout, so anything else would render,
 		// accept what the customer types, and then be discarded without an error.
@@ -106,7 +106,7 @@ class SettingsController extends Controller
 			return null;
 		}
 
-		$unsupported = $this->unsupportedFields($layout, $plugin->gatewayFieldLayouts);
+		$unsupported = $this->unsupportedFields($layout, $plugin->checkoutFieldLayouts);
 
 		// No input exists for the type, so it's ignored in the storefront form.
 		if ($unsupported !== []) {
@@ -121,7 +121,7 @@ class SettingsController extends Controller
 			return null;
 		}
 
-		if (! $plugin->gatewayFieldLayouts->saveFieldLayout($gatewayHandle, $layout)) {
+		if (! $plugin->checkoutFieldLayouts->saveFieldLayout($gatewayHandle, $layout)) {
 			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
 
 			Craft::$app->getUrlManager()->setRouteParams([
@@ -236,14 +236,14 @@ class SettingsController extends Controller
 	/**
 	 * @return array<int, string>
 	 */
-	private function unsupportedFields(FieldLayout $layout, GatewayFieldLayouts $gatewayFieldLayouts): array
+	private function unsupportedFields(FieldLayout $layout, CheckoutFieldLayouts $checkoutFieldLayouts): array
 	{
 		$unsupported = [];
 
 		foreach ($layout->getCustomFieldElements() as $customField) {
 			$field = $customField->getField();
 
-			if ($gatewayFieldLayouts->fieldInputType($field) === null) {
+			if ($checkoutFieldLayouts->fieldInputType($field) === null) {
 				$unsupported[] = sprintf('%s (%s)', (string) $field->name, $field::displayName());
 			}
 		}

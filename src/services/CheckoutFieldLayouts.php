@@ -24,8 +24,9 @@ use yii\base\Component;
  *
  * @phpstan-type RenderableField array{handle: string, label: string, instructions: ?string, required: bool, width: int, type: string, placeholder: ?string, maxLength: ?int, min: ?int, max: ?int, initialRows: ?int, options: list<array{label: string, value: string}>}
  */
-class GatewayFieldLayouts extends Component
+class CheckoutFieldLayouts extends Component
 {
+	// Renaming this path would orphan every layout already stored under it.
 	public const CONFIG_KEY = 'foster-checkout.gatewayFieldLayouts';
 
 	public function getFieldLayout(string $gatewayHandle): FieldLayout

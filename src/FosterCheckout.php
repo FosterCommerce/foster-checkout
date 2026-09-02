@@ -4,6 +4,7 @@ namespace fostercommerce\fostercheckout;
 
 use CommerceGuys\Addressing\AddressFormat\AddressField;
 use Craft;
+use craft\base\FieldInterface;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\commerce\controllers\BaseFrontEndController;
@@ -29,14 +30,14 @@ use craft\web\UrlManager;
 use craft\web\View;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\services\Checkout;
+use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
 use fostercommerce\fostercheckout\services\Content;
-use fostercommerce\fostercheckout\services\GatewayFieldLayouts;
 use yii\base\Event;
 
 /**
  * @property-read Checkout $checkout
  * @property-read Content $content
- * @property-read GatewayFieldLayouts $gatewayFieldLayouts
+ * @property-read CheckoutFieldLayouts $checkoutFieldLayouts
  */
 class FosterCheckout extends Plugin
 {
@@ -358,7 +359,7 @@ class FosterCheckout extends Plugin
 		$this->setComponents([
 			'checkout' => Checkout::class,
 			'content' => Content::class,
-			'gatewayFieldLayouts' => GatewayFieldLayouts::class,
+			'checkoutFieldLayouts' => CheckoutFieldLayouts::class,
 		]);
 	}
 
@@ -428,13 +429,27 @@ class FosterCheckout extends Plugin
 					return;
 				}
 
-				$requiredFields = $this->checkout->settings()->requiredAddressFields;
+				$address = $event->sender;
 
-				if ($requiredFields === []) {
+				if (! $address instanceof Address) {
 					return;
 				}
 
-				$event->rules[] = [$requiredFields, 'required'];
+				$layout = $address->getFieldLayout();
+
+				foreach ($this->checkout->settings()->requiredAddressFields as $attribute) {
+					$field = $layout?->getFieldByHandle($attribute);
+
+					// A field value can be an object or a bool, which the default emptiness test never
+					// counts as empty, so the field decides for itself as it does in Craft's own rules.
+					$event->rules[] = $field instanceof FieldInterface
+						? [
+							$attribute,
+							'required',
+							'isEmpty' => static fn (mixed $value): bool => $field->isValueEmpty($value, $address),
+						]
+						: [$attribute, 'required'];
+				}
 			}
 		);
 	}
