@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="{{ craft.app.language }}" dir="{{ craft.app.locale.getOrientation() }}">
 <head>
 	<meta charset="UTF-8"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -30,9 +30,6 @@
 
 	<link rel="preconnect" href="https://fonts.googleapis.com"/>
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-	{# The JS bundle is not parsed until the end of the body, so the browser would otherwise
-	   only discover esm.sh once Alpine is already needed. #}
-	<link rel="preconnect" href="https://esm.sh" crossorigin/>
 	<link
 		href="https://fonts.googleapis.com/css2?family={{ craft.fostercheckout.settings.branding.font|split(' ')|join('+') }}:wght@300;400;500;600;700&display=swap"
 		rel="stylesheet"
@@ -73,10 +70,6 @@
 		}
 	</script>
 	<style>
-		[v-cloak] {
-			opacity: 0;
-		}
-
 		[x-cloak] { display: none !important; }
 
 		{% if craft.fostercheckout.settings.options.enablePageTransitions %}
@@ -92,7 +85,7 @@
 	<style type="text/tailwindcss">
 		@layer utilities {
 			body {
-				font-family: {{ craft.fostercheckout.settings.branding.font ?? 'Rubik' | raw }};
+				font-family: {{ craft.fostercheckout.settings.branding.font }};
 			}
 
 			/* Place any additional custom CSS classes here */
@@ -138,7 +131,7 @@
 			}
 
 			.checkbox input[type="checkbox"]:checked + label::before {
-				background: var(--brandColor) 10%;
+				background: var(--brandColor);
 				transform: scale(0.5);
 				@apply border-[var(--brandColor)];
 			}
@@ -155,7 +148,7 @@
 	{% endblock %}
 </head>
 
-<body style="--brandColor: {{ craft.fostercheckout.settings.branding.color ?? '#1F2937' }}; --headerBgColor: {{ craft.fostercheckout.settings.branding.headerBgColor ?? '#F3F3F3' }};">
+<body style="--brandColor: {{ craft.fostercheckout.settings.branding.color }}; --headerBgColor: {{ craft.fostercheckout.settings.branding.headerBgColor }};">
 
 <div>
 
