@@ -1,0 +1,16 @@
+{% set positionFields = craft.fostercheckout.checkoutFields(position, cart) %}
+
+{% if positionFields|length %}
+	<div class="grid grid-cols-1 gap-y-4 gap-x-4 mt-4 sm:grid-cols-12">
+		{% for field in positionFields %}
+			{# The layout stores width as a percentage; the grid is in twelfths #}
+			<div class="sm:col-span-{{ (field.width / 100 * 12)|round }}">
+				{% include 'foster-checkout/_components/app/checkout-field' with {
+					field: field,
+					value: cart[field.handle] ~ '',
+					errors: cart.getErrors(field.handle),
+				} %}
+			</div>
+		{% endfor %}
+	</div>
+{% endif %}
