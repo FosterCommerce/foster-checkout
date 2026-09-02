@@ -5388,19 +5388,7 @@ const SinglePageCheckout = (props) => {
       );
       return isManual ? this.placingOrderLabel : this.processingLabel;
     },
-    formatAmountLikeExisting(amount) {
-      const reference = this.totals.totalAsCurrency || this.totals.itemsAsCurrency || this.totals.shippingAsCurrency || "";
-      const prefixMatch = reference.match(/^[^\d-]+/);
-      const numeric = Number(amount);
-      if (!prefixMatch || !Number.isFinite(numeric)) {
-        return String(amount);
-      }
-      const formatted = Math.abs(numeric).toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-      return `${numeric < 0 ? "-" : ""}${prefixMatch[0]}${formatted}`;
-    },
+    // The order total is left to the save that follows, which returns it formatted for the store
     applySelectedMethodTotals() {
       const method = this.shippingMethods.find(
         (item) => item.handle === this.shippingMethodHandle
@@ -5408,20 +5396,11 @@ const SinglePageCheckout = (props) => {
       if (!method) {
         return;
       }
-      const nextShipping = Number(method.price);
-      const prevShipping = Number(this.totals.shipping);
-      const prevTotal = Number(this.totals.total);
-      const nextTotal = Number.isFinite(nextShipping) && Number.isFinite(prevShipping) && Number.isFinite(prevTotal) ? prevTotal - prevShipping + nextShipping : null;
-      const totals = {
+      this.totals = {
         ...this.totals,
-        shipping: Number.isFinite(nextShipping) ? nextShipping : this.totals.shipping,
+        shipping: Number(method.price),
         shippingAsCurrency: method.priceAsCurrency
       };
-      if (nextTotal !== null) {
-        totals.total = nextTotal;
-        totals.totalAsCurrency = this.formatAmountLikeExisting(nextTotal);
-      }
-      this.totals = totals;
     },
     panelStatusLabel(panel) {
       const tone = this.panelStatus[panel];
