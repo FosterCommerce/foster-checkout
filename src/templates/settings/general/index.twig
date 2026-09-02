@@ -147,6 +147,18 @@
 			warning: gatewaysOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'zeroValueGatewayHandles' }),
 		}) }}
 
+		{% set hiddenAddressFieldsOverridden = 'hiddenAddressFields' in overriddenSettings %}
+
+		{{ forms.checkboxGroupField({
+			label: 'settings.general.hiddenAddressFields'|t('foster-checkout'),
+			instructions: 'settings.general.hiddenAddressFieldsHelp'|t('foster-checkout'),
+			id: 'hidden-address-fields',
+			name: 'settings[hiddenAddressFields]',
+			options: hideableAddressFields,
+			values: settings.hiddenAddressFields,
+			disabled: hiddenAddressFieldsOverridden or not adminChangesAllowed,
+			warning: hiddenAddressFieldsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'hiddenAddressFields' }),
+		}) }}
 
 		<hr>
 

@@ -67,8 +67,8 @@ return [
 	'email.previousStep' => 'Return to cart',
 	'email.nextStep' => 'Next step',
 	'email.createAccount' => 'Create an account?',
-
 	'checkout.delivery' => 'Delivery',
+
 	'checkout.payIncomplete' => 'Complete the required details above before paying.',
 
 	// Login page
@@ -344,6 +344,8 @@ return [
 	'settings.general.addCountry' => 'Add a country',
 	'settings.general.zeroValueGateways' => 'Zero value gateways',
 	'settings.general.zeroValueGatewaysHelp' => 'Gateways available when an order totals zero.',
+	'settings.general.hiddenAddressFields' => 'Hidden address fields',
+	'settings.general.hiddenAddressFieldsHelp' => 'Address fields to leave off the checkout. They stay available in the control panel. A field the address layout marks required cannot be hidden, since Craft needs it to validate the address.',
 
 	'settings.general.cart' => 'Cart path',
 	'settings.general.cartHelp' => 'Site-relative path where the cart is accessible.',

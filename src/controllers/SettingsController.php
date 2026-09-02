@@ -498,6 +498,7 @@ class SettingsController extends Controller
 			'overriddenSettings' => $plugin->getOverriddenSettings(),
 			'productTypeHandles' => $this->productTypeHandles(),
 			'gateways' => Commerce::getInstance()?->getGateways()->getAllGateways() ?? [],
+			'hideableAddressFields' => $plugin->checkout->hideableAddressFields(),
 		]);
 	}
 }

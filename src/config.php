@@ -182,4 +182,10 @@ return [
 
 	// An array of country codes that will be shown first in the country select dropdowns
 	'priorityCountries' => [],
+
+	// Address fields to leave off the checkout, named by attribute or custom field handle.
+	// They stay available in the control panel. A field the address layout marks required is
+	// always shown, since Craft needs it to validate the address.
+	// (ex. ['organization', 'organizationTaxId', 'addressNotes'])
+	'hiddenAddressFields' => [],
 ];

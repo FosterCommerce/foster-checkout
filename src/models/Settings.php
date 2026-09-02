@@ -60,6 +60,14 @@ class Settings extends Model
 	public array $priorityCountries = [];
 
 	/**
+	 * Address fields to leave off the checkout, named by attribute or custom field handle. A field
+	 * the address layout marks required is always shown, so Craft can still validate the address.
+	 *
+	 * @var array<string>
+	 */
+	public array $hiddenAddressFields = [];
+
+	/**
 	 * @param array<array-key, mixed> $config
 	 */
 	public function __construct(array $config = [])
