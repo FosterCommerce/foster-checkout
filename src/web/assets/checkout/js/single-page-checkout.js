@@ -54,7 +54,6 @@ export const SinglePageCheckout = (props) => {
 			discounts: [],
 			vouchers: [],
 		},
-		noAddressLabel: props.noAddressLabel ?? '',
 		payButtonText: props.payButtonText ?? '',
 		processingLabel: props.processingLabel ?? '',
 		placingOrderLabel: props.placingOrderLabel ?? '',
@@ -1312,17 +1311,13 @@ export const SinglePageCheckout = (props) => {
 				return;
 			}
 
-			const preview = this.formatAddress(
+			this.shippingPreview = this.formatAddress(
 				this.addressFieldsFromPayload(
 					this.collectNamedFields(scope),
 					'shippingAddress['
 				),
 				scope
 			);
-
-			if (preview) {
-				this.shippingPreview = preview;
-			}
 		},
 
 		formatAddress(fields, scope, address = null) {
