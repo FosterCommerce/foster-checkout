@@ -356,23 +356,17 @@
 	</div>
 
 	{% js %}
-	var $paymentForms = document.querySelectorAll('.paymentForm');
+	const paymentForm = document.getElementById('paymentForm');
 
-	if ($paymentForms.length) {
-		$paymentForms.forEach(($paymentForm) => {
+	// A second submit would take a second payment, so the first one claims the form
+	paymentForm.addEventListener('submit', function (event) {
+		if (event.defaultPrevented || paymentForm.dataset.processing) {
+			event.preventDefault();
+			return false;
+		}
 
-			// Only allow the payment form submit to be triggered once.
-			$paymentForm.addEventListener('submit', function(ev) {
-
-				if ($paymentForm.dataset.processing) {
-					ev.preventDefault();
-					return false;
-				}
-
-				$paymentForm.dataset.processing = true;
-			});
-		});
-	}
+		paymentForm.dataset.processing = true;
+	});
 	{% endjs %}
 {% endblock %}
 

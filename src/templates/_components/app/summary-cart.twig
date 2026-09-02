@@ -1,16 +1,8 @@
 <article>
 
-	{% set lineItemDiscount = 0 %}
-	{% set orderDiscountAdjustments = [] %}
-	{% for adjustment in cart.adjustments %}
-		{% if adjustment.type == 'discount' %}
-			{% if adjustment.lineItemId %}
-				{% set lineItemDiscount = lineItemDiscount + adjustment.amount %}
-			{% else %}
-				{% set orderDiscountAdjustments = orderDiscountAdjustments|merge([adjustment]) %}
-			{% endif %}
-		{% endif %}
-	{% endfor %}
+	{% set orderDiscountAdjustments = cart.adjustments|filter(
+		adjustment => adjustment.type == 'discount' and not adjustment.lineItemId
+	) %}
 
 	<div class="mb-6">
 		{% include 'foster-checkout/_components/app/coupon-code' %}
@@ -20,7 +12,7 @@
 
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">{{ 'summary.itemsLabel'|t('foster-checkout') }}</dt>
-			<dd class="text-right text-black">{{ (cart.itemSubtotal + lineItemDiscount)|commerceCurrency }}</dd>
+			<dd class="text-right text-black">{{ craft.fostercheckout.itemsTotal(cart) }}</dd>
 		</div>
 
 		{% if not cart.shippingAddressId %}

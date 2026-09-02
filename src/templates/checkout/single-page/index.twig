@@ -130,20 +130,17 @@
 	</div>
 
 	{% js %}
-	var paymentForms = document.querySelectorAll('#paymentForm');
+	const paymentForm = document.getElementById('paymentForm');
 
-	if (paymentForms.length) {
-		paymentForms.forEach((paymentForm) => {
-			paymentForm.addEventListener('submit', function (event) {
-				if (event.defaultPrevented || paymentForm.dataset.processing) {
-					event.preventDefault();
-					return false;
-				}
+	// A second submit would take a second payment, so the first one claims the form
+	paymentForm.addEventListener('submit', function (event) {
+		if (event.defaultPrevented || paymentForm.dataset.processing) {
+			event.preventDefault();
+			return false;
+		}
 
-				paymentForm.dataset.processing = true;
-			});
-		});
-	}
+		paymentForm.dataset.processing = true;
+	});
 	{% endjs %}
 {% endblock %}
 

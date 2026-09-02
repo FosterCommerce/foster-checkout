@@ -283,7 +283,7 @@ class FosterCheckout extends Plugin
 			];
 		}
 
-		return $navItem['subnav'] === [] ? null : $navItem;
+		return ($navItem['subnav'] ?? []) === [] ? null : $navItem;
 	}
 
 	#[\Override]

@@ -213,7 +213,7 @@
 						</p>
 						<p class="text-sm text-gray-500">
 							{% if lineItem.getOnPromotion() or lineItem.purchasable.getSales()|length %}
-								{{ 'summary.onSaleLabel'|t('foster-checkout') }}: {{ (lineItem.salePrice * lineItem.qty) | commerceCurrency }}<br>
+								{{ 'summary.onSaleLabel'|t('foster-checkout') }}: {{ lineItem.subtotalAsCurrency }}<br>
 							{% endif %}
 							{{ 'summary.originalPriceLabel'|t('foster-checkout') }}: <span class="line-through">{{ craft.fostercheckout.lineItemOriginalTotal(lineItem) }}</span>
 						</p>

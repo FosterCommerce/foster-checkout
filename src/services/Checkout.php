@@ -494,6 +494,26 @@ class Checkout extends Component
 	}
 
 	/**
+	 * The line items total, with any discount belonging to a single item already taken off.
+	 */
+	public function itemsTotal(Order $order): string
+	{
+		$teller = $order->getTeller();
+		$lineItemDiscount = '0';
+
+		foreach ($order->getAdjustments() ?? [] as $adjustment) {
+			if ($adjustment->type === 'discount' && $adjustment->lineItemId) {
+				$lineItemDiscount = $teller->add($lineItemDiscount, $adjustment->amount);
+			}
+		}
+
+		return Currency::formatAsCurrency(
+			$teller->add($order->getItemSubtotal(), $lineItemDiscount),
+			$order->currency
+		);
+	}
+
+	/**
 	 * What a line item would have cost at its original price, before any sale.
 	 */
 	public function lineItemOriginalTotal(LineItem $lineItem): string
@@ -628,15 +648,12 @@ class Checkout extends Component
 	 */
 	private function checkoutTotals(Order $cart): array
 	{
-		$teller = $cart->getTeller();
-		$lineItemDiscount = '0';
 		$discounts = [];
 		$vouchers = [];
 
 		foreach ($cart->getAdjustments() ?? [] as $adjustment) {
 			if ($adjustment->type === 'discount') {
 				if ($adjustment->lineItemId) {
-					$lineItemDiscount = $teller->add($lineItemDiscount, $adjustment->amount);
 					continue;
 				}
 
@@ -655,10 +672,8 @@ class Checkout extends Component
 			}
 		}
 
-		$itemsAmount = (float) $teller->add($cart->getItemSubtotal(), $lineItemDiscount);
-
 		return [
-			'itemsAsCurrency' => Currency::formatAsCurrency($itemsAmount, $cart->currency),
+			'itemsAsCurrency' => $this->itemsTotal($cart),
 			'shipping' => $cart->getTotalShippingCost(),
 			'shippingAsCurrency' => $cart->totalShippingCostAsCurrency,
 			'taxAsCurrency' => $cart->totalTaxAsCurrency,
