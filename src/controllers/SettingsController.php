@@ -388,7 +388,7 @@ class SettingsController extends Controller
 
 		// The form disables overridden fields, but a disabled input is not a control. Dropping them
 		// per key rather than rejecting the save lets one overridden key sit beside editable ones.
-		$postedSettings = array_diff_key($postedSettings, array_flip($plugin->getOverriddenSettings()));
+		$postedSettings = $this->withoutOverriddenSettings($postedSettings, $plugin->getOverriddenSettings());
 
 		// savePluginSettings() persists only the keys it is handed and replaces the whole settings
 		// node, so the posted section is merged over what is already stored. The stored config is
@@ -665,6 +665,29 @@ class SettingsController extends Controller
 		if (in_array('lineItemOptionRules', $plugin->getOverriddenSettings(), true)) {
 			throw new ForbiddenHttpException(Craft::t(FosterCheckout::HANDLE, 'settings.lineItemOptions.overridden'));
 		}
+	}
+
+	/**
+	 * @param array<array-key, mixed> $postedSettings
+	 * @param list<string> $overridden
+	 * @return array<array-key, mixed>
+	 */
+	private function withoutOverriddenSettings(array $postedSettings, array $overridden, string $prefix = ''): array
+	{
+		foreach ($postedSettings as $name => $value) {
+			$path = $prefix === '' ? (string) $name : "{$prefix}.{$name}";
+
+			if (in_array($path, $overridden, true)) {
+				unset($postedSettings[$name]);
+				continue;
+			}
+
+			if (is_array($value)) {
+				$postedSettings[$name] = $this->withoutOverriddenSettings($value, $overridden, $path);
+			}
+		}
+
+		return $postedSettings;
 	}
 
 	/**

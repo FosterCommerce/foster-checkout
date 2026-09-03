@@ -4,6 +4,7 @@
 
 ### Added
 
+- **Checkout -> Line Items** screen, holding the SKU toggle, the line item options settings, and rules that rewrite an option's name and value.
 - `enableSinglePageCheckout` setting on **Checkout → Features**. When enabled, checkout shows contact, delivery, shipping, and payment on one page. Multi-page is the default.
 - Checkout copy is now edited at **Checkout -> Content**, stored in the plugin's own table so it stays editable on production. Covers step notes, the newsletter checkbox label, delivery date copy, payment method notes and footer links.
 - Copy is stored per site or per language, set by the new `contentTranslationMethod` setting.
@@ -15,6 +16,7 @@
 
 ### Changed
 
+- A config file now overrides plugin settings per key rather than per top-level key, so pinning one setting leaves the rest of its screen editable.
 - The `notes` and `links` config keys are retired. Existing values are migrated into content storage on update, and the old keys are then ignored. `notes.customersOrderNotes.fieldHandle` is still read for backwards compatibility.
 - A gateway note, the newsletter label and the delivery date label and message now read from content storage, falling back to their config values when no copy is stored. A gateway note defined as a PHP closure keeps working through that fallback.
 - Settings saved in the control panel no longer round-trip through the settings model, which previously dropped values the model could not represent.

@@ -6,8 +6,10 @@
  * A template for the Foster Checkout settings. It does nothing on its own.
  *
  * Copy it to `config/foster-checkout.php` and uncomment only what a developer needs to pin.
- * Any key present here overrides the setting for every environment and makes its control
- * panel section read-only, so an uncommented block takes that screen away from the merchant.
+ * A key present here overrides that setting for every environment and shows it read-only in the
+ * control panel. Only the keys named here are pinned; every sibling stays editable.
+ *
+ * A list, such as `priorityCountries`, is pinned whole rather than merged with the stored value.
  *
  * Once copied, the file is multi-environment aware in the same way as `general.php`.
  */
@@ -28,8 +30,7 @@ return [
 	// 'enableSaveForLater' => false, // true|false
 
 	// Whether or not to show the shipping estimator
-
-	// Whether or not to show the free shipping message
+	// 'enableEstimatedShipping' => false, // true|false
 
 	// Whether or not to show the "No Image" placeholder images
 	// 'enablePlaceholderImages' => false,
@@ -37,13 +38,6 @@ return [
 	// Whether or not to enable CSS page transitions
 	//(see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#browser_compatibility for browser compatibility)
 	// 'enablePageTransitions' => false,
-
-	// Whether or not to show the "Made a mistake" function on the order completed page
-	// If disabled then the heading and text will not be displayed
-	// 'enableMadeAMistake' => false,
-
-	// Whether to show the line item options
-	// 'enableLineItemOptions' => '_',
 
 	// The Klaviyo list ID to subscribe the customer to
 	// 'klaviyoListId' => null,
@@ -66,6 +60,33 @@ return [
 	// 'paymentDueDateFieldHandle' => null,
 
 	// 'imagerXConfig' => null,
+	// ],
+
+	// How line items are shown in the cart and at checkout
+	// 'lineItems' => [
+	// Whether each line item shows its SKU
+	// 'showLineItemSku' => true, // true|false
+
+	// Whether line item options are shown at all. Gates the prefix and the rules below.
+	// 'enableLineItemOptions' => true, // true|false
+
+	// Options whose name starts with this are never shown. Empty shows every option.
+	// 'hiddenLineItemOptionPrefix' => '_',
+
+	// Characters to keep of an option value. Null shows the whole value.
+	// 'lineItemOptionValueMaxLength' => null,
+	// ],
+
+	// Rewrites applied to a line item option, in order, each testing the option as it was stored.
+	// Setting these here takes the rules screen away from the merchant.
+	// 'lineItemOptionRules' => [
+	// [
+	// 'condition' => ['conditionRules' => [
+	// ['class' => \fostercommerce\fostercheckout\conditions\OptionNameConditionRule::class, 'operator' => '=', 'value' => 'blessing'],
+	// ]],
+	// 'setName' => 'Blessing Services',
+	// 'setValue' => 'Yes',
+	// ],
 	// ],
 	// Branding Settings
 	// 'branding' => [

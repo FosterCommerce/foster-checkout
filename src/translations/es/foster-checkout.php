@@ -221,7 +221,6 @@ return [
 	'error.adminChangesDisallowed' => 'Los ajustes del pago se guardan en el project config, que es de solo lectura en este entorno.',
 	'settings.saveFailed' => 'No se han podido guardar los ajustes del pago.',
 	'settings.overridden' => 'Esto se sobrescribe con el ajuste `{setting}` del archivo `config/foster-checkout.php`.',
-	'settings.overriddenGroup' => 'Todos los ajustes del grupo `{setting}` se gestionan desde el archivo `config/foster-checkout.php`.',
 
 	'content.intro' => 'Textos que se muestran en las páginas de carrito y pago. Se permite HTML y cada nota se renderiza como una plantilla Twig, así que puede hacer referencia al carrito o al pedido, por ejemplo {qty}.',
 	'content.saved' => 'Contenido guardado.',
@@ -397,7 +396,7 @@ return [
 	'settings.lineItemOptions.setValueHelp' => 'Déjelo vacío para conservar el valor almacenado.',
 	'settings.lineItemOptions.ruleCount' => '{count, plural, =1{1 condición} other{# condiciones}}',
 	'settings.lineItemOptions.everyOption' => 'Todas las opciones',
-	'settings.lineItemOptions.overridden' => 'Las opciones de línea de pedido se definen en un archivo de configuración, por lo que no se pueden editar aquí.',
+	'settings.lineItemOptions.overridden' => 'Estas reglas se definen en un archivo de configuración y no se pueden editar aquí.',
 	'settings.lineItemOptions.reordered' => 'Reglas reordenadas.',
 	'settings.lineItemOptions.reorderFailed' => 'No se han podido reordenar las reglas.',
 	'settings.lineItemOptions.valueMaxLength' => 'Truncar los valores a',

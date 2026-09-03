@@ -8,11 +8,12 @@ Every setting is editable in the control panel under **Checkout**. A site may al
 | --- | --- | --- |
 | **Appearance** | `branding` | Brand color, header background, Google font family, logo path, component style, field label placement, title prefix |
 | **Features** | `options` | Checkout page layout format, the other `enable*` switches, and the Klaviyo list ID. Blank list ID hides the newsletter checkbox. Multi-page is the default |
+| **Line Items** | `lineItems` and `lineItemOptionRules` | Whether a line item shows its SKU, whether its options are shown, which option names are hidden, how far option values are cut, and the rules that rewrite an option's name and value |
 | **Products** | `products` | Per product type, the field holding the cart preview image. Blank falls back to the product's own image |
 | **Gateways** | `paymentGateways` | Per gateway: a field layout and extra payment form parameters |
 | **General** | `paths` and the keys below | Cart, checkout, account and cancel paths, plus the built-in cart template switch |
 
-Keys on the General screen that are overridden independently of `paths`:
+Other keys on the General screen:
 
 | Setting | Config key | Holds |
 | --- | --- | --- |
@@ -26,11 +27,13 @@ Keys on the General screen that are overridden independently of `paths`:
 
 ## What overrides what
 
-Craft merges the config file over stored settings on every request, so a key set in the file always wins. Those fields are shown disabled with a warning naming the setting, and the save is rejected server side as well.
+The config file is merged over stored settings on every request, so a key set in the file always wins. That field is shown disabled with a warning naming it, and the save is rejected server side as well.
 
-> This is being overridden by the `branding` setting in the `config/foster-checkout.php` file.
+> This is being overridden by the `branding.color` setting in the `config/foster-checkout.php` file.
 
-The merge is shallow and applies per top-level key: one value inside `options` in the config file replaces the whole `options` section. That is why the warning names a top-level setting rather than a single field. Remove the key from the config file to make the section editable again.
+The merge applies per key. Setting `branding.color` in the config file pins that one field and leaves the rest of the Appearance screen editable. Remove the key from the config file to hand the field back.
+
+A list is pinned whole rather than merged. A config file setting `priorityCountries` replaces the stored list; it does not add to it. The same holds for `hiddenAddressFields`, `requiredAddressFields` and `zeroValueGatewayHandles`.
 
 A gateway's field layout is stored outside plugin settings, so it stays editable even where `paymentGateways` is set in the config file.
 

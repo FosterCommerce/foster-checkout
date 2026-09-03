@@ -152,7 +152,7 @@ class Settings extends Model
 	#[\Override]
 	public function setAttributes($values, $safeOnly = true): void
 	{
-		$values = $this->moveLineItemSettings($values);
+		$values = self::moveLineItemSettings($values);
 
 		if (array_key_exists('options', $values)) {
 			$values['options'] = new OptionConfig($values['options']);
@@ -231,7 +231,7 @@ class Settings extends Model
 	 * @param array<mixed, mixed> $values
 	 * @return array<mixed, mixed>
 	 */
-	private function moveLineItemSettings(array $values): array
+	public static function moveLineItemSettings(array $values): array
 	{
 		$options = $values['options'] ?? null;
 

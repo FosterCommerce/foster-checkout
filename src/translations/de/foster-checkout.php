@@ -220,7 +220,6 @@ return [
 	'error.adminChangesDisallowed' => 'Checkout-Einstellungen werden im Project Config gespeichert, das in dieser Umgebung schreibgeschützt ist.',
 	'settings.saveFailed' => 'Checkout-Einstellungen konnten nicht gespeichert werden.',
 	'settings.overridden' => 'Dies wird durch die Einstellung `{setting}` in der Datei `config/foster-checkout.php` überschrieben.',
-	'settings.overriddenGroup' => 'Alle Einstellungen der Gruppe `{setting}` werden über die Datei `config/foster-checkout.php` verwaltet.',
 
 	'content.intro' => 'Texte, die auf den Warenkorb- und Checkout-Seiten erscheinen. HTML ist erlaubt, und jeder Hinweis wird als Twig-Template gerendert, kann also auf den Warenkorb oder die Bestellung verweisen, zum Beispiel {qty}.',
 	'content.saved' => 'Inhalte gespeichert.',
@@ -396,7 +395,7 @@ return [
 	'settings.lineItemOptions.setValueHelp' => 'Leer lassen, um den gespeicherten Wert beizubehalten.',
 	'settings.lineItemOptions.ruleCount' => '{count, plural, =1{1 Bedingung} other{# Bedingungen}}',
 	'settings.lineItemOptions.everyOption' => 'Jede Option',
-	'settings.lineItemOptions.overridden' => 'Positionsoptionen werden in einer Konfigurationsdatei festgelegt und können hier nicht bearbeitet werden.',
+	'settings.lineItemOptions.overridden' => 'Diese Regeln sind in einer Konfigurationsdatei festgelegt und können hier nicht bearbeitet werden.',
 	'settings.lineItemOptions.reordered' => 'Regeln neu sortiert.',
 	'settings.lineItemOptions.reorderFailed' => 'Regeln konnten nicht neu sortiert werden.',
 	'settings.lineItemOptions.valueMaxLength' => 'Werte kürzen auf',

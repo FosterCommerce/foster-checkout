@@ -38,7 +38,7 @@ See [`docs/user-guide/content.md`](./docs/user-guide/content.md).
 
 ## Settings
 
-Appearance, features, products, payment gateways and paths each get a control panel screen under **Checkout**. Anything a site sets in `config/foster-checkout.php` wins over the control panel, and those fields are shown as read-only so it is clear why an edit will not take.
+Appearance, features, line items, products, payment gateways and paths each get a control panel screen under **Checkout**. Anything a site sets in `config/foster-checkout.php` wins over the control panel, per key, and those fields are shown as read-only so it is clear why an edit will not take.
 
 See [`docs/reference/settings.md`](./docs/reference/settings.md).
 

@@ -7,8 +7,7 @@
 {% set title = 'nav.features'|t('foster-checkout') %}
 {% set docTitle = title %}
 
-{% set overridden = 'options' in overriddenSettings %}
-{% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
 
 {% if readOnly %}
 	{% set contentNotice = readOnlyNotice() %}
@@ -24,7 +23,6 @@
 	{ handle: 'enableSaveForLater', on: settings.options.enableSaveForLater },
 	{ handle: 'enablePlaceholderImages', on: settings.options.enablePlaceholderImages },
 	{ handle: 'enablePageTransitions', on: settings.options.enablePageTransitions },
-	{ handle: 'enableMadeAMistake', on: settings.options.enableMadeAMistake },
 ] %}
 
 {% block content %}
@@ -35,14 +33,16 @@
 		{{ csrfInput() }}
 
 		{% for switch in switches %}
+			{% set setting = "options.#{switch.handle}" %}
+			{% set pinned = setting in overriddenSettings %}
 			{% set lightswitch = {
 				label: "settings.features.#{switch.handle}"|t('foster-checkout'),
 				instructions: "settings.features.#{switch.handle}Help"|t('foster-checkout'),
 				id: "options-#{switch.handle}",
 				name: "settings[options][#{switch.handle}]",
 				on: switch.on,
-				disabled: readOnly,
-				warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'options' }),
+				disabled: readOnly or pinned,
+				warning: pinned ? 'settings.overridden'|t('foster-checkout', { setting: setting }),
 			} %}
 			{% if switch.onLabel is defined %}
 				{% set lightswitch = lightswitch|merge({
@@ -53,14 +53,15 @@
 			{{ forms.lightswitchField(lightswitch) }}
 		{% endfor %}
 
+		{% set klaviyoPinned = 'options.klaviyoListId' in overriddenSettings %}
 		{{ forms.textField({
 			label: 'settings.features.klaviyoListId'|t('foster-checkout'),
 			instructions: 'settings.features.klaviyoListIdHelp'|t('foster-checkout'),
 			id: 'options-klaviyo-list-id',
 			name: 'settings[options][klaviyoListId]',
 			value: settings.options.klaviyoListId,
-			disabled: readOnly,
-			warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'options' }),
+			disabled: readOnly or klaviyoPinned,
+			warning: klaviyoPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'options.klaviyoListId' }),
 		}) }}
 
 		{% if not readOnly %}

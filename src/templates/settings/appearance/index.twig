@@ -7,8 +7,7 @@
 {% set title = 'nav.appearance'|t('foster-checkout') %}
 {% set docTitle = title %}
 
-{% set overridden = 'branding' in overriddenSettings %}
-{% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
 
 {% if readOnly %}
 	{% set contentNotice = readOnlyNotice() %}
@@ -27,8 +26,8 @@
 			id: 'branding-color',
 			name: 'settings[branding][color]',
 			value: settings.branding.color,
-			disabled: readOnly,
-			warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'branding' }),
+			disabled: readOnly or 'branding.color' in overriddenSettings,
+			warning: 'branding.color' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.color' }),
 		}) }}
 
 		{{ forms.colorField({
@@ -37,8 +36,8 @@
 			id: 'branding-header-bg-color',
 			name: 'settings[branding][headerBgColor]',
 			value: settings.branding.headerBgColor,
-			disabled: readOnly,
-			warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'branding' }),
+			disabled: readOnly or 'branding.headerBgColor' in overriddenSettings,
+			warning: 'branding.headerBgColor' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.headerBgColor' }),
 		}) }}
 
 		{{ forms.textField({
@@ -47,8 +46,8 @@
 			id: 'branding-font',
 			name: 'settings[branding][font]',
 			value: settings.branding.font,
-			disabled: readOnly,
-			warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'branding' }),
+			disabled: readOnly or 'branding.font' in overriddenSettings,
+			warning: 'branding.font' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.font' }),
 		}) }}
 
 		{{ forms.textField({
@@ -58,8 +57,8 @@
 			name: 'settings[branding][logo]',
 			value: settings.branding.logo,
 			placeholder: '/assets/images/logo.svg',
-			disabled: readOnly,
-			warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'branding' }),
+			disabled: readOnly or 'branding.logo' in overriddenSettings,
+			warning: 'branding.logo' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.logo' }),
 		}) }}
 
 		{{ forms.selectField({
@@ -72,8 +71,8 @@
 				{ label: 'settings.appearance.styleRounded'|t('foster-checkout'), value: 'rounded' },
 				{ label: 'settings.appearance.styleFlat'|t('foster-checkout'), value: 'flat' },
 			],
-			disabled: readOnly,
-			warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'branding' }),
+			disabled: readOnly or 'branding.style' in overriddenSettings,
+			warning: 'branding.style' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.style' }),
 		}) }}
 
 		{{ forms.selectField({
@@ -86,8 +85,8 @@
 				{ label: 'settings.appearance.labelStyleFloating'|t('foster-checkout'), value: 'floating' },
 				{ label: 'settings.appearance.labelStyleAbove'|t('foster-checkout'), value: 'above' },
 			],
-			disabled: readOnly,
-			warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'branding' }),
+			disabled: readOnly or 'branding.labelStyle' in overriddenSettings,
+			warning: 'branding.labelStyle' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.labelStyle' }),
 		}) }}
 
 		{{ forms.textField({
@@ -96,8 +95,8 @@
 			id: 'branding-title',
 			name: 'settings[branding][title]',
 			value: settings.branding.title,
-			disabled: readOnly,
-			warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'branding' }),
+			disabled: readOnly or 'branding.title' in overriddenSettings,
+			warning: 'branding.title' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.title' }),
 		}) }}
 
 		{% if not readOnly %}

@@ -7,8 +7,7 @@
 {% set title = 'nav.products'|t('foster-checkout') %}
 {% set docTitle = title %}
 
-{% set overridden = 'products' in overriddenSettings %}
-{% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
 
 {% if readOnly %}
 	{% set contentNotice = readOnlyNotice() %}
@@ -56,8 +55,8 @@
 			allowAdd: true,
 			allowDelete: true,
 			allowReorder: true,
-			static: readOnly,
-			warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'products' }),
+			static: readOnly or 'products' in overriddenSettings,
+			warning: 'products' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'products' }),
 		}) }}
 
 		{% if not readOnly %}

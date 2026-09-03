@@ -222,7 +222,6 @@ return [
 	'error.adminChangesDisallowed' => 'Checkout settings are stored in project config, which is read-only in this environment.',
 	'settings.saveFailed' => 'Couldn’t save checkout settings.',
 	'settings.overridden' => 'This is being overridden by the `{setting}` setting in the `config/foster-checkout.php` file.',
-	'settings.overriddenGroup' => 'Every setting in the `{setting}` group is managed by the `config/foster-checkout.php` file.',
 
 	'content.intro' => 'Copy shown on the cart and checkout pages. HTML is allowed, and each note is rendered as a Twig template, so it can reference the cart or order, for example {qty}.',
 	'content.saved' => 'Content saved.',
@@ -398,7 +397,7 @@ return [
 	'settings.lineItemOptions.setValueHelp' => 'Leave empty to keep the stored value.',
 	'settings.lineItemOptions.ruleCount' => '{count, plural, =1{1 condition} other{# conditions}}',
 	'settings.lineItemOptions.everyOption' => 'Every option',
-	'settings.lineItemOptions.overridden' => 'Line item options are set in a config file, so they cannot be edited here.',
+	'settings.lineItemOptions.overridden' => 'These rules are set in a config file and cannot be edited here.',
 	'settings.lineItemOptions.reordered' => 'Rules reordered.',
 	'settings.lineItemOptions.reorderFailed' => 'Couldn’t reorder rules.',
 	'settings.lineItemOptions.valueMaxLength' => 'Truncate values to',

@@ -220,7 +220,6 @@ return [
 	'error.adminChangesDisallowed' => 'Les réglages du paiement sont stockés dans le project config, en lecture seule dans cet environnement.',
 	'settings.saveFailed' => 'Impossible d’enregistrer les réglages du paiement.',
 	'settings.overridden' => 'Ceci est remplacé par le paramètre `{setting}` du fichier `config/foster-checkout.php`.',
-	'settings.overriddenGroup' => 'Tous les paramètres du groupe `{setting}` sont gérés par le fichier `config/foster-checkout.php`.',
 
 	'content.intro' => 'Textes affichés sur les pages panier et paiement. Le HTML est autorisé, et chaque note est rendue comme un template Twig : elle peut donc référencer le panier ou la commande, par exemple {qty}.',
 	'content.saved' => 'Contenu enregistré.',
@@ -396,7 +395,7 @@ return [
 	'settings.lineItemOptions.setValueHelp' => 'Laissez vide pour conserver la valeur enregistrée.',
 	'settings.lineItemOptions.ruleCount' => '{count, plural, =1{1 condition} other{# conditions}}',
 	'settings.lineItemOptions.everyOption' => 'Toutes les options',
-	'settings.lineItemOptions.overridden' => 'Les options de ligne de commande sont définies dans un fichier de configuration et ne peuvent pas être modifiées ici.',
+	'settings.lineItemOptions.overridden' => 'Ces règles sont définies dans un fichier de configuration et ne peuvent pas être modifiées ici.',
 	'settings.lineItemOptions.reordered' => 'Règles réordonnées.',
 	'settings.lineItemOptions.reorderFailed' => 'Impossible de réordonner les règles.',
 	'settings.lineItemOptions.valueMaxLength' => 'Tronquer les valeurs à',

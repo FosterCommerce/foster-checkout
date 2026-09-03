@@ -19,9 +19,11 @@ use craft\events\DefineRulesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
+use craft\helpers\ProjectConfig as ProjectConfigHelper;
 use craft\helpers\UrlHelper;
 use craft\i18n\PhpMessageSource;
 use craft\services\Addresses;
+use craft\services\ProjectConfig;
 use craft\services\UserPermissions;
 use craft\web\Request as WebRequest;
 use craft\web\Response;
@@ -237,11 +239,36 @@ class FosterCheckout extends Plugin
 	 *
 	 * @return array<int, string>
 	 */
+	/**
+	 * Dot paths of every setting a config file pins, plus each ancestor, so a form can test a
+	 * single field or a whole group.
+	 *
+	 * @return list<string>
+	 */
 	public function getOverriddenSettings(): array
 	{
 		$fileConfig = Craft::$app->getConfig()->getConfigFromFile(self::HANDLE);
 
-		return is_array($fileConfig) ? array_keys($fileConfig) : [];
+		// The paths have to match where a setting lives now, not where a config file still puts it
+		return is_array($fileConfig) ? $this->settingPaths(Settings::moveLineItemSettings($fileConfig)) : [];
+	}
+
+	/**
+	 * Craft merges a config file over stored settings by top-level key, which drops every sibling
+	 * key the file leaves out. Merging per key keeps those editable.
+	 *
+	 * @param array<array-key, mixed> $settings
+	 */
+	#[\Override]
+	public function setSettings(array $settings): void
+	{
+		$stored = ProjectConfigHelper::unpackAssociativeArrays(
+			(array) (Craft::$app->getProjectConfig()->get(ProjectConfig::PATH_PLUGINS . '.' . self::HANDLE . '.settings') ?? [])
+		);
+
+		$fileConfig = Craft::$app->getConfig()->getConfigFromFile(self::HANDLE);
+
+		parent::setSettings($this->mergeSettings($stored, is_array($fileConfig) ? $fileConfig : []));
 	}
 
 	/**
@@ -318,6 +345,43 @@ class FosterCheckout extends Plugin
 	protected function createSettingsModel(): ?Model
 	{
 		return new Settings();
+	}
+
+	/**
+	 * @param array<array-key, mixed> $settings
+	 * @return list<string>
+	 */
+	private function settingPaths(array $settings, string $prefix = ''): array
+	{
+		$paths = [];
+
+		foreach ($settings as $name => $value) {
+			$path = $prefix === '' ? (string) $name : "{$prefix}.{$name}";
+			$paths[] = $path;
+
+			// A list is pinned whole, so it is a leaf however deep its entries go
+			if (is_array($value) && ! array_is_list($value) && $value !== []) {
+				$paths = [...$paths, ...$this->settingPaths($value, $path)];
+			}
+		}
+
+		return $paths;
+	}
+
+	/**
+	 * @param array<array-key, mixed> $stored
+	 * @param array<array-key, mixed> $overrides
+	 * @return array<array-key, mixed>
+	 */
+	private function mergeSettings(array $stored, array $overrides): array
+	{
+		foreach ($overrides as $name => $value) {
+			$stored[$name] = is_array($value) && ! array_is_list($value) && is_array($stored[$name] ?? null)
+				? $this->mergeSettings($stored[$name], $value)
+				: $value;
+		}
+
+		return $stored;
 	}
 
 	private function singlePageCheckoutPath(): ?string

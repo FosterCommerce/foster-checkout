@@ -8,13 +8,12 @@
 {% set title = 'nav.line-items'|t('foster-checkout') %}
 {% set docTitle = title %}
 
-{% set overridden = 'lineItems' in overriddenSettings %}
-{% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
 
 {% set rulesOverridden = 'lineItemOptionRules' in overriddenSettings %}
 {% set rulesReadOnly = rulesOverridden or not craft.app.config.general.allowAdminChanges %}
 
-{% if readOnly and rulesReadOnly %}
+{% if readOnly %}
 	{% set contentNotice = readOnlyNotice() %}
 {% endif %}
 
@@ -33,8 +32,8 @@
 			id: 'options-showLineItemSku',
 			name: 'settings[lineItems][showLineItemSku]',
 			on: settings.lineItems.showLineItemSku,
-			disabled: readOnly,
-			warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'lineItems' }),
+			disabled: readOnly or 'lineItems.showLineItemSku' in overriddenSettings,
+			warning: 'lineItems.showLineItemSku' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.showLineItemSku' }),
 		}) }}
 
 		{{ forms.lightswitchField({
@@ -43,9 +42,9 @@
 			id: 'options-enableLineItemOptions',
 			name: 'settings[lineItems][enableLineItemOptions]',
 			on: settings.lineItems.enableLineItemOptions,
-			disabled: readOnly,
+			disabled: readOnly or 'lineItems.enableLineItemOptions' in overriddenSettings,
 			toggle: 'line-item-options-detail',
-			warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'lineItems' }),
+			warning: 'lineItems.enableLineItemOptions' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.enableLineItemOptions' }),
 		}) }}
 
 		<div id="line-item-options-detail"{% if not settings.lineItems.enableLineItemOptions %} class="hidden"{% endif %}>
@@ -57,8 +56,8 @@
 				value: settings.lineItems.hiddenLineItemOptionPrefix,
 				class: 'code',
 				size: 10,
-				disabled: readOnly,
-				warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'lineItems' }),
+				disabled: readOnly or 'lineItems.hiddenLineItemOptionPrefix' in overriddenSettings,
+				warning: 'lineItems.hiddenLineItemOptionPrefix' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.hiddenLineItemOptionPrefix' }),
 			}) }}
 
 			{{ forms.textField({
@@ -69,8 +68,8 @@
 				value: settings.lineItems.lineItemOptionValueMaxLength,
 				type: 'number',
 				size: 6,
-				disabled: readOnly,
-				warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'lineItems' }),
+				disabled: readOnly or 'lineItems.lineItemOptionValueMaxLength' in overriddenSettings,
+				warning: 'lineItems.lineItemOptionValueMaxLength' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.lineItemOptionValueMaxLength' }),
 			}) }}
 		</div>
 

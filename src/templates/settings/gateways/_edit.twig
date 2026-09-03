@@ -7,7 +7,8 @@
 
 {# The field layout is stored outside plugin settings, so a config file cannot override it.
    Only the params below come from settings. #}
-{% set optionsOverridden = 'paymentGateways' in overriddenSettings %}
+{% set paramsSetting = 'paymentGateways.' ~ gateway.handle ~ '.params' %}
+{% set optionsOverridden = paramsSetting in overriddenSettings %}
 {% set readOnly = not craft.app.config.general.allowAdminChanges %}
 {% set fullPageForm = not readOnly %}
 
@@ -60,6 +61,6 @@
 		allowDelete: true,
 		allowReorder: true,
 		static: readOnly or optionsOverridden,
-		warning: optionsOverridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'paymentGateways' }),
+		warning: optionsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: paramsSetting }),
 	}) }}
 {% endblock %}
