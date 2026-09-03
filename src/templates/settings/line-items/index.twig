@@ -4,11 +4,11 @@
 
 {# @var settings \fostercommerce\fostercheckout\models\Settings #}
 
-{% set selectedSubnavItem = 'line-item-options' %}
-{% set title = 'nav.line-item-options'|t('foster-checkout') %}
+{% set selectedSubnavItem = 'line-items' %}
+{% set title = 'nav.line-items'|t('foster-checkout') %}
 {% set docTitle = title %}
 
-{% set overridden = 'options' in overriddenSettings %}
+{% set overridden = 'lineItems' in overriddenSettings %}
 {% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
 
 {% set rulesOverridden = 'lineItemOptionRules' in overriddenSettings %}
@@ -21,36 +21,59 @@
 {% block content %}
 	<form action="" method="post" accept-charset="UTF-8"{% if not readOnly %} data-saveshortcut{% endif %}>
 		{{ actionInput('foster-checkout/settings/save-settings') }}
-		{{ redirectInput('foster-checkout/settings/line-item-options') }}
-		{{ hiddenInput('section', 'line-item-options') }}
+		{{ redirectInput('foster-checkout/settings/line-items') }}
+		{{ hiddenInput('section', 'line-items') }}
 		{{ csrfInput() }}
 
 		<p>{{ 'settings.lineItemOptions.intro'|t('foster-checkout') }}</p>
 
 		{{ forms.lightswitchField({
+			label: 'settings.lineItemOptions.showLineItemSku'|t('foster-checkout'),
+			instructions: 'settings.lineItemOptions.showLineItemSkuHelp'|t('foster-checkout'),
+			id: 'options-showLineItemSku',
+			name: 'settings[lineItems][showLineItemSku]',
+			on: settings.lineItems.showLineItemSku,
+			disabled: readOnly,
+			warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'lineItems' }),
+		}) }}
+
+		{{ forms.lightswitchField({
 			label: 'settings.lineItemOptions.enableLineItemOptions'|t('foster-checkout'),
 			instructions: 'settings.lineItemOptions.enableLineItemOptionsHelp'|t('foster-checkout'),
 			id: 'options-enableLineItemOptions',
-			name: 'settings[options][enableLineItemOptions]',
-			on: settings.options.enableLineItemOptions,
+			name: 'settings[lineItems][enableLineItemOptions]',
+			on: settings.lineItems.enableLineItemOptions,
 			disabled: readOnly,
 			toggle: 'line-item-options-detail',
-			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'options' }),
+			warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'lineItems' }),
 		}) }}
 
-		<div id="line-item-options-detail"{% if not settings.options.enableLineItemOptions %} class="hidden"{% endif %}>
+		<div id="line-item-options-detail"{% if not settings.lineItems.enableLineItemOptions %} class="hidden"{% endif %}>
 			{{ forms.textField({
 				label: 'settings.lineItemOptions.hiddenPrefix'|t('foster-checkout'),
 				instructions: 'settings.lineItemOptions.hiddenPrefixHelp'|t('foster-checkout'),
 				id: 'options-hiddenLineItemOptionPrefix',
-				name: 'settings[options][hiddenLineItemOptionPrefix]',
-				value: settings.options.hiddenLineItemOptionPrefix,
+				name: 'settings[lineItems][hiddenLineItemOptionPrefix]',
+				value: settings.lineItems.hiddenLineItemOptionPrefix,
 				class: 'code',
 				size: 10,
 				disabled: readOnly,
-				warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'options' }),
+				warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'lineItems' }),
+			}) }}
+
+			{{ forms.textField({
+				label: 'settings.lineItemOptions.valueMaxLength'|t('foster-checkout'),
+				instructions: 'settings.lineItemOptions.valueMaxLengthHelp'|t('foster-checkout'),
+				id: 'options-lineItemOptionValueMaxLength',
+				name: 'settings[lineItems][lineItemOptionValueMaxLength]',
+				value: settings.lineItems.lineItemOptionValueMaxLength,
+				type: 'number',
+				size: 6,
+				disabled: readOnly,
+				warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'lineItems' }),
 			}) }}
 		</div>
+
 
 		{% if not readOnly %}
 			<div class="buttons">
@@ -59,7 +82,7 @@
 		{% endif %}
 	</form>
 
-	{% if settings.options.enableLineItemOptions %}
+	{% if settings.lineItems.enableLineItemOptions %}
 		<hr>
 
 		<h2>{{ 'settings.lineItemOptions.rulesTitle'|t('foster-checkout') }}</h2>
@@ -73,7 +96,7 @@
 				title: conditionRules|length
 					? 'settings.lineItemOptions.ruleCount'|t('foster-checkout', { count: conditionRules|length })
 					: 'settings.lineItemOptions.everyOption'|t('foster-checkout'),
-				url: url('foster-checkout/settings/line-item-options/' ~ rule.uid),
+				url: url('foster-checkout/settings/line-items/' ~ rule.uid),
 				setName: rule.setName ?: '—',
 				setValue: rule.setValue ?: '—',
 			}]) %}
@@ -83,7 +106,7 @@
 
 		{% if not rulesReadOnly %}
 			<p>
-				<a class="btn add icon" href="{{ url('foster-checkout/settings/line-item-options/new') }}">
+				<a class="btn add icon" href="{{ url('foster-checkout/settings/line-items/new') }}">
 					{{ 'settings.lineItemOptions.addRule'|t('foster-checkout') }}
 				</a>
 			</p>

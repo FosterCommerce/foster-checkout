@@ -32,7 +32,7 @@
 			value: settings.paths.cart,
 			placeholder: 'cart',
 			disabled: pathsOverridden or readOnly,
-			warning: pathsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
+			warning: pathsOverridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		{{ forms.lightswitchField({
@@ -42,7 +42,7 @@
 			name: 'settings[paths][useCartTemplate]',
 			on: settings.paths.useCartTemplate,
 			disabled: pathsOverridden or readOnly,
-			warning: pathsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
+			warning: pathsOverridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		{{ forms.textField({
@@ -53,7 +53,7 @@
 			value: settings.paths.checkout,
 			placeholder: 'checkout',
 			disabled: pathsOverridden or readOnly,
-			warning: pathsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
+			warning: pathsOverridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		{{ forms.textField({
@@ -64,7 +64,7 @@
 			value: settings.paths.account,
 			placeholder: 'account',
 			disabled: pathsOverridden or readOnly,
-			warning: pathsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
+			warning: pathsOverridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		{{ forms.textField({
@@ -75,7 +75,7 @@
 			value: settings.paths.cancel,
 			placeholder: '/',
 			disabled: pathsOverridden or readOnly,
-			warning: pathsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'paths' }),
+			warning: pathsOverridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'paths' }),
 		}) }}
 
 		<hr>
@@ -91,7 +91,7 @@
 			value: settings.includes.head,
 			disabled: includesOverridden or not adminChangesAllowed,
 			errors: settings.getErrors('includes.head'),
-			warning: includesOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'includes' }),
+			warning: includesOverridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'includes' }),
 		}) }}
 
 		{{ forms.textField({
@@ -102,7 +102,7 @@
 			value: settings.includes.body,
 			disabled: includesOverridden or not adminChangesAllowed,
 			errors: settings.getErrors('includes.body'),
-			warning: includesOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'includes' }),
+			warning: includesOverridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'includes' }),
 		}) }}
 
 		<hr>

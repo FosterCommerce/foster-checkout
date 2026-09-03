@@ -49,16 +49,6 @@ class OptionConfig extends Model
 	public bool $enableMadeAMistake = false;
 
 	/**
-	 * Whether to show line item options at all. Gates the prefix and the rewrite rules below.
-	 */
-	public bool $enableLineItemOptions = true;
-
-	/**
-	 * Options whose name starts with this are not shown. Empty shows every option.
-	 */
-	public string $hiddenLineItemOptionPrefix = '_';
-
-	/**
 	 * The Klaviyo list ID to subscribe the customer to
 	 */
 	public ?string $klaviyoListId = null;
@@ -105,8 +95,6 @@ class OptionConfig extends Model
 			$config['imagerXConfig'] = [];
 		}
 
-		$config = $this->upgradeLineItemOptions($config);
-
 		parent::__construct($config);
 	}
 
@@ -126,28 +114,5 @@ class OptionConfig extends Model
 	public function isSinglePageCheckout(): bool
 	{
 		return $this->enableSinglePageCheckout;
-	}
-
-	/**
-	 * `enableLineItemOptions` was a toggle and a hidden-name prefix in one value.
-	 *
-	 * @param array<array-key, mixed> $config
-	 * @return array<array-key, mixed>
-	 */
-	private function upgradeLineItemOptions(array $config): array
-	{
-		$posted = $config['enableLineItemOptions'] ?? null;
-
-		if (! is_string($posted)) {
-			return $config;
-		}
-
-		$config['enableLineItemOptions'] = true;
-
-		if ($posted !== '' && ! isset($config['hiddenLineItemOptionPrefix'])) {
-			$config['hiddenLineItemOptionPrefix'] = $posted;
-		}
-
-		return $config;
 	}
 }

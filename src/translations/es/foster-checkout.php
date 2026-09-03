@@ -220,7 +220,8 @@ return [
 
 	'error.adminChangesDisallowed' => 'Los ajustes del pago se guardan en el project config, que es de solo lectura en este entorno.',
 	'settings.saveFailed' => 'No se han podido guardar los ajustes del pago.',
-	'settings.overridden' => 'Este valor se sobrescribe con el ajuste `{setting}` del archivo `config/foster-checkout.php`.',
+	'settings.overridden' => 'Esto se sobrescribe con el ajuste `{setting}` del archivo `config/foster-checkout.php`.',
+	'settings.overriddenGroup' => 'Todos los ajustes del grupo `{setting}` se gestionan desde el archivo `config/foster-checkout.php`.',
 
 	'content.intro' => 'Textos que se muestran en las páginas de carrito y pago. Se permite HTML y cada nota se renderiza como una plantilla Twig, así que puede hacer referencia al carrito o al pedido, por ejemplo {qty}.',
 	'content.saved' => 'Contenido guardado.',
@@ -374,8 +375,8 @@ return [
 	'settings.general.translationNone' => 'No traducible',
 	'settings.general.translationSite' => 'Traducir para cada sitio',
 	'settings.general.translationLanguage' => 'Traducir para cada idioma',
-	'nav.line-item-options' => 'Opciones de línea de pedido',
-	'settings.lineItemOptions.intro' => 'Controle cómo se muestran las opciones de línea de pedido en el carrito y en el pago.',
+	'nav.line-items' => 'Líneas de pedido',
+	'settings.lineItemOptions.intro' => 'Controle cómo se muestran las líneas de pedido en el carrito y en el pago.',
 	'settings.lineItemOptions.enableLineItemOptions' => 'Mostrar opciones de línea de pedido',
 	'settings.lineItemOptions.enableLineItemOptionsHelp' => 'Cuando está desactivado, no se muestra ninguna opción de línea de pedido y las reglas siguientes no se ejecutan.',
 	'settings.lineItemOptions.hiddenPrefix' => 'Prefijo de opciones ocultas',
@@ -399,4 +400,8 @@ return [
 	'settings.lineItemOptions.overridden' => 'Las opciones de línea de pedido se definen en un archivo de configuración, por lo que no se pueden editar aquí.',
 	'settings.lineItemOptions.reordered' => 'Reglas reordenadas.',
 	'settings.lineItemOptions.reorderFailed' => 'No se han podido reordenar las reglas.',
+	'settings.lineItemOptions.valueMaxLength' => 'Truncar los valores a',
+	'settings.lineItemOptions.valueMaxLengthHelp' => 'Número de caracteres que se conservan del valor de una opción. Déjelo vacío para mostrar el valor completo.',
+	'settings.lineItemOptions.showLineItemSku' => 'Mostrar el SKU',
+	'settings.lineItemOptions.showLineItemSkuHelp' => 'Si cada línea de pedido del carrito muestra su SKU.',
 ];

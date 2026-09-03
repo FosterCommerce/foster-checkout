@@ -230,9 +230,9 @@ class SettingsController extends Controller
 		return $this->redirectToPostedUrl();
 	}
 
-	public function actionLineItemOptions(): Response
+	public function actionLineItems(): Response
 	{
-		return $this->renderSection('line-item-options');
+		return $this->renderSection('line-items');
 	}
 
 	/**
@@ -252,7 +252,7 @@ class SettingsController extends Controller
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		return $this->renderTemplate('foster-checkout/settings/line-item-options/_edit', [
+		return $this->renderTemplate('foster-checkout/settings/line-items/_edit', [
 			'rule' => $rule,
 			'isNew' => $ruleUid === null,
 			'overridden' => in_array('lineItemOptionRules', $plugin->getOverriddenSettings(), true),

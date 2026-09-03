@@ -42,7 +42,7 @@
 				name: "settings[options][#{switch.handle}]",
 				on: switch.on,
 				disabled: readOnly,
-				warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'options' }),
+				warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'options' }),
 			} %}
 			{% if switch.onLabel is defined %}
 				{% set lightswitch = lightswitch|merge({
@@ -60,7 +60,7 @@
 			name: 'settings[options][klaviyoListId]',
 			value: settings.options.klaviyoListId,
 			disabled: readOnly,
-			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'options' }),
+			warning: overridden ? 'settings.overriddenGroup'|t('foster-checkout', { setting: 'options' }),
 		}) }}
 
 		{% if not readOnly %}

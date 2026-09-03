@@ -3,7 +3,7 @@
 
 {# @var rule \fostercommerce\fostercheckout\models\LineItemOptionRule #}
 
-{% set selectedSubnavItem = 'line-item-options' %}
+{% set selectedSubnavItem = 'line-items' %}
 {% set title = isNew
 	? 'settings.lineItemOptions.newRule'|t('foster-checkout')
 	: 'settings.lineItemOptions.editRule'|t('foster-checkout') %}
@@ -16,13 +16,16 @@
 {% endif %}
 
 {% set crumbs = [
-	{ label: 'nav.line-item-options'|t('foster-checkout'), url: url('foster-checkout/settings/line-item-options') },
+	{ label: 'Settings'|t('app'), url: url('settings') },
+	{ label: 'Plugins'|t('app'), url: url('settings/plugins') },
+	{ label: 'nav.checkout'|t('foster-checkout'), url: url('foster-checkout/settings/appearance') },
+	{ label: 'nav.line-items'|t('foster-checkout'), url: url('foster-checkout/settings/line-items') },
 ] %}
 
 {% block content %}
 	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
 		{{ actionInput('foster-checkout/settings/save-line-item-option-rule') }}
-		{{ redirectInput('foster-checkout/settings/line-item-options') }}
+		{{ redirectInput('foster-checkout/settings/line-items') }}
 		{{ hiddenInput('ruleUid', rule.uid) }}
 		{{ csrfInput() }}
 

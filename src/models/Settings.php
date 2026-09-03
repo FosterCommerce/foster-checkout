@@ -18,6 +18,8 @@ class Settings extends Model
 
 	public OptionConfig $options;
 
+	public LineItemConfig $lineItems;
+
 	/**
 	 * Held outside `options` so an `options` block in a config file cannot shadow rules built in the CP.
 	 *
@@ -87,6 +89,7 @@ class Settings extends Model
 	 */
 	public function __construct(array $config = [])
 	{
+		$this->lineItems = new LineItemConfig();
 		parent::__construct($config);
 
 		if (! isset($this->options)) {
@@ -149,8 +152,14 @@ class Settings extends Model
 	#[\Override]
 	public function setAttributes($values, $safeOnly = true): void
 	{
+		$values = $this->moveLineItemSettings($values);
+
 		if (array_key_exists('options', $values)) {
 			$values['options'] = new OptionConfig($values['options']);
+		}
+
+		if (array_key_exists('lineItems', $values)) {
+			$values['lineItems'] = new LineItemConfig($values['lineItems']);
 		}
 
 		if (array_key_exists('lineItemOptionRules', $values)) {
@@ -214,5 +223,39 @@ class Settings extends Model
 		}
 
 		parent::setAttributes($values, $safeOnly);
+	}
+
+	/**
+	 * These four settings used to sit in `options`, which is one node a config file replaces whole.
+	 *
+	 * @param array<mixed, mixed> $values
+	 * @return array<mixed, mixed>
+	 */
+	private function moveLineItemSettings(array $values): array
+	{
+		$options = $values['options'] ?? null;
+
+		if (! is_array($options)) {
+			return $values;
+		}
+
+		$lineItems = is_array($values['lineItems'] ?? null) ? $values['lineItems'] : [];
+
+		foreach (['showLineItemSku', 'enableLineItemOptions', 'hiddenLineItemOptionPrefix', 'lineItemOptionValueMaxLength'] as $setting) {
+			if (! array_key_exists($setting, $options)) {
+				continue;
+			}
+
+			$lineItems[$setting] ??= $options[$setting];
+			unset($options[$setting]);
+		}
+
+		$values['options'] = $options;
+
+		if ($lineItems !== []) {
+			$values['lineItems'] = $lineItems;
+		}
+
+		return $values;
 	}
 }

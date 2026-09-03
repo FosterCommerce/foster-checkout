@@ -222,6 +222,7 @@ return [
 	'error.adminChangesDisallowed' => 'Checkout settings are stored in project config, which is read-only in this environment.',
 	'settings.saveFailed' => 'Couldn’t save checkout settings.',
 	'settings.overridden' => 'This is being overridden by the `{setting}` setting in the `config/foster-checkout.php` file.',
+	'settings.overriddenGroup' => 'Every setting in the `{setting}` group is managed by the `config/foster-checkout.php` file.',
 
 	'content.intro' => 'Copy shown on the cart and checkout pages. HTML is allowed, and each note is rendered as a Twig template, so it can reference the cart or order, for example {qty}.',
 	'content.saved' => 'Content saved.',
@@ -375,8 +376,8 @@ return [
 	'settings.general.translationNone' => 'Not translatable',
 	'settings.general.translationSite' => 'Translate for each site',
 	'settings.general.translationLanguage' => 'Translate for each language',
-	'nav.line-item-options' => 'Line Item Options',
-	'settings.lineItemOptions.intro' => 'Control how line item options are shown in the cart and at checkout.',
+	'nav.line-items' => 'Line Items',
+	'settings.lineItemOptions.intro' => 'Control how line items are shown in the cart and at checkout.',
 	'settings.lineItemOptions.enableLineItemOptions' => 'Show line item options',
 	'settings.lineItemOptions.enableLineItemOptionsHelp' => 'When off, no line item options are shown and the rules below do not run.',
 	'settings.lineItemOptions.hiddenPrefix' => 'Hidden option prefix',
@@ -400,4 +401,8 @@ return [
 	'settings.lineItemOptions.overridden' => 'Line item options are set in a config file, so they cannot be edited here.',
 	'settings.lineItemOptions.reordered' => 'Rules reordered.',
 	'settings.lineItemOptions.reorderFailed' => 'Couldn’t reorder rules.',
+	'settings.lineItemOptions.valueMaxLength' => 'Truncate values to',
+	'settings.lineItemOptions.valueMaxLengthHelp' => 'Characters to keep of an option value. Leave empty to show the whole value.',
+	'settings.lineItemOptions.showLineItemSku' => 'Show the SKU',
+	'settings.lineItemOptions.showLineItemSkuHelp' => 'Whether each line item in the cart shows its SKU.',
 ];

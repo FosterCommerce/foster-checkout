@@ -22,6 +22,7 @@ use craft\fieldlayoutelements\addresses\OrganizationTaxIdField;
 use craft\fieldlayoutelements\BaseField;
 use craft\fieldlayoutelements\CustomField;
 use craft\fieldlayoutelements\FullNameField;
+use craft\helpers\StringHelper;
 use DateTime;
 use fostercommerce\fostercheckout\formatters\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\FosterCheckout;
@@ -293,13 +294,14 @@ class Checkout extends Component
 	 */
 	public function getLineItemOptions(LineItem $lineItem): array
 	{
-		$options = $this->settings()->options;
+		$lineItems = $this->settings()->lineItems;
 
-		if (! $options->enableLineItemOptions) {
+		if (! $lineItems->enableLineItemOptions) {
 			return [];
 		}
 
-		$hiddenPrefix = $options->hiddenLineItemOptionPrefix;
+		$hiddenPrefix = $lineItems->hiddenLineItemOptionPrefix;
+		$maxLength = $lineItems->lineItemOptionValueMaxLength;
 		$displayed = [];
 
 		foreach ($lineItem->options as $optionName => $optionValue) {
@@ -309,11 +311,17 @@ class Checkout extends Component
 				continue;
 			}
 
-			$displayed[] = $this->rewriteOption(
+			$rewritten = $this->rewriteOption(
 				$optionName,
 				is_scalar($optionValue) ? (string) $optionValue : '',
 				$this->settings()->lineItemOptionRules
 			);
+
+			if ($maxLength !== null && $maxLength > 0) {
+				$rewritten['value'] = StringHelper::safeTruncate($rewritten['value'], $maxLength, '…');
+			}
+
+			$displayed[] = $rewritten;
 		}
 
 		return $displayed;

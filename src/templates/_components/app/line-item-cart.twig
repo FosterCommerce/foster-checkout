@@ -87,7 +87,9 @@
 						{{ 'cart.lineItem.saleTag'|t('foster-checkout') }}
 					</span>
 				{% endif %}
-				<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.sku }}</p>
+				{% if craft.fostercheckout.settings.lineItems.showLineItemSku %}
+					<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.sku }}</p>
+				{% endif %}
 				{% if lineItem.lineItemStatus %}
 					<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.lineItemStatus.name|t('foster-checkout') }}</p>
 				{% endif %}

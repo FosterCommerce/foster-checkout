@@ -219,7 +219,8 @@ return [
 
 	'error.adminChangesDisallowed' => 'Checkout-Einstellungen werden im Project Config gespeichert, das in dieser Umgebung schreibgeschützt ist.',
 	'settings.saveFailed' => 'Checkout-Einstellungen konnten nicht gespeichert werden.',
-	'settings.overridden' => 'Wird durch die Einstellung `{setting}` in der Datei `config/foster-checkout.php` überschrieben.',
+	'settings.overridden' => 'Dies wird durch die Einstellung `{setting}` in der Datei `config/foster-checkout.php` überschrieben.',
+	'settings.overriddenGroup' => 'Alle Einstellungen der Gruppe `{setting}` werden über die Datei `config/foster-checkout.php` verwaltet.',
 
 	'content.intro' => 'Texte, die auf den Warenkorb- und Checkout-Seiten erscheinen. HTML ist erlaubt, und jeder Hinweis wird als Twig-Template gerendert, kann also auf den Warenkorb oder die Bestellung verweisen, zum Beispiel {qty}.',
 	'content.saved' => 'Inhalte gespeichert.',
@@ -373,8 +374,8 @@ return [
 	'settings.general.translationNone' => 'Nicht übersetzbar',
 	'settings.general.translationSite' => 'Pro Site übersetzen',
 	'settings.general.translationLanguage' => 'Pro Sprache übersetzen',
-	'nav.line-item-options' => 'Positionsoptionen',
-	'settings.lineItemOptions.intro' => 'Steuern Sie, wie Positionsoptionen im Warenkorb und an der Kasse angezeigt werden.',
+	'nav.line-items' => 'Positionen',
+	'settings.lineItemOptions.intro' => 'Steuern Sie, wie Positionen im Warenkorb und an der Kasse angezeigt werden.',
 	'settings.lineItemOptions.enableLineItemOptions' => 'Positionsoptionen anzeigen',
 	'settings.lineItemOptions.enableLineItemOptionsHelp' => 'Wenn deaktiviert, werden keine Positionsoptionen angezeigt und die Regeln unten werden nicht ausgeführt.',
 	'settings.lineItemOptions.hiddenPrefix' => 'Präfix für ausgeblendete Optionen',
@@ -398,4 +399,8 @@ return [
 	'settings.lineItemOptions.overridden' => 'Positionsoptionen werden in einer Konfigurationsdatei festgelegt und können hier nicht bearbeitet werden.',
 	'settings.lineItemOptions.reordered' => 'Regeln neu sortiert.',
 	'settings.lineItemOptions.reorderFailed' => 'Regeln konnten nicht neu sortiert werden.',
+	'settings.lineItemOptions.valueMaxLength' => 'Werte kürzen auf',
+	'settings.lineItemOptions.valueMaxLengthHelp' => 'Anzahl der Zeichen, die von einem Optionswert angezeigt werden. Leer lassen, um den vollständigen Wert anzuzeigen.',
+	'settings.lineItemOptions.showLineItemSku' => 'SKU anzeigen',
+	'settings.lineItemOptions.showLineItemSkuHelp' => 'Ob jede Position im Warenkorb ihre SKU anzeigt.',
 ];
