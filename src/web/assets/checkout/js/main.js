@@ -765,6 +765,175 @@ const CheckoutTracking = (props) => {
 	};
 };
 
+// Longest PAN in circulation, plus a space after every group but the last
+const CARD_NUMBER_MAX_DIGITS = 19;
+
+const CARD_NUMBER_MAX_LENGTH = CARD_NUMBER_MAX_DIGITS + 4;
+
+// Fixed-length fields advance in this order once they are full
+const CARD_FIELD_ORDER = ['cc-exp-month', 'cc-exp-year', 'cc-csc'];
+
+const CARD_AUTOCOMPLETES = ['cc-number', ...CARD_FIELD_ORDER];
+
+const isCardField = (element) =>
+	element instanceof HTMLInputElement &&
+	CARD_AUTOCOMPLETES.includes(element.autocomplete);
+
+const isCardNumber = (element) =>
+	element instanceof HTMLInputElement && element.autocomplete === 'cc-number';
+
+const cardDigits = (value) =>
+	value.replace(/\D/g, '').slice(0, CARD_NUMBER_MAX_DIGITS);
+
+// Amex and Diners print their digits in uneven groups; every other brand runs in fours
+const CARD_NUMBER_GROUPS = [
+	{ prefix: /^3[47]/, sizes: [4, 6, 5] },
+	{ prefix: /^3(?:0[0-5]|095|6|[89])/, sizes: [4, 6, 4] },
+];
+
+const DEFAULT_CARD_NUMBER_SIZES = [4, 4, 4, 4, 3];
+
+const groupCardDigits = (value) => {
+	const digits = cardDigits(value);
+	const sizes =
+		CARD_NUMBER_GROUPS.find(({ prefix }) => prefix.test(digits))?.sizes ??
+		DEFAULT_CARD_NUMBER_SIZES;
+
+	const groups = [];
+	let index = 0;
+
+	for (const size of sizes) {
+		if (index >= digits.length) {
+			break;
+		}
+
+		groups.push(digits.slice(index, index + size));
+		index += size;
+	}
+
+	// A number longer than its pattern still has to show every digit
+	if (index < digits.length) {
+		groups.push(digits.slice(index));
+	}
+
+	return groups.join(' ');
+};
+
+/**
+ * Regrouping rewrites the value, so the caret is restored by counting digits, not characters.
+ */
+const groupCardNumber = (input) => {
+	const caret = input.selectionStart ?? input.value.length;
+	const digitsBeforeCaret = cardDigits(input.value.slice(0, caret)).length;
+
+	input.value = groupCardDigits(input.value);
+
+	let position = 0;
+	let digitsSeen = 0;
+
+	while (position < input.value.length && digitsSeen < digitsBeforeCaret) {
+		if (/\d/.test(input.value.charAt(position))) {
+			digitsSeen += 1;
+		}
+
+		position += 1;
+	}
+
+	input.setSelectionRange(position, position);
+};
+
+const focusNextCardField = (input) => {
+	const next =
+		CARD_FIELD_ORDER[CARD_FIELD_ORDER.indexOf(input.autocomplete) + 1];
+
+	if (!next || input.maxLength < 1 || input.value.length < input.maxLength) {
+		return;
+	}
+
+	input.form?.querySelector(`[autocomplete="${next}"]`)?.focus();
+};
+
+/**
+ * Gateways inject their own card markup, and a panel is only cloned in once its gateway is picked,
+ * so this delegates and observes rather than binding to the inputs.
+ *
+ * Group spaces never reach the gateway: blur strips them back to digits, which is also when the
+ * number is masked. Masking by type keeps the value intact, since clicking Pay blurs the field
+ * before the gateway reads it and masking the value itself would tokenise the mask.
+ */
+const enhanceCardFields = () => {
+	const prepare = (input) => {
+		input.inputMode = 'numeric';
+
+		if (isCardNumber(input)) {
+			input.maxLength = CARD_NUMBER_MAX_LENGTH;
+		}
+	};
+
+	// The keypad has to be declared before a tap opens it, so fields are prepared as they appear
+	new MutationObserver(() => {
+		document
+			.querySelectorAll(
+				`[autocomplete="cc-number"], [autocomplete="cc-exp-month"], [autocomplete="cc-exp-year"], [autocomplete="cc-csc"]`
+			)
+			.forEach((input) => prepare(input));
+	}).observe(document.body, { childList: true, subtree: true });
+
+	document.addEventListener('input', (event) => {
+		if (!isCardField(event.target)) {
+			return;
+		}
+
+		if (isCardNumber(event.target)) {
+			groupCardNumber(event.target);
+		}
+
+		focusNextCardField(event.target);
+	});
+
+	document.addEventListener(
+		'focusin',
+		(event) => {
+			if (isCardNumber(event.target)) {
+				event.target.type = 'text';
+				groupCardNumber(event.target);
+			}
+		},
+		true
+	);
+
+	document.addEventListener(
+		'focusout',
+		(event) => {
+			if (!isCardNumber(event.target)) {
+				return;
+			}
+
+			event.target.value = cardDigits(event.target.value);
+
+			if (event.target.value !== '') {
+				event.target.type = 'password';
+			}
+		},
+		true
+	);
+
+	// A keyboard submit never blurs the field, so the spaces would otherwise post
+	document.addEventListener(
+		'submit',
+		(event) => {
+			event.target
+				?.querySelectorAll?.('[autocomplete="cc-number"]')
+				.forEach((input) => {
+					input.value = cardDigits(input.value);
+				});
+		},
+		true
+	);
+};
+
+enhanceCardFields();
+
 Alpine.plugin(focus);
 Alpine.data('ScrollableItems', ScrollableItems);
 Alpine.data('SimpleField', SimpleField);

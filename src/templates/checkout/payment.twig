@@ -211,10 +211,12 @@
 															[&_.grid[data-cols='2']]:grid-cols-1 md:[&_.grid[data-cols='2']]:grid-cols-2
 															[&_.item]:space-y-2
 
-															/* the multi-input card row (number, exp, cvv) */
+															/* the card row: number alone, then expiry and cvv in thirds */
 															[&_.multitext]:grid [&_.multitext]:gap-3
-															[&_.multitextrow]:grid [&_.multitextrow]:gap-3
-															[&_.multitextrow]:grid-cols-1 sm:[&_.multitextrow]:grid-cols-[2fr_1fr_1fr]
+															[&_.multitextrow]:grid [&_.multitextrow]:gap-3 [&_.multitextrow]:items-start
+															[&_.multitext>.multitextrow:first-child]:grid-cols-1
+															[&_.multitext>.multitextrow:not(:first-child)]:grid-cols-3
+															[&_.multitextrow>*]:min-w-0
 
 															/* inputs */
 															[&_input.text]:block [&_input.text]:w-full
