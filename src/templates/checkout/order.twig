@@ -123,14 +123,11 @@
 									{% if voucherAdjustments|length >= 1 %}
 										<p class="mt-1">{{ 'order.giftCard'|t('foster-checkout') }}</p>
 										{% for voucher in voucherAdjustments %}
-											{# Get redeemed voucher code from description #}
-											{% set voucherCode = voucher.description|split('code ')[1] is defined ? voucher.description|split('code ')[1] : false %}
-											{# Get voucher remaining amount #}
+											{% set voucherCode = craft.fostercheckout.voucherCode(voucher) %}
 											{% if voucherCode %}
 												{% set amountRemaining = craft.giftVoucher.codes().codeKey(voucherCode).one().currentAmount %}
 												{% set appliedVoucherAmount = (order.storedItemTotal - (voucher.amount|abs)) < 0 ? order.storedItemTotal : voucher.amount|abs %}
-												{% set appliedVoucherDescription = voucher.description|split('code ')[1] ~ ' (' ~ appliedVoucherAmount|currency ~ ' applied, ' ~ amountRemaining|currency ~ ' remaining)' %}
-												<p class="mt-1">{{ appliedVoucherDescription }}</p>
+												<p class="mt-1">{{ voucherCode }} ({{ appliedVoucherAmount|currency }} applied, {{ amountRemaining|currency }} remaining)</p>
 											{% endif %}
 										{% endfor %}
 									{% endif %}

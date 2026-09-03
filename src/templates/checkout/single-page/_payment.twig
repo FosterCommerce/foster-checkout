@@ -40,32 +40,39 @@
 							autocomplete="off"
 							placeholder="{{ 'voucher.enterCode'|t('foster-checkout') }}"
 							class="w-full h-12 px-4 bg-white rounded-lg border border-gray-250 text-gray-800"
+							x-model="voucherCode"
+							:aria-invalid="voucherError !== ''"
+							:aria-describedby="voucherError !== '' ? 'spVoucherCode-error' : null"
+							@keydown.enter.prevent="applyVoucher()"
 						>
 						<button
 							type="button"
-							disabled
-							aria-disabled="true"
-							class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-xl opacity-50 cursor-not-allowed"
+							:disabled="voucherCode.trim() === '' || applyingVoucher"
+							:aria-disabled="voucherCode.trim() === '' || applyingVoucher"
+							:class="voucherCode.trim() === '' || applyingVoucher ? 'opacity-50 cursor-not-allowed' : ''"
+							class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-xl"
+							@click="applyVoucher()"
 						>
-							{{ 'voucher.applyCode'|t('foster-checkout') }}
+							<span x-text="applyingVoucher ? applyingVoucherLabel : '{{ 'voucher.applyCode'|t('foster-checkout')|e('js') }}'">{{ 'voucher.applyCode'|t('foster-checkout') }}</span>
 						</button>
 					</div>
 
-					{% set voucherAdjustments = cart.adjustments|filter(adjustment => adjustment.type == 'voucher') %}
-					{% if voucherAdjustments|length %}
-						<div class="border-gray-400 border-b flex flex-col space-y-2 py-4">
+					<template x-if="voucherError">
+						<p id="spVoucherCode-error" class="mt-1 text-sm text-red-500" x-text="voucherError"></p>
+					</template>
+
+					<template x-if="totals.vouchers.length">
+						<div class="flex flex-col space-y-2 p-4 mt-4 bg-gray-200 {{ isFlat ? '' : 'rounded-lg' }}">
 							<p class="text-gray-500 m-0">
 								{{ 'voucher.appliedCodesHeading'|t('foster-checkout') }}:
 							</p>
 							<ul class="text-gray-500 m-0 list-disc">
-								{% for adj in voucherAdjustments %}
-									{% set matches = adj.description|split('code ') %}
-									{% set code = matches|length > 1 ? matches[1]|trim("'") : 'voucher.fallbackLabel'|t('foster-checkout') %}
-									<li class="ml-5">{{ code }}{% if adj.amount %} ({{ adj.amountAsCurrency }} applied){% endif %}</li>
-								{% endfor %}
+								<template x-for="voucher in totals.vouchers" :key="voucher.name + voucher.amountAsCurrency">
+									<li class="ml-5" x-text="voucher.name + ' (' + voucher.amountAsCurrency + ')'"></li>
+								</template>
 							</ul>
 						</div>
-					{% endif %}
+					</template>
 				</div>
 			</section>
 		{% endif %}

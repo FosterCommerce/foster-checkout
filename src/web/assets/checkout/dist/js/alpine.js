@@ -5465,6 +5465,64 @@ const cartPersistence = () => ({
     }
     return { response, data: data2, isJson };
   },
+  // Posted to the checkout URL, not /actions, so the plugin attaches live totals to the response.
+  async applyVoucher() {
+    const code = this.voucherCode.trim();
+    if (code === "" || this.applyingVoucher) {
+      return;
+    }
+    this.applyingVoucher = true;
+    this.voucherError = "";
+    const vouchersBefore = this.totals.vouchers.length;
+    const discountsBefore = this.totals.discounts.length;
+    try {
+      const { response, data: data2, isJson } = await this.postForm(this.postUrl(), {
+        action: "gift-voucher/cart/add-code",
+        voucherCode: code
+      });
+      if (!isJson || !response.ok || data2.success === false) {
+        this.voucherError = this.voucherErrorMessage(data2, isJson);
+        return;
+      }
+      const cart = data2.cart || data2.model;
+      this.applyCart(cart);
+      const applied = this.totals.vouchers.length > vouchersBefore || this.totals.discounts.length > discountsBefore;
+      if (!applied) {
+        this.voucherError = String((cart?.fosterCheckout || {}).voucherCodeError || "") || this.voucherFailedLabel;
+        return;
+      }
+      this.voucherCode = "";
+    } finally {
+      this.applyingVoucher = false;
+    }
+  },
+  async removeVoucher(code) {
+    if (this.removingVoucher !== "") {
+      return;
+    }
+    this.removingVoucher = code;
+    this.removeVoucherError = "";
+    try {
+      const { response, data: data2, isJson } = await this.postForm(this.postUrl(), {
+        action: "gift-voucher/cart/remove-code",
+        voucherCode: code
+      });
+      if (!isJson || !response.ok || data2.success === false) {
+        this.removeVoucherError = this.voucherErrorMessage(data2, isJson);
+        return;
+      }
+      this.applyCart(data2.cart || data2.model);
+    } finally {
+      this.removingVoucher = "";
+    }
+  },
+  voucherErrorMessage(data2, isJson) {
+    if (!isJson) {
+      return this.voucherFailedLabel;
+    }
+    const fieldErrors = data2.errors?.voucherCode || data2.errors?.couponCode;
+    return fieldErrors?.[0] || data2.error || this.voucherFailedLabel;
+  },
   async saveCart(extra = {}) {
     if (!this.loggedIn && !this.hasEmail && !this.cartHasShippingAddress) {
       this.clearSavingPanel(extra.panel || this.queuedSavePanel);
@@ -6279,6 +6337,13 @@ const SinglePageCheckout = (props) => {
       discounts: [],
       vouchers: []
     },
+    voucherCode: "",
+    applyingVoucher: false,
+    voucherError: "",
+    removingVoucher: "",
+    removeVoucherError: "",
+    applyingVoucherLabel: props.applyingVoucherLabel ?? "",
+    voucherFailedLabel: props.voucherFailedLabel ?? "",
     payButtonText: props.payButtonText ?? "",
     processingLabel: props.processingLabel ?? "",
     placingOrderLabel: props.placingOrderLabel ?? "",

@@ -69,6 +69,7 @@
 							{# Gift voucher #}
 							<section>
 								{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
+									{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 									<div class="my-6" x-data="{ sending: false }">
 
 										<h3 class="px-4 mb-4 font-semibold xl:px-0">
@@ -125,14 +126,13 @@
 										{% set voucherAdjustments = cart.adjustments|filter(adjustment => adjustment.type == 'voucher') %}
 
 										{% if voucherAdjustments|length %}
-											<div class="border-gray-400 border-b flex flex-col space-y-2 py-4 px-4 xl:px-0">
+											<div class="flex flex-col space-y-2 p-4 mt-4 mx-4 xl:mx-0 bg-gray-200 {{ isFlat ? '' : 'rounded-lg' }}">
 												<p class="text-gray-500 m-0">
 													{{ 'voucher.appliedCodesHeading'|t('foster-checkout') }}:
 												</p>
 												<ul class="text-gray-500 m-0 list-disc">
 													{% for adj in voucherAdjustments %}
-														{% set matches = adj.description|split('code ') %}
-														{% set code = matches|length > 1 ? matches[1]|trim("'") : 'voucher.fallbackLabel'|t('foster-checkout') %}
+														{% set code = craft.fostercheckout.voucherLabel(adj) %}
 														<li class="ml-5">{{ code }}
 															({{ adj.amount|abs|currency }}
 															applied)</li>

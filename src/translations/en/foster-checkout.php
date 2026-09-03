@@ -152,6 +152,8 @@ return [
 	'voucher.enterCode' => 'Enter voucher/gift card code',
 	'voucher.applyCode' => 'Submit',
 	'voucher.appliedCodesHeading' => 'Vouchers/gift cards currently applied to your order',
+	'voucher.applyingCode' => 'Applying',
+	'voucher.applyFailed' => 'That code could not be applied. Try again.',
 
 	// Order Confirmation page
 	'order.stepTitle' => 'Order',

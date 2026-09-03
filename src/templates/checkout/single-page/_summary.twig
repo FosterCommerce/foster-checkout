@@ -166,15 +166,21 @@
 							<dd class="text-right text-red-500">
 								<button
 									type="button"
-									disabled
-									aria-disabled="true"
-									class="mr-2 text-sm underline text-gray-500 opacity-50 cursor-not-allowed"
+									:disabled="removingVoucher !== ''"
+									:aria-disabled="removingVoucher !== ''"
+									:class="removingVoucher !== '' ? 'opacity-50 cursor-not-allowed' : ''"
+									class="mr-2 text-sm underline text-gray-500"
+									@click="removeVoucher(voucher.name)"
 								>
 									{{ 'summary.removeCoupon'|t('foster-checkout') }}
 								</button>
 								<span x-text="voucher.amountAsCurrency"></span>
 							</dd>
 						</div>
+					</template>
+
+					<template x-if="removeVoucherError">
+						<p class="text-sm text-red-500" x-text="removeVoucherError"></p>
 					</template>
 				{% endif %}
 

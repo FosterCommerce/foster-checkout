@@ -55,8 +55,7 @@
 					<h3 class="font-semibold text-gray-800">{{ 'summary.discountApplied'|t('foster-checkout') }}</h3>
 
 					{% for adj in voucherAdjustments %}
-						{% set matches = adj.description|split('code ') %}
-						{% set code = matches|length > 1 ? matches[1]|trim("'") : 'voucher.fallbackLabel'|t('foster-checkout') %}
+						{% set code = craft.fostercheckout.voucherLabel(adj) %}
 
 						<div class="flex justify-between items-center">
 							<dt class="text-gray-500">{{ code }}</dt>

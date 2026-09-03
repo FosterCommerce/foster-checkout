@@ -52,6 +52,8 @@ class FosterCheckout extends Plugin
 
 	public const PERMISSION_MANAGE_SETTINGS = 'foster-checkout-manageSettings';
 
+	private const string VOUCHER_ACTION = 'gift-voucher/cart/add-code';
+
 	/**
 	 * @var array<int, string>
 	 */
@@ -658,6 +660,18 @@ class FosterCheckout extends Plugin
 				if ($this->singlePageCouponCodeError !== null) {
 					$live['couponCodeError'] = $this->singlePageCouponCodeError;
 					$this->singlePageCouponCodeError = null;
+				}
+
+				// Gift Voucher reports a rejected code as a session flash and still returns success,
+				// so without this the JSON response says nothing went wrong.
+				$request = Craft::$app->getRequest();
+
+				if ($request instanceof WebRequest && $request->getBodyParam('action') === self::VOUCHER_ACTION) {
+					$flashedError = Craft::$app->getSession()->getFlash('error');
+
+					if (is_string($flashedError) && $flashedError !== '') {
+						$live['voucherCodeError'] = $flashedError;
+					}
 				}
 
 				$event->cartInfo['fosterCheckout'] = $live;

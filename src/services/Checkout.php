@@ -552,6 +552,21 @@ class Checkout extends Component
 	}
 
 	/**
+	 * Gift Voucher snapshots the code element, whose description is translated and so cannot be parsed.
+	 */
+	public function voucherCode(OrderAdjustment $adjustment): ?string
+	{
+		$codeKey = $adjustment->sourceSnapshot['codeKey'] ?? null;
+
+		return is_string($codeKey) && $codeKey !== '' ? $codeKey : null;
+	}
+
+	public function voucherLabel(OrderAdjustment $adjustment): string
+	{
+		return $this->voucherCode($adjustment) ?? Craft::t(FosterCheckout::HANDLE, 'voucher.fallbackLabel');
+	}
+
+	/**
 	 * Every rule tests the stored name and value, so renaming in one rule cannot hide the option
 	 * from a later one. Rules run top to bottom, so the last to set a field wins.
 	 *
@@ -738,20 +753,6 @@ class Checkout extends Component
 			'discounts' => $discounts,
 			'vouchers' => $vouchers,
 		];
-	}
-
-	/**
-	 * Gift Voucher snapshots the code element, whose description is translated and so cannot be parsed.
-	 */
-	private function voucherLabel(OrderAdjustment $adjustment): string
-	{
-		$codeKey = $adjustment->sourceSnapshot['codeKey'] ?? null;
-
-		if (is_string($codeKey) && $codeKey !== '') {
-			return $codeKey;
-		}
-
-		return Craft::t(FosterCheckout::HANDLE, 'voucher.fallbackLabel');
 	}
 
 	/**

@@ -104,6 +104,89 @@ export const cartPersistence = () => ({
 		return { response, data, isJson };
 	},
 
+	// Posted to the checkout URL, not /actions, so the plugin attaches live totals to the response.
+	async applyVoucher() {
+		const code = this.voucherCode.trim();
+
+		if (code === '' || this.applyingVoucher) {
+			return;
+		}
+
+		this.applyingVoucher = true;
+		this.voucherError = '';
+
+		const vouchersBefore = this.totals.vouchers.length;
+		const discountsBefore = this.totals.discounts.length;
+
+		try {
+			const { response, data, isJson } = await this.postForm(this.postUrl(), {
+				action: 'gift-voucher/cart/add-code',
+				voucherCode: code,
+			});
+
+			if (!isJson || !response.ok || data.success === false) {
+				this.voucherError = this.voucherErrorMessage(data, isJson);
+				return;
+			}
+
+			const cart = data.cart || data.model;
+			this.applyCart(cart);
+
+			// Gift Voucher accepts a Commerce discount code here too, which adjusts discounts
+			// rather than vouchers. A site rule can also strip the code after it reported success.
+			const applied =
+				this.totals.vouchers.length > vouchersBefore ||
+				this.totals.discounts.length > discountsBefore;
+
+			if (!applied) {
+				this.voucherError =
+					String((cart?.fosterCheckout || {}).voucherCodeError || '') ||
+					this.voucherFailedLabel;
+				return;
+			}
+
+			this.voucherCode = '';
+		} finally {
+			this.applyingVoucher = false;
+		}
+	},
+
+	async removeVoucher(code) {
+		if (this.removingVoucher !== '') {
+			return;
+		}
+
+		this.removingVoucher = code;
+		this.removeVoucherError = '';
+
+		try {
+			const { response, data, isJson } = await this.postForm(this.postUrl(), {
+				action: 'gift-voucher/cart/remove-code',
+				voucherCode: code,
+			});
+
+			if (!isJson || !response.ok || data.success === false) {
+				this.removeVoucherError = this.voucherErrorMessage(data, isJson);
+				return;
+			}
+
+			this.applyCart(data.cart || data.model);
+		} finally {
+			this.removingVoucher = '';
+		}
+	},
+
+	voucherErrorMessage(data, isJson) {
+		if (!isJson) {
+			return this.voucherFailedLabel;
+		}
+
+		// Gift Voucher reports an unknown code under couponCode after its discount-code fallback.
+		const fieldErrors = data.errors?.voucherCode || data.errors?.couponCode;
+
+		return fieldErrors?.[0] || data.error || this.voucherFailedLabel;
+	},
+
 	async saveCart(extra = {}) {
 		if (!this.loggedIn && !this.hasEmail && !this.cartHasShippingAddress) {
 			this.clearSavingPanel(extra.panel || this.queuedSavePanel);
