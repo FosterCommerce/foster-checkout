@@ -80,7 +80,7 @@
 			{% endif %}
 		</select>
 		{% if floatingLabel %}
-			<label for="{{ fieldId }}" class="absolute left-4 top-1.5 text-xs text-gray-500 pointer-events-none">
+			<label for="{{ fieldId }}" class="absolute left-4 right-10 top-1.5 truncate text-xs text-gray-500 pointer-events-none">
 				{{ label ~ (required|default ? '*' : '') }}
 			</label>
 		{% endif %}
@@ -125,7 +125,7 @@
 			{% if floatingLabel %}
 				<label
 					:id="labelId()"
-					class="absolute left-4 top-1.5 text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-gray-500"
+					class="absolute left-4 right-10 top-1.5 truncate text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-gray-500"
 					@click="openListbox()"
 				>
 					{{ label ~ (required|default ? '*' : '') }}

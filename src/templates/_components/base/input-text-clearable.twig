@@ -73,7 +73,7 @@
 		{% if floatingLabel %}
 			<label
 				for="{{ fieldId }}"
-				class="absolute left-4 top-1.5 text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-gray-500"
+				class="absolute left-4 right-12 top-1.5 truncate text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-gray-500"
 			>
 				{{ label }}<span x-text="isRequired() ? '*' : ''"></span>
 			</label>
