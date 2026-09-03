@@ -1,0 +1,119 @@
+{% extends "foster-checkout/_layouts/settings" %}
+{% import "_includes/forms" as forms %}
+{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') %}
+
+{# @var settings \fostercommerce\fostercheckout\models\Settings #}
+
+{% set selectedSubnavItem = 'line-item-options' %}
+{% set title = 'nav.line-item-options'|t('foster-checkout') %}
+{% set docTitle = title %}
+
+{% set overridden = 'options' in overriddenSettings %}
+{% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
+
+{% set rulesOverridden = 'lineItemOptionRules' in overriddenSettings %}
+{% set rulesReadOnly = rulesOverridden or not craft.app.config.general.allowAdminChanges %}
+
+{% if readOnly and rulesReadOnly %}
+	{% set contentNotice = readOnlyNotice() %}
+{% endif %}
+
+{% block content %}
+	<form action="" method="post" accept-charset="UTF-8"{% if not readOnly %} data-saveshortcut{% endif %}>
+		{{ actionInput('foster-checkout/settings/save-settings') }}
+		{{ redirectInput('foster-checkout/settings/line-item-options') }}
+		{{ hiddenInput('section', 'line-item-options') }}
+		{{ csrfInput() }}
+
+		<p>{{ 'settings.lineItemOptions.intro'|t('foster-checkout') }}</p>
+
+		{{ forms.lightswitchField({
+			label: 'settings.lineItemOptions.enableLineItemOptions'|t('foster-checkout'),
+			instructions: 'settings.lineItemOptions.enableLineItemOptionsHelp'|t('foster-checkout'),
+			id: 'options-enableLineItemOptions',
+			name: 'settings[options][enableLineItemOptions]',
+			on: settings.options.enableLineItemOptions,
+			disabled: readOnly,
+			toggle: 'line-item-options-detail',
+			warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'options' }),
+		}) }}
+
+		<div id="line-item-options-detail"{% if not settings.options.enableLineItemOptions %} class="hidden"{% endif %}>
+			{{ forms.textField({
+				label: 'settings.lineItemOptions.hiddenPrefix'|t('foster-checkout'),
+				instructions: 'settings.lineItemOptions.hiddenPrefixHelp'|t('foster-checkout'),
+				id: 'options-hiddenLineItemOptionPrefix',
+				name: 'settings[options][hiddenLineItemOptionPrefix]',
+				value: settings.options.hiddenLineItemOptionPrefix,
+				class: 'code',
+				size: 10,
+				disabled: readOnly,
+				warning: overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'options' }),
+			}) }}
+		</div>
+
+		{% if not readOnly %}
+			<div class="buttons">
+				<button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
+			</div>
+		{% endif %}
+	</form>
+
+	{% if settings.options.enableLineItemOptions %}
+		<hr>
+
+		<h2>{{ 'settings.lineItemOptions.rulesTitle'|t('foster-checkout') }}</h2>
+		<p>{{ 'settings.lineItemOptions.rulesIntro'|t('foster-checkout') }}</p>
+
+		{% set tableData = [] %}
+		{% for rule in settings.lineItemOptionRules %}
+			{% set conditionRules = rule.condition.conditionRules %}
+			{% set tableData = tableData|merge([{
+				id: rule.uid,
+				title: conditionRules|length
+					? 'settings.lineItemOptions.ruleCount'|t('foster-checkout', { count: conditionRules|length })
+					: 'settings.lineItemOptions.everyOption'|t('foster-checkout'),
+				url: url('foster-checkout/settings/line-item-options/' ~ rule.uid),
+				setName: rule.setName ?: '—',
+				setValue: rule.setValue ?: '—',
+			}]) %}
+		{% endfor %}
+
+		<div id="line-item-option-rules"></div>
+
+		{% if not rulesReadOnly %}
+			<p>
+				<a class="btn add icon" href="{{ url('foster-checkout/settings/line-item-options/new') }}">
+					{{ 'settings.lineItemOptions.addRule'|t('foster-checkout') }}
+				</a>
+			</p>
+		{% endif %}
+
+		{% js %}
+			var columns = [
+				{ name: '__slot:title', title: Craft.t('foster-checkout', {{ 'settings.lineItemOptions.when'|t('foster-checkout')|json_encode|raw }}) },
+				{ name: 'setName', title: Craft.t('foster-checkout', {{ 'settings.lineItemOptions.setName'|t('foster-checkout')|json_encode|raw }}) },
+				{ name: 'setValue', title: Craft.t('foster-checkout', {{ 'settings.lineItemOptions.setValue'|t('foster-checkout')|json_encode|raw }}) },
+			];
+
+			var config = {
+				columns: columns,
+				padded: true,
+				container: '#line-item-option-rules',
+				emptyMessage: {{ 'settings.lineItemOptions.noRules'|t('foster-checkout')|json_encode|raw }},
+				tableData: {{ tableData|json_encode|raw }},
+			};
+
+			{% if not rulesReadOnly %}
+				config['deleteAction'] = 'foster-checkout/settings/delete-line-item-option-rule';
+				config['reorderAction'] = 'foster-checkout/settings/reorder-line-item-option-rules';
+				config['reorderSuccessMessage'] = {{ 'settings.lineItemOptions.reordered'|t('foster-checkout')|json_encode|raw }};
+				config['reorderFailMessage'] = {{ 'settings.lineItemOptions.reorderFailed'|t('foster-checkout')|json_encode|raw }};
+			{% endif %}
+
+			new Craft.VueAdminTable(config);
+		{% endjs %}
+
+
+	{% endif %}
+{% endblock %}

@@ -18,6 +18,13 @@ class Settings extends Model
 
 	public OptionConfig $options;
 
+	/**
+	 * Held outside `options` so an `options` block in a config file cannot shadow rules built in the CP.
+	 *
+	 * @var list<LineItemOptionRule> applied in order, each testing the option as stored
+	 */
+	public array $lineItemOptionRules = [];
+
 	public BrandingConfig $branding;
 
 	public PathConfig $paths;
@@ -144,6 +151,15 @@ class Settings extends Model
 	{
 		if (array_key_exists('options', $values)) {
 			$values['options'] = new OptionConfig($values['options']);
+		}
+
+		if (array_key_exists('lineItemOptionRules', $values)) {
+			$values['lineItemOptionRules'] = array_map(
+				static fn (mixed $rule): LineItemOptionRule => $rule instanceof LineItemOptionRule
+					? $rule
+					: new LineItemOptionRule(is_array($rule) ? $rule : []),
+				array_values((array) $values['lineItemOptionRules'])
+			);
 		}
 
 		if (array_key_exists('branding', $values)) {

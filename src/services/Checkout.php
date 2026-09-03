@@ -26,6 +26,7 @@ use DateTime;
 use fostercommerce\fostercheckout\formatters\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\DeliveryDate;
+use fostercommerce\fostercheckout\models\LineItemOptionRule;
 use fostercommerce\fostercheckout\models\PaymentGatewayConfig;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\models\ValueConfig;
@@ -292,26 +293,30 @@ class Checkout extends Component
 	 */
 	public function getLineItemOptions(LineItem $lineItem): array
 	{
-		$enableLineItemOptions = $this->settings()->options->enableLineItemOptions;
-		if ($enableLineItemOptions === '') {
-			$enableLineItemOptions = true;
-		}
+		$options = $this->settings()->options;
 
-		if ($enableLineItemOptions === false) {
+		if (! $options->enableLineItemOptions) {
 			return [];
 		}
 
-		/** @var array<array-key, array{name: string, value: string}> $options */
-		$options = collect($lineItem->options)
-			->filter(fn ($value, $name): bool =>
-				$enableLineItemOptions === true || ! str_starts_with((string) $name, $enableLineItemOptions))
-			->map(fn ($value, $name): array => [
-				'name' => $name,
-				'value' => $value,
-			])
-			->toArray();
+		$hiddenPrefix = $options->hiddenLineItemOptionPrefix;
+		$displayed = [];
 
-		return $options;
+		foreach ($lineItem->options as $optionName => $optionValue) {
+			$optionName = (string) $optionName;
+
+			if ($hiddenPrefix !== '' && str_starts_with($optionName, $hiddenPrefix)) {
+				continue;
+			}
+
+			$displayed[] = $this->rewriteOption(
+				$optionName,
+				is_scalar($optionValue) ? (string) $optionValue : '',
+				$this->settings()->lineItemOptionRules
+			);
+		}
+
+		return $displayed;
 	}
 
 	public function getDeliveryDate(Order $order): false|DeliveryDate
@@ -536,6 +541,37 @@ class Checkout extends Component
 			(float) $order->getTeller()->multiply($lineItem->price, (string) $lineItem->qty),
 			$order->currency
 		);
+	}
+
+	/**
+	 * Every rule tests the stored name and value, so renaming in one rule cannot hide the option
+	 * from a later one. Rules run top to bottom, so the last to set a field wins.
+	 *
+	 * @param list<LineItemOptionRule> $rules
+	 * @return array{name: string, value: string}
+	 */
+	private function rewriteOption(string $optionName, string $optionValue, array $rules): array
+	{
+		$displayed = [
+			'name' => $optionName,
+			'value' => $optionValue,
+		];
+
+		foreach ($rules as $rule) {
+			if (! $rule->getCondition()->matches($optionName, $optionValue)) {
+				continue;
+			}
+
+			if ((string) $rule->setName !== '') {
+				$displayed['name'] = (string) $rule->setName;
+			}
+
+			if ((string) $rule->setValue !== '') {
+				$displayed['value'] = (string) $rule->setValue;
+			}
+		}
+
+		return $displayed;
 	}
 
 	/**

@@ -6,11 +6,14 @@ use Craft;
 use craft\commerce\base\GatewayInterface;
 use craft\commerce\elements\Order;
 use craft\commerce\Plugin as Commerce;
+use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
 use craft\models\FieldLayout;
 use craft\services\ProjectConfig;
 use craft\web\Controller;
 use fostercommerce\fostercheckout\FosterCheckout;
+use fostercommerce\fostercheckout\models\LineItemOptionRule;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
 use yii\web\ForbiddenHttpException;
@@ -225,6 +228,131 @@ class SettingsController extends Controller
 		$this->setSuccessFlash(Craft::t('app', 'Settings saved.'));
 
 		return $this->redirectToPostedUrl();
+	}
+
+	public function actionLineItemOptions(): Response
+	{
+		return $this->renderSection('line-item-options');
+	}
+
+	/**
+	 * @throws ForbiddenHttpException
+	 * @throws NotFoundHttpException
+	 */
+	public function actionEditLineItemOptionRule(?string $ruleUid = null): Response
+	{
+		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_SETTINGS);
+
+		$rule = $ruleUid === null ? new LineItemOptionRule() : $this->findLineItemOptionRule($ruleUid);
+
+		if (! $rule instanceof LineItemOptionRule) {
+			throw new NotFoundHttpException();
+		}
+
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $this->renderTemplate('foster-checkout/settings/line-item-options/_edit', [
+			'rule' => $rule,
+			'isNew' => $ruleUid === null,
+			'overridden' => in_array('lineItemOptionRules', $plugin->getOverriddenSettings(), true),
+		]);
+	}
+
+	public function actionSaveLineItemOptionRule(): ?Response
+	{
+		$this->requirePostRequest();
+		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_SETTINGS);
+
+		if (! Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+			throw new ForbiddenHttpException(Craft::t(FosterCheckout::HANDLE, 'error.adminChangesDisallowed'));
+		}
+
+		$this->requireEditableLineItemOptions();
+
+		$postedUid = $this->request->getBodyParam('ruleUid');
+		$postedName = $this->request->getBodyParam('setName', '');
+		$postedValue = $this->request->getBodyParam('setValue', '');
+
+		$rule = new LineItemOptionRule([
+			'uid' => is_string($postedUid) ? $postedUid : null,
+			'condition' => $this->request->getBodyParam('condition', []),
+			'setName' => is_string($postedName) ? trim($postedName) : '',
+			'setValue' => is_string($postedValue) ? trim($postedValue) : '',
+		]);
+
+		$rules = $this->lineItemOptionRules();
+		$replaced = false;
+
+		foreach ($rules as $position => $existingRule) {
+			if ($existingRule->uid !== $rule->uid) {
+				continue;
+			}
+
+			$rules[$position] = $rule;
+			$replaced = true;
+		}
+
+		if (! $replaced) {
+			$rules[] = $rule;
+		}
+
+		return $this->saveLineItemOptionRules($rules);
+	}
+
+	public function actionDeleteLineItemOptionRule(): ?Response
+	{
+		$this->requirePostRequest();
+		$this->requireAcceptsJson();
+		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_SETTINGS);
+
+		if (! Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+			throw new ForbiddenHttpException(Craft::t(FosterCheckout::HANDLE, 'error.adminChangesDisallowed'));
+		}
+
+		$this->requireEditableLineItemOptions();
+
+		$postedId = $this->request->getRequiredBodyParam('id');
+		$postedUid = is_string($postedId) ? $postedId : '';
+
+		$rules = array_values(array_filter(
+			$this->lineItemOptionRules(),
+			static fn (LineItemOptionRule $rule): bool => $rule->uid !== $postedUid
+		));
+
+		return $this->saveLineItemOptionRules($rules, true);
+	}
+
+	/**
+	 * @throws ForbiddenHttpException
+	 */
+	public function actionReorderLineItemOptionRules(): ?Response
+	{
+		$this->requirePostRequest();
+		$this->requireAcceptsJson();
+		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_SETTINGS);
+
+		if (! Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+			throw new ForbiddenHttpException(Craft::t(FosterCheckout::HANDLE, 'error.adminChangesDisallowed'));
+		}
+
+		$this->requireEditableLineItemOptions();
+
+		$postedIds = $this->request->getRequiredBodyParam('ids');
+
+		/** @var list<string> $orderedUids */
+		$orderedUids = Json::decode(is_string($postedIds) ? $postedIds : '[]');
+		$rulesByUid = ArrayHelper::index($this->lineItemOptionRules(), static fn (LineItemOptionRule $rule): string => $rule->uid);
+
+		$reordered = [];
+
+		foreach ($orderedUids as $orderedUid) {
+			if (isset($rulesByUid[$orderedUid])) {
+				$reordered[] = $rulesByUid[$orderedUid];
+			}
+		}
+
+		return $this->saveLineItemOptionRules($reordered, true);
 	}
 
 	public function actionGeneral(): Response
@@ -511,6 +639,79 @@ class SettingsController extends Controller
 		}
 
 		return $postedSettings;
+	}
+
+	private function findLineItemOptionRule(string $ruleUid): ?LineItemOptionRule
+	{
+		foreach ($this->lineItemOptionRules() as $lineItemOptionRule) {
+			if ($lineItemOptionRule->uid === $ruleUid) {
+				return $lineItemOptionRule;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * A config file replaces the whole options node, so a saved rule would never be read back.
+	 *
+	 * @throws ForbiddenHttpException
+	 */
+	private function requireEditableLineItemOptions(): void
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		if (in_array('lineItemOptionRules', $plugin->getOverriddenSettings(), true)) {
+			throw new ForbiddenHttpException(Craft::t(FosterCheckout::HANDLE, 'settings.lineItemOptions.overridden'));
+		}
+	}
+
+	/**
+	 * @return list<LineItemOptionRule>
+	 */
+	private function lineItemOptionRules(): array
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $plugin->checkout->settings()->lineItemOptionRules;
+	}
+
+	/**
+	 * @param list<LineItemOptionRule> $rules
+	 */
+	private function saveLineItemOptionRules(array $rules, bool $asJson = false): ?Response
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		$storedSettings = ProjectConfigHelper::unpackAssociativeArrays(
+			(array) (Craft::$app->getProjectConfig()->get(ProjectConfig::PATH_PLUGINS . '.' . FosterCheckout::HANDLE . '.settings') ?? [])
+		);
+
+		$storedSettings['lineItemOptionRules'] = array_map(
+			static fn (LineItemOptionRule $rule): array => $rule->toConfig(),
+			$rules
+		);
+
+		if (! Craft::$app->getPlugins()->savePluginSettings($plugin, $storedSettings)) {
+			if ($asJson) {
+				return $this->asFailure(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
+			}
+
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
+
+			return null;
+		}
+
+		if ($asJson) {
+			return $this->asSuccess();
+		}
+
+		$this->setSuccessFlash(Craft::t('app', 'Settings saved.'));
+
+		return $this->redirectToPostedUrl();
 	}
 
 	private function renderSection(string $section): Response

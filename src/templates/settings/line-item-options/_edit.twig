@@ -1,0 +1,58 @@
+{% extends "foster-checkout/_layouts/settings" %}
+{% import "_includes/forms" as forms %}
+
+{# @var rule \fostercommerce\fostercheckout\models\LineItemOptionRule #}
+
+{% set selectedSubnavItem = 'line-item-options' %}
+{% set title = isNew
+	? 'settings.lineItemOptions.newRule'|t('foster-checkout')
+	: 'settings.lineItemOptions.editRule'|t('foster-checkout') %}
+{% set docTitle = title %}
+
+{% set readOnly = overridden or not craft.app.config.general.allowAdminChanges %}
+
+{% if readOnly %}
+	{% set contentNotice = readOnlyNotice() %}
+{% endif %}
+
+{% set crumbs = [
+	{ label: 'nav.line-item-options'|t('foster-checkout'), url: url('foster-checkout/settings/line-item-options') },
+] %}
+
+{% block content %}
+	<form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+		{{ actionInput('foster-checkout/settings/save-line-item-option-rule') }}
+		{{ redirectInput('foster-checkout/settings/line-item-options') }}
+		{{ hiddenInput('ruleUid', rule.uid) }}
+		{{ csrfInput() }}
+
+		{{ forms.field({
+			label: 'settings.lineItemOptions.when'|t('foster-checkout'),
+			instructions: 'settings.lineItemOptions.whenHelp'|t('foster-checkout'),
+		}, rule.condition.getBuilderHtml()) }}
+
+		{{ forms.textField({
+			label: 'settings.lineItemOptions.setName'|t('foster-checkout'),
+			instructions: 'settings.lineItemOptions.setNameHelp'|t('foster-checkout'),
+			id: 'setName',
+			name: 'setName',
+			value: rule.setName,
+			disabled: readOnly,
+		}) }}
+
+		{{ forms.textField({
+			label: 'settings.lineItemOptions.setValue'|t('foster-checkout'),
+			instructions: 'settings.lineItemOptions.setValueHelp'|t('foster-checkout'),
+			id: 'setValue',
+			name: 'setValue',
+			value: rule.setValue,
+			disabled: readOnly,
+		}) }}
+
+		{% if not readOnly %}
+			<div class="buttons">
+				<button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
+			</div>
+		{% endif %}
+	</form>
+{% endblock %}
