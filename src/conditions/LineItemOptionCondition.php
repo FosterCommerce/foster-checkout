@@ -26,6 +26,22 @@ class LineItemOptionCondition extends BaseCondition
 		return true;
 	}
 
+	/**
+	 * @return list<string>
+	 */
+	public function describe(): array
+	{
+		$described = [];
+
+		foreach ($this->getConditionRules() as $conditionRule) {
+			if ($conditionRule instanceof OptionNameConditionRule || $conditionRule instanceof OptionValueConditionRule) {
+				$described[] = $conditionRule->describe();
+			}
+		}
+
+		return $described;
+	}
+
 	#[\Override]
 	protected function selectableConditionRules(): array
 	{

@@ -7,6 +7,7 @@ A drop-in checkout for Craft Commerce, with its copy and settings managed from t
 **Running the store day-to-day?** See the [user guide](./user-guide/):
 
 - [Content](./user-guide/content.md), editing checkout copy, payment method notes and footer links
+- [Line items](./user-guide/line-items.md), what a cart line shows, and rewriting option names and values
 
 **Setting the plugin up?** See:
 

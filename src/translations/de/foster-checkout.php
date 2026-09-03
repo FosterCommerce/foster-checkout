@@ -387,7 +387,6 @@ return [
 	'settings.lineItemOptions.setNameHelp' => 'Leer lassen, um den gespeicherten Namen beizubehalten.',
 	'settings.lineItemOptions.setValue' => 'Wert setzen auf',
 	'settings.lineItemOptions.setValueHelp' => 'Leer lassen, um den gespeicherten Wert beizubehalten.',
-	'settings.lineItemOptions.ruleCount' => '{count, plural, =1{1 Bedingung} other{# Bedingungen}}',
 	'settings.lineItemOptions.everyOption' => 'Jede Option',
 	'settings.lineItemOptions.overridden' => 'Diese Regeln sind in einer Konfigurationsdatei festgelegt und können hier nicht bearbeitet werden.',
 	'settings.lineItemOptions.reordered' => 'Regeln neu sortiert.',

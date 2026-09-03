@@ -4,7 +4,7 @@ namespace fostercommerce\fostercheckout\models;
 
 use Craft;
 use craft\base\Model;
-use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use fostercommerce\fostercheckout\conditions\LineItemOptionCondition;
 
 /**
@@ -39,10 +39,7 @@ class LineItemOptionRule extends Model
 			: $this->createCondition(is_array($condition) ? $condition : []);
 
 		$postedUid = $config['uid'] ?? null;
-		$config['uid'] = is_string($postedUid) && $postedUid !== ''
-			? $postedUid
-			: $this->derivedUid($this->condition, $config);
-
+		$config['uid'] = is_string($postedUid) && $postedUid !== '' ? $postedUid : StringHelper::UUID();
 		parent::__construct($config);
 	}
 
@@ -76,49 +73,6 @@ class LineItemOptionRule extends Model
 			'setName' => $this->setName,
 			'setValue' => $this->setValue,
 		];
-	}
-
-	/**
-	 * Craft gives a condition rule a fresh uid whenever the config omits one.
-	 *
-	 * @param array<array-key, mixed> $config
-	 * @return array<array-key, mixed>
-	 */
-	private static function withoutUids(array $config): array
-	{
-		unset($config['uid']);
-
-		foreach ($config as $key => $value) {
-			if (is_array($value)) {
-				$config[$key] = self::withoutUids($value);
-			}
-		}
-
-		return $config;
-	}
-
-	/**
-	 * A rule set in a config file carries no uid, and a fresh one each request would break the
-	 * links that address it.
-	 *
-	 * @param array<array-key, mixed> $config
-	 */
-	private function derivedUid(LineItemOptionCondition $condition, array $config): string
-	{
-		$digest = md5(Json::encode([
-			self::withoutUids($condition->getConfig()),
-			$config['setName'] ?? null,
-			$config['setValue'] ?? null,
-		]));
-
-		// Craft routes a uid on UUID_PATTERN, which wants a version 4 and a variant nibble
-		return implode('-', [
-			substr($digest, 0, 8),
-			substr($digest, 8, 4),
-			'4' . substr($digest, 13, 3),
-			['8', '9', 'a', 'b'][hexdec($digest[16]) % 4] . substr($digest, 17, 3),
-			substr($digest, 20, 12),
-		]);
 	}
 
 	/**

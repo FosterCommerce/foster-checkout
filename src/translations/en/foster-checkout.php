@@ -389,7 +389,6 @@ return [
 	'settings.lineItemOptions.setNameHelp' => 'Leave empty to keep the stored name.',
 	'settings.lineItemOptions.setValue' => 'Set value to',
 	'settings.lineItemOptions.setValueHelp' => 'Leave empty to keep the stored value.',
-	'settings.lineItemOptions.ruleCount' => '{count, plural, =1{1 condition} other{# conditions}}',
 	'settings.lineItemOptions.everyOption' => 'Every option',
 	'settings.lineItemOptions.overridden' => 'These rules are set in a config file and cannot be edited here.',
 	'settings.lineItemOptions.reordered' => 'Rules reordered.',

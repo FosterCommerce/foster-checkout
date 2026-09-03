@@ -87,18 +87,30 @@
 		<h2>{{ 'settings.lineItemOptions.rulesTitle'|t('foster-checkout') }}</h2>
 		<p>{{ 'settings.lineItemOptions.rulesIntro'|t('foster-checkout') }}</p>
 
+		{% if rulesOverridden %}
+			<p class="warning has-icon">
+				<span class="icon" aria-hidden="true"></span>
+				<span class="visually-hidden">{{ 'Warning:'|t('app') }} </span>
+				<span>{{ 'settings.overridden'|t('foster-checkout', { setting: 'lineItemOptionRules' })|md(inlineOnly=true) }}</span>
+			</p>
+		{% endif %}
+
 		{% set tableData = [] %}
 		{% for rule in settings.lineItemOptionRules %}
-			{% set conditionRules = rule.condition.conditionRules %}
-			{% set tableData = tableData|merge([{
+			{% set described = rule.condition.describe() %}
+			{% set row = {
 				id: rule.uid,
-				title: conditionRules|length
-					? 'settings.lineItemOptions.ruleCount'|t('foster-checkout', { count: conditionRules|length })
+				title: described|length
+					? described|join(' + ')
 					: 'settings.lineItemOptions.everyOption'|t('foster-checkout'),
-				url: url('foster-checkout/settings/line-items/' ~ rule.uid),
 				setName: rule.setName ?: '—',
 				setValue: rule.setValue ?: '—',
-			}]) %}
+			} %}
+			{# A rule set in a config file has no edit screen, so the row is not a link #}
+			{% if not rulesReadOnly %}
+				{% set row = row|merge({ url: url('foster-checkout/settings/line-items/' ~ rule.uid) }) %}
+			{% endif %}
+			{% set tableData = tableData|merge([row]) %}
 		{% endfor %}
 
 		<div id="line-item-option-rules"></div>

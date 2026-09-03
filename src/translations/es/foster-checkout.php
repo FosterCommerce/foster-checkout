@@ -388,7 +388,6 @@ return [
 	'settings.lineItemOptions.setNameHelp' => 'Déjelo vacío para conservar el nombre almacenado.',
 	'settings.lineItemOptions.setValue' => 'Establecer el valor en',
 	'settings.lineItemOptions.setValueHelp' => 'Déjelo vacío para conservar el valor almacenado.',
-	'settings.lineItemOptions.ruleCount' => '{count, plural, =1{1 condición} other{# condiciones}}',
 	'settings.lineItemOptions.everyOption' => 'Todas las opciones',
 	'settings.lineItemOptions.overridden' => 'Estas reglas se definen en un archivo de configuración y no se pueden editar aquí.',
 	'settings.lineItemOptions.reordered' => 'Reglas reordenadas.',
