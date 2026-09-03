@@ -308,6 +308,7 @@ const SearchableSelect = (props) => {
 		get filteredOptions() {
 			const options = this.options ?? [];
 
+			// Changing the country reassigns options, so comparing search alone goes stale.
 			if (
 				filterCache.search === this.search &&
 				filterCache.options === options

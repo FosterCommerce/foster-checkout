@@ -8,8 +8,8 @@
 		"build:check": "npm run build && git diff --exit-code -- src/web/assets/checkout/dist/js/alpine.js",
 		"lint:check": "eslint",
 		"lint:fix": "eslint --fix",
-		"format:check": "prettier --check src/web/assets/checkout/js/*.js",
-		"format:fix": "prettier --write src/web/assets/checkout/js/*.js",
+		"format:check": "prettier --check \"src/web/assets/checkout/js/**/*.js\"",
+		"format:fix": "prettier --write \"src/web/assets/checkout/js/**/*.js\"",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"repository": {
