@@ -48,6 +48,8 @@
 	@keydown.escape.stop.prevent="closeAndFocusButton()"
 	@click.outside="closeListbox()"
 	{% if eventName is defined %}@{{ eventName }}.window="options = $event.detail;"{% endif %}
+	{# The hidden input is bound to modelValue #}
+	@setvalue.window="if ($event.detail.name === name) { modelValue = $event.detail.value }"
 >
 
 	<!-- No JS Fallback (standard select element styled to match) -->

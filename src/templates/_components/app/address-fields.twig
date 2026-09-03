@@ -50,6 +50,33 @@ since the array key will be the same #}
 	}]) %}
 {% endfor %}
 
+{# AvaTax's endpoint answers even when its own validation setting is off #}
+{% set avatax = craft.app.plugins.getPlugin('avatax') %}
+{% set verifyAddress = context == 'shippingAddress'
+	and craft.fostercheckout.settings.options.enableAddressVerification
+	and craft.app.plugins.isPluginEnabled('avatax')
+	and (avatax.settings.enableAddressValidation ?? false) %}
+
+{% if verifyAddress %}
+	{# Scoped per cart, so a dismissal does not carry to the next order or another site #}
+	{% do view.registerJs(
+		'window.FC_ADDRESS_DISMISSED_KEY = ' ~ [
+			'fc_address_dismissed',
+			craft.app.request.hostName,
+			currentSite.id,
+			currentSite.language,
+			craft.commerce.carts.cart.number
+		]|join('_')|json_encode|raw ~ ';',
+		constant('craft\\web\\View::POS_HEAD'),
+		'fc-address-dismissed-key'
+	) %}
+<div
+	x-data="AddressVerification({ prefix: '{{ context }}' })"
+	@input="queueVerify()"
+	@selected.window="queueVerify()"
+>
+{% endif %}
+
 <div
 	x-data="{
 		countryCode: '{{ address ? address.countryCode : '' }}',
@@ -147,3 +174,36 @@ since the array key will be the same #}
 	{% endfor %}
 
 </div>
+
+{% if verifyAddress %}
+	<template x-if="suggestion">
+		<div class="mt-4 p-4 bg-gray-200 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? '' : 'rounded-lg' }}">
+			<p class="font-semibold text-black">{{ 'addressVerification.heading'|t('foster-checkout') }}</p>
+
+			<div class="grid grid-cols-1 gap-4 mt-4 sm:grid-cols-2">
+				<div>
+					<p class="text-sm text-gray-500">{{ 'addressVerification.entered'|t('foster-checkout') }}</p>
+					<p class="text-black" x-text="formatted(suggestion.entered)"></p>
+				</div>
+				<div>
+					<p class="text-sm text-gray-500">{{ 'addressVerification.suggested'|t('foster-checkout') }}</p>
+					<p class="text-black" x-text="formatted(suggestion.suggested)"></p>
+				</div>
+			</div>
+
+			<div class="flex flex-wrap items-center gap-4 mt-4">
+				<button
+					type="button"
+					class="h-[48px] flex justify-center items-center px-4 text-white bg-[var(--brandColor)] rounded-xl"
+					@click="useSuggested()"
+				>
+					{{ 'addressVerification.useSuggested'|t('foster-checkout') }}
+				</button>
+				<button type="button" class="text-sm underline text-gray-500" @click="keepMine()">
+					{{ 'addressVerification.keepMine'|t('foster-checkout') }}
+				</button>
+			</div>
+		</div>
+	</template>
+</div>
+{% endif %}

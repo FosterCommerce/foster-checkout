@@ -35,6 +35,12 @@ class OptionConfig extends Model
 	public bool $enablePlaceholderImages = false;
 
 	/**
+	 * Whether to offer Avalara's corrected shipping address. Needs the AvaTax plugin and its own
+	 * address validation setting.
+	 */
+	public bool $enableAddressVerification = false;
+
+	/**
 	 * Whether to enable CSS page transitions
 	 *
 	 * @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#browser_compatibility for browser compatibility

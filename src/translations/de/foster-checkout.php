@@ -147,6 +147,13 @@ return [
 	'voucher.enterCode' => 'Gutschein- oder Geschenkkartencode eingeben',
 	'voucher.applyCode' => 'Absenden',
 	'voucher.appliedCodesHeading' => 'Derzeit auf Ihre Bestellung angewendete Gutscheine/Geschenkkarten',
+	'voucher.applyingCode' => 'Wird angewendet',
+	'voucher.applyFailed' => 'Dieser Code konnte nicht angewendet werden. Bitte erneut versuchen.',
+	'addressVerification.heading' => 'Wir haben eine leicht abweichende Adresse gefunden',
+	'addressVerification.entered' => 'Ihre Eingabe',
+	'addressVerification.suggested' => 'Vorschlag',
+	'addressVerification.useSuggested' => 'Vorschlag übernehmen',
+	'addressVerification.keepMine' => 'Meine behalten',
 
 	// Order Confirmation page
 	'order.stepTitle' => 'Bestellung',
@@ -293,6 +300,8 @@ return [
 	'settings.features.enablePlaceholderImagesHelp' => 'Zeigt für Produkte ohne Bild einen Platzhalter „Kein Bild“.',
 	'settings.features.enablePageTransitions' => 'Seitenübergänge',
 	'settings.features.enablePageTransitionsHelp' => 'Animiert Übergänge zwischen Checkout-Schritten in Browsern, die View Transitions unterstützen.',
+	'settings.features.enableAddressVerification' => 'Versandadressen prüfen',
+	'settings.features.enableAddressVerificationHelp' => 'Zeigt die von Avalara korrigierte Versandadresse an, damit Kunden sie übernehmen oder ihre eigene behalten können. Erfordert das AvaTax-Plugin mit aktivierter Adressprüfung.',
 	'settings.features.klaviyoListId' => 'Klaviyo-Listen-ID',
 	'settings.features.klaviyoListIdHelp' => 'Liste, der Kunden über die Newsletter-Checkbox hinzugefügt werden. Leer lassen, um die Checkbox auszublenden.',
 

@@ -297,6 +297,13 @@ return [
 	'settings.features.enablePlaceholderImagesHelp' => 'Show a “no image” placeholder for products without one.',
 	'settings.features.enablePageTransitions' => 'Page transitions',
 	'settings.features.enablePageTransitionsHelp' => 'Animate between checkout steps in browsers that support view transitions.',
+	'addressVerification.heading' => 'We found a slightly different address',
+	'addressVerification.entered' => 'You entered',
+	'addressVerification.suggested' => 'Suggested',
+	'addressVerification.useSuggested' => 'Use suggested',
+	'addressVerification.keepMine' => 'Keep mine',
+	'settings.features.enableAddressVerification' => 'Verify shipping addresses',
+	'settings.features.enableAddressVerificationHelp' => 'Show Avalara’s corrected shipping address so customers can accept it or keep theirs. Needs the AvaTax plugin with address validation turned on.',
 	'settings.features.klaviyoListId' => 'Klaviyo list ID',
 	'settings.features.klaviyoListIdHelp' => 'List that the subscribe checkbox adds customers to. Leave blank to hide the checkbox.',
 

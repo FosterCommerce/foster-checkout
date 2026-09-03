@@ -5,6 +5,7 @@ import {
 	isEmptyValue,
 	isValidEmail,
 } from './single-page-checkout.js';
+import { AddressVerification } from './checkout/address-verification.js';
 
 const setErrors = (field, messages) => {
 	const next = messages.filter(Boolean);
@@ -944,6 +945,7 @@ Alpine.data('RadioInput', RadioInput);
 Alpine.data('SearchableSelect', SearchableSelect);
 Alpine.data('LineItem', LineItem);
 Alpine.data('SinglePageCheckout', SinglePageCheckout);
+Alpine.data('AddressVerification', AddressVerification);
 
 window.Alpine = Alpine;
 Alpine.start();

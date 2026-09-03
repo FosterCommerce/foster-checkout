@@ -39,6 +39,10 @@ return [
 	//(see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#browser_compatibility for browser compatibility)
 	// 'enablePageTransitions' => false,
 
+	// Whether or not to show Avalara's corrected shipping address
+	// (needs the AvaTax plugin with its own address validation turned on)
+	// 'enableAddressVerification' => false, // true|false
+
 	// The Klaviyo list ID to subscribe the customer to
 	// 'klaviyoListId' => null,
 

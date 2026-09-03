@@ -148,6 +148,13 @@ return [
 	'voucher.enterCode' => 'Introduce el código de cupón',
 	'voucher.applyCode' => 'Aplicar',
 	'voucher.appliedCodesHeading' => 'Cupones aplicados a tu pedido',
+	'voucher.applyingCode' => 'Aplicando',
+	'voucher.applyFailed' => 'No se pudo aplicar el código. Inténtalo de nuevo.',
+	'addressVerification.heading' => 'Hemos encontrado una dirección ligeramente distinta',
+	'addressVerification.entered' => 'Lo que introdujiste',
+	'addressVerification.suggested' => 'Sugerencia',
+	'addressVerification.useSuggested' => 'Usar la sugerencia',
+	'addressVerification.keepMine' => 'Mantener la mía',
 
 	// Order Confirmation page
 	'order.stepTitle' => 'Pedido',
@@ -294,6 +301,8 @@ return [
 	'settings.features.enablePlaceholderImagesHelp' => 'Muestra un marcador “Sin imagen” para los productos que no tienen ninguna.',
 	'settings.features.enablePageTransitions' => 'Transiciones de página',
 	'settings.features.enablePageTransitionsHelp' => 'Anima el paso de una etapa a otra en los navegadores compatibles con view transitions.',
+	'settings.features.enableAddressVerification' => 'Verificar direcciones de envío',
+	'settings.features.enableAddressVerificationHelp' => 'Muestra la dirección de envío corregida por Avalara para que los clientes puedan aceptarla o mantener la suya. Requiere el plugin AvaTax con la validación de direcciones activada.',
 	'settings.features.klaviyoListId' => 'ID de lista de Klaviyo',
 	'settings.features.klaviyoListIdHelp' => 'Lista a la que la casilla de suscripción añade a los clientes. Déjalo en blanco para ocultar la casilla.',
 

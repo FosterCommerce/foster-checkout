@@ -147,6 +147,13 @@ return [
 	'voucher.enterCode' => 'Entre le code du coupon / carte-cadeau',
 	'voucher.applyCode' => 'Appliquer',
 	'voucher.appliedCodesHeading' => 'Coupons / cartes-cadeaux appliqués à votre commande',
+	'voucher.applyingCode' => 'Application en cours',
+	'voucher.applyFailed' => 'Ce code n’a pas pu être appliqué. Réessayez.',
+	'addressVerification.heading' => 'Nous avons trouvé une adresse légèrement différente',
+	'addressVerification.entered' => 'Votre saisie',
+	'addressVerification.suggested' => 'Suggestion',
+	'addressVerification.useSuggested' => 'Utiliser la suggestion',
+	'addressVerification.keepMine' => 'Conserver la mienne',
 
 	// Order Confirmation page
 	'order.stepTitle' => 'Commande',
@@ -293,6 +300,8 @@ return [
 	'settings.features.enablePlaceholderImagesHelp' => 'Affiche un visuel « aucune image » pour les produits qui n’en ont pas.',
 	'settings.features.enablePageTransitions' => 'Transitions de page',
 	'settings.features.enablePageTransitionsHelp' => 'Anime le passage d’une étape à l’autre dans les navigateurs qui prennent en charge les view transitions.',
+	'settings.features.enableAddressVerification' => 'Vérifier les adresses de livraison',
+	'settings.features.enableAddressVerificationHelp' => 'Affiche l’adresse de livraison corrigée par Avalara pour que les clients puissent l’accepter ou conserver la leur. Nécessite le plugin AvaTax avec la validation d’adresse activée.',
 	'settings.features.klaviyoListId' => 'ID de liste Klaviyo',
 	'settings.features.klaviyoListIdHelp' => 'Liste à laquelle la case d’inscription ajoute les clients. Laisser vide pour masquer la case.',
 
