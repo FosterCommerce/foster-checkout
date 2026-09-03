@@ -17,7 +17,6 @@ use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
 use craft\events\DefineRulesEvent;
 use craft\events\RegisterTemplateRootsEvent;
-use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
 use craft\helpers\UrlHelper;
@@ -27,22 +26,20 @@ use craft\services\ProjectConfig;
 use craft\services\UserPermissions;
 use craft\web\Request as WebRequest;
 use craft\web\Response;
-use craft\web\twig\variables\CraftVariable;
-use craft\web\UrlManager;
 use craft\web\View;
 use fostercommerce\fostercheckout\models\Settings;
-use fostercommerce\fostercheckout\services\Checkout;
+use fostercommerce\fostercheckout\plugin\Routes;
+use fostercommerce\fostercheckout\plugin\Services;
+use fostercommerce\fostercheckout\plugin\Variables;
 use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
-use fostercommerce\fostercheckout\services\Content;
 use yii\base\Event;
 
-/**
- * @property-read Checkout $checkout
- * @property-read Content $content
- * @property-read CheckoutFieldLayouts $checkoutFieldLayouts
- */
 class FosterCheckout extends Plugin
 {
+	use Routes;
+	use Services;
+	use Variables;
+
 	public const HANDLE = 'foster-checkout';
 
 	public const PERMISSION_VIEW_CONTENT = 'foster-checkout-viewContent';
@@ -232,14 +229,6 @@ class FosterCheckout extends Plugin
 	}
 
 	/**
-	 * Top-level settings keys the site's config file sets.
-	 *
-	 * Craft shallow-merges the file over stored settings, so one key in the file overrides its
-	 * whole section.
-	 *
-	 * @return array<int, string>
-	 */
-	/**
 	 * Dot paths of every setting a config file pins, plus each ancestor, so a form can test a
 	 * single field or a whole group.
 	 *
@@ -386,7 +375,7 @@ class FosterCheckout extends Plugin
 
 	private function singlePageCheckoutPath(): ?string
 	{
-		if (! $this->checkout->settings()->options->isSinglePageCheckout()) {
+		if (! $this->getCheckout()->settings()->options->isSinglePageCheckout()) {
 			return null;
 		}
 
@@ -395,7 +384,7 @@ class FosterCheckout extends Plugin
 			return null;
 		}
 
-		$checkoutPath = $this->checkout->settings()->paths->checkout;
+		$checkoutPath = $this->getCheckout()->settings()->paths->checkout;
 		$path = $request->getPathInfo();
 
 		if ($path !== $checkoutPath && ! str_starts_with($path, $checkoutPath . '/')) {
@@ -414,15 +403,6 @@ class FosterCheckout extends Plugin
 		$request = Craft::$app->getRequest();
 
 		return $request instanceof WebRequest && $request->getAcceptsJson();
-	}
-
-	private function registerComponents(): void
-	{
-		$this->setComponents([
-			'checkout' => Checkout::class,
-			'content' => Content::class,
-			'checkoutFieldLayouts' => CheckoutFieldLayouts::class,
-		]);
 	}
 
 	private function allowPostieRatesOnSinglePageCheckout(): void
@@ -504,7 +484,7 @@ class FosterCheckout extends Plugin
 				}
 
 				foreach (CheckoutFieldLayouts::CHECKOUT_POSITIONS as $position) {
-					$layout = $this->checkoutFieldLayouts->getCheckoutFieldLayout($position);
+					$layout = $this->getCheckoutFieldLayouts()->getCheckoutFieldLayout($position);
 
 					foreach ($layout->getVisibleCustomFieldElements($order) as $layoutElement) {
 						if (! $layoutElement->required) {
@@ -550,7 +530,7 @@ class FosterCheckout extends Plugin
 
 				$layout = $address->getFieldLayout();
 
-				foreach ($this->checkout->settings()->requiredAddressFields as $attribute) {
+				foreach ($this->getCheckout()->settings()->requiredAddressFields as $attribute) {
 					$field = $layout?->getFieldByHandle($attribute);
 
 					// A field value can be an object or a bool, which the default emptiness test never
@@ -571,6 +551,10 @@ class FosterCheckout extends Plugin
 	{
 		$this->registerTwigVariable();
 		$this->registerTemplateRoots();
+		$this->allowPostieRatesOnSinglePageCheckout();
+		$this->allowEmptyPhoneOnSinglePageCartSave();
+		$this->requireCheckoutAddressFields();
+		$this->requireCheckoutFields();
 		$this->registerPermissions();
 		$this->registerCpRoutes();
 		$this->registerSiteRoutes();
@@ -579,27 +563,6 @@ class FosterCheckout extends Plugin
 		$this->addCheckoutStateToCartResponses();
 		$this->flashOrderNoticesOnce();
 		$this->listUkCounties();
-	}
-
-	private function registerTwigVariable(): void
-	{
-		$this->allowPostieRatesOnSinglePageCheckout();
-		$this->allowEmptyPhoneOnSinglePageCartSave();
-		$this->requireCheckoutAddressFields();
-		$this->requireCheckoutFields();
-
-		Event::on(
-			CraftVariable::class,
-			CraftVariable::EVENT_INIT,
-			function (Event $event): void {
-				/** @var CraftVariable $variable */
-				$variable = $event->sender;
-
-				$variable->set('fostercheckout', Checkout::class);
-			}
-		);
-
-		/* Register our plugins templates directory so Craft knows to look there  */
 	}
 
 	private function registerTemplateRoots(): void
@@ -646,57 +609,6 @@ class FosterCheckout extends Plugin
 		);
 	}
 
-	private function registerCpRoutes(): void
-	{
-		Event::on(
-			UrlManager::class,
-			UrlManager::EVENT_REGISTER_CP_URL_RULES,
-			static function (RegisterUrlRulesEvent $event): void {
-				$event->rules[self::HANDLE] = self::HANDLE . '/content/edit';
-				$event->rules[self::HANDLE . '/content'] = self::HANDLE . '/content/edit';
-
-				foreach (self::SETTINGS_SECTIONS as $section) {
-					$event->rules[self::HANDLE . "/settings/{$section}"] = self::HANDLE . "/settings/{$section}";
-				}
-
-				$event->rules[self::HANDLE . '/settings/gateways/<gatewayHandle:{handle}>'] = self::HANDLE . '/settings/edit-gateway';
-				$event->rules[self::HANDLE . '/settings/fields/<position:{handle}>'] = self::HANDLE . '/settings/edit-field';
-				$event->rules[self::HANDLE . '/settings/line-items/new'] = self::HANDLE . '/settings/edit-line-item-option-rule';
-				$event->rules[self::HANDLE . '/settings/line-items/<ruleUid:{uid}>'] = self::HANDLE . '/settings/edit-line-item-option-rule';
-			}
-		);
-
-		/* Register our site URL rules based on the plugins 'paths' setting */
-	}
-
-	private function registerSiteRoutes(): void
-	{
-		Event::on(
-			UrlManager::class,
-			UrlManager::EVENT_REGISTER_SITE_URL_RULES,
-			function (RegisterUrlRulesEvent $event): void {
-				$paths = $this->checkout->settings()->paths;
-				$checkoutPath = $paths->checkout;
-
-				foreach (self::CHECKOUT_ROUTES as $suffix => $template) {
-					$event->rules[$checkoutPath . $suffix] = [
-						'template' => $template,
-					];
-				}
-
-				if ($paths->useCartTemplate) {
-					$cartPath = $paths->cart;
-					$event->rules[$cartPath] = [
-						'template' => 'foster-checkout/cart/index',
-					];
-				}
-			}
-		);
-
-		// The postal service ignores the county, but UK addresses are normally written with one.
-		// County names are inconsistent enough that the field stays optional.
-	}
-
 	private function addCountyToUkAddresses(): void
 	{
 		Event::on(
@@ -741,7 +653,7 @@ class FosterCheckout extends Plugin
 					return;
 				}
 
-				$live = $this->checkout->checkoutLiveState($cart);
+				$live = $this->getCheckout()->checkoutLiveState($cart);
 
 				if ($this->singlePageCouponCodeError !== null) {
 					$live['couponCodeError'] = $this->singlePageCouponCodeError;

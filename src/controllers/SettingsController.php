@@ -66,7 +66,7 @@ class SettingsController extends Controller
 			'gateway' => $gateway,
 			'settings' => $settings,
 			'gatewayConfig' => $settings->paymentGateways[$gatewayHandle] ?? null,
-			'fieldLayout' => $plugin->checkoutFieldLayouts->getFieldLayout($gatewayHandle),
+			'fieldLayout' => $plugin->getCheckoutFieldLayouts()->getFieldLayout($gatewayHandle),
 			'overriddenSettings' => $plugin->getOverriddenSettings(),
 		]);
 	}
@@ -93,7 +93,7 @@ class SettingsController extends Controller
 		$layout = Craft::$app->getFields()->assembleLayoutFromPost();
 		$layout->type = Order::class;
 
-		$unstorable = $this->unstorableFieldHandles($layout, $plugin->checkoutFieldLayouts->orderFieldHandles());
+		$unstorable = $this->unstorableFieldHandles($layout, $plugin->getCheckoutFieldLayouts()->orderFieldHandles());
 
 		// An order only saves values for fields in its own layout, so anything else would render,
 		// accept what the customer types, and then be discarded without an error.
@@ -109,7 +109,7 @@ class SettingsController extends Controller
 			return null;
 		}
 
-		$unsupported = $this->unsupportedFields($layout, $plugin->checkoutFieldLayouts);
+		$unsupported = $this->unsupportedFields($layout, $plugin->getCheckoutFieldLayouts());
 
 		// No input exists for the type, so it's ignored in the storefront form.
 		if ($unsupported !== []) {
@@ -124,7 +124,7 @@ class SettingsController extends Controller
 			return null;
 		}
 
-		if (! $plugin->checkoutFieldLayouts->saveFieldLayout($gatewayHandle, $layout)) {
+		if (! $plugin->getCheckoutFieldLayouts()->saveFieldLayout($gatewayHandle, $layout)) {
 			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
 
 			Craft::$app->getUrlManager()->setRouteParams([
@@ -162,7 +162,7 @@ class SettingsController extends Controller
 
 		return $this->renderTemplate('foster-checkout/settings/fields/_edit', [
 			'position' => $position,
-			'fieldLayout' => $plugin->checkoutFieldLayouts->getCheckoutFieldLayout($position),
+			'fieldLayout' => $plugin->getCheckoutFieldLayouts()->getCheckoutFieldLayout($position),
 		]);
 	}
 
@@ -191,7 +191,7 @@ class SettingsController extends Controller
 		$layout = Craft::$app->getFields()->assembleLayoutFromPost();
 		$layout->type = Order::class;
 
-		$unstorable = $this->unstorableFieldHandles($layout, $plugin->checkoutFieldLayouts->orderFieldHandles());
+		$unstorable = $this->unstorableFieldHandles($layout, $plugin->getCheckoutFieldLayouts()->orderFieldHandles());
 
 		// An order only saves values for fields in its own layout, so anything else would render,
 		// accept what the customer types, and then be discarded without an error.
@@ -199,7 +199,7 @@ class SettingsController extends Controller
 			return $this->fieldLayoutFailure('settings.gateways.unstorableFields', $unstorable, $layout);
 		}
 
-		$unsupported = $this->unsupportedFields($layout, $plugin->checkoutFieldLayouts);
+		$unsupported = $this->unsupportedFields($layout, $plugin->getCheckoutFieldLayouts());
 
 		// No input exists for the type, so it's ignored in the storefront form.
 		if ($unsupported !== []) {
@@ -208,14 +208,14 @@ class SettingsController extends Controller
 
 		$claimed = array_intersect(
 			$this->layoutFieldHandles($layout),
-			$plugin->checkoutFieldLayouts->claimedFieldHandles($position)
+			$plugin->getCheckoutFieldLayouts()->claimedFieldHandles($position)
 		);
 
 		if ($claimed !== []) {
 			return $this->fieldLayoutFailure('settings.fields.claimedFields', array_values($claimed), $layout);
 		}
 
-		if (! $plugin->checkoutFieldLayouts->saveCheckoutFieldLayout($position, $layout)) {
+		if (! $plugin->getCheckoutFieldLayouts()->saveCheckoutFieldLayout($position, $layout)) {
 			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
 
 			Craft::$app->getUrlManager()->setRouteParams([
@@ -692,7 +692,7 @@ class SettingsController extends Controller
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		return $plugin->checkout->settings()->lineItemOptionRules;
+		return $plugin->getCheckout()->settings()->lineItemOptionRules;
 	}
 
 	/**
@@ -747,7 +747,7 @@ class SettingsController extends Controller
 			'overriddenSettings' => $plugin->getOverriddenSettings(),
 			'productTypeHandles' => $this->productTypeHandles(),
 			'gateways' => $this->commerce()->getGateways()->getAllGateways(),
-			'configurableAddressFields' => $plugin->checkout->configurableAddressFields(),
+			'configurableAddressFields' => $plugin->getCheckout()->configurableAddressFields(),
 			'checkoutPositions' => CheckoutFieldLayouts::CHECKOUT_POSITIONS,
 		]);
 	}

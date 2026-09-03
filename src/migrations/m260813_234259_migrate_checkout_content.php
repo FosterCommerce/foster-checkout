@@ -62,7 +62,7 @@ class m260813_234259_migrate_checkout_content extends Migration
 		foreach ($sites as $site) {
 			$sitesService->setCurrentSite($site);
 
-			$content = $plugin->content->all();
+			$content = $plugin->getContent()->all();
 			$notes = is_array($content['notes'] ?? null) ? $content['notes'] : [];
 			$links = is_array($content['links'] ?? null) ? $content['links'] : [];
 
@@ -93,7 +93,7 @@ class m260813_234259_migrate_checkout_content extends Migration
 			$content['notes'] = $notes;
 			$content['links'] = $links;
 
-			$plugin->content->save($content);
+			$plugin->getContent()->save($content);
 		}
 
 		$sitesService->setCurrentSite($originalSite);

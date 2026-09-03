@@ -57,10 +57,10 @@ class ContentController extends Controller
 			'contentSite' => $this->resolveSite(),
 			'showSiteMenu' => $this->showSiteMenu(),
 			'noteKeys' => self::NOTE_KEYS,
-			'notes' => $plugin->content->get('notes') ?? [],
-			'footerLinks' => $plugin->content->get('links.footerLinks') ?? [],
+			'notes' => $plugin->getContent()->get('notes') ?? [],
+			'footerLinks' => $plugin->getContent()->get('links.footerLinks') ?? [],
 			'gateways' => $this->commerce()->getGateways()->getAllGateways(),
-			'gatewayNotes' => $plugin->content->get('notes.gateways') ?? [],
+			'gatewayNotes' => $plugin->getContent()->get('notes.gateways') ?? [],
 			'readOnly' => ! Craft::$app->getUser()->checkPermission(FosterCheckout::PERMISSION_EDIT_CONTENT),
 		]);
 	}
@@ -85,7 +85,7 @@ class ContentController extends Controller
 
 		// Merge rather than replace: the blob also holds links, and notes whose feature is
 		// switched off are not on the form but must keep their stored copy.
-		$content = $plugin->content->all();
+		$content = $plugin->getContent()->all();
 		$storedNotes = is_array($content['notes'] ?? null) ? $content['notes'] : [];
 
 		foreach (self::NOTE_KEYS as $noteKey) {
@@ -107,7 +107,7 @@ class ContentController extends Controller
 		$content['notes'] = $storedNotes;
 		$content['links'] = $storedLinks;
 
-		if (! $plugin->content->save($content)) {
+		if (! $plugin->getContent()->save($content)) {
 			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'content.saveFailed'));
 
 			return null;

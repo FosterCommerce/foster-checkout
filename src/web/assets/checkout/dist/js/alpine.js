@@ -5096,9 +5096,797 @@ function disableScrolling() {
   };
 }
 var module_default = src_default;
-const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
-const isEmptyValue = (value) => Array.isArray(value) ? value.length === 0 : String(value ?? "").trim() === "";
-const asList = (value) => Array.isArray(value) ? value : Object.values(value ?? {});
+const addressBook = () => ({
+  addressLabel(addressId, fallback) {
+    return this.addressLabels[String(addressId)] || fallback;
+  },
+  escapeName(name) {
+    return typeof CSS !== "undefined" && CSS.escape ? CSS.escape(name) : name.replaceAll('"', '\\"');
+  },
+  addressToFields(address) {
+    const fields = {};
+    if (!address || typeof address !== "object") {
+      return fields;
+    }
+    [
+      "fullName",
+      "firstName",
+      "lastName",
+      "organization",
+      "addressLine1",
+      "addressLine2",
+      "locality",
+      "dependentLocality",
+      "administrativeArea",
+      "postalCode",
+      "countryCode"
+    ].forEach((key) => {
+      if (address[key] != null && address[key] !== "") {
+        fields[key] = String(address[key]);
+      }
+    });
+    return fields;
+  },
+  countryLabel(address, fields, scope2) {
+    if (address) {
+      if (address.countryName) {
+        return address.countryName;
+      }
+      if (address.country && address.country.name) {
+        return address.country.name;
+      }
+    }
+    const countrySelector = '[name="countryCode"], [name="shippingAddress[countryCode]"], [name="billingAddress[countryCode]"]';
+    const countryInput = scope2 ? scope2.querySelector(countrySelector) : null;
+    const selectRoot = countryInput ? countryInput.closest("[x-data]") : null;
+    const selectData = selectRoot ? window.Alpine.$data(selectRoot) : null;
+    if (selectData && selectData.selectedOption && selectData.selectedOption.label) {
+      return selectData.selectedOption.label;
+    }
+    return fields && fields.countryCode || "";
+  },
+  addressFieldsFromPayload(payload, prefix2) {
+    const fields = {};
+    Object.entries(payload).forEach(([key, value]) => {
+      if (!key.startsWith(prefix2) || !key.endsWith("]")) {
+        return;
+      }
+      fields[key.slice(prefix2.length, -1)] = value;
+    });
+    return fields;
+  },
+  refreshShippingPreview() {
+    if (!this.useNewAddress && this.shippingAddressId) {
+      const label = this.addressLabel(this.shippingAddressId, "");
+      if (label) {
+        this.shippingPreview = label;
+      }
+      return;
+    }
+    const scope2 = this.$root.querySelector("[data-fc-new-shipping]");
+    if (!scope2) {
+      return;
+    }
+    this.shippingPreview = this.formatAddress(
+      this.addressFieldsFromPayload(
+        this.collectNamedFields(scope2),
+        "shippingAddress["
+      ),
+      scope2
+    );
+  },
+  formatAddress(fields, scope2, address = null) {
+    if (!fields || typeof fields !== "object") {
+      return "";
+    }
+    return [
+      fields.fullName,
+      fields.addressLine1,
+      fields.addressLine2,
+      fields.locality,
+      fields.administrativeArea,
+      fields.postalCode,
+      this.countryLabel(address, fields, scope2)
+    ].map((part) => String(part || "").trim()).filter(Boolean).join(", ");
+  },
+  rememberAddress(addressId, address, fields, scope2) {
+    if (!addressId) {
+      return;
+    }
+    const id = String(addressId);
+    const snapshot = { ...fields || this.addressToFields(address) };
+    delete snapshot.action;
+    delete snapshot.addressId;
+    this.addressFields = {
+      ...this.addressFields,
+      [id]: snapshot
+    };
+    this.addressLabels = {
+      ...this.addressLabels,
+      [id]: this.formatAddress(snapshot, scope2, address)
+    };
+  },
+  writeAddressToScope(scope2, fields, prefix2 = "") {
+    if (!scope2 || !fields) {
+      return;
+    }
+    const formRoot = scope2.querySelector("[x-data]");
+    const formData = formRoot ? window.Alpine.$data(formRoot) : null;
+    if (formData) {
+      if (fields.countryCode) {
+        formData.countryCode = fields.countryCode;
+      }
+      if (Object.hasOwn(fields, "administrativeArea")) {
+        formData.administrativeArea = fields.administrativeArea;
+      }
+    }
+    Object.entries(fields).forEach(([name, value]) => {
+      const inputName = prefix2 ? `${prefix2}[${name}]` : name;
+      const input = scope2.querySelector(
+        `[name="${this.escapeName(inputName)}"]`
+      );
+      if (!input) {
+        return;
+      }
+      input.value = value;
+      const data2 = window.Alpine.$data(input.closest("[x-data]"));
+      if (!data2) {
+        return;
+      }
+      if (Object.hasOwn(data2, "value")) {
+        data2.value = value;
+      }
+      if (Object.hasOwn(data2, "modelValue")) {
+        data2.modelValue = value;
+      }
+    });
+  },
+  applyAddressFields(addressId) {
+    const stored = this.addressFields[String(addressId)];
+    if (!stored) {
+      return;
+    }
+    this.$nextTick(() => {
+      const scope2 = this.$root.querySelector(
+        `[data-fc-address-edit="${addressId}"]`
+      );
+      this.writeAddressToScope(scope2, stored);
+    });
+  },
+  applyDraftAddress(kind) {
+    const address = kind === "billing" ? this.latestBillingAddress : this.latestShippingAddress;
+    if (!address) {
+      return;
+    }
+    const prefix2 = kind === "billing" ? "billingAddress" : "shippingAddress";
+    const selector = kind === "billing" ? "[data-fc-new-billing]" : "[data-fc-new-shipping]";
+    this.$nextTick(() => {
+      const scope2 = this.$root.querySelector(selector);
+      this.writeAddressToScope(scope2, this.addressToFields(address), prefix2);
+      if (kind === "billing") {
+        this.refreshNewBillingContent();
+      }
+      if (kind === "shipping") {
+        this.refreshShippingPreview();
+      }
+    });
+  },
+  async saveAddressBook(addressId) {
+    if (!addressId) {
+      return;
+    }
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+      this.saveTimer = null;
+    }
+    const scope2 = this.$root.querySelector(
+      `[data-fc-address-edit="${addressId}"]`
+    );
+    if (!this.fieldsReadyIn(scope2, true)) {
+      return;
+    }
+    const fields = {
+      action: "users/save-address",
+      ...this.collectNamedFields(scope2),
+      addressId: String(addressId)
+    };
+    const panel = parseInt(this.editBillingAddressId, 10) === parseInt(addressId, 10) ? "payment" : "delivery";
+    const isCurrentShipping = parseInt(this.shippingAddressId, 10) === parseInt(addressId, 10);
+    const isCurrentBilling = !this.billingSameAsShipping && parseInt(this.billingAddressId, 10) === parseInt(addressId, 10);
+    if (isCurrentShipping || isCurrentBilling) {
+      this.invalidatePaypalCheckout();
+      this.invalidateStripeCheckout();
+    }
+    this.pending += 1;
+    this.status = this.savingLabel;
+    this.statusTone = "saving";
+    this.setPanelStatus(panel, "saving");
+    this.syncPayButtons();
+    try {
+      const { response, data: data2, isJson } = await this.postForm(
+        this.postUrl(),
+        fields
+      );
+      if (!isJson || !response.ok || data2.success === false) {
+        if (isJson) {
+          this.applyErrors(data2);
+        } else {
+          this.status = this.failedLabel;
+          this.statusTone = "error";
+        }
+        this.setPanelStatus(panel, "error");
+        this.restorePaypalIfSkipped();
+        this.restoreStripeIfSkipped();
+        return;
+      }
+      this.rememberAddress(addressId, null, fields, scope2);
+      if (parseInt(this.shippingAddressId, 10) === parseInt(addressId, 10)) {
+        this.shippingPreview = this.addressLabels[String(addressId)];
+      }
+      await this.saveCart({
+        panel,
+        force: isCurrentShipping || isCurrentBilling
+      });
+      if (this.statusTone !== "error") {
+        this.editExistingAddress = 0;
+        this.editBillingAddressId = 0;
+      } else {
+        this.setPanelStatus(panel, "error");
+      }
+    } catch {
+      this.status = this.failedLabel;
+      this.statusTone = "error";
+      this.setPanelStatus(panel, "error");
+      this.restorePaypalIfSkipped();
+      this.restoreStripeIfSkipped();
+    } finally {
+      this.pending = Math.max(0, this.pending - 1);
+      this.syncPayButtons();
+    }
+  },
+  addressFieldHandle(data2) {
+    const name = String(data2.name || "");
+    const match = name.match(/\[([^\]]+)\]$/);
+    return match ? match[1] : name;
+  },
+  addressGroupHasValues(payload, prefix2) {
+    return Object.keys(payload).some(
+      (key) => key.startsWith(prefix2) && String(payload[key] || "").trim() !== ""
+    );
+  },
+  addressGroupHasContent(payload, prefix2) {
+    return ["fullName", "addressLine1", "locality", "postalCode"].some(
+      (field) => String(payload[`${prefix2}${field}]`] || "").trim() !== ""
+    );
+  },
+  newBillingHasContent() {
+    const scope2 = this.$root ? this.$root.querySelector("[data-fc-new-billing]") : null;
+    return this.addressGroupHasContent(
+      this.collectNamedFields(scope2),
+      "billingAddress["
+    );
+  },
+  refreshNewBillingContent() {
+    this.hasNewBillingContent = this.newBillingHasContent();
+    this.syncPayButtons();
+  },
+  stripAddressGroup(payload, prefix2) {
+    Object.keys(payload).forEach((key) => {
+      if (key.startsWith(prefix2)) {
+        delete payload[key];
+      }
+    });
+  }
+});
+const cartPersistence = () => ({
+  buildPayload(extra = {}) {
+    const payload = {
+      ...this.collectDetails(),
+      shippingMethodHandle: this.shippingMethodHandle || "",
+      billingAddressSameAsShipping: this.billingSameAsShipping ? "1" : "0",
+      ...extra
+    };
+    if (!this.loggedIn) {
+      this.email = this.guestEmail();
+      payload.email = this.email;
+    }
+    const hasShippingFields = this.addressGroupHasValues(
+      payload,
+      "shippingAddress["
+    );
+    if (!this.useNewAddress && this.shippingAddressId) {
+      this.stripAddressGroup(payload, "shippingAddress[");
+      payload.shippingAddressId = String(this.shippingAddressId);
+      payload.useNewAddress = "0";
+    } else if (hasShippingFields) {
+      delete payload.shippingAddressId;
+      payload.useNewAddress = "1";
+    } else {
+      this.stripAddressGroup(payload, "shippingAddress[");
+      delete payload.shippingAddressId;
+      delete payload.useNewAddress;
+    }
+    const hasBillingFields = this.addressGroupHasValues(
+      payload,
+      "billingAddress["
+    );
+    if (this.billingSameAsShipping) {
+      this.stripAddressGroup(payload, "billingAddress[");
+      payload.billingAddressId = "";
+      payload.useNewBillingAddress = "0";
+    } else if (this.useNewBillingAddress && hasBillingFields) {
+      payload.useNewBillingAddress = "1";
+      payload.billingAddressId = "";
+    } else if (this.billingAddressId) {
+      this.stripAddressGroup(payload, "billingAddress[");
+      payload.billingAddressId = String(this.billingAddressId);
+      payload.useNewBillingAddress = "0";
+    } else {
+      this.stripAddressGroup(payload, "billingAddress[");
+      delete payload.useNewBillingAddress;
+      delete payload.billingAddressId;
+    }
+    return payload;
+  },
+  postUrl() {
+    return window.location.pathname + window.location.search;
+  },
+  async postForm(url, fields, signal) {
+    const body = new FormData();
+    body.set(window.csrfTokenName, window.csrfTokenValue);
+    Object.entries(fields).forEach(([key, value]) => {
+      if (value === void 0 || value === null) {
+        return;
+      }
+      if (Array.isArray(value)) {
+        value.forEach((entry) => body.append(key, String(entry)));
+        return;
+      }
+      body.set(key, String(value));
+    });
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body,
+      credentials: "same-origin",
+      signal
+    });
+    const text = await response.text();
+    let data2 = {};
+    let isJson = false;
+    try {
+      data2 = text ? JSON.parse(text) : {};
+      isJson = true;
+    } catch {
+      isJson = false;
+    }
+    return { response, data: data2, isJson };
+  },
+  async saveCart(extra = {}) {
+    if (!this.loggedIn && !this.hasEmail && !this.cartHasShippingAddress) {
+      this.clearSavingPanel(extra.panel || this.queuedSavePanel);
+      return;
+    }
+    if (this.saving) {
+      this.nextSave = { ...this.nextSave || {}, ...extra };
+      this.setPanelStatus(
+        extra.panel || this.queuedSavePanel || "delivery",
+        "saving"
+      );
+      return;
+    }
+    const panel = extra.panel || this.queuedSavePanel || "delivery";
+    const payload = { ...extra };
+    delete payload.panel;
+    const force = Boolean(payload.force);
+    delete payload.force;
+    const saved = this.buildPayload(payload);
+    const noteName = this.$refs.orderNote?.name;
+    const savingNotes = Boolean(noteName && Object.hasOwn(payload, noteName));
+    if (!force && Object.keys(payload).length === 0 && JSON.stringify(saved) === this.lastSaved) {
+      this.clearSavingPanel(panel);
+      return;
+    }
+    this.queuedSavePanel = null;
+    this.setPanelStatus(panel, "saving");
+    this.saving = true;
+    this.saveAbort = new AbortController();
+    const { signal } = this.saveAbort;
+    this.pending += 1;
+    this.status = this.savingLabel;
+    this.statusTone = "saving";
+    this.syncPayButtons();
+    let cartSynced = false;
+    try {
+      const fields = {
+        action: "commerce/cart/update-cart",
+        ...saved
+      };
+      const trackCheckout = this.shouldTrackCheckout(saved);
+      const subscribe = this.shouldSubscribe(saved);
+      const { response, data: data2, isJson } = await this.postForm(
+        this.postUrl(),
+        fields,
+        signal
+      );
+      if (!isJson) {
+        this.status = this.failedLabel;
+        this.statusTone = "error";
+        this.setPanelStatus(panel, "error");
+        this.markNotesError(savingNotes);
+        return;
+      }
+      if (!response.ok || data2.success === false) {
+        this.applyErrors(data2);
+        this.setPanelStatus(panel, "error");
+        this.markNotesError(savingNotes);
+        return;
+      }
+      if (trackCheckout) {
+        this.trackedCheckout = true;
+        this.trackCheckoutStarted(saved, signal);
+      }
+      if (subscribe) {
+        await this.subscribeToKlaviyo(saved, signal);
+      }
+      const cart = data2.cart || data2.model || data2.data && data2.data.cart;
+      this.applyCart(cart, this.shippingRateKey(saved));
+      cartSynced = true;
+      const couponError = this.couponRejectedMessage(saved, cart);
+      if (couponError) {
+        this.applyFieldErrors({
+          couponCode: [couponError]
+        });
+        this.couponOpen = true;
+        this.setPanelStatus(panel, "error");
+        this.status = "";
+        this.statusTone = "idle";
+        return;
+      }
+      this.clearInputErrors();
+      this.status = this.savedLabel;
+      this.statusTone = "saved";
+      this.setPanelStatus(panel, "saved");
+      this.lastSaved = JSON.stringify(saved);
+      if (savingNotes) {
+        this.notesButtonVisible = false;
+      }
+    } catch (error2) {
+      if (error2.name === "AbortError") {
+        return;
+      }
+      this.status = this.failedLabel;
+      this.statusTone = "error";
+      this.setPanelStatus(panel, "error");
+      this.markNotesError(savingNotes);
+    } finally {
+      this.saving = false;
+      this.pending = Math.max(0, this.pending - 1);
+      this.syncPayButtons();
+      const next = this.nextSave;
+      this.nextSave = null;
+      if (next) {
+        await this.saveCart(next);
+      } else if (cartSynced) {
+        this.maybeReinitPaypalCheckout();
+        this.scheduleStripeReinit();
+      }
+    }
+  },
+  applyCart(cart, savedKey = "") {
+    if (!cart || typeof cart !== "object") {
+      return;
+    }
+    const previousHandle = this.shippingMethodHandle;
+    const cartHandle = cart.shippingMethodHandle || "";
+    const sameAddress = !savedKey || savedKey === this.shippingRateKey(this.buildPayload());
+    this.syncingFromCart = true;
+    try {
+      if (!this.loggedIn && cart.email) {
+        this.email = cart.email;
+      }
+      if (Object.hasOwn(cart, "couponCode")) {
+        const nextCode = cart.couponCode || "";
+        const keepDraft = this.couponInput !== this.couponCode;
+        this.couponCode = nextCode;
+        if (!keepDraft) {
+          this.couponInput = nextCode;
+        }
+      }
+      if ("shippingAddressId" in cart || cart.shippingAddress) {
+        this.cartHasShippingAddress = Boolean(
+          cart.shippingAddressId || cart.shippingAddress
+        );
+      }
+      const live = cart.fosterCheckout || {};
+      if (sameAddress) {
+        if (typeof live.shippingPreview === "string") {
+          this.shippingPreview = live.shippingPreview;
+        }
+        if (cart.shippingAddress && typeof cart.shippingAddress === "object") {
+          this.latestShippingAddress = cart.shippingAddress;
+          this.rememberAddress(
+            cart.sourceShippingAddressId,
+            cart.shippingAddress
+          );
+        }
+        if (Array.isArray(live.shippingMethods)) {
+          this.shippingMethods = live.shippingMethods;
+        }
+        const handles = this.shippingMethods.map((method) => method.handle);
+        const liveHandle = typeof live.shippingMethodHandle === "string" ? live.shippingMethodHandle : cartHandle;
+        if (previousHandle && handles.includes(previousHandle)) {
+          this.shippingMethodHandle = previousHandle;
+        } else if (handles.includes(liveHandle)) {
+          this.shippingMethodHandle = liveHandle;
+        } else {
+          this.shippingMethodHandle = handles[0] || "";
+        }
+        if (live.totals && typeof live.totals === "object") {
+          this.totals = {
+            discounts: [],
+            vouchers: [],
+            ...live.totals
+          };
+        }
+      }
+      if (cart.billingAddress && typeof cart.billingAddress === "object") {
+        this.latestBillingAddress = cart.billingAddress;
+        this.rememberAddress(cart.sourceBillingAddressId, cart.billingAddress);
+      }
+    } finally {
+      this.syncingFromCart = false;
+    }
+    this.syncPayButtons();
+    this.$nextTick(() => {
+      this.ensureAvailableGateway();
+      this.scheduleStripeReinit();
+    });
+  },
+  queueSave(delay3 = 400, event = null, panel = null) {
+    if (event && event.target && event.target.closest("[data-fc-address-edit]")) {
+      return;
+    }
+    if (this.useNewBillingAddress) {
+      this.refreshNewBillingContent();
+    }
+    const fromEvent = event?.target?.closest("[data-fc-panel]");
+    const nextPanel = fromEvent && fromEvent.getAttribute("data-fc-panel") || panel || this.queuedSavePanel || "delivery";
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+    }
+    if (this.queuedSavePanel && this.queuedSavePanel !== nextPanel) {
+      this.clearSavingPanel(this.queuedSavePanel);
+    }
+    this.queuedSavePanel = nextPanel;
+    this.setPanelStatus(nextPanel, "saving");
+    this.saveTimer = setTimeout(() => {
+      const queuedPanel = this.queuedSavePanel;
+      this.saveTimer = null;
+      this.syncPayButtons();
+      this.saveCart({ panel: queuedPanel });
+    }, delay3);
+    this.syncPayButtons();
+  },
+  saveIfValid(panel, event = null) {
+    if (this.syncingFromCart) {
+      return;
+    }
+    this.$nextTick(() => {
+      if (this.syncingFromCart) {
+        return;
+      }
+      if (panel === "delivery") {
+        this.refreshShippingPreview();
+      }
+      if (!this.canSavePanel(panel)) {
+        return;
+      }
+      const payload = this.buildPayload();
+      if (JSON.stringify(payload) === this.lastSaved) {
+        this.restorePaypalIfSkipped();
+        this.restoreStripeIfSkipped();
+        return;
+      }
+      if (panel === "delivery" && !this.deliveryNeedsSave(payload)) {
+        this.restorePaypalIfSkipped();
+        this.restoreStripeIfSkipped();
+        return;
+      }
+      this.queueSave(0, event, panel);
+    });
+  },
+  collectNamedFields(scope2) {
+    const payload = {};
+    if (!scope2) {
+      return payload;
+    }
+    scope2.querySelectorAll("input[name], select[name], textarea[name]").forEach((element) => {
+      const name = element.getAttribute("name");
+      const type = element.type;
+      const skipped = element.closest(
+        "[data-fc-skip-collect], [data-fc-address-edit]"
+      );
+      if (!name || element.disabled) {
+        return;
+      }
+      if (skipped && skipped !== scope2) {
+        return;
+      }
+      if (type === "button" || type === "submit") {
+        return;
+      }
+      if ((type === "checkbox" || type === "radio") && !element.checked) {
+        return;
+      }
+      if (name.endsWith("_radio") || name.endsWith("_display")) {
+        return;
+      }
+      if (name.endsWith("[]")) {
+        payload[name] = [...payload[name] ?? [], element.value];
+        return;
+      }
+      payload[name] = element.value;
+    });
+    return payload;
+  },
+  collectDetails() {
+    const payload = {};
+    this.$root.querySelectorAll("[data-fc-collect]").forEach((scope2) => {
+      Object.assign(payload, this.collectNamedFields(scope2));
+    });
+    return payload;
+  },
+  flattenErrors(source, prefix2 = "") {
+    const flattened = {};
+    if (!source || typeof source !== "object" || Array.isArray(source)) {
+      return flattened;
+    }
+    Object.entries(source).forEach(([key, value]) => {
+      const path = prefix2 ? `${prefix2}.${key}` : key;
+      if (Array.isArray(value)) {
+        flattened[path] = value.map((item) => String(item));
+        return;
+      }
+      if (value && typeof value === "object") {
+        Object.assign(flattened, this.flattenErrors(value, path));
+        return;
+      }
+      if (value) {
+        flattened[path] = [String(value)];
+      }
+    });
+    return flattened;
+  },
+  errorKeyToName(key) {
+    if (key.startsWith("field:")) {
+      return `fields[${key.slice(6)}]`;
+    }
+    if (key.includes("[")) {
+      return key;
+    }
+    const parts = key.split(".");
+    if (parts.length === 1) {
+      return key;
+    }
+    return `${parts[0]}[${parts.slice(1).join("][")}]`;
+  },
+  findNamedInput(name) {
+    return this.$root.querySelector(`[name="${this.escapeName(name)}"]`);
+  },
+  setInputErrors(name, messages) {
+    const input = this.findNamedInput(name);
+    if (!input) {
+      return;
+    }
+    const root = input.closest("[x-data]");
+    if (!root || root === this.$root) {
+      return;
+    }
+    const data2 = window.Alpine.$data(root);
+    if (data2 && Array.isArray(data2.errors)) {
+      data2.errors = messages;
+    }
+  },
+  clearInputErrors() {
+    this.couponError = "";
+    this.notesError = "";
+    this.$root.querySelectorAll(
+      "[data-fc-collect] [x-data], [data-fc-address-edit] [x-data]"
+    ).forEach((root) => {
+      const data2 = window.Alpine.$data(root);
+      if (data2 && Array.isArray(data2.errors)) {
+        data2.errors = [];
+      }
+    });
+  },
+  applyFieldErrors(errors) {
+    this.clearInputErrors();
+    const flattened = this.flattenErrors(errors);
+    const noteName = this.$refs.orderNote?.name;
+    Object.entries(flattened).forEach(([key, messages]) => {
+      const name = this.errorKeyToName(key);
+      this.setInputErrors(name, messages);
+      if (name === "couponCode") {
+        this.couponError = messages.join(" ");
+      }
+      if (noteName && name === noteName) {
+        this.notesError = messages.join(" ");
+      }
+    });
+  },
+  collectResponseErrors(data2) {
+    return {
+      ...data2.errors || {},
+      ...data2.cart && data2.cart.errors || {}
+    };
+  },
+  applyErrors(data2) {
+    this.status = data2.message || data2.error || this.failedLabel;
+    this.statusTone = "error";
+    this.applyFieldErrors(this.collectResponseErrors(data2));
+  },
+  applyCoupon() {
+    const code = String(this.couponInput || "").trim();
+    if (!code) {
+      return;
+    }
+    this.couponError = "";
+    this.invalidatePaypalCheckout();
+    this.invalidateStripeCheckout();
+    return this.saveCart({
+      couponCode: code,
+      panel: "coupon"
+    });
+  },
+  removeCoupon() {
+    this.couponInput = "";
+    this.couponError = "";
+    this.invalidatePaypalCheckout();
+    this.invalidateStripeCheckout();
+    return this.saveCart({
+      couponCode: "",
+      panel: "coupon"
+    });
+  },
+  saveNotes() {
+    const input = this.$refs.orderNote;
+    if (!input?.name) {
+      return;
+    }
+    this.notesError = "";
+    return this.saveCart({
+      [input.name]: input.value,
+      panel: "notes"
+    });
+  },
+  markNotesError(savingNotes) {
+    if (!savingNotes) {
+      return;
+    }
+    if (!this.notesError) {
+      this.notesError = this.status || this.failedLabel;
+    }
+    this.notesButtonVisible = true;
+  },
+  couponRejectedMessage(saved, cart) {
+    if (saved.couponCode === void 0 || saved.couponCode === "") {
+      return "";
+    }
+    const live = cart && cart.fosterCheckout || {};
+    if (live.couponCodeError) {
+      return String(live.couponCodeError);
+    }
+    const applied = String(cart && cart.couponCode || "");
+    if (applied.toLowerCase() === String(saved.couponCode).toLowerCase()) {
+      return "";
+    }
+    return this.failedLabel;
+  }
+});
 const CARD_FIELDS = ["number", "month", "year", "cvv"];
 const AUTHORIZE_ERROR_FIELDS = {
   E_WC_04: "number",
@@ -5108,6 +5896,350 @@ const AUTHORIZE_ERROR_FIELDS = {
   E_WC_08: "year",
   E_WC_15: "cvv"
 };
+const gatewayHandling = () => ({
+  async onPaySubmit(event) {
+    if (event.submitter?.id?.endsWith("authorizeSubmit")) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    if (!this.canPay) {
+      return;
+    }
+    if (!this.deliveryReadyForPay) {
+      this.panelFieldsReady("delivery", null, true);
+      return;
+    }
+    if (!this.hasEmail || !this.hasShippingSelection || !this.cartHasShippingAddress || !this.hasShippingMethod || !this.hasBilling) {
+      this.panelFieldsReady("delivery", null, true);
+      return;
+    }
+    const payloadChanged = JSON.stringify(this.buildPayload()) !== this.lastSaved;
+    this.paying = true;
+    if (this.saveTimer || payloadChanged) {
+      if (this.saveTimer) {
+        clearTimeout(this.saveTimer);
+        this.saveTimer = null;
+      }
+      await this.saveCart({ panel: "payment" });
+      if (this.statusTone === "error") {
+        this.paying = false;
+        return;
+      }
+    }
+    this.lastSaved = JSON.stringify(this.buildPayload());
+    this.$refs.paymentForm?.submit();
+  },
+  bindPayOverlay() {
+    const form = this.$refs.paymentForm;
+    form.addEventListener(
+      "click",
+      (event) => {
+        const button = event.target.closest('[id$="authorizeSubmit"]');
+        if (!button || !this.canPay) {
+          return;
+        }
+        this.wrapAuthorizeHandler();
+      },
+      true
+    );
+    form.addEventListener("input", (event) => {
+      const input = event.target;
+      if (input && CARD_FIELDS.some((name) => input.id && input.id.endsWith(name))) {
+        this.clearCardError(input);
+      }
+    });
+  },
+  wrapAuthorizeHandler() {
+    if (!this.cardInput("authorizeSubmit")) {
+      return;
+    }
+    this.wrapCardFields();
+    const checkout = this;
+    if (!this.originalSendPayment && typeof window.sendPaymentDataToAnet === "function") {
+      this.originalSendPayment = window.sendPaymentDataToAnet;
+      window.sendPaymentDataToAnet = async function(...args) {
+        if (!checkout.canPay || !checkout.checkCard()) {
+          checkout.paying = false;
+          return;
+        }
+        checkout.paying = true;
+        if (checkout.saveTimer) {
+          clearTimeout(checkout.saveTimer);
+          checkout.saveTimer = null;
+        }
+        const payloadChanged = JSON.stringify(checkout.buildPayload()) !== checkout.lastSaved;
+        if (payloadChanged || checkout.saving) {
+          await checkout.saveCart({ panel: "payment" });
+          if (checkout.statusTone === "error") {
+            checkout.paying = false;
+            return;
+          }
+        }
+        return checkout.originalSendPayment.apply(this, args);
+      };
+    }
+    if (this.originalAuthorizeHandler || typeof window.responseHandler !== "function") {
+      return;
+    }
+    this.originalAuthorizeHandler = window.responseHandler;
+    window.responseHandler = function(...args) {
+      const response = args[0];
+      if (response?.messages?.resultCode === "Error") {
+        checkout.paying = false;
+        checkout.showAuthorizeErrors(response);
+        return;
+      }
+      return checkout.originalAuthorizeHandler.apply(this, args);
+    };
+  },
+  cardInput(name) {
+    const form = this.$refs.paymentForm;
+    if (!form) {
+      return null;
+    }
+    return form.querySelector(`[id$="${name}"]`);
+  },
+  wrapCardFields() {
+    CARD_FIELDS.forEach((name) => {
+      const input = this.cardInput(name);
+      if (!input?.parentElement || input.parentElement.dataset.fcCardField) {
+        return;
+      }
+      const wrap = document.createElement("div");
+      wrap.dataset.fcCardField = name;
+      wrap.className = "min-w-0";
+      input.parentElement.insertBefore(wrap, input);
+      wrap.appendChild(input);
+    });
+  },
+  clearCardError(input) {
+    if (!input) {
+      return;
+    }
+    input.classList.remove("border-red-500");
+    input.removeAttribute("aria-invalid");
+    const wrap = input.parentElement;
+    const note = wrap && wrap.dataset.fcCardField ? wrap.querySelector("[data-fc-card-error]") : input.nextElementSibling;
+    if (note && note.dataset.fcCardError) {
+      note.remove();
+    }
+  },
+  clearCardErrors() {
+    CARD_FIELDS.forEach((name) => {
+      this.clearCardError(this.cardInput(name));
+    });
+  },
+  showCardErrors(errors) {
+    this.clearCardErrors();
+    this.wrapCardFields();
+    let first = null;
+    Object.entries(errors).forEach(([name, message]) => {
+      const input = this.cardInput(name);
+      if (!input || !message) {
+        return;
+      }
+      input.classList.add("border-red-500");
+      input.setAttribute("aria-invalid", "true");
+      const note = document.createElement("p");
+      note.dataset.fcCardError = name;
+      note.className = "mt-1 text-sm leading-snug text-red-500";
+      note.textContent = message;
+      input.parentElement.appendChild(note);
+      if (!first) {
+        first = input;
+      }
+    });
+    if (first) {
+      first.focus();
+    }
+  },
+  checkCard() {
+    const number = String(this.cardInput("number")?.value || "").replace(
+      /\s+/g,
+      ""
+    );
+    const monthValue = String(this.cardInput("month")?.value || "").trim();
+    const yearValue = String(this.cardInput("year")?.value || "").trim();
+    const cvv = String(this.cardInput("cvv")?.value || "").replace(/\s+/g, "");
+    const month = parseInt(monthValue, 10);
+    const errors = {};
+    if (!/^\d{13,19}$/.test(number)) {
+      errors.number = this.cardNumberError;
+    }
+    if (!/^\d{1,2}$/.test(monthValue) || month < 1 || month > 12) {
+      errors.month = this.cardMonthError;
+    }
+    if (!/^\d{2}$|^\d{4}$/.test(yearValue)) {
+      errors.year = this.cardYearError;
+    } else if (!errors.month) {
+      const year = yearValue.length === 2 ? 2e3 + parseInt(yearValue, 10) : parseInt(yearValue, 10);
+      const expires = new Date(year, month, 0, 23, 59, 59);
+      if (expires < /* @__PURE__ */ new Date()) {
+        errors.year = this.cardExpiredError;
+      }
+    }
+    if (!/^\d{3,4}$/.test(cvv)) {
+      errors.cvv = this.cardCvvError;
+    }
+    this.showCardErrors(errors);
+    return Object.keys(errors).length === 0;
+  },
+  showAuthorizeErrors(response) {
+    const labels = {
+      E_WC_05: this.cardNumberError,
+      E_WC_06: this.cardMonthError,
+      E_WC_07: this.cardYearError,
+      E_WC_08: this.cardExpiredError,
+      E_WC_15: this.cardCvvError
+    };
+    const errors = {};
+    (response.messages.message || []).forEach((item) => {
+      const name = AUTHORIZE_ERROR_FIELDS[item.code] || "number";
+      errors[name] = labels[item.code] || item.text || this.cardNumberError;
+    });
+    this.showCardErrors(errors);
+  },
+  syncPayButtons() {
+    const form = this.$refs.paymentForm;
+    if (!form) {
+      return;
+    }
+    const allowed = this.canPay && !this.paying;
+    const label = this.payButtonLabel;
+    form.querySelectorAll(
+      'button[type="submit"], [id$="authorizeSubmit"], .stripe-payment-elements-submit-button'
+    ).forEach((button) => {
+      button.disabled = !allowed;
+      if (label && !button.closest(".paypal-rest-form")) {
+        button.textContent = label;
+      }
+    });
+  },
+  invalidatePaypalCheckout() {
+    const wrapper = this.$root.querySelector(".paypal-rest-form");
+    const renderDiv = wrapper?.firstElementChild;
+    if (!wrapper || !renderDiv) {
+      return;
+    }
+    if (!renderDiv.childElementCount && !String(renderDiv.innerHTML || "").trim()) {
+      return;
+    }
+    renderDiv.innerHTML = "";
+    delete wrapper.dataset.fcPaypalInit;
+    this.paypalInvalidated = true;
+  },
+  maybeReinitPaypalCheckout() {
+    if (!this.paypalInvalidated) {
+      return;
+    }
+    this.paypalInvalidated = false;
+    if (!this.$root.querySelector(".paypal-rest-form")) {
+      return;
+    }
+    this.initPaypal();
+  },
+  restorePaypalIfSkipped() {
+    if (this.paypalInvalidated && !this.saving && !this.saveTimer) {
+      this.maybeReinitPaypalCheckout();
+    }
+  },
+  invalidateStripeCheckout() {
+    const form = this.$root.querySelector(".stripe-payment-elements-form");
+    if (!form) {
+      return;
+    }
+    const paymentElement = form.querySelector(".stripe-payment-element");
+    const hasMounted = Boolean(paymentElement?.childElementCount) || Boolean(String(paymentElement?.innerHTML || "").trim());
+    const hasHandler = Boolean(form.handlerInstance);
+    if (hasMounted || hasHandler) {
+      const clone2 = form.cloneNode(true);
+      const clonePayment = clone2.querySelector(".stripe-payment-element");
+      if (clonePayment) {
+        clonePayment.innerHTML = "";
+      }
+      const cloneError = clone2.querySelector(".stripe-error-message");
+      if (cloneError) {
+        cloneError.textContent = "";
+      }
+      form.replaceWith(clone2);
+    }
+    this.stripeInvalidated = true;
+  },
+  scheduleStripeReinit() {
+    if (!this.canPay || this.paying) {
+      return;
+    }
+    if (!this.$root.querySelector(".stripe-payment-elements-form")) {
+      return;
+    }
+    this.invalidateStripeCheckout();
+    this.stripeInvalidated = true;
+    this.maybeReinitStripeCheckout();
+  },
+  maybeReinitStripeCheckout() {
+    if (!this.stripeInvalidated) {
+      return;
+    }
+    this.stripeInvalidated = false;
+    if (!this.$root.querySelector(".stripe-payment-elements-form")) {
+      return;
+    }
+    if (typeof initStripe !== "function") {
+      return;
+    }
+    initStripe();
+    this.$nextTick(() => this.syncPayButtons());
+  },
+  restoreStripeIfSkipped() {
+    if (this.stripeInvalidated && !this.saving && !this.saveTimer) {
+      this.scheduleStripeReinit();
+    }
+  },
+  retryStripeIfNeeded() {
+    const error2 = this.$refs.paymentForm?.querySelector(
+      ".stripe-error-message"
+    );
+    if (!error2?.textContent?.trim() || typeof initStripe !== "function") {
+      return;
+    }
+    error2.textContent = "";
+    initStripe();
+  },
+  initPaypal(attempt = 0) {
+    if (this.paypalInitTimer) {
+      clearTimeout(this.paypalInitTimer);
+      this.paypalInitTimer = null;
+    }
+    const wrapper = this.$root.querySelector(".paypal-rest-form");
+    if (!wrapper) {
+      if (attempt >= 5) {
+        return;
+      }
+      this.paypalInitTimer = setTimeout(() => {
+        this.initPaypal(attempt + 1);
+      }, 200);
+      return;
+    }
+    if (wrapper.dataset.fcPaypalInit === "true") {
+      return;
+    }
+    if (typeof window.paypal_checkout_sdk === "undefined" || typeof window.initPaypalCheckout !== "function" || !wrapper.firstElementChild) {
+      if (attempt >= 50) {
+        return;
+      }
+      this.paypalInitTimer = setTimeout(() => {
+        this.initPaypal(attempt + 1);
+      }, 200);
+      return;
+    }
+    wrapper.dataset.fcPaypalInit = "true";
+    window.initPaypalCheckout();
+  }
+});
+const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+const isEmptyValue = (value) => Array.isArray(value) ? value.length === 0 : String(value ?? "").trim() === "";
+const asList = (value) => Array.isArray(value) ? value : Object.values(value ?? {});
 const SinglePageCheckout = (props) => {
   return {
     loggedIn: props.loggedIn,
@@ -5190,6 +6322,9 @@ const SinglePageCheckout = (props) => {
     onPageShow: null,
     originalAuthorizeHandler: null,
     originalSendPayment: null,
+    ...addressBook(),
+    ...cartPersistence(),
+    ...gatewayHandling(),
     init() {
       this.$watch("email", () => {
         if (!this.syncingFromCart) {
@@ -5481,11 +6616,6 @@ const SinglePageCheckout = (props) => {
       const section = this.$root.querySelector(`[data-fc-panel="${panel}"]`);
       return section ? section.querySelector("[data-fc-collect]") || section : null;
     },
-    addressFieldHandle(data2) {
-      const name = String(data2.name || "");
-      const match = name.match(/\[([^\]]+)\]$/);
-      return match ? match[1] : name;
-    },
     panelFieldsReady(panel, handles = null, showRequired = false) {
       return this.fieldsReadyIn(this.panelScope(panel), showRequired, handles);
     },
@@ -5565,298 +6695,6 @@ const SinglePageCheckout = (props) => {
         return true;
       }
     },
-    saveIfValid(panel, event = null) {
-      if (this.syncingFromCart) {
-        return;
-      }
-      this.$nextTick(() => {
-        if (this.syncingFromCart) {
-          return;
-        }
-        if (panel === "delivery") {
-          this.refreshShippingPreview();
-        }
-        if (!this.canSavePanel(panel)) {
-          return;
-        }
-        const payload = this.buildPayload();
-        if (JSON.stringify(payload) === this.lastSaved) {
-          this.restorePaypalIfSkipped();
-          this.restoreStripeIfSkipped();
-          return;
-        }
-        if (panel === "delivery" && !this.deliveryNeedsSave(payload)) {
-          this.restorePaypalIfSkipped();
-          this.restoreStripeIfSkipped();
-          return;
-        }
-        this.queueSave(0, event, panel);
-      });
-    },
-    queueSave(delay3 = 400, event = null, panel = null) {
-      if (event && event.target && event.target.closest("[data-fc-address-edit]")) {
-        return;
-      }
-      if (this.useNewBillingAddress) {
-        this.refreshNewBillingContent();
-      }
-      const fromEvent = event?.target?.closest("[data-fc-panel]");
-      const nextPanel = fromEvent && fromEvent.getAttribute("data-fc-panel") || panel || this.queuedSavePanel || "delivery";
-      if (this.saveTimer) {
-        clearTimeout(this.saveTimer);
-      }
-      if (this.queuedSavePanel && this.queuedSavePanel !== nextPanel) {
-        this.clearSavingPanel(this.queuedSavePanel);
-      }
-      this.queuedSavePanel = nextPanel;
-      this.setPanelStatus(nextPanel, "saving");
-      this.saveTimer = setTimeout(() => {
-        const queuedPanel = this.queuedSavePanel;
-        this.saveTimer = null;
-        this.syncPayButtons();
-        this.saveCart({ panel: queuedPanel });
-      }, delay3);
-      this.syncPayButtons();
-    },
-    collectNamedFields(scope2) {
-      const payload = {};
-      if (!scope2) {
-        return payload;
-      }
-      scope2.querySelectorAll("input[name], select[name], textarea[name]").forEach((element) => {
-        const name = element.getAttribute("name");
-        const type = element.type;
-        const skipped = element.closest(
-          "[data-fc-skip-collect], [data-fc-address-edit]"
-        );
-        if (!name || element.disabled) {
-          return;
-        }
-        if (skipped && skipped !== scope2) {
-          return;
-        }
-        if (type === "button" || type === "submit") {
-          return;
-        }
-        if ((type === "checkbox" || type === "radio") && !element.checked) {
-          return;
-        }
-        if (name.endsWith("_radio") || name.endsWith("_display")) {
-          return;
-        }
-        if (name.endsWith("[]")) {
-          payload[name] = [...payload[name] ?? [], element.value];
-          return;
-        }
-        payload[name] = element.value;
-      });
-      return payload;
-    },
-    collectDetails() {
-      const payload = {};
-      this.$root.querySelectorAll("[data-fc-collect]").forEach((scope2) => {
-        Object.assign(payload, this.collectNamedFields(scope2));
-      });
-      return payload;
-    },
-    addressGroupHasValues(payload, prefix2) {
-      return Object.keys(payload).some(
-        (key) => key.startsWith(prefix2) && String(payload[key] || "").trim() !== ""
-      );
-    },
-    addressGroupHasContent(payload, prefix2) {
-      return ["fullName", "addressLine1", "locality", "postalCode"].some(
-        (field) => String(payload[`${prefix2}${field}]`] || "").trim() !== ""
-      );
-    },
-    newBillingHasContent() {
-      const scope2 = this.$root ? this.$root.querySelector("[data-fc-new-billing]") : null;
-      return this.addressGroupHasContent(
-        this.collectNamedFields(scope2),
-        "billingAddress["
-      );
-    },
-    refreshNewBillingContent() {
-      this.hasNewBillingContent = this.newBillingHasContent();
-      this.syncPayButtons();
-    },
-    stripAddressGroup(payload, prefix2) {
-      Object.keys(payload).forEach((key) => {
-        if (key.startsWith(prefix2)) {
-          delete payload[key];
-        }
-      });
-    },
-    buildPayload(extra = {}) {
-      const payload = {
-        ...this.collectDetails(),
-        shippingMethodHandle: this.shippingMethodHandle || "",
-        billingAddressSameAsShipping: this.billingSameAsShipping ? "1" : "0",
-        ...extra
-      };
-      if (!this.loggedIn) {
-        this.email = this.guestEmail();
-        payload.email = this.email;
-      }
-      const hasShippingFields = this.addressGroupHasValues(
-        payload,
-        "shippingAddress["
-      );
-      if (!this.useNewAddress && this.shippingAddressId) {
-        this.stripAddressGroup(payload, "shippingAddress[");
-        payload.shippingAddressId = String(this.shippingAddressId);
-        payload.useNewAddress = "0";
-      } else if (hasShippingFields) {
-        delete payload.shippingAddressId;
-        payload.useNewAddress = "1";
-      } else {
-        this.stripAddressGroup(payload, "shippingAddress[");
-        delete payload.shippingAddressId;
-        delete payload.useNewAddress;
-      }
-      const hasBillingFields = this.addressGroupHasValues(
-        payload,
-        "billingAddress["
-      );
-      if (this.billingSameAsShipping) {
-        this.stripAddressGroup(payload, "billingAddress[");
-        payload.billingAddressId = "";
-        payload.useNewBillingAddress = "0";
-      } else if (this.useNewBillingAddress && hasBillingFields) {
-        payload.useNewBillingAddress = "1";
-        payload.billingAddressId = "";
-      } else if (this.billingAddressId) {
-        this.stripAddressGroup(payload, "billingAddress[");
-        payload.billingAddressId = String(this.billingAddressId);
-        payload.useNewBillingAddress = "0";
-      } else {
-        this.stripAddressGroup(payload, "billingAddress[");
-        delete payload.useNewBillingAddress;
-        delete payload.billingAddressId;
-      }
-      return payload;
-    },
-    postUrl() {
-      return window.location.pathname + window.location.search;
-    },
-    async postForm(url, fields, signal) {
-      const body = new FormData();
-      body.set(window.csrfTokenName, window.csrfTokenValue);
-      Object.entries(fields).forEach(([key, value]) => {
-        if (value === void 0 || value === null) {
-          return;
-        }
-        if (Array.isArray(value)) {
-          value.forEach((entry) => body.append(key, String(entry)));
-          return;
-        }
-        body.set(key, String(value));
-      });
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "X-Requested-With": "XMLHttpRequest"
-        },
-        body,
-        credentials: "same-origin",
-        signal
-      });
-      const text = await response.text();
-      let data2 = {};
-      let isJson = false;
-      try {
-        data2 = text ? JSON.parse(text) : {};
-        isJson = true;
-      } catch {
-        isJson = false;
-      }
-      return { response, data: data2, isJson };
-    },
-    flattenErrors(source, prefix2 = "") {
-      const flattened = {};
-      if (!source || typeof source !== "object" || Array.isArray(source)) {
-        return flattened;
-      }
-      Object.entries(source).forEach(([key, value]) => {
-        const path = prefix2 ? `${prefix2}.${key}` : key;
-        if (Array.isArray(value)) {
-          flattened[path] = value.map((item) => String(item));
-          return;
-        }
-        if (value && typeof value === "object") {
-          Object.assign(flattened, this.flattenErrors(value, path));
-          return;
-        }
-        if (value) {
-          flattened[path] = [String(value)];
-        }
-      });
-      return flattened;
-    },
-    errorKeyToName(key) {
-      if (key.startsWith("field:")) {
-        return `fields[${key.slice(6)}]`;
-      }
-      if (key.includes("[")) {
-        return key;
-      }
-      const parts = key.split(".");
-      if (parts.length === 1) {
-        return key;
-      }
-      return `${parts[0]}[${parts.slice(1).join("][")}]`;
-    },
-    findNamedInput(name) {
-      return this.$root.querySelector(`[name="${this.escapeName(name)}"]`);
-    },
-    setInputErrors(name, messages) {
-      const input = this.findNamedInput(name);
-      if (!input) {
-        return;
-      }
-      const root = input.closest("[x-data]");
-      if (!root || root === this.$root) {
-        return;
-      }
-      const data2 = window.Alpine.$data(root);
-      if (data2 && Array.isArray(data2.errors)) {
-        data2.errors = messages;
-      }
-    },
-    clearInputErrors() {
-      this.couponError = "";
-      this.notesError = "";
-      this.$root.querySelectorAll(
-        "[data-fc-collect] [x-data], [data-fc-address-edit] [x-data]"
-      ).forEach((root) => {
-        const data2 = window.Alpine.$data(root);
-        if (data2 && Array.isArray(data2.errors)) {
-          data2.errors = [];
-        }
-      });
-    },
-    applyFieldErrors(errors) {
-      this.clearInputErrors();
-      const flattened = this.flattenErrors(errors);
-      const noteName = this.$refs.orderNote?.name;
-      Object.entries(flattened).forEach(([key, messages]) => {
-        const name = this.errorKeyToName(key);
-        this.setInputErrors(name, messages);
-        if (name === "couponCode") {
-          this.couponError = messages.join(" ");
-        }
-        if (noteName && name === noteName) {
-          this.notesError = messages.join(" ");
-        }
-      });
-    },
-    collectResponseErrors(data2) {
-      return {
-        ...data2.errors || {},
-        ...data2.cart && data2.cart.errors || {}
-      };
-    },
     shouldTrackCheckout(saved) {
       return this.klaviyoEnabled && !this.loggedIn && !this.trackedCheckout && isValidEmail(saved.email || this.email);
     },
@@ -5896,841 +6734,6 @@ const SinglePageCheckout = (props) => {
         }
       } catch {
       }
-    },
-    applyErrors(data2) {
-      this.status = data2.message || data2.error || this.failedLabel;
-      this.statusTone = "error";
-      this.applyFieldErrors(this.collectResponseErrors(data2));
-    },
-    async saveCart(extra = {}) {
-      if (!this.loggedIn && !this.hasEmail && !this.cartHasShippingAddress) {
-        this.clearSavingPanel(extra.panel || this.queuedSavePanel);
-        return;
-      }
-      if (this.saving) {
-        this.nextSave = { ...this.nextSave || {}, ...extra };
-        this.setPanelStatus(
-          extra.panel || this.queuedSavePanel || "delivery",
-          "saving"
-        );
-        return;
-      }
-      const panel = extra.panel || this.queuedSavePanel || "delivery";
-      const payload = { ...extra };
-      delete payload.panel;
-      const force = Boolean(payload.force);
-      delete payload.force;
-      const saved = this.buildPayload(payload);
-      const noteName = this.$refs.orderNote?.name;
-      const savingNotes = Boolean(noteName && Object.hasOwn(payload, noteName));
-      if (!force && Object.keys(payload).length === 0 && JSON.stringify(saved) === this.lastSaved) {
-        this.clearSavingPanel(panel);
-        return;
-      }
-      this.queuedSavePanel = null;
-      this.setPanelStatus(panel, "saving");
-      this.saving = true;
-      this.saveAbort = new AbortController();
-      const { signal } = this.saveAbort;
-      this.pending += 1;
-      this.status = this.savingLabel;
-      this.statusTone = "saving";
-      this.syncPayButtons();
-      let cartSynced = false;
-      try {
-        const fields = {
-          action: "commerce/cart/update-cart",
-          ...saved
-        };
-        const trackCheckout = this.shouldTrackCheckout(saved);
-        const subscribe = this.shouldSubscribe(saved);
-        const { response, data: data2, isJson } = await this.postForm(
-          this.postUrl(),
-          fields,
-          signal
-        );
-        if (!isJson) {
-          this.status = this.failedLabel;
-          this.statusTone = "error";
-          this.setPanelStatus(panel, "error");
-          this.markNotesError(savingNotes);
-          return;
-        }
-        if (!response.ok || data2.success === false) {
-          this.applyErrors(data2);
-          this.setPanelStatus(panel, "error");
-          this.markNotesError(savingNotes);
-          return;
-        }
-        if (trackCheckout) {
-          this.trackedCheckout = true;
-          this.trackCheckoutStarted(saved, signal);
-        }
-        if (subscribe) {
-          await this.subscribeToKlaviyo(saved, signal);
-        }
-        const cart = data2.cart || data2.model || data2.data && data2.data.cart;
-        this.applyCart(cart, this.shippingRateKey(saved));
-        cartSynced = true;
-        const couponError = this.couponRejectedMessage(saved, cart);
-        if (couponError) {
-          this.applyFieldErrors({
-            couponCode: [couponError]
-          });
-          this.couponOpen = true;
-          this.setPanelStatus(panel, "error");
-          this.status = "";
-          this.statusTone = "idle";
-          return;
-        }
-        this.clearInputErrors();
-        this.status = this.savedLabel;
-        this.statusTone = "saved";
-        this.setPanelStatus(panel, "saved");
-        this.lastSaved = JSON.stringify(saved);
-        if (savingNotes) {
-          this.notesButtonVisible = false;
-        }
-      } catch (error2) {
-        if (error2.name === "AbortError") {
-          return;
-        }
-        this.status = this.failedLabel;
-        this.statusTone = "error";
-        this.setPanelStatus(panel, "error");
-        this.markNotesError(savingNotes);
-      } finally {
-        this.saving = false;
-        this.pending = Math.max(0, this.pending - 1);
-        this.syncPayButtons();
-        const next = this.nextSave;
-        this.nextSave = null;
-        if (next) {
-          await this.saveCart(next);
-        } else if (cartSynced) {
-          this.maybeReinitPaypalCheckout();
-          this.scheduleStripeReinit();
-        }
-      }
-    },
-    applyCoupon() {
-      const code = String(this.couponInput || "").trim();
-      if (!code) {
-        return;
-      }
-      this.couponError = "";
-      this.invalidatePaypalCheckout();
-      this.invalidateStripeCheckout();
-      return this.saveCart({
-        couponCode: code,
-        panel: "coupon"
-      });
-    },
-    removeCoupon() {
-      this.couponInput = "";
-      this.couponError = "";
-      this.invalidatePaypalCheckout();
-      this.invalidateStripeCheckout();
-      return this.saveCart({
-        couponCode: "",
-        panel: "coupon"
-      });
-    },
-    saveNotes() {
-      const input = this.$refs.orderNote;
-      if (!input?.name) {
-        return;
-      }
-      this.notesError = "";
-      return this.saveCart({
-        [input.name]: input.value,
-        panel: "notes"
-      });
-    },
-    markNotesError(savingNotes) {
-      if (!savingNotes) {
-        return;
-      }
-      if (!this.notesError) {
-        this.notesError = this.status || this.failedLabel;
-      }
-      this.notesButtonVisible = true;
-    },
-    couponRejectedMessage(saved, cart) {
-      if (saved.couponCode === void 0 || saved.couponCode === "") {
-        return "";
-      }
-      const live = cart && cart.fosterCheckout || {};
-      if (live.couponCodeError) {
-        return String(live.couponCodeError);
-      }
-      const applied = String(cart && cart.couponCode || "");
-      if (applied.toLowerCase() === String(saved.couponCode).toLowerCase()) {
-        return "";
-      }
-      return this.failedLabel;
-    },
-    addressLabel(addressId, fallback) {
-      return this.addressLabels[String(addressId)] || fallback;
-    },
-    escapeName(name) {
-      return typeof CSS !== "undefined" && CSS.escape ? CSS.escape(name) : name.replaceAll('"', '\\"');
-    },
-    addressToFields(address) {
-      const fields = {};
-      if (!address || typeof address !== "object") {
-        return fields;
-      }
-      [
-        "fullName",
-        "firstName",
-        "lastName",
-        "organization",
-        "addressLine1",
-        "addressLine2",
-        "locality",
-        "dependentLocality",
-        "administrativeArea",
-        "postalCode",
-        "countryCode"
-      ].forEach((key) => {
-        if (address[key] != null && address[key] !== "") {
-          fields[key] = String(address[key]);
-        }
-      });
-      return fields;
-    },
-    countryLabel(address, fields, scope2) {
-      if (address) {
-        if (address.countryName) {
-          return address.countryName;
-        }
-        if (address.country && address.country.name) {
-          return address.country.name;
-        }
-      }
-      const countrySelector = '[name="countryCode"], [name="shippingAddress[countryCode]"], [name="billingAddress[countryCode]"]';
-      const countryInput = scope2 ? scope2.querySelector(countrySelector) : null;
-      const selectRoot = countryInput ? countryInput.closest("[x-data]") : null;
-      const selectData = selectRoot ? window.Alpine.$data(selectRoot) : null;
-      if (selectData && selectData.selectedOption && selectData.selectedOption.label) {
-        return selectData.selectedOption.label;
-      }
-      return fields && fields.countryCode || "";
-    },
-    addressFieldsFromPayload(payload, prefix2) {
-      const fields = {};
-      Object.entries(payload).forEach(([key, value]) => {
-        if (!key.startsWith(prefix2) || !key.endsWith("]")) {
-          return;
-        }
-        fields[key.slice(prefix2.length, -1)] = value;
-      });
-      return fields;
-    },
-    refreshShippingPreview() {
-      if (!this.useNewAddress && this.shippingAddressId) {
-        const label = this.addressLabel(this.shippingAddressId, "");
-        if (label) {
-          this.shippingPreview = label;
-        }
-        return;
-      }
-      const scope2 = this.$root.querySelector("[data-fc-new-shipping]");
-      if (!scope2) {
-        return;
-      }
-      this.shippingPreview = this.formatAddress(
-        this.addressFieldsFromPayload(
-          this.collectNamedFields(scope2),
-          "shippingAddress["
-        ),
-        scope2
-      );
-    },
-    formatAddress(fields, scope2, address = null) {
-      if (!fields || typeof fields !== "object") {
-        return "";
-      }
-      return [
-        fields.fullName,
-        fields.addressLine1,
-        fields.addressLine2,
-        fields.locality,
-        fields.administrativeArea,
-        fields.postalCode,
-        this.countryLabel(address, fields, scope2)
-      ].map((part) => String(part || "").trim()).filter(Boolean).join(", ");
-    },
-    rememberAddress(addressId, address, fields, scope2) {
-      if (!addressId) {
-        return;
-      }
-      const id = String(addressId);
-      const snapshot = { ...fields || this.addressToFields(address) };
-      delete snapshot.action;
-      delete snapshot.addressId;
-      this.addressFields = {
-        ...this.addressFields,
-        [id]: snapshot
-      };
-      this.addressLabels = {
-        ...this.addressLabels,
-        [id]: this.formatAddress(snapshot, scope2, address)
-      };
-    },
-    writeAddressToScope(scope2, fields, prefix2 = "") {
-      if (!scope2 || !fields) {
-        return;
-      }
-      const formRoot = scope2.querySelector("[x-data]");
-      const formData = formRoot ? window.Alpine.$data(formRoot) : null;
-      if (formData) {
-        if (fields.countryCode) {
-          formData.countryCode = fields.countryCode;
-        }
-        if (Object.hasOwn(fields, "administrativeArea")) {
-          formData.administrativeArea = fields.administrativeArea;
-        }
-      }
-      Object.entries(fields).forEach(([name, value]) => {
-        const inputName = prefix2 ? `${prefix2}[${name}]` : name;
-        const input = scope2.querySelector(
-          `[name="${this.escapeName(inputName)}"]`
-        );
-        if (!input) {
-          return;
-        }
-        input.value = value;
-        const data2 = window.Alpine.$data(input.closest("[x-data]"));
-        if (!data2) {
-          return;
-        }
-        if (Object.hasOwn(data2, "value")) {
-          data2.value = value;
-        }
-        if (Object.hasOwn(data2, "modelValue")) {
-          data2.modelValue = value;
-        }
-      });
-    },
-    applyAddressFields(addressId) {
-      const stored = this.addressFields[String(addressId)];
-      if (!stored) {
-        return;
-      }
-      this.$nextTick(() => {
-        const scope2 = this.$root.querySelector(
-          `[data-fc-address-edit="${addressId}"]`
-        );
-        this.writeAddressToScope(scope2, stored);
-      });
-    },
-    applyDraftAddress(kind) {
-      const address = kind === "billing" ? this.latestBillingAddress : this.latestShippingAddress;
-      if (!address) {
-        return;
-      }
-      const prefix2 = kind === "billing" ? "billingAddress" : "shippingAddress";
-      const selector = kind === "billing" ? "[data-fc-new-billing]" : "[data-fc-new-shipping]";
-      this.$nextTick(() => {
-        const scope2 = this.$root.querySelector(selector);
-        this.writeAddressToScope(scope2, this.addressToFields(address), prefix2);
-        if (kind === "billing") {
-          this.refreshNewBillingContent();
-        }
-        if (kind === "shipping") {
-          this.refreshShippingPreview();
-        }
-      });
-    },
-    applyCart(cart, savedKey = "") {
-      if (!cart || typeof cart !== "object") {
-        return;
-      }
-      const previousHandle = this.shippingMethodHandle;
-      const cartHandle = cart.shippingMethodHandle || "";
-      const sameAddress = !savedKey || savedKey === this.shippingRateKey(this.buildPayload());
-      this.syncingFromCart = true;
-      try {
-        if (!this.loggedIn && cart.email) {
-          this.email = cart.email;
-        }
-        if (Object.hasOwn(cart, "couponCode")) {
-          const nextCode = cart.couponCode || "";
-          const keepDraft = this.couponInput !== this.couponCode;
-          this.couponCode = nextCode;
-          if (!keepDraft) {
-            this.couponInput = nextCode;
-          }
-        }
-        if ("shippingAddressId" in cart || cart.shippingAddress) {
-          this.cartHasShippingAddress = Boolean(
-            cart.shippingAddressId || cart.shippingAddress
-          );
-        }
-        const live = cart.fosterCheckout || {};
-        if (sameAddress) {
-          if (typeof live.shippingPreview === "string") {
-            this.shippingPreview = live.shippingPreview;
-          }
-          if (cart.shippingAddress && typeof cart.shippingAddress === "object") {
-            this.latestShippingAddress = cart.shippingAddress;
-            this.rememberAddress(
-              cart.sourceShippingAddressId,
-              cart.shippingAddress
-            );
-          }
-          if (Array.isArray(live.shippingMethods)) {
-            this.shippingMethods = live.shippingMethods;
-          }
-          const handles = this.shippingMethods.map((method) => method.handle);
-          const liveHandle = typeof live.shippingMethodHandle === "string" ? live.shippingMethodHandle : cartHandle;
-          if (previousHandle && handles.includes(previousHandle)) {
-            this.shippingMethodHandle = previousHandle;
-          } else if (handles.includes(liveHandle)) {
-            this.shippingMethodHandle = liveHandle;
-          } else {
-            this.shippingMethodHandle = handles[0] || "";
-          }
-          if (live.totals && typeof live.totals === "object") {
-            this.totals = {
-              discounts: [],
-              vouchers: [],
-              ...live.totals
-            };
-          }
-        }
-        if (cart.billingAddress && typeof cart.billingAddress === "object") {
-          this.latestBillingAddress = cart.billingAddress;
-          this.rememberAddress(
-            cart.sourceBillingAddressId,
-            cart.billingAddress
-          );
-        }
-      } finally {
-        this.syncingFromCart = false;
-      }
-      this.syncPayButtons();
-      this.$nextTick(() => {
-        this.ensureAvailableGateway();
-        this.scheduleStripeReinit();
-      });
-    },
-    async saveAddressBook(addressId) {
-      if (!addressId) {
-        return;
-      }
-      if (this.saveTimer) {
-        clearTimeout(this.saveTimer);
-        this.saveTimer = null;
-      }
-      const scope2 = this.$root.querySelector(
-        `[data-fc-address-edit="${addressId}"]`
-      );
-      if (!this.fieldsReadyIn(scope2, true)) {
-        return;
-      }
-      const fields = {
-        action: "users/save-address",
-        ...this.collectNamedFields(scope2),
-        addressId: String(addressId)
-      };
-      const panel = parseInt(this.editBillingAddressId, 10) === parseInt(addressId, 10) ? "payment" : "delivery";
-      const isCurrentShipping = parseInt(this.shippingAddressId, 10) === parseInt(addressId, 10);
-      const isCurrentBilling = !this.billingSameAsShipping && parseInt(this.billingAddressId, 10) === parseInt(addressId, 10);
-      if (isCurrentShipping || isCurrentBilling) {
-        this.invalidatePaypalCheckout();
-        this.invalidateStripeCheckout();
-      }
-      this.pending += 1;
-      this.status = this.savingLabel;
-      this.statusTone = "saving";
-      this.setPanelStatus(panel, "saving");
-      this.syncPayButtons();
-      try {
-        const { response, data: data2, isJson } = await this.postForm(
-          this.postUrl(),
-          fields
-        );
-        if (!isJson || !response.ok || data2.success === false) {
-          if (isJson) {
-            this.applyErrors(data2);
-          } else {
-            this.status = this.failedLabel;
-            this.statusTone = "error";
-          }
-          this.setPanelStatus(panel, "error");
-          this.restorePaypalIfSkipped();
-          this.restoreStripeIfSkipped();
-          return;
-        }
-        this.rememberAddress(addressId, null, fields, scope2);
-        if (parseInt(this.shippingAddressId, 10) === parseInt(addressId, 10)) {
-          this.shippingPreview = this.addressLabels[String(addressId)];
-        }
-        await this.saveCart({
-          panel,
-          force: isCurrentShipping || isCurrentBilling
-        });
-        if (this.statusTone !== "error") {
-          this.editExistingAddress = 0;
-          this.editBillingAddressId = 0;
-        } else {
-          this.setPanelStatus(panel, "error");
-        }
-      } catch {
-        this.status = this.failedLabel;
-        this.statusTone = "error";
-        this.setPanelStatus(panel, "error");
-        this.restorePaypalIfSkipped();
-        this.restoreStripeIfSkipped();
-      } finally {
-        this.pending = Math.max(0, this.pending - 1);
-        this.syncPayButtons();
-      }
-    },
-    async onPaySubmit(event) {
-      if (event.submitter?.id?.endsWith("authorizeSubmit")) {
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      if (!this.canPay) {
-        return;
-      }
-      if (!this.deliveryReadyForPay) {
-        this.panelFieldsReady("delivery", null, true);
-        return;
-      }
-      if (!this.hasEmail || !this.hasShippingSelection || !this.cartHasShippingAddress || !this.hasShippingMethod || !this.hasBilling) {
-        this.panelFieldsReady("delivery", null, true);
-        return;
-      }
-      const payloadChanged = JSON.stringify(this.buildPayload()) !== this.lastSaved;
-      this.paying = true;
-      if (this.saveTimer || payloadChanged) {
-        if (this.saveTimer) {
-          clearTimeout(this.saveTimer);
-          this.saveTimer = null;
-        }
-        await this.saveCart({ panel: "payment" });
-        if (this.statusTone === "error") {
-          this.paying = false;
-          return;
-        }
-      }
-      this.lastSaved = JSON.stringify(this.buildPayload());
-      this.$refs.paymentForm?.submit();
-    },
-    bindPayOverlay() {
-      const form = this.$refs.paymentForm;
-      form.addEventListener(
-        "click",
-        (event) => {
-          const button = event.target.closest('[id$="authorizeSubmit"]');
-          if (!button || !this.canPay) {
-            return;
-          }
-          this.wrapAuthorizeHandler();
-        },
-        true
-      );
-      form.addEventListener("input", (event) => {
-        const input = event.target;
-        if (input && CARD_FIELDS.some((name) => input.id && input.id.endsWith(name))) {
-          this.clearCardError(input);
-        }
-      });
-    },
-    wrapAuthorizeHandler() {
-      if (!this.cardInput("authorizeSubmit")) {
-        return;
-      }
-      this.wrapCardFields();
-      const checkout = this;
-      if (!this.originalSendPayment && typeof window.sendPaymentDataToAnet === "function") {
-        this.originalSendPayment = window.sendPaymentDataToAnet;
-        window.sendPaymentDataToAnet = async function(...args) {
-          if (!checkout.canPay || !checkout.checkCard()) {
-            checkout.paying = false;
-            return;
-          }
-          checkout.paying = true;
-          if (checkout.saveTimer) {
-            clearTimeout(checkout.saveTimer);
-            checkout.saveTimer = null;
-          }
-          const payloadChanged = JSON.stringify(checkout.buildPayload()) !== checkout.lastSaved;
-          if (payloadChanged || checkout.saving) {
-            await checkout.saveCart({ panel: "payment" });
-            if (checkout.statusTone === "error") {
-              checkout.paying = false;
-              return;
-            }
-          }
-          return checkout.originalSendPayment.apply(this, args);
-        };
-      }
-      if (this.originalAuthorizeHandler || typeof window.responseHandler !== "function") {
-        return;
-      }
-      this.originalAuthorizeHandler = window.responseHandler;
-      window.responseHandler = function(...args) {
-        const response = args[0];
-        if (response?.messages?.resultCode === "Error") {
-          checkout.paying = false;
-          checkout.showAuthorizeErrors(response);
-          return;
-        }
-        return checkout.originalAuthorizeHandler.apply(this, args);
-      };
-    },
-    cardInput(name) {
-      const form = this.$refs.paymentForm;
-      if (!form) {
-        return null;
-      }
-      return form.querySelector(`[id$="${name}"]`);
-    },
-    wrapCardFields() {
-      CARD_FIELDS.forEach((name) => {
-        const input = this.cardInput(name);
-        if (!input?.parentElement || input.parentElement.dataset.fcCardField) {
-          return;
-        }
-        const wrap = document.createElement("div");
-        wrap.dataset.fcCardField = name;
-        wrap.className = "min-w-0";
-        input.parentElement.insertBefore(wrap, input);
-        wrap.appendChild(input);
-      });
-    },
-    clearCardError(input) {
-      if (!input) {
-        return;
-      }
-      input.classList.remove("border-red-500");
-      input.removeAttribute("aria-invalid");
-      const wrap = input.parentElement;
-      const note = wrap && wrap.dataset.fcCardField ? wrap.querySelector("[data-fc-card-error]") : input.nextElementSibling;
-      if (note && note.dataset.fcCardError) {
-        note.remove();
-      }
-    },
-    clearCardErrors() {
-      CARD_FIELDS.forEach((name) => {
-        this.clearCardError(this.cardInput(name));
-      });
-    },
-    showCardErrors(errors) {
-      this.clearCardErrors();
-      this.wrapCardFields();
-      let first = null;
-      Object.entries(errors).forEach(([name, message]) => {
-        const input = this.cardInput(name);
-        if (!input || !message) {
-          return;
-        }
-        input.classList.add("border-red-500");
-        input.setAttribute("aria-invalid", "true");
-        const note = document.createElement("p");
-        note.dataset.fcCardError = name;
-        note.className = "mt-1 text-sm leading-snug text-red-500";
-        note.textContent = message;
-        input.parentElement.appendChild(note);
-        if (!first) {
-          first = input;
-        }
-      });
-      if (first) {
-        first.focus();
-      }
-    },
-    checkCard() {
-      const number = String(this.cardInput("number")?.value || "").replace(
-        /\s+/g,
-        ""
-      );
-      const monthValue = String(this.cardInput("month")?.value || "").trim();
-      const yearValue = String(this.cardInput("year")?.value || "").trim();
-      const cvv = String(this.cardInput("cvv")?.value || "").replace(
-        /\s+/g,
-        ""
-      );
-      const month = parseInt(monthValue, 10);
-      const errors = {};
-      if (!/^\d{13,19}$/.test(number)) {
-        errors.number = this.cardNumberError;
-      }
-      if (!/^\d{1,2}$/.test(monthValue) || month < 1 || month > 12) {
-        errors.month = this.cardMonthError;
-      }
-      if (!/^\d{2}$|^\d{4}$/.test(yearValue)) {
-        errors.year = this.cardYearError;
-      } else if (!errors.month) {
-        const year = yearValue.length === 2 ? 2e3 + parseInt(yearValue, 10) : parseInt(yearValue, 10);
-        const expires = new Date(year, month, 0, 23, 59, 59);
-        if (expires < /* @__PURE__ */ new Date()) {
-          errors.year = this.cardExpiredError;
-        }
-      }
-      if (!/^\d{3,4}$/.test(cvv)) {
-        errors.cvv = this.cardCvvError;
-      }
-      this.showCardErrors(errors);
-      return Object.keys(errors).length === 0;
-    },
-    showAuthorizeErrors(response) {
-      const labels = {
-        E_WC_05: this.cardNumberError,
-        E_WC_06: this.cardMonthError,
-        E_WC_07: this.cardYearError,
-        E_WC_08: this.cardExpiredError,
-        E_WC_15: this.cardCvvError
-      };
-      const errors = {};
-      (response.messages.message || []).forEach((item) => {
-        const name = AUTHORIZE_ERROR_FIELDS[item.code] || "number";
-        errors[name] = labels[item.code] || item.text || this.cardNumberError;
-      });
-      this.showCardErrors(errors);
-    },
-    syncPayButtons() {
-      const form = this.$refs.paymentForm;
-      if (!form) {
-        return;
-      }
-      const allowed = this.canPay && !this.paying;
-      const label = this.payButtonLabel;
-      form.querySelectorAll(
-        'button[type="submit"], [id$="authorizeSubmit"], .stripe-payment-elements-submit-button'
-      ).forEach((button) => {
-        button.disabled = !allowed;
-        if (label && !button.closest(".paypal-rest-form")) {
-          button.textContent = label;
-        }
-      });
-    },
-    invalidatePaypalCheckout() {
-      const wrapper = this.$root.querySelector(".paypal-rest-form");
-      const renderDiv = wrapper?.firstElementChild;
-      if (!wrapper || !renderDiv) {
-        return;
-      }
-      if (!renderDiv.childElementCount && !String(renderDiv.innerHTML || "").trim()) {
-        return;
-      }
-      renderDiv.innerHTML = "";
-      delete wrapper.dataset.fcPaypalInit;
-      this.paypalInvalidated = true;
-    },
-    maybeReinitPaypalCheckout() {
-      if (!this.paypalInvalidated) {
-        return;
-      }
-      this.paypalInvalidated = false;
-      if (!this.$root.querySelector(".paypal-rest-form")) {
-        return;
-      }
-      this.initPaypal();
-    },
-    restorePaypalIfSkipped() {
-      if (this.paypalInvalidated && !this.saving && !this.saveTimer) {
-        this.maybeReinitPaypalCheckout();
-      }
-    },
-    invalidateStripeCheckout() {
-      const form = this.$root.querySelector(".stripe-payment-elements-form");
-      if (!form) {
-        return;
-      }
-      const paymentElement = form.querySelector(".stripe-payment-element");
-      const hasMounted = Boolean(paymentElement?.childElementCount) || Boolean(String(paymentElement?.innerHTML || "").trim());
-      const hasHandler = Boolean(form.handlerInstance);
-      if (hasMounted || hasHandler) {
-        const clone2 = form.cloneNode(true);
-        const clonePayment = clone2.querySelector(".stripe-payment-element");
-        if (clonePayment) {
-          clonePayment.innerHTML = "";
-        }
-        const cloneError = clone2.querySelector(".stripe-error-message");
-        if (cloneError) {
-          cloneError.textContent = "";
-        }
-        form.replaceWith(clone2);
-      }
-      this.stripeInvalidated = true;
-    },
-    scheduleStripeReinit() {
-      if (!this.canPay || this.paying) {
-        return;
-      }
-      if (!this.$root.querySelector(".stripe-payment-elements-form")) {
-        return;
-      }
-      this.invalidateStripeCheckout();
-      this.stripeInvalidated = true;
-      this.maybeReinitStripeCheckout();
-    },
-    maybeReinitStripeCheckout() {
-      if (!this.stripeInvalidated) {
-        return;
-      }
-      this.stripeInvalidated = false;
-      if (!this.$root.querySelector(".stripe-payment-elements-form")) {
-        return;
-      }
-      if (typeof initStripe !== "function") {
-        return;
-      }
-      initStripe();
-      this.$nextTick(() => this.syncPayButtons());
-    },
-    restoreStripeIfSkipped() {
-      if (this.stripeInvalidated && !this.saving && !this.saveTimer) {
-        this.scheduleStripeReinit();
-      }
-    },
-    retryStripeIfNeeded() {
-      const error2 = this.$refs.paymentForm?.querySelector(
-        ".stripe-error-message"
-      );
-      if (!error2?.textContent?.trim() || typeof initStripe !== "function") {
-        return;
-      }
-      error2.textContent = "";
-      initStripe();
-    },
-    initPaypal(attempt = 0) {
-      if (this.paypalInitTimer) {
-        clearTimeout(this.paypalInitTimer);
-        this.paypalInitTimer = null;
-      }
-      const wrapper = this.$root.querySelector(".paypal-rest-form");
-      if (!wrapper) {
-        if (attempt >= 5) {
-          return;
-        }
-        this.paypalInitTimer = setTimeout(() => {
-          this.initPaypal(attempt + 1);
-        }, 200);
-        return;
-      }
-      if (wrapper.dataset.fcPaypalInit === "true") {
-        return;
-      }
-      if (typeof window.paypal_checkout_sdk === "undefined" || typeof window.initPaypalCheckout !== "function" || !wrapper.firstElementChild) {
-        if (attempt >= 50) {
-          return;
-        }
-        this.paypalInitTimer = setTimeout(() => {
-          this.initPaypal(attempt + 1);
-        }, 200);
-        return;
-      }
-      wrapper.dataset.fcPaypalInit = "true";
-      window.initPaypalCheckout();
     }
   };
 };

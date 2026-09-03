@@ -24,8 +24,8 @@ use craft\fieldlayoutelements\CustomField;
 use craft\fieldlayoutelements\FullNameField;
 use craft\helpers\StringHelper;
 use DateTime;
-use fostercommerce\fostercheckout\formatters\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\FosterCheckout;
+use fostercommerce\fostercheckout\helpers\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\models\DeliveryDate;
 use fostercommerce\fostercheckout\models\LineItemOptionRule;
 use fostercommerce\fostercheckout\models\PaymentGatewayConfig;
@@ -142,7 +142,7 @@ class Checkout extends Component
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		return $plugin->content;
+		return $plugin->getContent();
 	}
 
 	public function settings(): Settings
@@ -372,7 +372,7 @@ class Checkout extends Component
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		return $plugin->checkoutFieldLayouts->getRenderableFields($gatewayHandle, $order);
+		return $plugin->getCheckoutFieldLayouts()->getRenderableFields($gatewayHandle, $order);
 	}
 
 	/**
@@ -383,7 +383,7 @@ class Checkout extends Component
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		return $plugin->checkoutFieldLayouts->getRenderableCheckoutFields($position, $order);
+		return $plugin->getCheckoutFieldLayouts()->getRenderableCheckoutFields($position, $order);
 	}
 
 	/**
@@ -436,7 +436,7 @@ class Checkout extends Component
 			}
 
 			$field = $layoutElement instanceof CustomField
-				? $plugin->checkoutFieldLayouts->renderableField($layoutElement)
+				? $plugin->getCheckoutFieldLayouts()->renderableField($layoutElement)
 				: null;
 
 			// A custom field whose type has no storefront input has nothing to show the customer

@@ -1,6 +1,6 @@
 <?php
 
-namespace fostercommerce\fostercheckout\formatters;
+namespace fostercommerce\fostercheckout\helpers;
 
 use CommerceGuys\Addressing\AddressInterface;
 use CommerceGuys\Addressing\Formatter\FormatterInterface;

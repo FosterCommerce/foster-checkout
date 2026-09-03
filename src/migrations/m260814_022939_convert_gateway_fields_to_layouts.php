@@ -59,7 +59,7 @@ class m260814_022939_convert_gateway_fields_to_layouts extends Migration
 			}
 
 			// Anything already configured in the control panel wins, so re-running is safe.
-			if ($plugin->checkoutFieldLayouts->getFieldLayout($gatewayHandle)->getCustomFieldElements() !== []) {
+			if ($plugin->getCheckoutFieldLayouts()->getFieldLayout($gatewayHandle)->getCustomFieldElements() !== []) {
 				continue;
 			}
 
@@ -113,7 +113,7 @@ class m260814_022939_convert_gateway_fields_to_layouts extends Migration
 
 			$layout->setTabs([$tab]);
 
-			$plugin->checkoutFieldLayouts->saveFieldLayout($gatewayHandle, $layout);
+			$plugin->getCheckoutFieldLayouts()->saveFieldLayout($gatewayHandle, $layout);
 		}
 
 		return true;
