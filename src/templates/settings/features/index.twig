@@ -8,6 +8,7 @@
 {% set docTitle = title %}
 
 {% set readOnly = not craft.app.config.general.allowAdminChanges %}
+{% set fullPageForm = not readOnly %}
 
 {% if readOnly %}
 	{% set contentNotice = readOnlyNotice() %}
@@ -26,48 +27,41 @@
 ] %}
 
 {% block content %}
-	<form action="" method="post" accept-charset="UTF-8"{% if not readOnly %} data-saveshortcut{% endif %}>
-		{{ actionInput('foster-checkout/settings/save-settings') }}
-		{{ redirectInput('foster-checkout/settings/features') }}
-		{{ hiddenInput('section', 'features') }}
-		{{ csrfInput() }}
+	{{ actionInput('foster-checkout/settings/save-settings') }}
+	{{ redirectInput('foster-checkout/settings/features') }}
+	{{ hiddenInput('section', 'features') }}
+	{{ csrfInput() }}
 
-		{% for switch in switches %}
-			{% set setting = "options.#{switch.handle}" %}
-			{% set pinned = setting in overriddenSettings %}
-			{% set lightswitch = {
-				label: "settings.features.#{switch.handle}"|t('foster-checkout'),
-				instructions: "settings.features.#{switch.handle}Help"|t('foster-checkout'),
-				id: "options-#{switch.handle}",
-				name: "settings[options][#{switch.handle}]",
-				on: switch.on,
-				disabled: readOnly or pinned,
-				warning: pinned ? 'settings.overridden'|t('foster-checkout', { setting: setting }),
-			} %}
-			{% if switch.onLabel is defined %}
-				{% set lightswitch = lightswitch|merge({
-					offLabel: switch.offLabel,
-					onLabel: switch.onLabel,
-				}) %}
-			{% endif %}
-			{{ forms.lightswitchField(lightswitch) }}
-		{% endfor %}
-
-		{% set klaviyoPinned = 'options.klaviyoListId' in overriddenSettings %}
-		{{ forms.textField({
-			label: 'settings.features.klaviyoListId'|t('foster-checkout'),
-			instructions: 'settings.features.klaviyoListIdHelp'|t('foster-checkout'),
-			id: 'options-klaviyo-list-id',
-			name: 'settings[options][klaviyoListId]',
-			value: settings.options.klaviyoListId,
-			disabled: readOnly or klaviyoPinned,
-			warning: klaviyoPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'options.klaviyoListId' }),
-		}) }}
-
-		{% if not readOnly %}
-			<div class="buttons">
-				<button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
-			</div>
+	{% for switch in switches %}
+		{% set setting = "options.#{switch.handle}" %}
+		{% set pinned = setting in overriddenSettings %}
+		{% set lightswitch = {
+			label: "settings.features.#{switch.handle}"|t('foster-checkout'),
+			instructions: "settings.features.#{switch.handle}Help"|t('foster-checkout'),
+			id: "options-#{switch.handle}",
+			name: "settings[options][#{switch.handle}]",
+			on: switch.on,
+			disabled: readOnly or pinned,
+			warning: pinned ? 'settings.overridden'|t('foster-checkout', { setting: setting }),
+		} %}
+		{% if switch.onLabel is defined %}
+			{% set lightswitch = lightswitch|merge({
+				offLabel: switch.offLabel,
+				onLabel: switch.onLabel,
+			}) %}
 		{% endif %}
-	</form>
+		{{ forms.lightswitchField(lightswitch) }}
+	{% endfor %}
+
+	{% set klaviyoPinned = 'options.klaviyoListId' in overriddenSettings %}
+	{{ forms.textField({
+		label: 'settings.features.klaviyoListId'|t('foster-checkout'),
+		instructions: 'settings.features.klaviyoListIdHelp'|t('foster-checkout'),
+		id: 'options-klaviyo-list-id',
+		name: 'settings[options][klaviyoListId]',
+		value: settings.options.klaviyoListId,
+		disabled: readOnly or klaviyoPinned,
+		warning: klaviyoPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'options.klaviyoListId' }),
+	}) }}
+
 {% endblock %}

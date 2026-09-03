@@ -8,6 +8,7 @@
 {% set docTitle = title %}
 
 {% set readOnly = not craft.app.config.general.allowAdminChanges %}
+{% set fullPageForm = not readOnly %}
 
 {% if readOnly %}
 	{% set contentNotice = readOnlyNotice() %}
@@ -28,41 +29,34 @@
 {% endfor %}
 
 {% block content %}
-	<form action="" method="post" accept-charset="UTF-8"{% if not readOnly %} data-saveshortcut{% endif %}>
-		{{ actionInput('foster-checkout/settings/save-settings') }}
-		{{ redirectInput('foster-checkout/settings/products') }}
-		{{ hiddenInput('section', 'products') }}
-		{{ csrfInput() }}
+	{{ actionInput('foster-checkout/settings/save-settings') }}
+	{{ redirectInput('foster-checkout/settings/products') }}
+	{{ hiddenInput('section', 'products') }}
+	{{ csrfInput() }}
 
-		<p>{{ 'settings.products.intro'|t('foster-checkout') }}</p>
+	<p>{{ 'settings.products.intro'|t('foster-checkout') }}</p>
 
-		{{ forms.editableTableField({
-			label: 'settings.products.label'|t('foster-checkout'),
-			instructions: 'settings.products.help'|t('foster-checkout'),
-			id: 'products',
-			name: 'settings[products]',
-			cols: {
-				productTypeHandle: {
-					heading: 'settings.products.productType'|t('foster-checkout'),
-					type: 'select',
-					options: productTypeOptions,
-				},
-				productImageHandle: { heading: 'settings.products.productImage'|t('foster-checkout'), type: 'singleline' },
-				variantImageHandle: { heading: 'settings.products.variantImage'|t('foster-checkout'), type: 'singleline' },
+	{{ forms.editableTableField({
+		label: 'settings.products.label'|t('foster-checkout'),
+		instructions: 'settings.products.help'|t('foster-checkout'),
+		id: 'products',
+		name: 'settings[products]',
+		cols: {
+			productTypeHandle: {
+				heading: 'settings.products.productType'|t('foster-checkout'),
+				type: 'select',
+				options: productTypeOptions,
 			},
-			rows: productRows,
-			addRowLabel: 'settings.products.addRow'|t('foster-checkout'),
-			allowAdd: true,
-			allowDelete: true,
-			allowReorder: true,
-			static: readOnly or 'products' in overriddenSettings,
-			warning: 'products' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'products' }),
-		}) }}
+			productImageHandle: { heading: 'settings.products.productImage'|t('foster-checkout'), type: 'singleline' },
+			variantImageHandle: { heading: 'settings.products.variantImage'|t('foster-checkout'), type: 'singleline' },
+		},
+		rows: productRows,
+		addRowLabel: 'settings.products.addRow'|t('foster-checkout'),
+		allowAdd: true,
+		allowDelete: true,
+		allowReorder: true,
+		static: readOnly or 'products' in overriddenSettings,
+		warning: 'products' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'products' }),
+	}) }}
 
-		{% if not readOnly %}
-			<div class="buttons">
-				<button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
-			</div>
-		{% endif %}
-	</form>
 {% endblock %}

@@ -21,69 +21,64 @@
 	{% set contentNotice = readOnlyNotice() %}
 {% endif %}
 
+{% set fullPageForm = not readOnly %}
+
 {% block content %}
-	<form action="" method="post" accept-charset="UTF-8"{% if not readOnly %} data-saveshortcut{% endif %}>
-		{{ actionInput('foster-checkout/content/save') }}
-		{{ redirectInput('foster-checkout/content' ~ (showSiteMenu ? '?site=' ~ contentSite.handle : '')) }}
-		{% if showSiteMenu %}{{ hiddenInput('site', contentSite.handle) }}{% endif %}
-		{{ csrfInput() }}
+	{{ actionInput('foster-checkout/content/save') }}
+	{{ redirectInput('foster-checkout/content' ~ (showSiteMenu ? '?site=' ~ contentSite.handle : '')) }}
+	{% if showSiteMenu %}{{ hiddenInput('site', contentSite.handle) }}{% endif %}
+	{{ csrfInput() }}
 
-		<p>{{ 'content.intro'|t('foster-checkout') }}</p>
+	<p>{{ 'content.intro'|t('foster-checkout') }}</p>
 
-		{% for noteKey in noteKeys %}
+	{% for noteKey in noteKeys %}
+		{{ forms.textareaField({
+			label: "content.#{noteKey}"|t('foster-checkout'),
+			instructions: "content.#{noteKey}Help"|t('foster-checkout'),
+			id: "note-#{noteKey}",
+			name: "notes[#{noteKey}]",
+			value: notes[noteKey] ?? '',
+			rows: 4,
+			disabled: readOnly,
+		}) }}
+	{% endfor %}
+
+	{% if gateways is not empty %}
+		<hr>
+
+		<h2>{{ 'content.gatewayNotes'|t('foster-checkout') }}</h2>
+		<p>{{ 'content.gatewayNotesHelp'|t('foster-checkout') }}</p>
+
+		{% for gateway in gateways %}
 			{{ forms.textareaField({
-				label: "content.#{noteKey}"|t('foster-checkout'),
-				instructions: "content.#{noteKey}Help"|t('foster-checkout'),
-				id: "note-#{noteKey}",
-				name: "notes[#{noteKey}]",
-				value: notes[noteKey] ?? '',
-				rows: 4,
+				label: gateway.name,
+				instructions: gateway.handle,
+				id: "gateway-note-#{gateway.handle}",
+				name: "notes[gateways][#{gateway.handle}]",
+				value: gatewayNotes[gateway.handle] ?? '',
+				rows: 3,
 				disabled: readOnly,
 			}) }}
 		{% endfor %}
+	{% endif %}
 
-		{% if gateways is not empty %}
-			<hr>
+	<hr>
 
-			<h2>{{ 'content.gatewayNotes'|t('foster-checkout') }}</h2>
-			<p>{{ 'content.gatewayNotesHelp'|t('foster-checkout') }}</p>
+	{{ forms.editableTableField({
+		label: 'content.footerLinks'|t('foster-checkout'),
+		instructions: 'content.footerLinksHelp'|t('foster-checkout'),
+		id: 'footer-links',
+		name: 'links[footerLinks]',
+		cols: {
+			text: { heading: 'content.footerLinkText'|t('foster-checkout'), type: 'singleline' },
+			url: { heading: 'content.footerLinkUrl'|t('foster-checkout'), type: 'singleline' },
+		},
+		rows: footerLinks,
+		addRowLabel: 'content.addFooterLink'|t('foster-checkout'),
+		allowAdd: true,
+		allowDelete: true,
+		allowReorder: true,
+		static: readOnly,
+	}) }}
 
-			{% for gateway in gateways %}
-				{{ forms.textareaField({
-					label: gateway.name,
-					instructions: gateway.handle,
-					id: "gateway-note-#{gateway.handle}",
-					name: "notes[gateways][#{gateway.handle}]",
-					value: gatewayNotes[gateway.handle] ?? '',
-					rows: 3,
-					disabled: readOnly,
-				}) }}
-			{% endfor %}
-		{% endif %}
-
-		<hr>
-
-		{{ forms.editableTableField({
-			label: 'content.footerLinks'|t('foster-checkout'),
-			instructions: 'content.footerLinksHelp'|t('foster-checkout'),
-			id: 'footer-links',
-			name: 'links[footerLinks]',
-			cols: {
-				text: { heading: 'content.footerLinkText'|t('foster-checkout'), type: 'singleline' },
-				url: { heading: 'content.footerLinkUrl'|t('foster-checkout'), type: 'singleline' },
-			},
-			rows: footerLinks,
-			addRowLabel: 'content.addFooterLink'|t('foster-checkout'),
-			allowAdd: true,
-			allowDelete: true,
-			allowReorder: true,
-			static: readOnly,
-		}) }}
-
-		{% if not readOnly %}
-			<div class="buttons">
-				<button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
-			</div>
-		{% endif %}
-	</form>
 {% endblock %}
