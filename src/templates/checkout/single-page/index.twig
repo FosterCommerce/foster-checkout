@@ -21,16 +21,7 @@
 
 {% block body %}
 	{% set site = craft.app.sites.currentSite %}
-	{% set parts = [
-		'fc_subscribe',
-		craft.app.request.hostName,
-		site.id,
-		site.language,
-		cart.number
-	]|join('_') %}
-	{% js at head %}
-		window.FC_SUBSCRIBE_KEY = {{ parts|json_encode|raw }};
-	{% endjs %}
+	{% include 'foster-checkout/_components/app/subscribe-storage-key' %}
 
 	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
 	{% set sourceId = cart.sourceShippingAddressId ?? null %}

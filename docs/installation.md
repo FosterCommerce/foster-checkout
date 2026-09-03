@@ -30,7 +30,7 @@ Start at **Checkout -> General** and set the paths the cart and checkout are ser
 - **Account path**: where completed checkout steps link to. Default `/`.
 - **Cancel path**: where a customer goes if they cancel. Default `/`.
 
-Then work through **Appearance** for branding, **Features** for the optional behaviours, **Line Items** for how cart lines are shown, and **Content** for the copy shown on each step.
+Then work through **Appearance** for branding, **Features** for the optional behaviors, **Line Items** for how cart lines are shown, and **Content** for the copy shown on each step.
 
 Settings persist to project config, so they are editable only where `allowAdminChanges` is on. Content is stored in the plugin's own table and stays editable on production.
 

@@ -26,7 +26,7 @@ A path with no template behind it is rejected when saved in the control panel. S
 | `context` | `cart` or `checkout` |
 | `location` | `head` or `body` |
 | `step` | `email`, `shipping-address`, `shipping-method`, `billing`, `payment`, `confirmation`, `single-page`, or empty on the cart |
-| `cart` | the current order. Reaches the head include on every page, but the body include omits it on the shipping address and order confirmation pages |
+| `cart` | the current order. Passed to the head include on every page. The body include omits it on the shipping address and order confirmation pages |
 
 One template is included on every page, so branch on `step` to target a single one.
 

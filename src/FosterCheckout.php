@@ -591,9 +591,9 @@ class FosterCheckout extends Plugin
 		Event::on(
 			CraftVariable::class,
 			CraftVariable::EVENT_INIT,
-			function (Event $e): void {
+			function (Event $event): void {
 				/** @var CraftVariable $variable */
-				$variable = $e->sender;
+				$variable = $event->sender;
 
 				$variable->set('fostercheckout', Checkout::class);
 			}

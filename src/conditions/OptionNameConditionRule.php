@@ -20,6 +20,14 @@ class OptionNameConditionRule extends BaseTextConditionRule
 	public function describe(): string
 	{
 		$subject = Craft::t(FosterCheckout::HANDLE, 'settings.lineItemOptions.optionName');
+
+		// Craft matches every value when the operator takes one and none was given
+		if ($this->value === '' && ! in_array($this->operator, ['empty', 'notempty'], true)) {
+			return Craft::t(FosterCheckout::HANDLE, 'settings.lineItemOptions.anyValue', [
+				'subject' => $subject,
+			]);
+		}
+
 		$operator = $this->operatorLabel($this->operator);
 
 		if ($this->value === '') {

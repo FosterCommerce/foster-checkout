@@ -12,7 +12,7 @@ A drop-in checkout for Craft Commerce, with its copy and settings managed from t
 **Setting the plugin up?** See:
 
 - [Installation](./installation.md), requirements, install and first configuration
-- [Settings](./reference/settings.md), every setting, where it lives and what overrides what
+- [Settings](./reference/settings.md), every setting, which screen holds it and what overrides what
 
 **Building on top of the checkout?** See the [developer guide](./dev-guide/):
 

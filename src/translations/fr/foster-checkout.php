@@ -395,4 +395,5 @@ return [
 	'settings.lineItemOptions.valueMaxLengthHelp' => 'Combien de caractères d’une valeur d’option afficher. Laissez vide pour tout afficher.',
 	'settings.lineItemOptions.showLineItemSku' => 'Afficher le SKU',
 	'settings.lineItemOptions.showLineItemSkuHelp' => 'Indique si chaque ligne du panier affiche son SKU.',
+	'settings.lineItemOptions.anyValue' => 'N’importe quel {subject}',
 ];

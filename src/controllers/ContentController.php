@@ -59,7 +59,7 @@ class ContentController extends Controller
 			'noteKeys' => self::NOTE_KEYS,
 			'notes' => $plugin->content->get('notes') ?? [],
 			'footerLinks' => $plugin->content->get('links.footerLinks') ?? [],
-			'gateways' => Commerce::getInstance()?->getGateways()->getAllGateways() ?? [],
+			'gateways' => $this->commerce()->getGateways()->getAllGateways(),
 			'gatewayNotes' => $plugin->content->get('notes.gateways') ?? [],
 			'readOnly' => ! Craft::$app->getUser()->checkPermission(FosterCheckout::PERMISSION_EDIT_CONTENT),
 		]);
@@ -156,13 +156,7 @@ class ContentController extends Controller
 	{
 		$gatewayHandles = [];
 
-		$commerce = Commerce::getInstance();
-
-		if (! $commerce instanceof Commerce) {
-			return [];
-		}
-
-		$gateways = $commerce->getGateways()->getAllGateways();
+		$gateways = $this->commerce()->getGateways()->getAllGateways();
 
 		foreach ($gateways as $gateway) {
 			if ($gateway instanceof GatewayInterface && is_string($gateway->handle)) {
@@ -224,5 +218,16 @@ class ContentController extends Controller
 		$plugin = FosterCheckout::getInstance();
 
 		return $plugin;
+	}
+
+	/**
+	 * Commerce is a hard requirement, so its instance is always there.
+	 */
+	private function commerce(): Commerce
+	{
+		/** @var Commerce $commerce */
+		$commerce = Commerce::getInstance();
+
+		return $commerce;
 	}
 }

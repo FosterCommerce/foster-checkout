@@ -41,7 +41,7 @@ A gateway's field layout is stored outside plugin settings, so it stays editable
 
 How checkout copy varies across sites, using Craft's own field translation methods. On a single-site install all three behave identically.
 
-| Value | Behaviour |
+| Value | Behavior |
 | --- | --- |
 | `none` | One copy shared by every site |
 | `site` | A copy per site (default) |
@@ -53,7 +53,7 @@ A gateway's fields are chosen with Craft's field layout designer, which sets the
 
 **Only fields already on the order can be used.** An order saves values through its own field layout, so a field missing from it would render, accept what the customer types, then be discarded with no error. Saving such a layout is rejected and names the offending handles. Add the field under **Commerce -> System Settings -> Order Fields** first.
 
-A field's placeholder and its length or value limits live on the field itself, not the layout, so they apply everywhere that field is used.
+A field's placeholder and its length or value limits are set on the field itself, not the layout, so they apply everywhere that field is used.
 
 ## Settings that stay in config
 

@@ -9,8 +9,8 @@ A drop-in **checkout** for Craft Commerce, with its copy and settings managed fr
 - Ships a complete cart and checkout flow (email, address, shipping, billing, payment, confirmation) at paths you choose.
 - Lets store admins edit checkout copy on production, with no custom fields to create and map, and no developer involvement.
 - Keeps copy per site or per language on multi-site installs, so each storefront reads its own wording.
-- Puts branding, feature switches, product image fields, payment gateway fields and paths on control panel screens, so a store can run without a config file.
-- Accepts a `foster-checkout.php` config file for developer-managed sites, which overrides the control panel.
+- Puts branding, feature switches, line item display, product image fields, payment gateway fields and paths on control panel screens, so a store can run without a config file.
+- Accepts a `foster-checkout.php` config file for developer-managed sites, which overrides the control panel one setting at a time.
 - Adds extra fields to a payment method (an account number, for example) and shows a note when a customer selects it.
 
 ## Requirements
@@ -30,7 +30,7 @@ See [`docs/installation.md`](./docs/installation.md) for the full guide.
 
 ## Content
 
-Checkout copy lives in the plugin's own database table rather than project config, so it stays editable on production where admin changes are disabled. Admins edit it at **Checkout -> Content**: notes for each step, payment method notes, and the footer links shown across the cart and checkout.
+The plugin stores checkout copy in its own database table rather than project config, so it stays editable on production where admin changes are disabled. Admins edit it at **Checkout -> Content**: notes for each step, payment method notes, and the footer links shown across the cart and checkout.
 
 Each note is rendered as a Twig template, so copy can reference the cart or the order. On a multi-site install, copy varies per site or per language depending on the content translation method.
 
@@ -41,6 +41,14 @@ See [`docs/user-guide/content.md`](./docs/user-guide/content.md).
 Appearance, features, line items, products, payment gateways and paths each get a control panel screen under **Checkout**. Anything a site sets in `config/foster-checkout.php` wins over the control panel, per key, and those fields are shown as read-only so it is clear why an edit will not take.
 
 See [`docs/reference/settings.md`](./docs/reference/settings.md).
+
+## Line items
+
+Rules rewrite what a cart line shows for an option a customer chose, so a stored `blessing: true` reads as `Blessing Services: Yes`. Each rule pairs a condition on the option's name or value with a replacement name, a replacement value, or both.
+
+Values are left alone unless a rule sets one, which keeps free text as the customer typed it. Long values can be truncated, and the SKU can be hidden.
+
+See [`docs/user-guide/line-items.md`](./docs/user-guide/line-items.md).
 
 ## Custom includes
 

@@ -546,7 +546,7 @@ class Checkout extends Component
 		$order = $lineItem->getOrder();
 
 		return Currency::formatAsCurrency(
-			(float) $order->getTeller()->multiply($lineItem->price, (string) $lineItem->qty),
+			$order->getTeller()->multiply($lineItem->price, (string) $lineItem->qty),
 			$order->currency
 		);
 	}

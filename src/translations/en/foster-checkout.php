@@ -397,4 +397,5 @@ return [
 	'settings.lineItemOptions.valueMaxLengthHelp' => 'How many characters of an option value to show. Leave empty to show all.',
 	'settings.lineItemOptions.showLineItemSku' => 'Show the SKU',
 	'settings.lineItemOptions.showLineItemSkuHelp' => 'Whether each line item in the cart shows its SKU.',
+	'settings.lineItemOptions.anyValue' => 'Any {subject}',
 ];

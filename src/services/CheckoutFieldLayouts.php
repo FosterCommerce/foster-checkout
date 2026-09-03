@@ -97,8 +97,11 @@ class CheckoutFieldLayouts extends Component
 			}
 		}
 
+		/** @var Commerce $commerce Commerce is a hard requirement, so its instance is always there */
+		$commerce = Commerce::getInstance();
+
 		/** @var array<int, GatewayInterface> $gateways */
-		$gateways = Commerce::getInstance()?->getGateways()->getAllGateways() ?? [];
+		$gateways = $commerce->getGateways()->getAllGateways();
 
 		foreach ($gateways as $gateway) {
 			foreach ($this->getFieldLayout((string) $gateway->handle)->getCustomFieldElements() as $customField) {

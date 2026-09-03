@@ -30,16 +30,7 @@
 {% block body %}
 
 	{% set site = craft.app.sites.currentSite %}
-	{% set parts = [
-		'fc_subscribe',
-		craft.app.request.hostName,
-		site.id,
-		site.language,
-		cart.number
-	]|join('_') %}
-	{% js at head %}
-		window.FC_SUBSCRIBE_KEY = {{ parts|json_encode|raw }};
-	{% endjs %}
+	{% include 'foster-checkout/_components/app/subscribe-storage-key' %}
 
 	<div class="mt-10 pb-28 lg:pb-32">
 

@@ -452,7 +452,7 @@ class SettingsController extends Controller
 
 	private function gateway(string $gatewayHandle): GatewayInterface
 	{
-		$gateway = Commerce::getInstance()?->getGateways()->getGatewayByHandle($gatewayHandle);
+		$gateway = $this->commerce()->getGateways()->getGatewayByHandle($gatewayHandle);
 
 		if (! $gateway instanceof GatewayInterface) {
 			throw new NotFoundHttpException("No payment gateway with handle {$gatewayHandle}.");
@@ -531,15 +531,9 @@ class SettingsController extends Controller
 	 */
 	private function productTypeHandles(): array
 	{
-		$commerce = Commerce::getInstance();
-
-		if (! $commerce instanceof Commerce) {
-			return [];
-		}
-
 		$productTypeHandles = [];
 
-		foreach ($commerce->getProductTypes()->getAllProductTypes() as $productType) {
+		foreach ($this->commerce()->getProductTypes()->getAllProductTypes() as $productType) {
 			if (is_string($productType->handle)) {
 				$productTypeHandles[] = $productType->handle;
 			}
@@ -752,9 +746,20 @@ class SettingsController extends Controller
 			'settings' => $settings,
 			'overriddenSettings' => $plugin->getOverriddenSettings(),
 			'productTypeHandles' => $this->productTypeHandles(),
-			'gateways' => Commerce::getInstance()?->getGateways()->getAllGateways() ?? [],
+			'gateways' => $this->commerce()->getGateways()->getAllGateways(),
 			'configurableAddressFields' => $plugin->checkout->configurableAddressFields(),
 			'checkoutPositions' => CheckoutFieldLayouts::CHECKOUT_POSITIONS,
 		]);
+	}
+
+	/**
+	 * Commerce is a hard requirement, so its instance is always there.
+	 */
+	private function commerce(): Commerce
+	{
+		/** @var Commerce $commerce */
+		$commerce = Commerce::getInstance();
+
+		return $commerce;
 	}
 }

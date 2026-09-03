@@ -396,4 +396,5 @@ return [
 	'settings.lineItemOptions.valueMaxLengthHelp' => 'Cuántos caracteres del valor de una opción se muestran. Déjelo vacío para mostrarlos todos.',
 	'settings.lineItemOptions.showLineItemSku' => 'Mostrar el SKU',
 	'settings.lineItemOptions.showLineItemSkuHelp' => 'Si cada línea de pedido del carrito muestra su SKU.',
+	'settings.lineItemOptions.anyValue' => 'Cualquier {subject}',
 ];

@@ -395,4 +395,5 @@ return [
 	'settings.lineItemOptions.valueMaxLengthHelp' => 'Wie viele Zeichen eines Optionswerts angezeigt werden. Leer lassen, um alle anzuzeigen.',
 	'settings.lineItemOptions.showLineItemSku' => 'SKU anzeigen',
 	'settings.lineItemOptions.showLineItemSkuHelp' => 'Ob jede Position im Warenkorb ihre SKU anzeigt.',
+	'settings.lineItemOptions.anyValue' => 'Beliebiger {subject}',
 ];
