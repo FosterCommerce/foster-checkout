@@ -20,6 +20,8 @@ class Settings extends Model
 
 	public LineItemConfig $lineItems;
 
+	public AddressLookupConfig $addressLookup;
+
 	/**
 	 * Held outside `options` so an `options` block in a config file cannot shadow rules built in the CP.
 	 *
@@ -90,6 +92,7 @@ class Settings extends Model
 	public function __construct(array $config = [])
 	{
 		$this->lineItems = new LineItemConfig();
+		$this->addressLookup = new AddressLookupConfig();
 		parent::__construct($config);
 
 		if (! isset($this->options)) {
@@ -156,6 +159,10 @@ class Settings extends Model
 
 		if (array_key_exists('options', $values)) {
 			$values['options'] = new OptionConfig($values['options']);
+		}
+
+		if (array_key_exists('addressLookup', $values)) {
+			$values['addressLookup'] = new AddressLookupConfig($values['addressLookup']);
 		}
 
 		if (array_key_exists('lineItems', $values)) {

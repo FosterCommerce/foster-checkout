@@ -6,18 +6,46 @@
 <div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12">
 	<div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:col-span-12">
 		<div :class="isUsed('addressLine1') ? '' : 'h-0 overflow-hidden absolute'">
-			{% include 'foster-checkout/_components/base/input-text-clearable' with {
-				addressScope: true,
-				context: context,
-				label: 'addressFields.addressLabel'|t('foster-checkout'),
-				id: 'addressLine1',
-				name: 'addressLine1',
-				type: 'text',
-				autocomplete: 'address-line1',
-				placeholder: 'addressFields.addressPlaceholder'|t('foster-checkout'),
-				value: address ? address.addressLine1|e('js') : '',
-				errors: errors.addressLine1 ?? []
-			} %}
+			{% if suggestAddress|default %}
+			<div class="relative" @input="queueSuggest()">
+			{% endif %}
+				{# Chrome ignores autocomplete="off" on address fields but backs off a password token,
+				   so its saved-address list does not cover the suggestions #}
+				{% include 'foster-checkout/_components/base/input-text-clearable' with {
+					addressScope: true,
+					context: context,
+					label: 'addressFields.addressLabel'|t('foster-checkout'),
+					id: 'addressLine1',
+					name: 'addressLine1',
+					type: 'text',
+					autocomplete: suggestAddress|default ? 'new-password' : 'address-line1',
+					placeholder: 'addressFields.addressPlaceholder'|t('foster-checkout'),
+					value: address ? address.addressLine1|e('js') : '',
+					errors: errors.addressLine1 ?? []
+				} %}
+			{% if suggestAddress|default %}
+				<ul
+					x-show="open"
+					x-cloak
+					role="listbox"
+					:id="listboxId()"
+					class="absolute z-20 w-full mt-1 bg-white border border-gray-250 rounded-lg shadow-lg max-h-64 overflow-y-auto"
+				>
+					<template x-for="(suggestion, index) in suggestions" :key="suggestion.id">
+						<li
+							role="option"
+							:id="optionId(index)"
+							:aria-selected="index === activeIndex ? 'true' : 'false'"
+							class="px-4 py-3 cursor-pointer text-sm text-gray-800"
+							:class="index === activeIndex ? 'bg-gray-200' : ''"
+							@mouseenter="activeIndex = index"
+							@click="choose(suggestion)"
+							x-text="suggestion.label"
+						></li>
+					</template>
+				</ul>
+			</div>
+			{% endif %}
 		</div>
 
 		{# The placeholder names this field, so a stacked label repeats it #}

@@ -65,4 +65,55 @@
 		warning: klaviyoPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'options.klaviyoListId' }),
 	}) }}
 
+	<hr>
+
+	{% set lookupPinned = 'addressLookup.enabled' in overriddenSettings %}
+	{{ forms.lightswitchField({
+		label: 'settings.features.addressLookupEnabled'|t('foster-checkout'),
+		instructions: 'settings.features.addressLookupEnabledHelp'|t('foster-checkout'),
+		id: 'address-lookup-enabled',
+		name: 'settings[addressLookup][enabled]',
+		on: settings.addressLookup.enabled,
+		disabled: readOnly or lookupPinned,
+		warning: lookupPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'addressLookup.enabled' }),
+	}) }}
+
+	{% set providerPinned = 'addressLookup.provider' in overriddenSettings %}
+	{{ forms.selectField({
+		label: 'settings.features.addressLookupProvider'|t('foster-checkout'),
+		instructions: 'settings.features.addressLookupProviderHelp'|t('foster-checkout'),
+		id: 'address-lookup-provider',
+		name: 'settings[addressLookup][provider]',
+		value: settings.addressLookup.provider,
+		options: [
+			{ label: 'Google Places', value: 'google' },
+			{ label: 'Loqate', value: 'loqate' },
+		],
+		disabled: readOnly or providerPinned,
+		warning: providerPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'addressLookup.provider' }),
+	}) }}
+
+	{% set apiKeyPinned = 'addressLookup.apiKey' in overriddenSettings %}
+	{{ forms.autosuggestField({
+		label: 'settings.features.addressLookupApiKey'|t('foster-checkout'),
+		instructions: 'settings.features.addressLookupApiKeyHelp'|t('foster-checkout'),
+		id: 'address-lookup-api-key',
+		name: 'settings[addressLookup][apiKey]',
+		value: settings.addressLookup.apiKey,
+		suggestEnvVars: true,
+		disabled: readOnly or apiKeyPinned,
+		warning: apiKeyPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'addressLookup.apiKey' }),
+	}) }}
+
+	{% if settings.addressLookup.enabled %}
+		<div class="field">
+			<a href="{{ url('foster-checkout/settings/test-address-lookup') }}" class="btn">
+				{{ 'settings.features.addressLookupTest'|t('foster-checkout') }}
+			</a>
+			<div class="instructions">
+				<p>{{ 'settings.features.addressLookupTestHelp'|t('foster-checkout') }}</p>
+			</div>
+		</div>
+	{% endif %}
+
 {% endblock %}

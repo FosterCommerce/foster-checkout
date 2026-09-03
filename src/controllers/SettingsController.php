@@ -9,13 +9,16 @@ use craft\commerce\Plugin as Commerce;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
+use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
 use craft\services\ProjectConfig;
 use craft\web\Controller;
+use fostercommerce\fostercheckout\base\AddressLookupInterface;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\LineItemOptionRule;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
+use Throwable;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -228,6 +231,31 @@ class SettingsController extends Controller
 		$this->setSuccessFlash(Craft::t('app', 'Settings saved.'));
 
 		return $this->redirectToPostedUrl();
+	}
+
+	public function actionTestAddressLookup(): Response
+	{
+		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_SETTINGS);
+
+		$plugin = FosterCheckout::getInstance();
+		$provider = $plugin?->getAddressLookup()->provider();
+
+		if (! $provider instanceof AddressLookupInterface) {
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.features.addressLookupTestOff'));
+
+			return $this->redirect('foster-checkout/settings/features');
+		}
+
+		try {
+			$provider->suggest('1 High Street', 'GB', null, StringHelper::UUID());
+			$this->setSuccessFlash(Craft::t(FosterCheckout::HANDLE, 'settings.features.addressLookupTestPassed'));
+		} catch (Throwable $throwable) {
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.features.addressLookupTestFailed', [
+				'message' => $throwable->getMessage(),
+			]));
+		}
+
+		return $this->redirect('foster-checkout/settings/features');
 	}
 
 	public function actionLineItems(): Response

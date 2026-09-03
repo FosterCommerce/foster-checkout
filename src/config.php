@@ -43,6 +43,14 @@ return [
 	// (needs the AvaTax plugin with its own address validation turned on)
 	// 'enableAddressVerification' => false, // true|false
 
+	// Address suggestions as customers type. Cap the spend at the provider: a daily quota in
+	// Google Cloud, or Loqate's prepaid credit
+	// 'addressLookup' => [
+	//     'enabled' => false, // true|false
+	//     'provider' => 'google', // google|loqate
+	//     'apiKey' => '$FC_ADDRESS_LOOKUP_KEY',
+	// ],
+
 	// The Klaviyo list ID to subscribe the customer to
 	// 'klaviyoListId' => null,
 

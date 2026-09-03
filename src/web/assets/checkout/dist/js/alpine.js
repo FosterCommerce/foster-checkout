@@ -6802,6 +6802,159 @@ const SinglePageCheckout = (props) => {
     }
   };
 };
+const FIELDS$1 = [
+  "addressLine1",
+  "addressLine2",
+  "locality",
+  "administrativeArea",
+  "postalCode",
+  "countryCode"
+];
+const MIN_QUERY = 3;
+const AddressAutocomplete = (props) => ({
+  prefix: props.prefix ?? "",
+  suggestions: [],
+  open: false,
+  activeIndex: -1,
+  container: null,
+  session: "",
+  timer: null,
+  filling: false,
+  listboxId() {
+    return `${this.prefix || "address"}-suggestions`;
+  },
+  optionId(index) {
+    return `${this.listboxId()}-${index}`;
+  },
+  // The address line is rendered by the field layout, so its combobox state is set from here
+  syncField() {
+    const field = this.input("addressLine1");
+    if (!field) {
+      return;
+    }
+    field.setAttribute("role", "combobox");
+    field.setAttribute("aria-autocomplete", "list");
+    field.setAttribute("aria-expanded", this.open ? "true" : "false");
+    field.setAttribute("aria-controls", this.listboxId());
+    if (this.activeIndex >= 0) {
+      field.setAttribute(
+        "aria-activedescendant",
+        this.optionId(this.activeIndex)
+      );
+      return;
+    }
+    field.removeAttribute("aria-activedescendant");
+  },
+  input(attribute) {
+    const name = this.prefix ? `${this.prefix}[${attribute}]` : attribute;
+    return this.$root.querySelector(`[name="${CSS.escape(name)}"]`);
+  },
+  postUrl() {
+    return window.location.pathname + window.location.search;
+  },
+  // Google bills an autocomplete session as one lookup, keyed on this token
+  sessionToken() {
+    if (this.session === "") {
+      this.session = crypto.randomUUID();
+    }
+    return this.session;
+  },
+  async post(action, fields) {
+    const body = new FormData();
+    body.set(window.csrfTokenName, window.csrfTokenValue);
+    body.set("action", `foster-checkout/address-lookup/${action}`);
+    body.set("session", this.sessionToken());
+    Object.entries(fields).forEach(([key, value]) => body.set(key, value));
+    const response = await fetch(this.postUrl(), {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body,
+      credentials: "same-origin"
+    });
+    return response.json();
+  },
+  queueSuggest() {
+    if (this.filling) {
+      return;
+    }
+    clearTimeout(this.timer);
+    this.container = null;
+    this.timer = setTimeout(() => this.suggest(), 300);
+  },
+  async suggest() {
+    const query = this.input("addressLine1")?.value ?? "";
+    if (query.trim().length < MIN_QUERY) {
+      this.close();
+      return;
+    }
+    const data2 = await this.post("suggest", {
+      query,
+      countryCode: this.input("countryCode")?.value ?? "",
+      container: this.container ?? ""
+    });
+    this.suggestions = data2.suggestions ?? [];
+    this.activeIndex = -1;
+    this.open = this.suggestions.length > 0;
+  },
+  // A street or postal district narrows the next search rather than filling the form
+  async choose(suggestion) {
+    if (!suggestion.isFinal) {
+      this.container = suggestion.id;
+      await this.suggest();
+      return;
+    }
+    const data2 = await this.post("retrieve", {
+      id: suggestion.id
+    });
+    this.close();
+    this.session = "";
+    if (data2.address) {
+      this.fill(data2.address);
+    }
+  },
+  fill(address) {
+    this.filling = true;
+    FIELDS$1.forEach((attribute) => {
+      const input = this.input(attribute);
+      if (!input || !address[attribute]) {
+        return;
+      }
+      if (input.type === "hidden") {
+        window.dispatchEvent(
+          new CustomEvent("setvalue", {
+            detail: {
+              name: input.name,
+              value: address[attribute]
+            }
+          })
+        );
+        return;
+      }
+      input.value = address[attribute];
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    this.filling = false;
+    window.dispatchEvent(new CustomEvent("addresschosen"));
+  },
+  move(step) {
+    if (!this.open) {
+      return;
+    }
+    const last = this.suggestions.length - 1;
+    this.activeIndex = Math.min(Math.max(this.activeIndex + step, 0), last);
+  },
+  close() {
+    clearTimeout(this.timer);
+    this.open = false;
+    this.suggestions = [];
+    this.activeIndex = -1;
+    this.container = null;
+  }
+});
 const FIELDS = [
   "addressLine1",
   "addressLine2",
@@ -6925,7 +7078,7 @@ const AddressVerification = (props) => ({
     this.dismissed = this.signature(this.entered());
     this.suggestion = null;
   },
-  keepMine() {
+  dismiss() {
     this.dismissed = this.signature(this.entered());
     localStorage.setItem(this.storageKey(), this.dismissed);
     this.suggestion = null;
@@ -7645,5 +7798,6 @@ module_default$1.data("SearchableSelect", SearchableSelect);
 module_default$1.data("LineItem", LineItem);
 module_default$1.data("SinglePageCheckout", SinglePageCheckout);
 module_default$1.data("AddressVerification", AddressVerification);
+module_default$1.data("AddressAutocomplete", AddressAutocomplete);
 window.Alpine = module_default$1;
 module_default$1.start();

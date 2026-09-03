@@ -21,6 +21,7 @@ trait Routes
 					$event->rules[self::HANDLE . "/settings/{$section}"] = self::HANDLE . "/settings/{$section}";
 				}
 
+				$event->rules[self::HANDLE . '/settings/test-address-lookup'] = self::HANDLE . '/settings/test-address-lookup';
 				$event->rules[self::HANDLE . '/settings/gateways/<gatewayHandle:{handle}>'] = self::HANDLE . '/settings/edit-gateway';
 				$event->rules[self::HANDLE . '/settings/fields/<position:{handle}>'] = self::HANDLE . '/settings/edit-field';
 				$event->rules[self::HANDLE . '/settings/line-items/new'] = self::HANDLE . '/settings/edit-line-item-option-rule';

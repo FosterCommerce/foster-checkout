@@ -2,6 +2,7 @@
 
 namespace fostercommerce\fostercheckout\plugin;
 
+use fostercommerce\fostercheckout\services\AddressLookup;
 use fostercommerce\fostercheckout\services\Checkout;
 use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
 use fostercommerce\fostercheckout\services\Content;
@@ -9,6 +10,23 @@ use yii\base\InvalidConfigException;
 
 trait Services
 {
+	/**
+	 * Returns the address lookup service.
+	 *
+	 * @return AddressLookup The address lookup service
+	 * @throws InvalidConfigException
+	 */
+	public function getAddressLookup(): AddressLookup
+	{
+		$service = $this->get('addressLookup');
+
+		if (! $service instanceof AddressLookup) {
+			throw new InvalidConfigException('The `addressLookup` service is not configured.');
+		}
+
+		return $service;
+	}
+
 	/**
 	 * Returns the checkout service.
 	 *
@@ -63,6 +81,7 @@ trait Services
 	private function registerComponents(): void
 	{
 		$this->setComponents([
+			'addressLookup' => AddressLookup::class,
 			'checkout' => Checkout::class,
 			'content' => Content::class,
 			'checkoutFieldLayouts' => CheckoutFieldLayouts::class,

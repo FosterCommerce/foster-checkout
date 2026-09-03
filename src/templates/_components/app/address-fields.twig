@@ -57,6 +57,8 @@ since the array key will be the same #}
 	and craft.app.plugins.isPluginEnabled('avatax')
 	and (avatax.settings.enableAddressValidation ?? false) %}
 
+{% set suggestAddress = context == 'shippingAddress' and craft.fostercheckout.settings.addressLookup.enabled %}
+
 {% if verifyAddress %}
 	{# Scoped per cart, so a dismissal does not carry to the next order or another site #}
 	{% do view.registerJs(
@@ -74,6 +76,19 @@ since the array key will be the same #}
 	x-data="AddressVerification({ prefix: '{{ context }}' })"
 	@input="queueVerify()"
 	@selected.window="queueVerify()"
+	@addresschosen.window="dismiss()"
+>
+{% endif %}
+
+{% if suggestAddress %}
+<div
+	x-data="AddressAutocomplete({ prefix: '{{ context }}' })"
+	@keydown.down.prevent="move(1)"
+	@keydown.up.prevent="move(-1)"
+	@keydown.enter.prevent="activeIndex >= 0 && choose(suggestions[activeIndex])"
+	@keydown.escape="close()"
+	@click.outside="close()"
+	x-effect="syncField()"
 >
 {% endif %}
 
@@ -175,6 +190,10 @@ since the array key will be the same #}
 
 </div>
 
+{% if suggestAddress %}
+</div>
+{% endif %}
+
 {% if verifyAddress %}
 	<template x-if="suggestion">
 		<div class="mt-4 p-4 bg-gray-200 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? '' : 'rounded-lg' }}">
@@ -199,7 +218,7 @@ since the array key will be the same #}
 				>
 					{{ 'addressVerification.useSuggested'|t('foster-checkout') }}
 				</button>
-				<button type="button" class="text-sm underline text-gray-500" @click="keepMine()">
+				<button type="button" class="text-sm underline text-gray-500" @click="dismiss()">
 					{{ 'addressVerification.keepMine'|t('foster-checkout') }}
 				</button>
 			</div>

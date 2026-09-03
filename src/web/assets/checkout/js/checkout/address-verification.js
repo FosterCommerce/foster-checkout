@@ -166,7 +166,7 @@ export const AddressVerification = (props) => ({
 		this.suggestion = null;
 	},
 
-	keepMine() {
+	dismiss() {
 		this.dismissed = this.signature(this.entered());
 		localStorage.setItem(this.storageKey(), this.dismissed);
 		this.suggestion = null;
