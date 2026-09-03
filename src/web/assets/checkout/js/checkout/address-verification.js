@@ -28,6 +28,7 @@ export const AddressVerification = (props) => ({
 	suggestion: null,
 	verifying: false,
 	dismissed: '',
+	chosen: false,
 	timer: null,
 
 	init() {
@@ -70,6 +71,13 @@ export const AddressVerification = (props) => ({
 
 	async verify() {
 		const entered = this.entered();
+
+		if (this.chosen) {
+			this.chosen = false;
+			this.remember(entered);
+			this.suggestion = null;
+			return;
+		}
 
 		if (
 			!this.isComplete(entered) ||
@@ -167,9 +175,13 @@ export const AddressVerification = (props) => ({
 	},
 
 	dismiss() {
-		this.dismissed = this.signature(this.entered());
-		localStorage.setItem(this.storageKey(), this.dismissed);
+		this.remember(this.entered());
 		this.suggestion = null;
+	},
+
+	remember(address) {
+		this.dismissed = this.signature(address);
+		localStorage.setItem(this.storageKey(), this.dismissed);
 	},
 
 	formatted(address) {

@@ -7,8 +7,7 @@ Every setting is editable in the control panel under **Checkout**. A site may al
 | Screen | Config key | Holds |
 | --- | --- | --- |
 | **Appearance** | `branding` | Brand color, header background, Google font family, logo path, component style, field label placement, title prefix |
-| **Features** | `options` | Checkout page layout format, the other `enable*` switches, and the Klaviyo list ID. Blank list ID hides the newsletter checkbox. Multi-page is the default |
-| **Features** | `addressLookup` | Address suggestions as customers type: the provider, and the API key holding it |
+| **Features** | `options` and `addressLookup` | Checkout page layout format, the other `enable*` switches, and the Klaviyo list ID. Blank list ID hides the newsletter checkbox. Multi-page is the default |
 | **Line Items** | `lineItems` and `lineItemOptionRules` | Whether a line item shows its SKU, whether its options are shown, which option names are hidden, how far option values are cut, and the rules that rewrite an option's name and value |
 | **Products** | `products` | Per product type, the field holding the cart preview image. Blank falls back to the product's own image |
 | **Gateways** | `paymentGateways` | Per gateway: a field layout and extra payment form parameters |
@@ -44,13 +43,17 @@ Suggestions come from Google Places or Loqate, chosen on the Features screen. Ne
 
 Set the key to an environment variable name so it stays out of project config:
 
-```
+```sh
 FC_ADDRESS_LOOKUP_KEY=your-key-here
 ```
 
+Then set the control panel's API key field to `$FC_ADDRESS_LOOKUP_KEY`, not the key itself.
+
+Suggestions appear on the shipping address only, and are off until a provider and key are set. **Test the connection** on the Features screen runs one lookup and names the error, which is the only place a wrong key shows.
+
 Both providers bill per lookup, and the endpoint that calls them is public because the checkout is. **Cap the spend at the provider.** In Google Cloud, set a daily and a per-minute quota on the Places API. Loqate sells prepaid credit, which caps itself.
 
-Without a cap, a site has an unbounded bill reachable from a public URL. Neither the plugin nor Craft limits the rate.
+The plugin sets no rate limit of its own.
 
 A failed lookup is never shown to the customer. A revoked key, an exhausted account or an unreachable provider returns no suggestions, the reason is written to the log, and the customer types the address as they would with the feature turned off.
 

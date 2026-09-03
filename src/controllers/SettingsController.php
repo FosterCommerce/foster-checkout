@@ -15,6 +15,7 @@ use craft\services\ProjectConfig;
 use craft\web\Controller;
 use fostercommerce\fostercheckout\base\AddressLookupInterface;
 use fostercommerce\fostercheckout\FosterCheckout;
+use fostercommerce\fostercheckout\models\AddressLookupConfig;
 use fostercommerce\fostercheckout\models\LineItemOptionRule;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
@@ -235,10 +236,17 @@ class SettingsController extends Controller
 
 	public function actionTestAddressLookup(): Response
 	{
+		$this->requirePostRequest();
 		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_SETTINGS);
 
+		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
-		$provider = $plugin?->getAddressLookup()->provider();
+
+		// Test the key on screen, which is the one the admin just pasted
+		$posted = $this->request->getBodyParam('settings');
+		$lookup = is_array($posted) && is_array($posted['addressLookup'] ?? null) ? $posted['addressLookup'] : [];
+		$config = new AddressLookupConfig($lookup);
+		$provider = $plugin->getAddressLookup()->providerFor($config);
 
 		if (! $provider instanceof AddressLookupInterface) {
 			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.features.addressLookupTestOff'));

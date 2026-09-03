@@ -15,7 +15,22 @@ class AddressLookupConfig extends Model
 	public string $provider = self::PROVIDER_GOOGLE;
 
 	/**
-	 * An env var name such as `$FC_GOOGLE_PLACES_KEY`, so the key stays out of project config.
+	 * An env var name such as `$FC_ADDRESS_LOOKUP_KEY`, so the key stays out of project config.
 	 */
 	public ?string $apiKey = null;
+
+	/**
+	 * @return array<int, array<int|string, mixed>>
+	 */
+	#[\Override]
+	protected function defineRules(): array
+	{
+		return [
+			[
+				'provider',
+				'in',
+				'range' => [self::PROVIDER_GOOGLE, self::PROVIDER_LOQATE],
+			],
+		];
+	}
 }

@@ -79,10 +79,11 @@ class Loqate implements AddressLookupInterface
 	 */
 	private function request(string $url, array $query): array
 	{
+		// Posted rather than sent as a query parameter, which Guzzle repeats in its exception message
 		$response = Craft::createGuzzleClient([
 			'timeout' => self::TIMEOUT,
-		])->get($url, [
-			'query' => $query,
+		])->post($url, [
+			'form_params' => $query,
 		]);
 
 		$decoded = Json::decode((string) $response->getBody());

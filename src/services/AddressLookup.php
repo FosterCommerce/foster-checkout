@@ -14,9 +14,15 @@ class AddressLookup extends Component
 {
 	public function provider(): ?AddressLookupInterface
 	{
-		$config = FosterCheckout::getInstance()?->getCheckout()->settings()->addressLookup;
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
 
-		if (! $config instanceof AddressLookupConfig || ! $config->enabled) {
+		return $this->providerFor($plugin->getCheckout()->settings()->addressLookup);
+	}
+
+	public function providerFor(AddressLookupConfig $config): ?AddressLookupInterface
+	{
+		if (! $config->enabled) {
 			return null;
 		}
 
@@ -28,7 +34,8 @@ class AddressLookup extends Component
 
 		return match ($config->provider) {
 			AddressLookupConfig::PROVIDER_LOQATE => new Loqate($apiKey),
-			default => new Google($apiKey),
+			AddressLookupConfig::PROVIDER_GOOGLE => new Google($apiKey),
+			default => null,
 		};
 	}
 }

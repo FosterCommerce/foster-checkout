@@ -6,6 +6,7 @@ use Craft;
 use craft\web\Controller;
 use fostercommerce\fostercheckout\base\AddressLookupInterface;
 use fostercommerce\fostercheckout\FosterCheckout;
+use fostercommerce\fostercheckout\models\AddressSuggestion;
 use Throwable;
 use yii\web\Response;
 
@@ -14,7 +15,7 @@ use yii\web\Response;
  */
 class AddressLookupController extends Controller
 {
-	public array|bool|int $allowAnonymous = true;
+	protected array|bool|int $allowAnonymous = true;
 
 	public function actionSuggest(): Response
 	{
@@ -39,13 +40,15 @@ class AddressLookupController extends Controller
 				$this->bodyString('session'),
 			);
 		} catch (Throwable $throwable) {
+			$this->logFailure($throwable);
+
 			return $this->asJson([
-				'suggestions' => $this->failed($throwable),
+				'suggestions' => [],
 			]);
 		}
 
 		return $this->asJson([
-			'suggestions' => array_map(static fn ($suggestion): array => $suggestion->toArray(), $suggestions),
+			'suggestions' => array_map(static fn (AddressSuggestion $suggestion): array => $suggestion->toArray(), $suggestions),
 		]);
 	}
 
@@ -68,7 +71,7 @@ class AddressLookupController extends Controller
 				$this->bodyString('session'),
 			);
 		} catch (Throwable $throwable) {
-			$this->failed($throwable);
+			$this->logFailure($throwable);
 
 			return $this->asJson([
 				'address' => null,
@@ -80,16 +83,10 @@ class AddressLookupController extends Controller
 		]);
 	}
 
-	/**
-	 * A dead provider leaves the customer typing the address, so the reason is only logged.
-	 *
-	 * @return array<never>
-	 */
-	private function failed(Throwable $throwable): array
+	private function logFailure(Throwable $throwable): void
 	{
-		Craft::warning('Address lookup failed: ' . $throwable->getMessage(), 'foster-checkout');
-
-		return [];
+		// Suggestions are optional, so a provider failure is logged and returns none
+		Craft::warning('Address lookup failed: ' . $throwable->getMessage(), __METHOD__);
 	}
 
 	private function bodyString(string $name): string
@@ -101,6 +98,9 @@ class AddressLookupController extends Controller
 
 	private function provider(): ?AddressLookupInterface
 	{
-		return FosterCheckout::getInstance()?->getAddressLookup()->provider();
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $plugin->getAddressLookup()->provider();
 	}
 }

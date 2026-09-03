@@ -6820,6 +6820,7 @@ const AddressAutocomplete = (props) => ({
   session: "",
   timer: null,
   filling: false,
+  latestRequest: 0,
   listboxId() {
     return `${this.prefix || "address"}-suggestions`;
   },
@@ -6865,16 +6866,20 @@ const AddressAutocomplete = (props) => ({
     body.set("action", `foster-checkout/address-lookup/${action}`);
     body.set("session", this.sessionToken());
     Object.entries(fields).forEach(([key, value]) => body.set(key, value));
-    const response = await fetch(this.postUrl(), {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "X-Requested-With": "XMLHttpRequest"
-      },
-      body,
-      credentials: "same-origin"
-    });
-    return response.json();
+    try {
+      const response = await fetch(this.postUrl(), {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body,
+        credentials: "same-origin"
+      });
+      return response.ok ? await response.json() : {};
+    } catch {
+      return {};
+    }
   },
   queueSuggest() {
     if (this.filling) {
@@ -6890,17 +6895,23 @@ const AddressAutocomplete = (props) => ({
       this.close();
       return;
     }
+    this.latestRequest += 1;
+    const request = this.latestRequest;
     const data2 = await this.post("suggest", {
       query,
       countryCode: this.input("countryCode")?.value ?? "",
       container: this.container ?? ""
     });
+    if (request !== this.latestRequest) {
+      return;
+    }
     this.suggestions = data2.suggestions ?? [];
     this.activeIndex = -1;
     this.open = this.suggestions.length > 0;
   },
   // A street or postal district narrows the next search rather than filling the form
   async choose(suggestion) {
+    clearTimeout(this.timer);
     if (!suggestion.isFinal) {
       this.container = suggestion.id;
       await this.suggest();
@@ -6919,21 +6930,22 @@ const AddressAutocomplete = (props) => ({
     this.filling = true;
     FIELDS$1.forEach((attribute) => {
       const input = this.input(attribute);
-      if (!input || !address[attribute]) {
+      if (!input) {
         return;
       }
+      const value = address[attribute] ?? "";
       if (input.type === "hidden") {
         window.dispatchEvent(
           new CustomEvent("setvalue", {
             detail: {
               name: input.name,
-              value: address[attribute]
+              value
             }
           })
         );
         return;
       }
-      input.value = address[attribute];
+      input.value = value;
       input.dispatchEvent(new Event("input", { bubbles: true }));
       input.dispatchEvent(new Event("change", { bubbles: true }));
     });
@@ -6972,6 +6984,7 @@ const AddressVerification = (props) => ({
   suggestion: null,
   verifying: false,
   dismissed: "",
+  chosen: false,
   timer: null,
   init() {
     this.dismissed = localStorage.getItem(this.storageKey()) ?? "";
@@ -7005,6 +7018,12 @@ const AddressVerification = (props) => ({
   },
   async verify() {
     const entered = this.entered();
+    if (this.chosen) {
+      this.chosen = false;
+      this.remember(entered);
+      this.suggestion = null;
+      return;
+    }
     if (!this.isComplete(entered) || this.signature(entered) === this.dismissed) {
       this.suggestion = null;
       return;
@@ -7079,9 +7098,12 @@ const AddressVerification = (props) => ({
     this.suggestion = null;
   },
   dismiss() {
-    this.dismissed = this.signature(this.entered());
-    localStorage.setItem(this.storageKey(), this.dismissed);
+    this.remember(this.entered());
     this.suggestion = null;
+  },
+  remember(address) {
+    this.dismissed = this.signature(address);
+    localStorage.setItem(this.storageKey(), this.dismissed);
   },
   formatted(address) {
     return [

@@ -76,16 +76,17 @@ since the array key will be the same #}
 	x-data="AddressVerification({ prefix: '{{ context }}' })"
 	@input="queueVerify()"
 	@selected.window="queueVerify()"
-	@addresschosen.window="dismiss()"
+	@addresschosen.window="chosen = true"
 >
 {% endif %}
 
 {% if suggestAddress %}
 <div
 	x-data="AddressAutocomplete({ prefix: '{{ context }}' })"
-	@keydown.down.prevent="move(1)"
-	@keydown.up.prevent="move(-1)"
-	@keydown.enter.prevent="activeIndex >= 0 && choose(suggestions[activeIndex])"
+	{# .prevent fires before the expression, so it would swallow Enter for every field here #}
+	@keydown.down="if (open) { $event.preventDefault(); move(1) }"
+	@keydown.up="if (open) { $event.preventDefault(); move(-1) }"
+	@keydown.enter="if (open && activeIndex >= 0) { $event.preventDefault(); choose(suggestions[activeIndex]) }"
 	@keydown.escape="close()"
 	@click.outside="close()"
 	x-effect="syncField()"

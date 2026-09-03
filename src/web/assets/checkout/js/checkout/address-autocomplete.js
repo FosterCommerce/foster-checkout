@@ -18,6 +18,7 @@ export const AddressAutocomplete = (props) => ({
 	session: '',
 	timer: null,
 	filling: false,
+	latestRequest: 0,
 
 	listboxId() {
 		return `${this.prefix || 'address'}-suggestions`;
@@ -78,17 +79,21 @@ export const AddressAutocomplete = (props) => ({
 
 		Object.entries(fields).forEach(([key, value]) => body.set(key, value));
 
-		const response = await fetch(this.postUrl(), {
-			method: 'POST',
-			headers: {
-				Accept: 'application/json',
-				'X-Requested-With': 'XMLHttpRequest',
-			},
-			body,
-			credentials: 'same-origin',
-		});
+		try {
+			const response = await fetch(this.postUrl(), {
+				method: 'POST',
+				headers: {
+					Accept: 'application/json',
+					'X-Requested-With': 'XMLHttpRequest',
+				},
+				body,
+				credentials: 'same-origin',
+			});
 
-		return response.json();
+			return response.ok ? await response.json() : {};
+		} catch {
+			return {};
+		}
 	},
 
 	queueSuggest() {
@@ -110,11 +115,19 @@ export const AddressAutocomplete = (props) => ({
 			return;
 		}
 
+		this.latestRequest += 1;
+		const request = this.latestRequest;
+
 		const data = await this.post('suggest', {
 			query,
 			countryCode: this.input('countryCode')?.value ?? '',
 			container: this.container ?? '',
 		});
+
+		// An earlier request can answer last, for a query the customer has moved on from
+		if (request !== this.latestRequest) {
+			return;
+		}
 
 		this.suggestions = data.suggestions ?? [];
 		this.activeIndex = -1;
@@ -123,6 +136,8 @@ export const AddressAutocomplete = (props) => ({
 
 	// A street or postal district narrows the next search rather than filling the form
 	async choose(suggestion) {
+		clearTimeout(this.timer);
+
 		if (!suggestion.isFinal) {
 			this.container = suggestion.id;
 			await this.suggest();
@@ -147,9 +162,11 @@ export const AddressAutocomplete = (props) => ({
 		FIELDS.forEach((attribute) => {
 			const input = this.input(attribute);
 
-			if (!input || !address[attribute]) {
+			if (!input) {
 				return;
 			}
+
+			const value = address[attribute] ?? '';
 
 			// A searchable select rebinds its hidden input from modelValue, so a direct write is overwritten
 			if (input.type === 'hidden') {
@@ -157,14 +174,14 @@ export const AddressAutocomplete = (props) => ({
 					new CustomEvent('setvalue', {
 						detail: {
 							name: input.name,
-							value: address[attribute],
+							value,
 						},
 					})
 				);
 				return;
 			}
 
-			input.value = address[attribute];
+			input.value = value;
 			input.dispatchEvent(new Event('input', { bubbles: true }));
 			input.dispatchEvent(new Event('change', { bubbles: true }));
 		});
