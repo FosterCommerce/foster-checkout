@@ -23,24 +23,22 @@ class ContentController extends Controller
 {
 	// `customersOrderNotes` is absent: it names an order field handle, so it is developer config.
 	/**
-	 * @var array<string, ?string>
+	 * @var list<string>
 	 */
 	private const array NOTE_KEYS = [
-		'cart' => null,
-		'emptyCart' => null,
-		'login' => null,
-		'email' => null,
-		'shippingAddress' => null,
-		'shippingMethod' => null,
-		'billing' => null,
-		'payment' => null,
-		'confirmation' => null,
-		'globalCheckout' => null,
-		'subscribe' => null,
-		'deliveryDateLabel' => null,
-		'deliveryDateMessage' => null,
-		'mistakeHeading' => 'enableMadeAMistake',
-		'mistakeText' => 'enableMadeAMistake',
+		'cart',
+		'emptyCart',
+		'login',
+		'email',
+		'shippingAddress',
+		'shippingMethod',
+		'billing',
+		'payment',
+		'confirmation',
+		'globalCheckout',
+		'subscribe',
+		'deliveryDateLabel',
+		'deliveryDateMessage',
 	];
 
 	/**
@@ -58,7 +56,7 @@ class ContentController extends Controller
 			// null for users with no editable sites, which would shadow whatever is passed here.
 			'contentSite' => $this->resolveSite(),
 			'showSiteMenu' => $this->showSiteMenu(),
-			'noteKeys' => $this->availableNoteKeys(),
+			'noteKeys' => self::NOTE_KEYS,
 			'notes' => $plugin->content->get('notes') ?? [],
 			'footerLinks' => $plugin->content->get('links.footerLinks') ?? [],
 			'gateways' => Commerce::getInstance()?->getGateways()->getAllGateways() ?? [],
@@ -90,7 +88,7 @@ class ContentController extends Controller
 		$content = $plugin->content->all();
 		$storedNotes = is_array($content['notes'] ?? null) ? $content['notes'] : [];
 
-		foreach ($this->availableNoteKeys() as $noteKey) {
+		foreach (self::NOTE_KEYS as $noteKey) {
 			$storedNotes[$noteKey] = (string) ($postedNotes[$noteKey] ?? '');
 		}
 
@@ -173,25 +171,6 @@ class ContentController extends Controller
 		}
 
 		return $gatewayHandles;
-	}
-
-	/**
-	 * @return array<int, string>
-	 */
-	private function availableNoteKeys(): array
-	{
-		/** @var Settings $settings */
-		$settings = $this->plugin()->getSettings();
-
-		$available = [];
-
-		foreach (self::NOTE_KEYS as $noteKey => $requiredOption) {
-			if ($requiredOption === null || $settings->options->{$requiredOption}) {
-				$available[] = $noteKey;
-			}
-		}
-
-		return $available;
 	}
 
 	/**

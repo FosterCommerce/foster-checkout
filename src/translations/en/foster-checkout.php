@@ -247,8 +247,6 @@ return [
 	'content.confirmationHelp' => 'Shown on the order confirmation page.',
 	'content.globalCheckout' => 'Global checkout note',
 	'content.globalCheckoutHelp' => 'Shown on every checkout step.',
-	'content.mistakeHeading' => '“Made a mistake” heading',
-	'content.mistakeHeadingHelp' => 'Heading for the “made a mistake” block on the order confirmation page.',
 	'content.subscribe' => 'Newsletter checkbox label',
 	'content.subscribeHelp' => 'Text beside the subscribe checkbox on the email step. Leave blank to hide the checkbox.',
 	'content.deliveryDateLabel' => 'Delivery date label',
@@ -265,8 +263,6 @@ return [
 	'content.footerLinkUrl' => 'URL',
 	'content.addFooterLink' => 'Add a link',
 
-	'content.mistakeText' => '“Made a mistake” text',
-	'content.mistakeTextHelp' => 'Body text for the “made a mistake” block on the order confirmation page.',
 
 	'settings.appearance.color' => 'Brand color',
 	'settings.appearance.colorHelp' => 'Primary color used for buttons and links throughout the checkout.',
@@ -299,8 +295,6 @@ return [
 	'settings.features.enablePlaceholderImagesHelp' => 'Show a “no image” placeholder for products without one.',
 	'settings.features.enablePageTransitions' => 'Page transitions',
 	'settings.features.enablePageTransitionsHelp' => 'Animate between checkout steps in browsers that support view transitions.',
-	'settings.features.enableMadeAMistake' => 'Made a mistake',
-	'settings.features.enableMadeAMistakeHelp' => 'Show the “made a mistake” heading and text on the order confirmation page.',
 	'settings.features.klaviyoListId' => 'Klaviyo list ID',
 	'settings.features.klaviyoListIdHelp' => 'List that the subscribe checkbox adds customers to. Leave blank to hide the checkbox.',
 

@@ -246,8 +246,6 @@ return [
 	'content.confirmationHelp' => 'Se muestra en la página de confirmación del pedido.',
 	'content.globalCheckout' => 'Nota global del pago',
 	'content.globalCheckoutHelp' => 'Se muestra en todos los pasos del pago.',
-	'content.mistakeHeading' => 'Título “Error en el pedido”',
-	'content.mistakeHeadingHelp' => 'Título del bloque “Error en el pedido” en la página de confirmación del pedido.',
 	'content.subscribe' => 'Etiqueta de la casilla de newsletter',
 	'content.subscribeHelp' => 'Texto junto a la casilla de suscripción en el paso de correo electrónico. Déjalo en blanco para ocultar la casilla.',
 	'content.deliveryDateLabel' => 'Etiqueta de la fecha de entrega',
@@ -264,8 +262,6 @@ return [
 	'content.footerLinkUrl' => 'URL',
 	'content.addFooterLink' => 'Añadir un enlace',
 
-	'content.mistakeText' => 'Texto “Error en el pedido”',
-	'content.mistakeTextHelp' => 'Texto del bloque “Error en el pedido” en la página de confirmación del pedido.',
 
 	'settings.appearance.color' => 'Color de marca',
 	'settings.appearance.colorHelp' => 'Color principal de los botones y enlaces en todo el proceso de pago.',
@@ -298,8 +294,6 @@ return [
 	'settings.features.enablePlaceholderImagesHelp' => 'Muestra un marcador “Sin imagen” para los productos que no tienen ninguna.',
 	'settings.features.enablePageTransitions' => 'Transiciones de página',
 	'settings.features.enablePageTransitionsHelp' => 'Anima el paso de una etapa a otra en los navegadores compatibles con view transitions.',
-	'settings.features.enableMadeAMistake' => 'Error en el pedido',
-	'settings.features.enableMadeAMistakeHelp' => 'Muestra el título y el texto “Error en el pedido” en la página de confirmación del pedido.',
 	'settings.features.klaviyoListId' => 'ID de lista de Klaviyo',
 	'settings.features.klaviyoListIdHelp' => 'Lista a la que la casilla de suscripción añade a los clientes. Déjalo en blanco para ocultar la casilla.',
 

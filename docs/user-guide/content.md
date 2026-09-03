@@ -9,7 +9,6 @@ All checkout copy is edited at **Checkout -> Content**. It is stored in the plug
 - **Payment method notes**, one per gateway configured in Commerce, shown when a customer picks that method.
 - **Footer links**, shown at the bottom of the cart and checkout pages.
 
-Fields for optional features appear only when that feature is on. The "Made a mistake" heading and text are hidden unless **Made a mistake** is enabled under **Checkout -> Features**.
 
 ## HTML and Twig
 

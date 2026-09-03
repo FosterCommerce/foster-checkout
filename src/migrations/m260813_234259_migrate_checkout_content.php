@@ -35,8 +35,6 @@ class m260813_234259_migrate_checkout_content extends Migration
 		'payment',
 		'order',
 		'globalCheckout',
-		'mistakeHeading',
-		'mistakeText',
 	];
 
 	#[\Override]

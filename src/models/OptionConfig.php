@@ -12,7 +12,7 @@ class OptionConfig extends Model
 	 *
 	 * @var list<string>
 	 */
-	private const array REMOVED_SETTINGS = ['enableFreeShippingMessage'];
+	private const array REMOVED_SETTINGS = ['enableFreeShippingMessage', 'enableMadeAMistake'];
 
 	/**
 	 * Whether to serve the single-page checkout. Existing sites stay on the stepped flow until this is turned on.
@@ -40,13 +40,6 @@ class OptionConfig extends Model
 	 * @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#browser_compatibility for browser compatibility
 	 */
 	public bool $enablePageTransitions = false;
-
-	/**
-	 * Whether to show the "Made a mistake" function on the order completed page
-	 *
-	 * If disabled then the heading and text will not be displayed
-	 */
-	public bool $enableMadeAMistake = false;
 
 	/**
 	 * The Klaviyo list ID to subscribe the customer to

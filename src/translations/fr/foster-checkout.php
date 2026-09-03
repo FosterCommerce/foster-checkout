@@ -245,8 +245,6 @@ return [
 	'content.confirmationHelp' => 'Affichée sur la page de confirmation de commande.',
 	'content.globalCheckout' => 'Note globale du paiement',
 	'content.globalCheckoutHelp' => 'Affichée à chaque étape du paiement.',
-	'content.mistakeHeading' => 'Titre « Erreur dans la commande »',
-	'content.mistakeHeadingHelp' => 'Titre du bloc « Erreur dans la commande » sur la page de confirmation de commande.',
 	'content.subscribe' => 'Libellé de la case newsletter',
 	'content.subscribeHelp' => 'Texte à côté de la case d’inscription à l’étape e-mail. Laisser vide pour masquer la case.',
 	'content.deliveryDateLabel' => 'Libellé de la date de livraison',
@@ -263,8 +261,6 @@ return [
 	'content.footerLinkUrl' => 'URL',
 	'content.addFooterLink' => 'Ajouter un lien',
 
-	'content.mistakeText' => 'Texte « Erreur dans la commande »',
-	'content.mistakeTextHelp' => 'Corps de texte du bloc « Erreur dans la commande » sur la page de confirmation de commande.',
 
 	'settings.appearance.color' => 'Couleur de la marque',
 	'settings.appearance.colorHelp' => 'Couleur principale des boutons et des liens dans tout le tunnel de paiement.',
@@ -297,8 +293,6 @@ return [
 	'settings.features.enablePlaceholderImagesHelp' => 'Affiche un visuel « aucune image » pour les produits qui n’en ont pas.',
 	'settings.features.enablePageTransitions' => 'Transitions de page',
 	'settings.features.enablePageTransitionsHelp' => 'Anime le passage d’une étape à l’autre dans les navigateurs qui prennent en charge les view transitions.',
-	'settings.features.enableMadeAMistake' => 'Erreur dans la commande',
-	'settings.features.enableMadeAMistakeHelp' => 'Affiche le titre et le texte « Erreur dans la commande » sur la page de confirmation de commande.',
 	'settings.features.klaviyoListId' => 'ID de liste Klaviyo',
 	'settings.features.klaviyoListIdHelp' => 'Liste à laquelle la case d’inscription ajoute les clients. Laisser vide pour masquer la case.',
 

@@ -14,6 +14,10 @@
 - Head and body includes are validated on save, so a path with no template behind it can no longer take the storefront down.
 - Payment gateways now use Craft's field layout designer. **Checkout -> Gateways** lists the gateways configured in Commerce, and each one opens its own screen with a field layout, layout columns and extra parameters.
 
+### Removed
+
+- Removed the “made a mistake” block from the order confirmation page, along with its `enableMadeAMistake` setting and its two content fields.
+
 ### Changed
 
 - A config file now overrides plugin settings per key rather than per top-level key, so pinning one setting leaves the rest of its screen editable.

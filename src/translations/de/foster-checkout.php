@@ -245,8 +245,6 @@ return [
 	'content.confirmationHelp' => 'Wird auf der Seite der Bestellbestätigung angezeigt.',
 	'content.globalCheckout' => 'Globaler Checkout-Hinweis',
 	'content.globalCheckoutHelp' => 'Wird in jedem Checkout-Schritt angezeigt.',
-	'content.mistakeHeading' => 'Überschrift „Fehler gemacht“',
-	'content.mistakeHeadingHelp' => 'Überschrift des Blocks „Fehler gemacht“ auf der Seite der Bestellbestätigung.',
 	'content.subscribe' => 'Beschriftung der Newsletter-Checkbox',
 	'content.subscribeHelp' => 'Text neben der Newsletter-Checkbox im Schritt E-Mail. Leer lassen, um die Checkbox auszublenden.',
 	'content.deliveryDateLabel' => 'Beschriftung des Liefertermins',
@@ -263,8 +261,6 @@ return [
 	'content.footerLinkUrl' => 'URL',
 	'content.addFooterLink' => 'Link hinzufügen',
 
-	'content.mistakeText' => 'Text „Fehler gemacht“',
-	'content.mistakeTextHelp' => 'Fließtext des Blocks „Fehler gemacht“ auf der Seite der Bestellbestätigung.',
 
 	'settings.appearance.color' => 'Markenfarbe',
 	'settings.appearance.colorHelp' => 'Hauptfarbe für Buttons und Links im gesamten Checkout.',
@@ -297,8 +293,6 @@ return [
 	'settings.features.enablePlaceholderImagesHelp' => 'Zeigt für Produkte ohne Bild einen Platzhalter „Kein Bild“.',
 	'settings.features.enablePageTransitions' => 'Seitenübergänge',
 	'settings.features.enablePageTransitionsHelp' => 'Animiert Übergänge zwischen Checkout-Schritten in Browsern, die View Transitions unterstützen.',
-	'settings.features.enableMadeAMistake' => 'Fehler gemacht',
-	'settings.features.enableMadeAMistakeHelp' => 'Zeigt Überschrift und Text „Fehler gemacht“ auf der Seite der Bestellbestätigung.',
 	'settings.features.klaviyoListId' => 'Klaviyo-Listen-ID',
 	'settings.features.klaviyoListIdHelp' => 'Liste, der Kunden über die Newsletter-Checkbox hinzugefügt werden. Leer lassen, um die Checkbox auszublenden.',
 
