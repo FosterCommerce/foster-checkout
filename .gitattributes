@@ -1,0 +1,24 @@
+# Do not export those files in the Composer archive (lighter dependency)
+.editorconfig export-ignore
+.gitattributes export-ignore
+.github/** export-ignore
+.gitignore export-ignore
+.idea/** export-ignore
+.jshintrc export-ignore
+.nvmrc export-ignore
+.prettierrc export-ignore
+CHANGELOG.md export-ignore
+composer.lock export-ignore
+docs/** export-ignore
+ecs.php export-ignore
+eslint.config.js export-ignore
+package-lock.json export-ignore
+package.json export-ignore
+phpstan.neon export-ignore
+README.md export-ignore
+rector.php export-ignore
+resources/** export-ignore
+vite.config.js export-ignore
+
+# Auto-detect text files and perform LF normalization
+* text=auto

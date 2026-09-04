@@ -294,8 +294,6 @@ return [
 	'settings.features.enableSinglePageCheckoutOn' => 'Einseitig',
 	'settings.features.enableSaveForLater' => 'Für später speichern',
 	'settings.features.enableSaveForLaterHelp' => 'Button „Für später speichern“ bei Warenkorbpositionen anzeigen.',
-	'settings.features.enableEstimatedShipping' => 'Versandkostenrechner',
-	'settings.features.enableEstimatedShippingHelp' => 'Kunden können die Versandkosten im Warenkorb schätzen.',
 	'settings.features.enablePlaceholderImages' => 'Platzhalterbilder',
 	'settings.features.enablePlaceholderImagesHelp' => 'Zeigt für Produkte ohne Bild einen Platzhalter „Kein Bild“.',
 	'settings.features.enablePageTransitions' => 'Seitenübergänge',

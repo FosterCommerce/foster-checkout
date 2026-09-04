@@ -291,8 +291,6 @@ return [
 	'settings.features.enableSinglePageCheckoutOn' => 'Single-page',
 	'settings.features.enableSaveForLater' => 'Save for later',
 	'settings.features.enableSaveForLaterHelp' => 'Show the “save for later” button on cart line items.',
-	'settings.features.enableEstimatedShipping' => 'Shipping estimator',
-	'settings.features.enableEstimatedShippingHelp' => 'Let customers estimate shipping costs from the cart.',
 	'settings.features.enablePlaceholderImages' => 'Placeholder images',
 	'settings.features.enablePlaceholderImagesHelp' => 'Show a “no image” placeholder for products without one.',
 	'settings.features.enablePageTransitions' => 'Page transitions',

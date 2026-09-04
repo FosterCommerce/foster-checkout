@@ -2,10 +2,13 @@
 	"name": "fostercommerce/craft-foster-checkout",
 	"description": "A drop-in best practice checkout process for Craft Commerce",
 	"type": "craft-plugin",
-	"license": "mit",
-	"version": "1.0.0",
+	"license": "proprietary",
 	"support": {
-		"email": "support@fostercommerce.com"
+		"email": "support@fostercommerce.com",
+		"issues": "https://github.com/FosterCommerce/foster-checkout/issues?state=open",
+		"source": "https://github.com/FosterCommerce/foster-checkout",
+		"docs": "https://github.com/FosterCommerce/foster-checkout",
+		"rss": "https://github.com/FosterCommerce/foster-checkout/releases.atom"
 	},
 	"require": {
 		"php": "^8.3",
@@ -21,7 +24,7 @@
 		"handle": "foster-checkout",
 		"name": "Foster Checkout",
 		"developer": "Foster Commerce",
-		"documentationUrl": "",
+		"documentationUrl": "https://github.com/FosterCommerce/foster-checkout",
 		"class": "fostercommerce\\fostercheckout\\FosterCheckout"
 	},
 	"config": {

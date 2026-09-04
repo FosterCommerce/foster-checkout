@@ -295,8 +295,6 @@ return [
 	'settings.features.enableSinglePageCheckoutOn' => 'Una sola página',
 	'settings.features.enableSaveForLater' => 'Guardar para más tarde',
 	'settings.features.enableSaveForLaterHelp' => 'Muestra el botón “Guardar para más tarde” en las líneas del carrito.',
-	'settings.features.enableEstimatedShipping' => 'Estimador de envío',
-	'settings.features.enableEstimatedShippingHelp' => 'Permite a los clientes estimar los gastos de envío desde el carrito.',
 	'settings.features.enablePlaceholderImages' => 'Imágenes de marcador',
 	'settings.features.enablePlaceholderImagesHelp' => 'Muestra un marcador “Sin imagen” para los productos que no tienen ninguna.',
 	'settings.features.enablePageTransitions' => 'Transiciones de página',

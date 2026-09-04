@@ -294,8 +294,6 @@ return [
 	'settings.features.enableSinglePageCheckoutOn' => 'Page unique',
 	'settings.features.enableSaveForLater' => 'Enregistrer pour plus tard',
 	'settings.features.enableSaveForLaterHelp' => 'Affiche le bouton « Enregistrer pour plus tard » sur les lignes du panier.',
-	'settings.features.enableEstimatedShipping' => 'Estimateur de livraison',
-	'settings.features.enableEstimatedShippingHelp' => 'Permet aux clients d’estimer les frais de livraison depuis le panier.',
 	'settings.features.enablePlaceholderImages' => 'Images de remplacement',
 	'settings.features.enablePlaceholderImagesHelp' => 'Affiche un visuel « aucune image » pour les produits qui n’en ont pas.',
 	'settings.features.enablePageTransitions' => 'Transitions de page',

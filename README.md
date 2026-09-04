@@ -88,7 +88,7 @@ See [`docs/reference/permissions.md`](./docs/reference/permissions.md).
 
 ## License
 
-MIT.
+Proprietary.
 
 ## Documentation
 
