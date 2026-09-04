@@ -25,6 +25,53 @@ Other keys on the General screen:
 | Customer order notes field | `customerOrderNotesFieldHandle` | Field on Orders holding the customer's note. Blank hides the order notes form |
 | Content translation method | `contentTranslationMethod` | See below |
 
+## Defaults
+
+Every setting and its default, as the plugin ships.
+
+| Setting | Config key | Default |
+| --- | --- | --- |
+| Brand color | `branding.color` | `#1F2937` |
+| Header background | `branding.headerBgColor` | `#F3F3F3` |
+| Google font family | `branding.font` | `Rubik` |
+| Logo path | `branding.logo` | empty |
+| Component style | `branding.style` | `rounded` |
+| Field label placement | `branding.labelStyle` | `floating` |
+| Title prefix | `branding.title` | empty |
+| Favicon set | `branding.faviconConfig` | empty |
+| Checkout layout | `options.enableSinglePageCheckout` | `false` |
+| Save for later | `options.enableSaveForLater` | `false` |
+| Placeholder images | `options.enablePlaceholderImages` | `false` |
+| Page transitions | `options.enablePageTransitions` | `false` |
+| Verify shipping addresses | `options.enableAddressVerification` | `false` |
+| Shipping estimator | `options.enableEstimatedShipping` | `false` |
+| Klaviyo list ID | `options.klaviyoListId` | none |
+| Payment due date field | `options.paymentDueDateFieldHandle` | none |
+| Imager X transform | `options.imagerXConfig` | none |
+| Address suggestions | `addressLookup.enabled` | `false` |
+| Suggestion provider | `addressLookup.provider` | `google` |
+| Suggestion API key | `addressLookup.apiKey` | none |
+| Show line item SKU | `lineItems.showLineItemSku` | `true` |
+| Show line item options | `lineItems.enableLineItemOptions` | `true` |
+| Hidden option prefix | `lineItems.hiddenLineItemOptionPrefix` | `_` |
+| Option value length limit | `lineItems.lineItemOptionValueMaxLength` | none |
+| Cart path | `paths.cart` | `cart` |
+| Use the built-in cart template | `paths.useCartTemplate` | `true` |
+| Checkout path | `paths.checkout` | `checkout` |
+| Cancel path | `paths.cancel` | `/` |
+| Account path | `paths.account` | `/` |
+| Content translation method | `contentTranslationMethod` | `site` |
+| Customer order notes field | `customerOrderNotesFieldHandle` | none |
+| Priority countries | `priorityCountries` | empty |
+| Hidden address fields | `hiddenAddressFields` | empty |
+| Required address fields | `requiredAddressFields` | empty |
+| Zero value gateways | `zeroValueGatewayHandles` | empty |
+| Line item option rules | `lineItemOptionRules` | empty |
+| Product image fields | `products` | empty |
+| Payment gateway params | `paymentGateways` | empty |
+
+Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig`, `options.paymentDueDateFieldHandle`, `options.imagerXConfig`, `options.enableEstimatedShipping` and the delivery date keys.
+
 ## What overrides what
 
 The config file is merged over stored settings on every request, so a key set in the file always wins. That field is shown disabled with a warning naming it, and a posted value for a pinned key is discarded server side.

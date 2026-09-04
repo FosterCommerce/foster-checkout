@@ -107,14 +107,13 @@ return [
 	// Branding Settings
 	// 'branding' => [
 	// The brand primary custom color in HEX color
-	// 'color' => '#333333',
+	// 'color' => '#1F2937',
 
 	// The background color of the header in HEX color
 	// 'headerBgColor' => '#F3F3F3',
 
 	// The Google web font (https://fonts.google.com/) family name you want to use
-	// (ex. 'Roboto Slab')
-	// 'font' => 'Roboto Slab',
+	// 'font' => 'Rubik',
 
 	// The relative path from the web root of the logo file
 	// (ex. '/assets/images/logo.svg')
@@ -122,6 +121,9 @@ return [
 
 	// The general component styles. Either 'rounded' (default) or 'flat'
 	// 'style' => 'rounded',
+
+	// Whether a field's label sits inside the field or above it
+	// 'labelStyle' => 'floating', // floating|stacked
 
 	// The first part of the text in the title meta tag.
 	// Leave blank to use the Craft's siteName

@@ -50,6 +50,24 @@ Values are left alone unless a rule sets one, which keeps free text as the custo
 
 See [`docs/user-guide/line-items.md`](./docs/user-guide/line-items.md).
 
+## Checkout fields
+
+Ask a customer for anything the checkout does not collect. Five positions across the checkout each hold a field layout, and a field added to one is shown at that point. Fields have to exist on the order first, and a required field on the summary blocks the cart rather than payment.
+
+See [`docs/user-guide/checkout-fields.md`](./docs/user-guide/checkout-fields.md).
+
+## Single-page checkout
+
+Run the checkout as one page instead of separate steps. The cart saves as the customer types, and every other setting applies to both layouts, so a store can switch without reconfiguring anything.
+
+See [`docs/user-guide/single-page-checkout.md`](./docs/user-guide/single-page-checkout.md).
+
+## Address verification and suggestions
+
+Catch a bad shipping address before it reaches fulfillment. Avalara returns a corrected address the customer can accept, or Google Places and Loqate suggest addresses as they type. Both need their own account and key.
+
+See [`docs/reference/settings.md`](./docs/reference/settings.md).
+
 ## Custom includes
 
 Two of your own templates can be injected into every cart and checkout page, one into the head and one before the closing body tag, for analytics, tracking pixels or support widgets. Each receives the current context, step and cart, so a single template can target one step or run across all of them.
