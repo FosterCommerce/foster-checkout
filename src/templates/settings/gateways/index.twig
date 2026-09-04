@@ -1,0 +1,48 @@
+{% extends "foster-checkout/_layouts/settings" %}
+{% do view.registerAssetBundle('fostercommerce\\fostercheckout\\web\\assets\\cp\\CpAsset') %}
+
+{# @var settings \fostercommerce\fostercheckout\models\Settings #}
+
+{% set selectedSubnavItem = 'gateways' %}
+{% set title = 'nav.gateways'|t('foster-checkout') %}
+{% set docTitle = title %}
+
+{% set overridden = 'paymentGateways' in overriddenSettings %}
+
+{% block content %}
+
+	<p>{{ 'settings.gateways.intro'|t('foster-checkout') }}</p>
+
+	{% if gateways is empty %}
+		<p class="light">{{ 'settings.gateways.none'|t('foster-checkout') }}</p>
+	{% else %}
+		<table class="data fullwidth">
+			<thead>
+				<tr>
+					<th scope="col">{{ 'settings.gateways.gateway'|t('foster-checkout') }}</th>
+					<th scope="col">{{ 'settings.gateways.fields'|t('foster-checkout') }}</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for gateway in gateways %}
+					{% set gatewayFields = craft.fostercheckout.gatewayFields(gateway.handle) %}
+					<tr>
+						<th scope="row" data-title="{{ 'settings.gateways.gateway'|t('foster-checkout') }}">
+							<a href="{{ url('foster-checkout/settings/gateways/' ~ gateway.handle) }}">{{ gateway.name }}</a>
+							<span class="light code">{{ gateway.handle }}</span>
+						</th>
+						<td data-title="{{ 'settings.gateways.fields'|t('foster-checkout') }}">
+							{%- if gatewayFields|length -%}
+								{{ gatewayFields|column('label')|join(', ') }}
+							{%- else -%}
+								<span class="light">{{ 'settings.gateways.noFields'|t('foster-checkout') }}</span>
+							{%- endif -%}
+						</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	{% endif %}
+	{% include 'foster-checkout/_includes/plugin-footer' %}
+
+{% endblock %}

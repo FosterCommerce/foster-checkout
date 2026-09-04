@@ -1,8 +1,3 @@
-{# Check for any custom fields that are setup in address field layouts (we are only getting plain text fields for now) #}
-{% set addressFieldLayout = craft.app.getAddresses().getFieldLayout() %}
-{% set addressCustomFields = addressFieldLayout.getCustomFields()|filter(field => className(field) == 'craft\\fields\\PlainText') %}
-
-{# Set defaults for context and the address object, in case they are null #}
 {% set context = context ?? '' %}
 {% set address = address ?? null %}
 {% set errors = address ? address.getErrors : {} %}
@@ -27,6 +22,12 @@ since the array key will be the same #}
 	'fc-address-required-fields'
 ) %}
 
+{% do view.registerJs(
+	'window.fcAddressUsedFields = ' ~ craft.fostercheckout.addressUsedFields()|json_encode ~ ';',
+	constant('craft\\web\\View::POS_HEAD'),
+	'fc-address-used-fields'
+) %}
+
 {% if pinnedCountries|length > 0 %}
 	{% set countries = countries|filter((value, key) => key not in pinnedCountries|keys) %}
 {% endif %}
@@ -48,6 +49,51 @@ since the array key will be the same #}
 	}]) %}
 {% endfor %}
 
+{# AvaTax's endpoint answers even when its own validation setting is off #}
+{% set avatax = craft.app.plugins.getPlugin('avatax') %}
+{% set verifyAddress = context == 'shippingAddress'
+	and craft.fostercheckout.settings.options.enableAddressVerification
+	and craft.app.plugins.isPluginEnabled('avatax')
+	and (avatax.settings.enableAddressValidation ?? false) %}
+
+{# One address tool at a time, and verification checks the address the customer settled on #}
+{% set suggestAddress = not verifyAddress
+	and context == 'shippingAddress'
+	and craft.fostercheckout.settings.addressLookup.enabled %}
+
+{% if verifyAddress %}
+	{# Scoped per cart, so a dismissal does not carry to the next order or another site #}
+	{% do view.registerJs(
+		'window.FC_ADDRESS_DISMISSED_KEY = ' ~ [
+			'fc_address_dismissed',
+			craft.app.request.hostName,
+			currentSite.id,
+			currentSite.language,
+			craft.commerce.carts.cart.number
+		]|join('_')|json_encode|raw ~ ';',
+		constant('craft\\web\\View::POS_HEAD'),
+		'fc-address-dismissed-key'
+	) %}
+<div
+	x-data="AddressVerification({ prefix: '{{ context }}' })"
+	@input="queueVerify()"
+	@selected.window="queueVerify()"
+>
+{% endif %}
+
+{% if suggestAddress %}
+<div
+	x-data="AddressAutocomplete({ prefix: '{{ context }}' })"
+	{# .prevent fires before the expression, so .prevent runs before the expression, so Enter would be blocked on every field #}
+	@keydown.down="if (open) { $event.preventDefault(); move(1) }"
+	@keydown.up="if (open) { $event.preventDefault(); move(-1) }"
+	@keydown.enter="if (open && activeIndex >= 0) { $event.preventDefault(); choose(suggestions[activeIndex]) }"
+	@keydown.escape="close()"
+	@click.outside="close()"
+	x-effect="syncField()"
+>
+{% endif %}
+
 <div
 	x-data="{
 		countryCode: '{{ address ? address.countryCode : '' }}',
@@ -56,186 +102,129 @@ since the array key will be the same #}
 		pinnedCountries: {{ pinnedCountries|json_encode }},
 		requiredFields: () => window.fcAddressRequiredFields,
 		errors: {{ errors|json_encode }},
+		isUsed(attribute) {
+			const usedFields = window.fcAddressUsedFields[this.countryCode];
+			// Before a country is picked there is no format to go on, so nothing is hidden yet
+			return !usedFields || usedFields.includes(attribute);
+		},
 	}"
-	class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-3"
+	class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12"
 	@selected.window="if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') { administrativeArea = '' }"
 >
-	<div class="sm:col-span-3">
-		{% include 'foster-checkout/_components/base/input-select-searchable' with {
-			context: context,
-			id: 'countryCode',
-			model: 'countryCode',
-			name: 'countryCode',
-			options: countriesArr,
-			label: 'addressFields.countryLabel'|t('foster-checkout'),
-			placeholder: 'addressFields.select'|t('foster-checkout'),
-			required: true,
-			value: address ? address.countryCode : '',
-			errors: errors.countryCode ?? [],
-			autocomplete: 'country-name'
-		} %}
-		<template x-if="'countryCode' in errors">
-			<div
-				id="{{ 'countryCode'|namespaceInputId(context) }}-error"
-				class="mt-1 text-sm text-red-500"
-				x-text="errors.countryCode ? errors.countryCode.join(' ') : ''">
-			</div>
-		</template>
-	</div>
-
-	<div class="sm:col-span-3">
-		{% include 'foster-checkout/_components/base/input-text-clearable' with {
-			addressScope: true,
-			context: context,
-			label: 'addressFields.fullnameLabel'|t('foster-checkout'),
-			id: 'fullName',
-			name: 'fullName',
-			type: 'text',
-			autocomplete: 'name',
-			placeholder: 'addressFields.fullnamePlaceholder'|t('foster-checkout'),
-			value: address ? address.fullName|e('js') : '',
-			required: true,
-			errors: errors.fullName ?? []
-		} %}
-	</div>
-
-	<div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:col-span-3">
-		{% include 'foster-checkout/_components/base/input-text-clearable' with {
-			addressScope: true,
-			context: context,
-			label: 'addressFields.addressLabel'|t('foster-checkout'),
-			id: 'addressLine1',
-			name: 'addressLine1',
-			type: 'text',
-			autocomplete: 'address-line1',
-			placeholder: 'addressFields.addressPlaceholder'|t('foster-checkout'),
-			value: address ? address.addressLine1|e('js') : '',
-			required: true,
-			errors: errors.addressLine1 ?? []
-		} %}
-
-		{% include 'foster-checkout/_components/base/input-text-clearable' with {
-			addressScope: true,
-			context: context,
-			label: 'addressFields.address2Label'|t('foster-checkout'),
-			hideLabel: true,
-			id: 'addressLine2',
-			name: 'addressLine2',
-			type: 'text',
-			autocomplete: 'address-line2',
-			placeholder: 'addressFields.address2Placeholder'|t('foster-checkout'),
-			value: address ? address.addressLine2|e('js') : '',
-			errors: errors.addressLine2 ?? []
-		} %}
-
-		{% include 'foster-checkout/_components/base/input-text-clearable' with {
-			addressScope: true,
-			context: context,
-			label: 'Line 3',
-			hideLabel: true,
-			id: 'addressLine3',
-			name: 'addressLine3',
-			type: 'text',
-			autocomplete: 'address-line3',
-			placeholder: '',
-			value: address ? address.addressLine3|e('js') : '',
-			errors: errors.addressLine3 ?? []
-		} %}
-	</div>
-
-	<div class="sm:col-span-1">
-		{% include 'foster-checkout/_components/base/input-text-clearable' with {
-			addressScope: true,
-			context: context,
-			label: 'addressFields.cityLabel'|t('foster-checkout'),
-			id: 'locality',
-			name: 'locality',
-			type: 'text',
-			autocomplete: 'address-level2',
-			placeholder: 'addressFields.cityPlaceholder'|t('foster-checkout'),
-			value: address ? address.locality|e('js') : '',
-			required: true,
-			errors: errors.locality ?? []
-		} %}
-	</div>
-
-	{% include 'foster-checkout/_components/app/address-region-field' with {
-		context: context,
-		address: address
-	} %}
-
-	<div class="sm:col-span-1">
-		{% include 'foster-checkout/_components/base/input-text-clearable' with {
-			addressScope: true,
-			context: context,
-			label: 'addressFields.postcodeLabel'|t('foster-checkout'),
-			id: 'postalCode',
-			name: 'postalCode',
-			type: 'text',
-			autocomplete: 'postal-code',
-			placeholder: 'addressFields.postcodePlaceholder'|t('foster-checkout'),
-			value: address ? address.postalCode|e('js') : '',
-			required: true,
-			errors: errors.postalCode ?? []
-		} %}
-	</div>
-
-	{% for customField in addressCustomFields %}
-
-		<div class="sm:col-span-3">
-
-			{% if customField.multiline %}
-
-				<label for="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}"
-					   class="block text-sm font-medium text-gray-700">
-					{{ customField.name|t('foster-checkout') }}{% if customField.required %}*{% endif %}
-				</label>
-
-				<textarea
-					id="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}"
-					name="{{ context ? ('fields[' ~ customField.handle ~ ']')|namespaceInputName(context) : ('fields[' ~ customField.handle ~ ']') }}"
-					class="w-full p-4 bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
-					:class="'{{ customField.handle }}' in errors ? 'border-red-500 focus:border-red-500' : 'border-gray-500 focus:border-black'"
-					rows="{{ customField.initialRows }}"
-					{% if not customField.required %}
-						aria-describedby="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}-optional"
-					{% endif %}
-					:aria-invalid="'{{ customField.handle }}' in errors"
-					aria-errormessage="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}-error"
-					placeholder="{{ customField.placeholder }}"
-					@input="if ($el.value) delete errors.{{ customField.handle }}"
-					{% if customField.required %}
-						required
-					{% endif %}
-				>{{ address ? address[customField.handle]|e('js') : '' }}</textarea>
-
-				<template x-if="'{{ customField.handle }}' in errors">
+	{% for element in craft.fostercheckout.addressFields(address) %}
+		{# The layout stores width as a percentage; the grid is in twelfths #}
+		<div class="sm:col-span-{{ (element.width / 100 * 12)|round }}">
+			{% if element.type == 'country' %}
+				{% include 'foster-checkout/_components/base/input-select-searchable' with {
+					context: context,
+					id: 'countryCode',
+					model: 'countryCode',
+					name: 'countryCode',
+					options: countriesArr,
+					label: 'addressFields.countryLabel'|t('foster-checkout'),
+					placeholder: 'addressFields.select'|t('foster-checkout'),
+					required: true,
+					value: address ? address.countryCode : '',
+					errors: errors.countryCode ?? [],
+					autocomplete: 'country-name'
+				} %}
+				<template x-if="'countryCode' in errors">
 					<div
-						id="{{ ('custom-field-' ~ customField.handle)|namespaceInputId(context) }}-error"
+						id="{{ 'countryCode'|namespaceInputId(context) }}-error"
 						class="mt-1 text-sm text-red-500"
-						x-text="errors.{{ customField.handle }} ? errors.{{ customField.handle }}.join(' ') : ''">
+						x-text="errors.countryCode ? errors.countryCode.join(' ') : ''">
 					</div>
 				</template>
-
-
-			{% else %}
+			{% elseif element.type == 'fullName' %}
 				{% include 'foster-checkout/_components/base/input-text-clearable' with {
-					addressScope: true,
 					context: context,
-					label: customField.name|t('foster-checkout'),
-					id: 'custom-field-' ~ customField.handle,
-					name: 'fields[' ~ customField.handle ~ ']',
+					label: 'addressFields.fullnameLabel'|t('foster-checkout'),
+					id: 'fullName',
+					name: 'fullName',
 					type: 'text',
-					placeholder: customField.placeholder|t('foster-checkout'),
-					value: address ? address[customField.handle]|e('js') : '',
-					required: customField.layoutElement.required,
-					errors: errors[customField.handle] ?? []
+					autocomplete: 'name',
+					placeholder: 'addressFields.fullnamePlaceholder'|t('foster-checkout'),
+					value: address ? address.fullName|e('js') : '',
+					required: element.required,
+					errors: errors.fullName ?? []
 				} %}
-
+			{% elseif element.type == 'organization' %}
+				{% include 'foster-checkout/_components/base/input-text-clearable' with {
+					context: context,
+					label: 'addressFields.organizationLabel'|t('foster-checkout'),
+					id: 'organization',
+					name: 'organization',
+					type: 'text',
+					autocomplete: 'organization',
+					value: address ? address.organization|e('js') : '',
+					required: element.required,
+					errors: errors.organization ?? []
+				} %}
+			{% elseif element.type == 'organizationTaxId' %}
+				{% include 'foster-checkout/_components/base/input-text-clearable' with {
+					context: context,
+					label: 'addressFields.organizationTaxIdLabel'|t('foster-checkout'),
+					id: 'organizationTaxId',
+					name: 'organizationTaxId',
+					type: 'text',
+					value: address ? address.organizationTaxId|e('js') : '',
+					required: element.required,
+					errors: errors.organizationTaxId ?? []
+				} %}
+			{% elseif element.type == 'address' %}
+				{% include 'foster-checkout/_components/app/address-block' with {
+					context: context,
+					address: address,
+					errors: errors,
+				} %}
+			{% else %}
+				{# Prefixed so a custom field handle cannot collide with a native address attribute id #}
+				{% include 'foster-checkout/_components/app/checkout-field' with {
+					field: element.field,
+					context: context,
+					idPrefix: 'custom-field-',
+					value: address ? address[element.field.handle] : '',
+					errors: errors[element.field.handle] ?? [],
+				} %}
 			{% endif %}
-
 		</div>
-
 	{% endfor %}
 
 </div>
+
+{% if suggestAddress %}
+</div>
+{% endif %}
+
+{% if verifyAddress %}
+	<template x-if="suggestion">
+		<div class="mt-4 p-4 bg-gray-200 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? '' : 'rounded-lg' }}">
+			<p class="font-semibold text-black">{{ 'addressVerification.heading'|t('foster-checkout') }}</p>
+
+			<div class="grid grid-cols-1 gap-4 mt-4 sm:grid-cols-2">
+				<div>
+					<p class="text-sm text-gray-500">{{ 'addressVerification.entered'|t('foster-checkout') }}</p>
+					<p class="text-black" x-text="formatted(suggestion.entered)"></p>
+				</div>
+				<div>
+					<p class="text-sm text-gray-500">{{ 'addressVerification.suggested'|t('foster-checkout') }}</p>
+					<p class="text-black" x-text="formatted(suggestion.suggested)"></p>
+				</div>
+			</div>
+
+			<div class="flex flex-wrap items-center gap-4 mt-4">
+				<button
+					type="button"
+					class="h-[48px] flex justify-center items-center px-4 text-white bg-[var(--brandColor)] rounded-xl"
+					@click="useSuggested()"
+				>
+					{{ 'addressVerification.useSuggested'|t('foster-checkout') }}
+				</button>
+				<button type="button" class="text-sm underline text-gray-500" @click="dismiss()">
+					{{ 'addressVerification.keepMine'|t('foster-checkout') }}
+				</button>
+			</div>
+		</div>
+	</template>
+</div>
+{% endif %}

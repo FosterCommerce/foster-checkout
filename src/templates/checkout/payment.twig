@@ -1,3 +1,7 @@
+{% if craft.fostercheckout.settings.options.isSinglePageCheckout %}
+	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) %}
+{% endif %}
+
 {% extends 'foster-checkout/_layouts/default' %}
 
 {% block head %}
@@ -23,7 +27,7 @@
 	{% set gateways = cart.getAvailableGateways() %}
 	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
 
-	{# ---- Gateway cart-truthy init ---- #}
+	{# Gateway seeded from the cart #}
 	{% set _cartGatewayId = cart.gatewayId ?? (gateways|length ? gateways[0].id : null) %}
 	{% set _gatewayIds = gateways|map(g => g.id) %}
 	{% set _hasGateway = _cartGatewayId and (_cartGatewayId in _gatewayIds) %}
@@ -36,14 +40,14 @@
 		  gatewayId: {{ _initialGatewayId ?: 'null' }},
 		}"
 	>
-		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6 xl:gap-8">
 			<main class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
+					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
+
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'payment' } %}
 
 					{{ include('foster-checkout/_components/app/flash-message') }}
-
-					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
 
 					<div class="border border-gray-250 rounded-lg overflow-hidden {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 						<h2 class="p-4 font-semibold bg-gray-200">
@@ -52,7 +56,6 @@
 
 						<div class="grid grid-cols-1 gap-5 xl:gap-6 p-4">
 
-							{# Optional note #}
 							{% set note = craft.fostercheckout.note('payment', {cart}) %}
 							{% if note %}
 								<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
@@ -62,9 +65,9 @@
 
 
 
-							{# ===================== GIFT VOUCHER SECTION ======================== #}
 							<section>
 								{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
+									{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 									<div class="my-6" x-data="{ sending: false }">
 
 										<h3 class="px-4 mb-4 font-semibold xl:px-0">
@@ -73,9 +76,7 @@
 
 										{% set voucherCodeError = cart.getFirstError('voucherCode') ?? null %}
 
-										{# If there are no gift voucher code errors #}
 										{% set voucherCodeSuccess = craft.app.session.getFlash('success') ?? null %}
-										{# Not working for now #}
 
 										{% if voucherCodeError %}
 											{% set voucherMessage = voucherCodeError %}
@@ -116,19 +117,17 @@
 										</div>
 
 
-										{# Check for applied / redeemed gift card vouchers in orders #}
 
 										{% set voucherAdjustments = cart.adjustments|filter(adjustment => adjustment.type == 'voucher') %}
 
 										{% if voucherAdjustments|length %}
-											<div class="border-gray-400 border-b flex flex-col space-y-2 py-4 px-4 xl:px-0">
+											<div class="flex flex-col space-y-2 p-4 mt-4 mx-4 xl:mx-0 bg-gray-200 {{ isFlat ? '' : 'rounded-lg' }}">
 												<p class="text-gray-500 m-0">
 													{{ 'voucher.appliedCodesHeading'|t('foster-checkout') }}:
 												</p>
 												<ul class="text-gray-500 m-0 list-disc">
 													{% for adj in voucherAdjustments %}
-														{% set matches = adj.description|split('code ') %}
-														{% set code = matches|length > 1 ? matches[1]|trim("'") : 'Voucher/Gift Card' %}
+														{% set code = craft.fostercheckout.voucherLabel(adj) %}
 														<li class="ml-5">{{ code }}
 															({{ adj.amount|abs|currency }}
 															applied)</li>
@@ -141,7 +140,6 @@
 								{% endif %}
 							</section>
 
-							{# ===================== PAYMENT METHOD SECTION ===================== #}
 							<section>
 								<h3 class="px-4 mb-4 font-semibold xl:px-0">
 									{{ 'payment.paymentMethod'|t('foster-checkout') }}
@@ -151,7 +149,7 @@
 									{{ csrfInput() }}
 									{{ actionInput('commerce/payments/pay') }}
 
-									{# IMPORTANT: these must NOT be namespaced #}
+									{# Commerce reads redirect and cancelUrl from the un-namespaced body #}
 									{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order', { number: cart.number, success: 'true' })) }}
 									{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
 									{{ hiddenInput('orderEmail', cart.email) }}
@@ -165,6 +163,7 @@
 											{% set zeroValueGatewayHandles = craft.fostercheckout.settings.zeroValueGatewayHandles %}
 											{% set shouldRender = true %}
 											{% set isManualGateway = false %}
+											{% set gatewayNote = null %}
 
 											{% if cart.total != 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual' and gateway.getOnlyAllowForZeroPriceOrders() %}
 												{% set shouldRender = false %}
@@ -206,10 +205,12 @@
 															[&_.grid[data-cols='2']]:grid-cols-1 md:[&_.grid[data-cols='2']]:grid-cols-2
 															[&_.item]:space-y-2
 
-															/* the multi-input card row (number, exp, cvv) */
+															/* the card row: number alone, then expiry and cvv in thirds */
 															[&_.multitext]:grid [&_.multitext]:gap-3
-															[&_.multitextrow]:grid [&_.multitextrow]:gap-3
-															[&_.multitextrow]:grid-cols-1 sm:[&_.multitextrow]:grid-cols-[2fr_1fr_1fr]
+															[&_.multitextrow]:grid [&_.multitextrow]:gap-3 [&_.multitextrow]:items-start
+															[&_.multitext>.multitextrow:first-child]:grid-cols-1
+															[&_.multitext>.multitextrow:not(:first-child)]:grid-cols-3
+															[&_.multitextrow>*]:min-w-0
 
 															/* inputs */
 															[&_input.text]:block [&_input.text]:w-full
@@ -240,10 +241,12 @@
 															hover:[&_button#paymentForm-authorizeNet-authorizeSubmit]:opacity-90
 															"
 
-															x-init="
-																'{{ gateway.className() }}' === 'craft\commerce\paypalcheckout\gateways\Gateway' && initPaypalCheckout();
-																'{{ gateway.className() }}' === 'craft\commerce\stripe\gateways\PaymentIntents' && initStripe();
-															"
+															{# The gateway's payment form defines these; a missing one throws and nothing in the panel renders #}
+															{% if gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
+																x-init="typeof initPaypalCheckout === 'function' && initPaypalCheckout()"
+															{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+																x-init="typeof initStripe === 'function' && initStripe()"
+															{% endif %}
 														>
 															{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
 
@@ -270,11 +273,9 @@
 																{% set gatewayConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
 																{% set params = { currency: cart.paymentCurrency }|merge(gatewayConfig.params ?? {}) %}
 															{% elseif gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
-																{% set manualGatewayConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
 																{% set isManualGateway = true %}
-																{% set manualFields  = manualGatewayConfig.fields|default([]) %}
-																{% set manualColumns = manualGatewayConfig.columns|default(3) %}
-																{% set gatewayNote = manualGatewayConfig.note.toStringWithContext({cart})|default(null) %}
+																{% set manualFields  = craft.fostercheckout.gatewayFields(gateway.handle, cart) %}
+																{% set gatewayNote = craft.fostercheckout.gatewayNote(gateway.handle, {cart}) %}
 															{% endif %}
 
 															{% if gatewayNote|default %}
@@ -285,30 +286,13 @@
 
 															{% if isManualGateway %}
 																{% if manualFields|length %}
-																	<div class="{{ manualColumns ? 'grid sm:grid-cols-' ~ manualColumns }}">
-																		{# Only namespace additional custom fields if they exist #}
+																	<div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12">
 																		{% for field in manualFields %}
-																			<div class="sm:col-span-{{ field.columns ?: '1' }}">
-																				{% switch field.type %}
-																				{% case 'select' %}{% set fieldTemplate = 'input-select' %}
-																				{% default %}{% set fieldTemplate = 'input-text-clearable' %}
-																				{% endswitch %}
-
-																				{% include 'foster-checkout/_components/base/' ~ fieldTemplate with {
-																					context: '',
-																					label: field.label,
-																					id: field.id ?? field.handle,
-																					name: 'fields[' ~ (field.name ?? field.handle) ~ ']',
-																					type: field.type,
-																					placeholder: field.placeholder,
-																					errors: [],
-																					minLength: field.minLength,
-																					maxLength: field.maxLength,
-																					min: field.min,
-																					max: field.max,
-																					required: field.required ?? false,
-																					options: field.options ?? [],
-																					gatewayId: gateway.id,
+																			{# The layout stores width as a percentage; the grid is in twelfths #}
+																			<div class="sm:col-span-{{ (field.width / 100 * 12)|round }}">
+																				{% include 'foster-checkout/_components/app/checkout-field' with {
+																					field: field,
+																					value: field.value,
 																				} %}
 																			</div>
 																		{% endfor %}
@@ -322,7 +306,6 @@
 																	{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
 																</button>
 															{% else %}
-																{# Native gateway fields #}
 																{% namespace gateway.handle|commercePaymentFormNamespace %}
 																	{{ gateway.getPaymentFormHtml(params)|raw }}
 																{% endnamespace %}
@@ -340,33 +323,7 @@
 				</div>
 			</main>
 
-			<aside>
-				<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
-					<div class="grid grid-cols-1 gap-6">
-						<div class="flex justify-between items-center gap-4">
-							<h2 class="text-xl font-bold text-gray-800 leading-snug">
-								{{ 'summary.itemsTitle'|t('foster-checkout') }}
-							</h2>
-							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}" class="inline-block text-[var(--brandColor)] underline">
-								{{ 'misc.edit'|t('foster-checkout') }}
-							</a>
-						</div>
-
-						<ul class="grid grid-cols-1 gap-4">
-							{% for lineItem in cart.lineItems %}
-								<li>
-									{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem } %}
-								</li>
-							{% endfor %}
-						</ul>
-					</div>
-
-					{% include 'foster-checkout/_components/app/summary-cart' with { estimated: false } %}
-				</div>
-
-				{% include 'foster-checkout/_components/app/global-checkout-note' %}
-
-			</aside>
+			{% include 'foster-checkout/_components/app/checkout-aside' with { estimated: false } %}
 		</div>
 
 		{% include 'foster-checkout/_components/app/checkout-footer-links' %}
@@ -374,23 +331,17 @@
 	</div>
 
 	{% js %}
-	var $paymentForms = document.querySelectorAll('.paymentForm');
+	const paymentForm = document.getElementById('paymentForm');
 
-	if ($paymentForms.length) {
-		$paymentForms.forEach(($paymentForm) => {
+	// A second submit would take a second payment, so the first one claims the form
+	paymentForm.addEventListener('submit', function (event) {
+		if (event.defaultPrevented || paymentForm.dataset.processing) {
+			event.preventDefault();
+			return false;
+		}
 
-			// Only allow the payment form submit to be triggered once.
-			$paymentForm.addEventListener('submit', function(ev) {
-
-				if ($paymentForm.dataset.processing) {
-					ev.preventDefault();
-					return false;
-				}
-
-				$paymentForm.dataset.processing = true;
-			});
-		});
-	}
+		paymentForm.dataset.processing = true;
+	});
 	{% endjs %}
 {% endblock %}
 

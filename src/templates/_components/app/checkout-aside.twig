@@ -1,0 +1,43 @@
+{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
+
+<aside x-data="{ summaryOpen: false }">
+	{# Stacked on a phone the summary would push the form down, so it opens on demand #}
+	<button
+		type="button"
+		class="lg:hidden flex justify-between items-center gap-4 w-full p-4 bg-white border border-gray-250 {{ isFlat ? '' : 'rounded-lg' }}"
+		:aria-expanded="summaryOpen"
+		@click="summaryOpen = !summaryOpen"
+	>
+		<span class="inline-flex items-center gap-2 font-semibold">
+			{{ 'summary.title'|t('foster-checkout') }}
+			<svg class="h-5 w-5 transition-transform duration-150" :class="summaryOpen ? 'rotate-180' : ''" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+				<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"></path>
+			</svg>
+		</span>
+		<span class="font-semibold">{{ cart.totalPriceAsCurrency }}</span>
+	</button>
+
+	<div class="grid grid-cols-1 gap-10 mt-4 lg:mt-0 lg:sticky lg:top-4 lg:p-4 lg:bg-white lg:rounded-lg {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
+		{# The forms below take input, so only what a customer reads collapses #}
+		<div class="grid-cols-1 gap-10" :class="summaryOpen ? 'grid' : 'hidden lg:grid'">
+			<div class="grid grid-cols-1 gap-6">
+				<div class="flex justify-between items-center gap-4">
+					<h2 class="text-xl font-bold text-gray-800 leading-snug">
+						{{ 'summary.itemsTitle'|t('foster-checkout') }}
+					</h2>
+					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}" class="inline-block text-[var(--brandColor)] underline">
+						{{ 'misc.edit'|t('foster-checkout') }}
+					</a>
+				</div>
+
+				{% include 'foster-checkout/_components/app/summary-items' %}
+			</div>
+
+			{% include 'foster-checkout/_components/app/summary-cart' with { estimated: estimated ?? true } %}
+		</div>
+
+		{% include 'foster-checkout/_components/app/summary-forms' %}
+
+		{% include 'foster-checkout/_components/app/global-checkout-note' %}
+	</div>
+</aside>

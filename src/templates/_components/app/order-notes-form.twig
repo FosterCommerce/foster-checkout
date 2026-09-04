@@ -1,5 +1,5 @@
-{% if craft.fostercheckout.settings.notes.customersOrderNotes.fieldHandle %}
-	{% set fieldHandle = craft.fostercheckout.settings.notes.customersOrderNotes.fieldHandle %}
+{% if craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
+	{% set fieldHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
 	{% set posted = craft.app.request.getBodyParam('fields[' ~ fieldHandle ~ ']') %}
 	{% set currentValue = posted is not null ? posted : (cart.getFieldValue(fieldHandle) ?? '') %}
 

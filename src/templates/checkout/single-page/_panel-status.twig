@@ -1,0 +1,49 @@
+{% set panel = panel ?? '' %}
+
+<span
+	class="inline-flex items-center gap-1.5 shrink-0"
+	x-cloak
+	x-show="panelStatus['{{ panel }}'] && panelStatus['{{ panel }}'] !== 'idle'"
+>
+	<svg
+		x-show="panelStatus['{{ panel }}'] === 'saving'"
+		class="w-4 h-4 text-gray-500 animate-spin"
+		xmlns="http://www.w3.org/2000/svg"
+		fill="none"
+		viewBox="0 0 24 24"
+		aria-hidden="true"
+	>
+		<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+		<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+	</svg>
+	<svg
+		x-show="panelStatus['{{ panel }}'] === 'saved'"
+		class="w-4 h-4 text-green-500"
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 20 20"
+		fill="currentColor"
+		aria-hidden="true"
+	>
+		<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+	</svg>
+	<svg
+		x-show="panelStatus['{{ panel }}'] === 'error'"
+		class="w-4 h-4 text-red-500"
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 20 20"
+		fill="currentColor"
+		aria-hidden="true"
+	>
+		<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+	</svg>
+	<span
+		class="text-sm font-normal"
+		x-show="panelStatusLabel('{{ panel }}')"
+		:class="{
+			'text-gray-500': panelStatus['{{ panel }}'] === 'saving',
+			'text-green-500': panelStatus['{{ panel }}'] === 'saved',
+			'text-red-500': panelStatus['{{ panel }}'] === 'error'
+		}"
+		x-text="panelStatusLabel('{{ panel }}')"
+	></span>
+</span>

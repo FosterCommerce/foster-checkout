@@ -2,11 +2,32 @@
 
 namespace fostercommerce\fostercheckout\models;
 
+use Craft;
+use craft\base\Field;
 use craft\base\Model;
+use craft\web\View;
 
 class Settings extends Model
 {
+	/**
+	 * How checkout content varies across sites, using Craft's field translation methods:
+	 * `none` for one shared copy, `site` for a copy per site, or `language` to share a copy
+	 * between sites speaking the same language.
+	 */
+	public string $contentTranslationMethod = Field::TRANSLATION_METHOD_SITE;
+
 	public OptionConfig $options;
+
+	public LineItemConfig $lineItems;
+
+	public AddressLookupConfig $addressLookup;
+
+	/**
+	 * Held outside `options` so an `options` block in a config file cannot shadow rules built in the CP.
+	 *
+	 * @var list<LineItemOptionRule> applied in order, each testing the option as stored
+	 */
+	public array $lineItemOptionRules = [];
 
 	public BrandingConfig $branding;
 
@@ -23,13 +44,9 @@ class Settings extends Model
 	public array $products = [];
 
 	/**
-	 * Notes that will appear in the cart, login, and checkout steps. Include the element handle (global or single)
-	 * and the field handle in that entry that contains the content you want to display. Fields can be either plain
-	 * text of rich text fields like Redactor or CKEditor
+	 * Handle of the field on Orders holding the note a customer leaves with their order.
 	 */
-	public NotesConfig $notes;
-
-	public LinksConfig $links;
+	public ?string $customerOrderNotesFieldHandle = null;
 
 	/**
 	 * For each payment gateway using the gateway handle, to define an array of fields to be rendered when
@@ -54,10 +71,28 @@ class Settings extends Model
 	public array $priorityCountries = [];
 
 	/**
+	 * Address fields to leave off the checkout, named by attribute or custom field handle. A field
+	 * the address layout marks required is always shown, so Craft can still validate the address.
+	 *
+	 * @var array<string>
+	 */
+	public array $hiddenAddressFields = [];
+
+	/**
+	 * Address fields to require at the checkout beyond what the address layout asks for, named by
+	 * attribute or custom field handle. A hidden field is never required, since it is not rendered.
+	 *
+	 * @var array<string>
+	 */
+	public array $requiredAddressFields = [];
+
+	/**
 	 * @param array<array-key, mixed> $config
 	 */
 	public function __construct(array $config = [])
 	{
+		$this->lineItems = new LineItemConfig();
+		$this->addressLookup = new AddressLookupConfig();
 		parent::__construct($config);
 
 		if (! isset($this->options)) {
@@ -75,13 +110,41 @@ class Settings extends Model
 		if (! isset($this->includes)) {
 			$this->includes = new IncludesConfig();
 		}
+	}
 
-		if (! isset($this->notes)) {
-			$this->notes = new NotesConfig();
-		}
+	/**
+	 * @return array<int, array<int, string>>
+	 */
+	#[\Override]
+	public function rules(): array
+	{
+		return [
+			['includes', 'validateIncludes'],
+		];
+	}
 
-		if (! isset($this->links)) {
-			$this->links = new LinksConfig();
+	/**
+	 * An include pointing at a template that does not exist throws while rendering every cart and
+	 * checkout page, so it is rejected on save A missing include template throws on every cart and checkout render.
+	 */
+	public function validateIncludes(string $attribute): void
+	{
+		$view = Craft::$app->getView();
+
+		foreach (['head', 'body'] as $position) {
+			$templatePath = $this->includes->{$position};
+			if ($templatePath === '') {
+				continue;
+			}
+
+			if ($view->doesTemplateExist($templatePath, View::TEMPLATE_MODE_SITE)) {
+				continue;
+			}
+
+			// Keyed per position so the error renders under the field that holds the bad path.
+			$this->addError("{$attribute}.{$position}", Craft::t('foster-checkout', 'settings.general.includeMissing', [
+				'path' => $templatePath,
+			]));
 		}
 	}
 
@@ -92,8 +155,27 @@ class Settings extends Model
 	#[\Override]
 	public function setAttributes($values, $safeOnly = true): void
 	{
+		$values = self::moveLineItemSettings($values);
+
 		if (array_key_exists('options', $values)) {
 			$values['options'] = new OptionConfig($values['options']);
+		}
+
+		if (array_key_exists('addressLookup', $values)) {
+			$values['addressLookup'] = new AddressLookupConfig($values['addressLookup']);
+		}
+
+		if (array_key_exists('lineItems', $values)) {
+			$values['lineItems'] = new LineItemConfig($values['lineItems']);
+		}
+
+		if (array_key_exists('lineItemOptionRules', $values)) {
+			$values['lineItemOptionRules'] = array_map(
+				static fn (mixed $rule): LineItemOptionRule => $rule instanceof LineItemOptionRule
+					? $rule
+					: new LineItemOptionRule(is_array($rule) ? $rule : []),
+				array_values((array) $values['lineItemOptionRules'])
+			);
 		}
 
 		if (array_key_exists('branding', $values)) {
@@ -116,22 +198,30 @@ class Settings extends Model
 			unset($product);
 		}
 
+		// `notes` and `links` moved to content storage so admins can edit them on production.
+		// The one developer setting they held is kept, so existing config files keep working.
 		if (array_key_exists('notes', $values)) {
-			foreach ($values['notes'] as &$note) {
-				$note = new ValueConfig($note);
+			$fieldHandle = $values['notes']['customersOrderNotes']['fieldHandle'] ?? null;
+
+			if (is_string($fieldHandle) && ! isset($values['customerOrderNotesFieldHandle'])) {
+				$values['customerOrderNotesFieldHandle'] = $fieldHandle;
 			}
 
-			unset($note);
-
-			$values['notes'] = new NotesConfig($values['notes']);
+			unset($values['notes']);
 		}
+
+		unset($values['links']);
 
 		if (array_key_exists('paymentGateways', $values)) {
 			foreach ($values['paymentGateways'] as $gatewayHandle => $paymentGateway) {
 				$values['paymentGateways'][$gatewayHandle] = new PaymentGatewayConfig(
 					$gatewayHandle,
 					[
-						...$paymentGateway,
+						// Field widths replaced the per-gateway column count, so a config file still
+						// setting it would fatal on an unknown property.
+						...array_diff_key($paymentGateway, [
+							'columns' => null,
+						]),
 						'fields' => $paymentGateway['fields'] ?? [],
 						'note' => new ValueConfig($paymentGateway['note'] ?? []),
 					]
@@ -139,16 +229,40 @@ class Settings extends Model
 			}
 		}
 
-		if (array_key_exists('links', $values)) {
-			foreach ($values['links'] as &$link) {
-				$link = new ValueConfig($link);
-			}
+		parent::setAttributes($values, $safeOnly);
+	}
 
-			unset($link);
+	/**
+	 * These four moved out of `options`, which is one node a config file replaces whole.
+	 *
+	 * @param array<mixed, mixed> $values
+	 * @return array<mixed, mixed>
+	 */
+	public static function moveLineItemSettings(array $values): array
+	{
+		$options = $values['options'] ?? null;
 
-			$values['links'] = new LinksConfig($values['links']);
+		if (! is_array($options)) {
+			return $values;
 		}
 
-		parent::setAttributes($values, $safeOnly);
+		$lineItems = is_array($values['lineItems'] ?? null) ? $values['lineItems'] : [];
+
+		foreach (['showLineItemSku', 'enableLineItemOptions', 'hiddenLineItemOptionPrefix', 'lineItemOptionValueMaxLength'] as $setting) {
+			if (! array_key_exists($setting, $options)) {
+				continue;
+			}
+
+			$lineItems[$setting] ??= $options[$setting];
+			unset($options[$setting]);
+		}
+
+		$values['options'] = $options;
+
+		if ($lineItems !== []) {
+			$values['lineItems'] = $lineItems;
+		}
+
+		return $values;
 	}
 }

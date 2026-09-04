@@ -87,15 +87,16 @@
 						{{ 'cart.lineItem.saleTag'|t('foster-checkout') }}
 					</span>
 				{% endif %}
-				<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.sku }}</p>
+				{% if craft.fostercheckout.settings.lineItems.showLineItemSku %}
+					<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.sku }}</p>
+				{% endif %}
 				{% if lineItem.lineItemStatus %}
 					<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.lineItemStatus.name|t('foster-checkout') }}</p>
 				{% endif %}
 
-				{# Line item options #}
 
 				{% for option in craft.fostercheckout.getLineItemOptions(lineItem) %}
-					<p class="mt-3 text-sm uppercase text-gray-500">{{ option.name }}: {{ option.value }}</p>
+					<p class="mt-3 text-sm text-gray-500">{{ option.name }}: {{ option.value }}</p>
 				{% endfor %}
 
 
@@ -213,9 +214,9 @@
 						</p>
 						<p class="text-sm text-gray-500">
 							{% if lineItem.getOnPromotion() or lineItem.purchasable.getSales()|length %}
-								{{ 'summary.onSaleLabel'|t('foster-checkout') }}: {{ (lineItem.salePrice * lineItem.qty) | commerceCurrency }}<br>
+								{{ 'summary.onSaleLabel'|t('foster-checkout') }}: {{ lineItem.subtotalAsCurrency }}<br>
 							{% endif %}
-							{{ 'summary.originalPriceLabel'|t('foster-checkout') }}: <span class="line-through">{{ (lineItem.price * lineItem.qty) | commerceCurrency }}</span>
+							{{ 'summary.originalPriceLabel'|t('foster-checkout') }}: <span class="line-through">{{ craft.fostercheckout.lineItemOriginalTotal(lineItem) }}</span>
 						</p>
 					{% elseif lineItem.getOnPromotion() or lineItem.purchasable.getSales()|length %}
 						<p>

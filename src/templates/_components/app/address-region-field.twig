@@ -40,9 +40,9 @@
           });
        }
     "
-	class="sm:col-span-1"
+	class="sm:col-span-4"
 	{# Use h-0/overflow-hidden instead of x-show (display:none) or invisible (visibility:hidden)
-	   so Chrome mobile can still autofill the input inside — it skips both display:none and
+	   so Chrome mobile can still autofill the input inside, since it skips both display:none and
 	   visibility:hidden inputs. #}
 	:class="currentRegions.length > 0 ? '' : 'h-0 overflow-hidden absolute'"
 >

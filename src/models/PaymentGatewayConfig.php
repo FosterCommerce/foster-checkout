@@ -2,23 +2,19 @@
 
 namespace fostercommerce\fostercheckout\models;
 
+use Craft;
 use craft\base\Model;
 
 class PaymentGatewayConfig extends Model
 {
 	/**
-	 * The fields to be rendered for this specific gateway
+	 * Settings a config file may still name. Gateway fields moved to a field layout per gateway.
 	 *
-	 * @var PaymentGatewayFieldConfig[]
+	 * @var list<string>
 	 */
-	public array $fields = [];
+	private const array REMOVED_SETTINGS = ['fields'];
 
 	public ValueConfig $note;
-
-	/**
-	 * @var int|null number of columns in this layout
-	 */
-	public null|int $columns = 3;
 
 	/**
 	 * Extra params merged into the gateway's payment form params (e.g. PayPal SDK options like `disable-funding`)
@@ -35,15 +31,22 @@ class PaymentGatewayConfig extends Model
 		$config = []
 	) {
 		parent::__construct($config);
-		if (array_key_exists('fields', $config)) {
-			$this->fields = [];
-			foreach ($config['fields'] as $fieldHandle => $field) {
-				$this->fields[] = new PaymentGatewayFieldConfig($fieldHandle, $field);
-			}
-		}
 
 		if (! isset($this->note)) {
 			$this->note = new ValueConfig();
 		}
+	}
+
+	#[\Override]
+	public function __set($name, $value): void
+	{
+		if (in_array($name, self::REMOVED_SETTINGS, true)) {
+			// The deprecator throws whenever a site sets throwExceptions, which craft-config ties to devMode
+			Craft::warning("`{$name}` has been replaced by the gateway's field layout.", 'deprecation-error');
+
+			return;
+		}
+
+		parent::__set($name, $value);
 	}
 }

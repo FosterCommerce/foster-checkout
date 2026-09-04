@@ -1,0 +1,55 @@
+.fc-plugin-footer {
+	text-align: right;
+	padding: 28px 24px 24px;
+	margin-top: 1.5rem;
+}
+
+.fc-plugin-credit {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	text-decoration: none;
+	color: #8f98a3;
+	font-size: 12px;
+	transition: color 0.2s ease;
+}
+
+.fc-plugin-credit:hover {
+	color: #1d2633;
+}
+
+.fc-credit-text {
+	opacity: 0;
+	transform: translateX(8px);
+	transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s;
+}
+
+.fc-plugin-credit:hover .fc-credit-text {
+	opacity: 1;
+	transform: translateX(0);
+}
+
+.fc-credit-logo {
+	display: flex;
+	align-items: center;
+}
+
+.fc-fc-logo {
+	width: 100px;
+	height: 25px;
+	color: #b9bfc6;
+	transition: color 0.3s ease;
+}
+
+.fc-fc-logo path[fill="#D8AF7C"] {
+	fill: #b9bfc6;
+	transition: fill 0.3s ease;
+}
+
+.fc-plugin-credit:hover .fc-fc-logo {
+	color: #1d2633;
+}
+
+.fc-plugin-credit:hover .fc-fc-logo path[fill="#D8AF7C"] {
+	fill: #d8af7c;
+}

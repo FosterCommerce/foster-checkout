@@ -1,0 +1,258 @@
+{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
+{% set notesHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
+{% set notesValue = notesHandle ? (cart.getFieldValue(notesHandle) ?? '') : '' %}
+
+<aside
+	class="order-first lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2"
+	x-data="{ summaryOpen: false }"
+>
+	{# Stacked on a phone the summary would push the form down, so it opens on demand #}
+	<button
+		type="button"
+		class="lg:hidden flex justify-between items-center gap-4 w-full p-4 bg-white border border-gray-250 {{ isFlat ? '' : 'rounded-lg' }}"
+		:aria-expanded="summaryOpen"
+		@click="summaryOpen = !summaryOpen"
+	>
+		<span class="inline-flex items-center gap-2 font-semibold">
+			{{ 'summary.title'|t('foster-checkout') }}
+			<svg class="h-5 w-5 transition-transform duration-150" :class="summaryOpen ? 'rotate-180' : ''" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+				<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"></path>
+			</svg>
+		</span>
+		<span class="font-semibold" x-text="totals.totalAsCurrency">{{ live.totals.totalAsCurrency ?? '' }}</span>
+	</button>
+
+	<div class="grid grid-cols-1 gap-10 mt-4 lg:mt-0 lg:sticky lg:top-4 lg:p-4 lg:bg-white {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:rounded-lg lg:border lg:border-gray-250' }}">
+		{# The fields below take input, so only what a customer reads collapses #}
+		<div
+			class="grid-cols-1 gap-6"
+			:class="summaryOpen ? 'grid' : 'hidden lg:grid'"
+		>
+			<div class="flex justify-between items-center gap-4">
+				<h2 class="text-xl font-bold text-gray-800 leading-snug">
+					{{ 'summary.itemsTitle'|t('foster-checkout') }}
+				</h2>
+				<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}" class="inline-block text-[var(--brandColor)] underline">
+					{{ 'misc.edit'|t('foster-checkout') }}
+				</a>
+			</div>
+
+			{% include 'foster-checkout/_components/app/summary-items' %}
+
+			<article>
+			<div
+				class="mb-6 px-4 border border-gray-250 {{ isFlat ? '' : 'rounded-lg' }}"
+			>
+				<button
+					type="button"
+					class="flex justify-between items-center w-full py-4"
+					@click="couponOpen = !couponOpen"
+					:aria-expanded="couponOpen ? 'true' : 'false'"
+					aria-controls="spCouponPanel"
+				>
+					<span id="spCouponCodeLabel" class="inline-flex items-center gap-2 font-medium text-gray-500">
+						<span>
+							{{ 'summary.couponCodeLabel'|t('foster-checkout') }}
+							<span x-show="couponCode" x-cloak x-text="' (' + couponCode + ')'"></span>
+						</span>
+						{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'coupon' } %}
+					</span>
+					<template x-if="couponOpen">
+						<svg x-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current" aria-hidden="true">
+							<path d="M6.99972 0.301388L13.3389 6.64054L11.9247 8.05469L6.99972 3.10469L2.07472 8.02969L0.660568 6.61554L6.99972 0.301388Z"/>
+						</svg>
+					</template>
+					<template x-if="!couponOpen">
+						<svg x-cloak xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9" class="fill-current" aria-hidden="true">
+							<path d="M7.00028 8.70057L0.661133 2.36142L2.07528 0.947266L7.00028 5.89727L11.9253 0.972268L13.3394 2.38642L7.00028 8.70057Z"/>
+						</svg>
+					</template>
+				</button>
+
+				<div
+					id="spCouponPanel"
+					x-show="couponOpen"
+					x-cloak
+					class="pb-6"
+					role="group"
+					aria-labelledby="spCouponCodeLabel"
+				>
+					<template x-if="!couponCode">
+						<div>
+							<div class="grid grid-cols-[1fr,_120px] items-start gap-4">
+								<label for="spCouponCode" class="sr-only">{{ 'summary.couponCode'|t('foster-checkout') }}</label>
+								<input
+									id="spCouponCode"
+									type="text"
+									autocomplete="off"
+									x-model="couponInput"
+									@keydown.enter.prevent="applyCoupon()"
+									placeholder="{{ 'summary.couponCodePrompt'|t('foster-checkout') }}"
+									class="w-full h-12 px-4 bg-white rounded-lg border border-gray-250 text-gray-800"
+									:class="couponError ? 'border-red-500' : ''"
+								>
+								<button
+									type="button"
+									class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-lg"
+									:disabled="pending > 0"
+									:class="pending > 0 ? 'opacity-50 cursor-not-allowed' : ''"
+									@click="applyCoupon()"
+								>
+									{{ 'summary.submitCouponCode'|t('foster-checkout') }}
+								</button>
+							</div>
+							<p
+								x-show="couponError"
+								x-cloak
+								class="mt-2 text-sm text-red-500"
+								x-text="couponError"
+							></p>
+						</div>
+					</template>
+					<template x-if="couponCode">
+						<div class="flex justify-between items-center text-sm p-2 rounded-lg {{ isFlat ? 'border border-gray-300' : 'border border-gray-250' }}">
+							<p class="font-bold" x-text="couponCode"></p>
+							<button
+								type="button"
+								:disabled="pending > 0"
+								:class="pending > 0 ? 'opacity-50 cursor-not-allowed' : ''"
+								@click="removeCoupon()"
+							>
+								<span class="sr-only">{{ 'summary.removeCoupon'|t('foster-checkout') }}</span>
+								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" class="fill-current" aria-hidden="true">
+									<path d="M1.22473 13.9682L0.03125 12.7747L5.80625 6.99973L0.03125 1.22473L1.22473 0.03125L6.99973 5.80625L12.7747 0.03125L13.9682 1.22473L8.1932 6.99973L13.9682 12.7747L12.7747 13.9682L6.99973 8.1932L1.22473 13.9682Z" fill="black"></path>
+								</svg>
+							</button>
+						</div>
+					</template>
+				</div>
+			</div>
+
+			<dl class="grid grid-cols-1 gap-4">
+				<div class="flex justify-between items-center gap-4">
+					<dt class="text-gray-500">{{ 'summary.itemsLabel'|t('foster-checkout') }}</dt>
+					<dd class="text-right text-black" x-text="totals.itemsAsCurrency">{{ live.totals.itemsAsCurrency ?? '' }}</dd>
+				</div>
+
+				<div class="flex justify-between items-center gap-4" x-show="cartHasShippingAddress" x-cloak>
+					<dt class="text-gray-500">{{ 'summary.shippingLabel'|t('foster-checkout') }}</dt>
+					<dd
+						class="text-right"
+						:class="loadingShippingMethods ? 'text-gray-500' : 'text-black'"
+						x-text="totals.shippingAsCurrency"
+					>{{ live.totals.shippingAsCurrency ?? '' }}</dd>
+				</div>
+
+				<div class="flex justify-between items-center gap-4">
+					<dt class="text-gray-500">{{ 'summary.taxLabel'|t('foster-checkout') }}</dt>
+					<dd
+						class="text-right"
+						:class="loadingShippingMethods ? 'text-gray-500' : 'text-black'"
+						x-text="totals.taxAsCurrency"
+					>{{ live.totals.taxAsCurrency ?? '' }}</dd>
+				</div>
+
+				<template x-for="discount in totals.discounts" :key="discount.name + discount.amountAsCurrency">
+					<div class="flex justify-between items-center gap-4">
+						<dt class="text-gray-500" x-text="discount.name"></dt>
+						<dd class="text-right text-red-500" x-text="discount.amountAsCurrency"></dd>
+					</div>
+				</template>
+
+				{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
+					<template x-for="voucher in totals.vouchers" :key="voucher.name + voucher.amountAsCurrency">
+						<div class="flex justify-between items-center gap-4">
+							<dt class="text-gray-500" x-text="voucher.name"></dt>
+							<dd class="text-right text-red-500">
+								<button
+									type="button"
+									:disabled="removingVoucher !== ''"
+									:aria-disabled="removingVoucher !== ''"
+									:class="removingVoucher !== '' ? 'opacity-50 cursor-not-allowed' : ''"
+									class="mr-2 text-sm underline text-gray-500"
+									@click="removeVoucher(voucher.name)"
+								>
+									{{ 'summary.removeCoupon'|t('foster-checkout') }}
+								</button>
+								<span x-text="voucher.amountAsCurrency"></span>
+							</dd>
+						</div>
+					</template>
+
+					<template x-if="removeVoucherError">
+						<p class="text-sm text-red-500" x-text="removeVoucherError"></p>
+					</template>
+				{% endif %}
+
+				<div class="flex justify-between items-center gap-4">
+					<dt class="font-semibold text-black">{{ 'summary.total'|t('foster-checkout') }}</dt>
+					<dd
+						class="font-semibold text-right"
+						:class="loadingShippingMethods ? 'text-gray-500 font-normal' : 'text-black'"
+						x-text="totals.totalAsCurrency"
+					>{{ live.totals.totalAsCurrency ?? '' }}</dd>
+				</div>
+			</dl>
+
+			{% if notesHandle %}
+				<div class="mt-8" data-fc-collect>
+					<p class="mb-2 inline-flex items-center gap-2 text-gray-500">
+						<span>{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</span>
+						{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'notes' } %}
+					</p>
+					<form
+						class="grid gap-2"
+						@submit.prevent="saveNotes()"
+					>
+						<label for="spOrderNote" class="sr-only">{{ 'summary.addOrderNote'|t('foster-checkout') }}</label>
+						<div class="grid grid-cols-1 md:grid-cols-[1fr_auto] items-end gap-4">
+							<textarea
+								x-ref="orderNote"
+								id="spOrderNote"
+								name="fields[{{ notesHandle }}]"
+								rows="2"
+								class="w-full min-w-0 border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 placeholder-gray-400"
+								:class="notesError ? 'border-red-500' : ''"
+								placeholder="{{ 'summary.addOrderNote'|t('foster-checkout') }}"
+								@focus="notesButtonVisible = true"
+							>{{ notesValue }}</textarea>
+							<button
+								type="submit"
+								x-show="notesButtonVisible"
+								x-cloak
+								class="h-12 px-4 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg text-nowrap shrink-0"
+								:disabled="pending > 0"
+								:class="pending > 0 ? 'opacity-50 cursor-not-allowed' : ''"
+							>
+								{{ 'summary.saveOrderNote'|t('foster-checkout') }}
+							</button>
+						</div>
+						<p
+							x-show="notesError"
+							x-cloak
+							class="text-sm text-red-500"
+							x-text="notesError"
+						></p>
+					</form>
+				</div>
+			{% endif %}
+			</article>
+		</div>
+
+		{% set summaryFields = craft.fostercheckout.checkoutFields('summary', cart) %}
+		{% if summaryFields|length %}
+			<div
+				data-fc-panel="summary"
+				data-fc-collect
+				@blur.capture="saveIfValid('summary', $event)"
+				@change="saveIfValid('summary', $event)"
+				@selected="$nextTick(() => saveIfValid('summary', $event))"
+			>
+				{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'summary' } %}
+				{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'summary', positionFields: summaryFields, showRequired: true } %}
+			</div>
+		{% endif %}
+
+		{% include 'foster-checkout/_components/app/global-checkout-note' %}
+	</div>
+</aside>

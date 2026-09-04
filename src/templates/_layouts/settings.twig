@@ -1,0 +1,10 @@
+{% extends "_layouts/cp" %}
+
+{# Shared crumbs for the plugin's settings pages. Navigation between them is the section's own
+   subnav, so there is no sidebar here. #}
+
+{% set crumbs = crumbs|default([
+	{ label: 'Settings'|t('app'), url: url('settings') },
+	{ label: 'Plugins'|t('app'), url: url('settings/plugins') },
+	{ label: 'nav.checkout'|t('foster-checkout'), url: url('foster-checkout/settings/appearance') },
+]) %}

@@ -6,24 +6,12 @@ use craft\base\Model;
 
 class DeliveryDateConfig extends Model
 {
-	/**
-	 * Label for the delivery date.
-	 */
 	public ValueConfig $label;
 
-	/**
-	 * Message to display regarding delivery date.
-	 */
 	public ValueConfig $message;
 
-	/**
-	 * Value for the delivery date.
-	 */
 	public ValueConfig $estimate;
 
-	/**
-	 * Whether to display the delivery date.
-	 */
 	public ValueConfig $display;
 
 	/**

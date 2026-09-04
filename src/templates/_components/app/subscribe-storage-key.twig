@@ -1,0 +1,10 @@
+{# Scoped per cart, so a preference does not carry to the next order or another site #}
+{% js at head %}
+	window.FC_SUBSCRIBE_KEY = {{ [
+		'fc_subscribe',
+		craft.app.request.hostName,
+		site.id,
+		site.language,
+		cart.number
+	]|join('_')|json_encode|raw }};
+{% endjs %}

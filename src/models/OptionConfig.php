@@ -2,24 +2,32 @@
 
 namespace fostercommerce\fostercheckout\models;
 
+use Craft;
 use craft\base\Model;
 
 class OptionConfig extends Model
 {
+	/**
+	 * Settings a config file may still name. Free shipping messaging moved to the advanced discounts plugin.
+	 *
+	 * @var list<string>
+	 */
+	private const array REMOVED_SETTINGS = ['enableFreeShippingMessage', 'enableMadeAMistake'];
+
+	/**
+	 * Whether to serve the single-page checkout. Existing sites stay on the stepped flow until this is turned on.
+	 */
+	public bool $enableSinglePageCheckout = false;
+
 	/**
 	 * Whether to show the "save for later" button
 	 */
 	public bool $enableSaveForLater = false;
 
 	/**
-	 * Whether to show the shipping estimator
+	 * Unfinished: `estimated-shipping.twig` has its own condition commented out, so this only gates the include.
 	 */
 	public bool $enableEstimatedShipping = false;
-
-	/**
-	 * Whether to show the free shipping message
-	 */
-	public bool $enableFreeShippingMessage = false;
 
 	/**
 	 * Whether to show the "No Image" placeholder images
@@ -27,29 +35,17 @@ class OptionConfig extends Model
 	public bool $enablePlaceholderImages = false;
 
 	/**
+	 * Whether to offer Avalara's corrected shipping address. Needs the AvaTax plugin and its own
+	 * address validation setting.
+	 */
+	public bool $enableAddressVerification = false;
+
+	/**
 	 * Whether to enable CSS page transitions
 	 *
 	 * @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#browser_compatibility for browser compatibility
 	 */
 	public bool $enablePageTransitions = false;
-
-	/**
-	 * Whether to show the "Made a mistake" function on the order completed page
-	 *
-	 * If disabled then the heading and text will not be displayed
-	 */
-	public bool $enableMadeAMistake = false;
-
-	/**
-	 * Whether to show the line item options
-	 *
-	 * If false, no line item options will be displayed.
-	 *
-	 * If set to true or an empty string, then all line items will be shown.
-	 *
-	 * If set to a string, then line items prefixed with that value will be excluded from being shown.
-	 */
-	public bool|string $enableLineItemOptions = '_';
 
 	/**
 	 * The Klaviyo list ID to subscribe the customer to
@@ -99,5 +95,23 @@ class OptionConfig extends Model
 		}
 
 		parent::__construct($config);
+	}
+
+	#[\Override]
+	public function __set($name, $value): void
+	{
+		if (in_array($name, self::REMOVED_SETTINGS, true)) {
+			// The deprecator throws whenever a site sets throwExceptions, which craft-config ties to devMode
+			Craft::warning("`{$name}` has been removed.", 'deprecation-error');
+
+			return;
+		}
+
+		parent::__set($name, $value);
+	}
+
+	public function isSinglePageCheckout(): bool
+	{
+		return $this->enableSinglePageCheckout;
 	}
 }

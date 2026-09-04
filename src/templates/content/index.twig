@@ -1,0 +1,87 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+{% do view.registerAssetBundle('fostercommerce\\fostercheckout\\web\\assets\\cp\\CpAsset') %}
+
+{% set title = 'nav.content'|t('foster-checkout') %}
+{% set docTitle = title %}
+{% set selectedSubnavItem = 'content' %}
+
+{% if showSiteMenu %}
+	{% set crumbs = [{
+		id: 'site-crumb',
+		icon: 'world',
+		label: contentSite.name|t('site'),
+		menu: {
+			items: siteMenuItems(null, contentSite),
+			label: 'Select site'|t('app'),
+		},
+	}] %}
+{% endif %}
+
+{% if readOnly %}
+	{% set contentNotice = readOnlyNotice() %}
+{% endif %}
+
+{% set fullPageForm = not readOnly %}
+
+{% block content %}
+	{{ actionInput('foster-checkout/content/save') }}
+	{{ redirectInput('foster-checkout/content' ~ (showSiteMenu ? '?site=' ~ contentSite.handle : '')) }}
+	{% if showSiteMenu %}{{ hiddenInput('site', contentSite.handle) }}{% endif %}
+	{{ csrfInput() }}
+
+	<p>{{ 'content.intro'|t('foster-checkout') }}</p>
+
+	{% for noteKey in noteKeys %}
+		{{ forms.textareaField({
+			label: "content.#{noteKey}"|t('foster-checkout'),
+			instructions: "content.#{noteKey}Help"|t('foster-checkout'),
+			id: "note-#{noteKey}",
+			name: "notes[#{noteKey}]",
+			value: notes[noteKey] ?? '',
+			rows: 4,
+			disabled: readOnly,
+		}) }}
+	{% endfor %}
+
+	{% if gateways is not empty %}
+		<hr>
+
+		<h2>{{ 'content.gatewayNotes'|t('foster-checkout') }}</h2>
+		<p>{{ 'content.gatewayNotesHelp'|t('foster-checkout') }}</p>
+
+		{% for gateway in gateways %}
+			{{ forms.textareaField({
+				label: gateway.name,
+				instructions: gateway.handle,
+				id: "gateway-note-#{gateway.handle}",
+				name: "notes[gateways][#{gateway.handle}]",
+				value: gatewayNotes[gateway.handle] ?? '',
+				rows: 3,
+				disabled: readOnly,
+			}) }}
+		{% endfor %}
+	{% endif %}
+
+	<hr>
+
+	{{ forms.editableTableField({
+		label: 'content.footerLinks'|t('foster-checkout'),
+		instructions: 'content.footerLinksHelp'|t('foster-checkout'),
+		id: 'footer-links',
+		name: 'links[footerLinks]',
+		cols: {
+			text: { heading: 'content.footerLinkText'|t('foster-checkout'), type: 'singleline' },
+			url: { heading: 'content.footerLinkUrl'|t('foster-checkout'), type: 'singleline' },
+		},
+		rows: footerLinks,
+		addRowLabel: 'content.addFooterLink'|t('foster-checkout'),
+		allowAdd: true,
+		allowDelete: true,
+		allowReorder: true,
+		static: readOnly,
+	}) }}
+
+	{% include 'foster-checkout/_includes/plugin-footer' %}
+
+{% endblock %}

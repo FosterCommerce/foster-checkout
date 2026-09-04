@@ -1,3 +1,7 @@
+{% if craft.fostercheckout.settings.options.isSinglePageCheckout %}
+	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) %}
+{% endif %}
+
 {% extends 'foster-checkout/_layouts/default' %}
 
 {% block head %}
@@ -20,12 +24,10 @@
 {% endblock %}
 
 {% block body %}
-	{# Compute options and cart-aligned initial handle #}
 	{% set availableShippingMethodOptions = cart.availableShippingMethodOptions ?? [] %}
 	{% set optionCount = availableShippingMethodOptions|length %}
 	{% set onlyMethod = optionCount ? (availableShippingMethodOptions|keys|first) : null %}
 
-	{# Prefer cart.shippingMethodHandle over cart.shippingMethod.handle #}
 	{% set _cartHandle = cart.shippingMethodHandle ?? (cart.shippingMethod.handle ?? null) %}
 	{% set _hasCartHandle = _cartHandle and (_cartHandle in availableShippingMethodOptions|keys) %}
 	{% set _initialHandle = _hasCartHandle ? _cartHandle : onlyMethod %}
@@ -36,29 +38,27 @@
 	{% endif %}
 
 	<div class="mt-10 pb-28 lg:pb-32">
-		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6 xl:gap-8">
 
 			<main
 				x-data="{ shippingMethodHandle: '{{ _initialHandle|e('js') }}' }"
 				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0"
 			>
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
+					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
+
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'shipping' } %}
 
 					{{ include('foster-checkout/_components/app/flash-message') }}
 
-					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
-
 					<form method="post" x-data x-ref="shippingForm" x-on:submit="$el.querySelector('[data-next]')?.setAttribute('disabled','disabled')">
-						{# --- CSRF, not namespaced for the auto-submit version below --- #}
+						{# Not namespaced, so the auto-submit form below posts a token Commerce reads #}
 						<input type="hidden" name="{{ craft.app.config.general.csrfTokenName }}" value="{{ craft.app.request.csrfToken }}">
 
 						{{ actionInput('commerce/cart/update-cart') }}
 
-						{# Always mirror the Alpine value in a hidden field #}
 						<input type="hidden" x-ref="postShipMethod" name="shippingMethodHandle" value="{{ _initialHandle|e('js') }}">
 
-						{# Redirects #}
 						{% if optionCount >= 1 %}
 							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/billing') }}
 						{% else %}
@@ -115,7 +115,9 @@
 									<p>{{ 'shipping.noMethodAvailable'|t('foster-checkout') }}.</p>
 								{% endif %}
 
-								{% set note = craft.fostercheckout.note('shipping', {cart}) %}
+								{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'shippingMethod' } %}
+
+								{% set note = craft.fostercheckout.note('shippingMethod', {cart}) %}
 								{% if note %}
 									<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
 										{{ note|raw }}
@@ -146,32 +148,7 @@
 
 			</main>
 
-			<aside>
-				<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
-					<div class="grid grid-cols-1 gap-6">
-						<div class="flex justify-between items-center gap-4">
-							<h2 class="text-xl font-bold text-gray-800 leading-snug">
-								{{ 'summary.itemsTitle'|t('foster-checkout') }}
-							</h2>
-							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}" class="inline-block text-[var(--brandColor)] underline">
-								{{ 'misc.edit'|t('foster-checkout') }}
-							</a>
-						</div>
-
-						<ul class="grid grid-cols-1 gap-4">
-							{% for lineItem in cart.lineItems %}
-								<li>
-									{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem } %}
-								</li>
-							{% endfor %}
-						</ul>
-					</div>
-
-					{% include 'foster-checkout/_components/app/summary-cart' %}
-				</div>
-
-				{% include 'foster-checkout/_components/app/global-checkout-note' %}
-			</aside>
+			{% include 'foster-checkout/_components/app/checkout-aside' %}
 
 		</div>
 

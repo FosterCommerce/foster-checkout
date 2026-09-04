@@ -22,7 +22,7 @@
 	{% if cart.lineItems|length > 0 %}
 
 		<div
-			class="grid grid-cols-1 gap-16 mt-10 pb-32 lg:grid-cols-[1fr_380px] lg:gap-6 lg:mt-20 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+			class="grid grid-cols-1 gap-16 mt-10 pb-32 lg:grid-cols-[1fr_42%] lg:gap-6 lg:mt-20 xl:gap-8">
 
 			<main class="flex flex-col justify-start items-stretch gap-6 lg:justify-between">
 
@@ -91,10 +91,21 @@
 
 			<aside>
 				<div
-					class="lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
+					class="lg:sticky lg:top-4 lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 					{% include 'foster-checkout/_components/app/summary-cart' %}
 
-					{% if cart.email and craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
+					{% include 'foster-checkout/_components/app/summary-forms' %}
+
+					{% set missingFields = craft.fostercheckout.missingRequiredFields('summary', cart) %}
+
+					{% if missingFields %}
+						<p class="mt-6 text-sm text-red-500">
+							{{ 'cart.missingRequiredFields'|t('foster-checkout', { fields: missingFields|join(', ') }) }}
+						</p>
+						<span class="block w-full md:inline-block md:w-auto lg:block lg:w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl opacity-50 cursor-not-allowed" aria-disabled="true">
+							{{ 'cart.checkout'|t('foster-checkout') }}
+						</span>
+					{% elseif cart.email and craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
 						<form method="POST" accept-charset="UTF-8">
 							{{ csrfInput() }}
 							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout)) }}

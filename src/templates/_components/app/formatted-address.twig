@@ -1,8 +1,15 @@
 {% set address = address ?? null %}
+{% set liveId = liveId ?? null %}
 {% if address %}
 	{% set formatter = craft.fostercheckout.addressFormatter() %}
+	{# An address with no name would otherwise start with the separator #}
+	{% set fallback = [address.fullName, address|address({ }, formatter)]|filter(part => part)|join(', ') %}
 	<p>
-		<span class="block">{{ address.fullName }}, {{ address|address({ }, formatter) }}</span>
+		{% if liveId %}
+			<span class="block" x-text="addressLabel({{ liveId }}, {{ fallback|json_encode }})">{{ fallback }}</span>
+		{% else %}
+			<span class="block">{{ fallback }}</span>
+		{% endif %}
 	</p>
 {% else %}
 	<p>{{ 'misc.noAddress'|t('foster-checkout') }}</p>

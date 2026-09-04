@@ -1,0 +1,290 @@
+{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
+
+<section
+	class="border border-gray-250 {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
+	data-fc-panel="payment"
+>
+	<div class="flex items-center gap-3 p-4 bg-gray-200 {{ isFlat ? '' : 'rounded-t-lg' }}">
+		<h2 class="font-semibold">
+			{{ 'payment.stepName'|t('foster-checkout') }}
+		</h2>
+		<div class="ml-auto">
+			{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'payment' } %}
+		</div>
+	</div>
+
+	{% include 'foster-checkout/checkout/single-page/_panel-error' with { panel: 'payment' } %}
+
+	<div class="grid grid-cols-1 gap-5 xl:gap-6 p-4">
+		{% set note = craft.fostercheckout.note('payment', {cart}) %}
+		{% if note %}
+			<div class="text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
+				{{ note|raw }}
+			</div>
+		{% endif %}
+
+		{% include 'foster-checkout/checkout/single-page/_billing' %}
+
+		{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
+			<section>
+				<div class="my-2">
+					<h3 class="mb-4 font-semibold">
+						{{ 'voucher.voucherHeading'|t('foster-checkout') }}
+					</h3>
+
+					<div class="grid grid-cols-[1fr,_120px] items-start gap-4">
+						<label for="spVoucherCode" class="sr-only">{{ 'voucher.voucherCode'|t('foster-checkout') }}</label>
+						<input
+							id="spVoucherCode"
+							type="text"
+							autocomplete="off"
+							placeholder="{{ 'voucher.enterCode'|t('foster-checkout') }}"
+							class="w-full h-12 px-4 bg-white rounded-lg border border-gray-250 text-gray-800"
+							x-model="voucherCode"
+							:aria-invalid="voucherError !== ''"
+							:aria-describedby="voucherError !== '' ? 'spVoucherCode-error' : null"
+							@keydown.enter.prevent="applyVoucher()"
+						>
+						<button
+							type="button"
+							:disabled="voucherCode.trim() === '' || applyingVoucher"
+							:aria-disabled="voucherCode.trim() === '' || applyingVoucher"
+							:class="voucherCode.trim() === '' || applyingVoucher ? 'opacity-50 cursor-not-allowed' : ''"
+							class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-xl"
+							@click="applyVoucher()"
+						>
+							<span x-text="applyingVoucher ? applyingVoucherLabel : '{{ 'voucher.applyCode'|t('foster-checkout')|e('js') }}'">{{ 'voucher.applyCode'|t('foster-checkout') }}</span>
+						</button>
+					</div>
+
+					<template x-if="voucherError">
+						<p id="spVoucherCode-error" class="mt-1 text-sm text-red-500" x-text="voucherError"></p>
+					</template>
+
+					<template x-if="totals.vouchers.length">
+						<div class="flex flex-col space-y-2 p-4 mt-4 bg-gray-200 {{ isFlat ? '' : 'rounded-lg' }}">
+							<p class="text-gray-500 m-0">
+								{{ 'voucher.appliedCodesHeading'|t('foster-checkout') }}:
+							</p>
+							<ul class="text-gray-500 m-0 list-disc">
+								<template x-for="voucher in totals.vouchers" :key="voucher.name + voucher.amountAsCurrency">
+									<li class="ml-5" x-text="voucher.name + ' (' + voucher.amountAsCurrency + ')'"></li>
+								</template>
+							</ul>
+						</div>
+					</template>
+				</div>
+			</section>
+		{% endif %}
+
+		<section class="relative">
+			<h3 class="mb-4 font-semibold" x-show="!paying">
+				{{ 'payment.paymentMethod'|t('foster-checkout') }}
+			</h3>
+
+			<p x-show="!canPay && !paying" x-cloak class="mb-4 text-sm text-gray-500">
+				{{ 'checkout.payIncomplete'|t('foster-checkout') }}
+				<span x-show="missingRequiredLabels.length" x-text="missingRequiredLabels.join(', ')"></span>
+			</p>
+
+			<div
+				class="flex flex-col items-center justify-center gap-3 py-16 text-gray-500"
+				x-show="paying"
+				x-cloak
+				role="status"
+				aria-live="polite"
+			>
+				<svg
+					class="w-8 h-8 animate-spin shrink-0"
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					aria-hidden="true"
+				>
+					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+					<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+				</svg>
+				<p class="text-sm text-center" x-text="processingMessage"></p>
+			</div>
+
+			<div class="relative" x-show="!paying">
+				<div
+					x-show="!canPay"
+					class="absolute inset-0 z-20 cursor-not-allowed"
+					@click.prevent.stop
+					@mousedown.prevent.stop
+					@pointerdown.prevent.stop
+					aria-hidden="true"
+				></div>
+				<div :class="{ 'opacity-60 pointer-events-none': !canPay }">
+				<form
+					method="POST"
+					class="grid gap-y-4 gap-x-4"
+					id="paymentForm"
+					x-ref="paymentForm"
+					data-fc-skip-collect
+					@submit="onPaySubmit($event)"
+				>
+					{{ csrfInput() }}
+					{{ actionInput('commerce/payments/pay') }}
+					{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order', { number: cart.number, success: 'true' })) }}
+					{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout)|hash) }}
+					<input type="hidden" name="orderEmail" :value="email">
+
+					<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+						{% set zeroValueGatewayHandles = craft.fostercheckout.settings.zeroValueGatewayHandles %}
+						{% for gateway in gateways %}
+							{% set gatewayClass = className(gateway) %}
+							{% set isManualGateway = false %}
+							{% set gatewayNote = null %}
+							{% set availableAtZero = gateway.handle in zeroValueGatewayHandles %}
+							{% set zeroOnly = gatewayClass == 'craft\\commerce\\gateways\\Manual' and gateway.getOnlyAllowForZeroPriceOrders() %}
+
+								<div
+									class="p-4 border-b border-gray-250"
+									data-fc-gateway
+									data-available-at-zero="{{ availableAtZero ? '1' : '0' }}"
+									data-zero-only="{{ zeroOnly ? '1' : '0' }}"
+									x-show="gatewayFits($el)"
+									:class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }"
+								>
+									<div class="relative flex justify-between items-center gap-4 radio" :class="{ 'radio-muted': !canPay }">
+										<input
+											id="sp_gateway_{{ gateway.id }}"
+											name="gatewayId"
+											type="radio"
+											class="absolute opacity-0 w-px h-px"
+											x-model.number="gatewayId"
+											value="{{ gateway.id }}"
+										>
+										<label for="sp_gateway_{{ gateway.id }}" class="inline-flex justify-start items-center gap-4 cursor-pointer">
+											<span class="block">{{ gateway.name|t('foster-checkout') }}</span>
+										</label>
+									</div>
+
+									<template x-if="parseInt(gatewayId) === {{ gateway.id }}">
+										<div
+											class="pt-8
+											[&_form]:grid [&_form]:gap-2
+											[&_fieldset]:border [&_fieldset]:border-gray-250 [&_fieldset]:rounded-lg [&_fieldset]:p-4
+											[&_fieldset+fieldset]:mt-4
+											[&_legend]:px-1 [&_legend]:text-sm [&_legend]:font-medium [&_legend]:text-gray-700
+											[&_.grid]:grid [&_.grid]:gap-4
+											[&_.grid[data-cols='2']]:grid-cols-1 md:[&_.grid[data-cols='2']]:grid-cols-2
+											[&_.item]:space-y-2
+											[&_.multitext]:grid [&_.multitext]:gap-3
+											[&_.multitextrow]:grid [&_.multitextrow]:gap-3 [&_.multitextrow]:items-start
+											[&_.multitext>.multitextrow:first-child]:grid-cols-1
+											[&_.multitext>.multitextrow:not(:first-child)]:grid-cols-3
+											[&_.multitextrow>*]:min-w-0
+											[&_input.text]:block [&_input.text]:w-full
+											[&_input.text]:rounded-xl
+											[&_input.text]:border [&_input.text]:border-gray-300
+											[&_input.text]:px-3 [&_input.text]:py-2
+											focus:[&_input.text]:outline-none
+											focus:[&_input.text]:ring-2
+											focus:[&_input.text]:ring-[var(--brandColor)]
+											[&_input.text::placeholder]:text-gray-400
+											[&_.errors]:text-sm [&_.errors]:text-red-600 [&_.errors]:mt-1
+											[&_button#paymentForm-authorizeNet-authorizeSubmit]:block
+											[&_button#paymentForm-authorizeNet-authorizeSubmit]:min-w-[200px]
+											[&_button#paymentForm-authorizeNet-authorizeSubmit]:px-4
+											[&_button#paymentForm-authorizeNet-authorizeSubmit]:py-3
+											[&_button#paymentForm-authorizeNet-authorizeSubmit]:mt-6
+											[&_button#paymentForm-authorizeNet-authorizeSubmit]:font-medium
+											[&_button#paymentForm-authorizeNet-authorizeSubmit]:text-white
+											[&_button#paymentForm-authorizeNet-authorizeSubmit]:text-center
+											[&_button#paymentForm-authorizeNet-authorizeSubmit]:bg-[var(--brandColor)]
+											[&_button#paymentForm-authorizeNet-authorizeSubmit]:border
+											[&_button#paymentForm-authorizeNet-authorizeSubmit]:border-[var(--brandColor)]
+											[&_button#paymentForm-authorizeNet-authorizeSubmit]:rounded-xl
+											[&_button#paymentForm-authorizeNet-authorizeSubmit]:transition
+											hover:[&_button#paymentForm-authorizeNet-authorizeSubmit]:opacity-90
+											"
+											x-init="
+												{% if gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
+													$nextTick(() => initPaypal());
+												{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+													$nextTick(() => scheduleStripeReinit());
+												{% endif %}
+												$nextTick(() => {
+													syncPayButtons();
+													if ($el.querySelector('[id$=authorizeSubmit]')) {
+														wrapAuthorizeHandler();
+													}
+												})
+											"
+										>
+											{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
+											{% set params = {} %}
+
+											{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+												{% set params = {
+													order: cart,
+													paymentFormType: 'elements',
+													appearance: {
+														theme: craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'flat' : 'stripe',
+														labels: 'floating',
+														variables: {
+															colorPrimary: craft.fostercheckout.settings.branding.color ?? '#1F2937',
+															borderRadius: craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? '0px' : '6px',
+															gridColumnSpacing: '24px',
+															gridRowSpacing: '24px',
+															tabSpacing: '12px',
+														}
+													},
+													submitButtonText: buttonText,
+													submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block'
+												} %}
+											{% elseif gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
+												{% set gatewayConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
+												{% set params = { currency: cart.paymentCurrency }|merge(gatewayConfig.params ?? {}) %}
+											{% elseif gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
+												{% set isManualGateway = true %}
+												{% set manualFields = craft.fostercheckout.gatewayFields(gateway.handle, cart) %}
+												{% set gatewayNote = craft.fostercheckout.gatewayNote(gateway.handle, {cart}) %}
+											{% endif %}
+
+											{% if gatewayNote|default %}
+												<div class="mb-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
+													{{ gatewayNote|raw }}
+												</div>
+											{% endif %}
+
+											{% if isManualGateway %}
+												{% if manualFields|length %}
+													<div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12">
+														{% for field in manualFields %}
+															{# The layout stores width as a percentage; the grid is in twelfths #}
+															<div class="sm:col-span-{{ (field.width / 100 * 12)|round }}">
+																{% include 'foster-checkout/_components/app/checkout-field' with {
+																	field: field,
+																	value: field.value,
+																} %}
+															</div>
+														{% endfor %}
+													</div>
+												{% endif %}
+
+												<button
+													type="submit"
+													class="justify-between items-center gap-4 w-full px-4 py-3 mt-6 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+													:disabled="!canPay"
+													x-text="payButtonLabel"
+												></button>
+											{% else %}
+												{% namespace gateway.handle|commercePaymentFormNamespace %}
+													{{ gateway.getPaymentFormHtml(params)|raw }}
+												{% endnamespace %}
+											{% endif %}
+										</div>
+									</template>
+								</div>
+						{% endfor %}
+					</div>
+				</form>
+				</div>
+			</div>
+		</section>
+	</div>
+</section>

@@ -1,0 +1,65 @@
+{% extends "foster-checkout/_layouts/settings" %}
+{% import "_includes/forms" as forms %}
+{% do view.registerAssetBundle('fostercommerce\\fostercheckout\\web\\assets\\cp\\CpAsset') %}
+
+{# @var settings \fostercommerce\fostercheckout\models\Settings #}
+
+{% set selectedSubnavItem = 'products' %}
+{% set title = 'nav.products'|t('foster-checkout') %}
+{% set docTitle = title %}
+
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
+{% set fullPageForm = not readOnly %}
+
+{% if readOnly %}
+	{% set contentNotice = readOnlyNotice() %}
+{% endif %}
+
+{% set productRows = [] %}
+{% for productTypeHandle, productConfig in settings.products %}
+	{% set productRows = productRows|merge([{
+		productTypeHandle: productTypeHandle,
+		productImageHandle: productConfig.productImageHandle,
+		variantImageHandle: productConfig.variantImageHandle,
+	}]) %}
+{% endfor %}
+
+{% set productTypeOptions = [] %}
+{% for productTypeHandle in productTypeHandles %}
+	{% set productTypeOptions = productTypeOptions|merge([{ label: productTypeHandle, value: productTypeHandle }]) %}
+{% endfor %}
+
+{% block content %}
+	{{ actionInput('foster-checkout/settings/save-settings') }}
+	{{ redirectInput('foster-checkout/settings/products') }}
+	{{ hiddenInput('section', 'products') }}
+	{{ csrfInput() }}
+
+	<p>{{ 'settings.products.intro'|t('foster-checkout') }}</p>
+
+	{{ forms.editableTableField({
+		label: 'settings.products.label'|t('foster-checkout'),
+		instructions: 'settings.products.help'|t('foster-checkout'),
+		id: 'products',
+		name: 'settings[products]',
+		cols: {
+			productTypeHandle: {
+				heading: 'settings.products.productType'|t('foster-checkout'),
+				type: 'select',
+				options: productTypeOptions,
+			},
+			productImageHandle: { heading: 'settings.products.productImage'|t('foster-checkout'), type: 'singleline' },
+			variantImageHandle: { heading: 'settings.products.variantImage'|t('foster-checkout'), type: 'singleline' },
+		},
+		rows: productRows,
+		addRowLabel: 'settings.products.addRow'|t('foster-checkout'),
+		allowAdd: true,
+		allowDelete: true,
+		allowReorder: true,
+		static: readOnly or 'products' in overriddenSettings,
+		warning: 'products' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'products' }),
+	}) }}
+
+	{% include 'foster-checkout/_includes/plugin-footer' %}
+
+{% endblock %}

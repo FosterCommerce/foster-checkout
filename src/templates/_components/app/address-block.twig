@@ -1,0 +1,122 @@
+{% set stackedLabels = craft.fostercheckout.settings.branding.labelStyle|default('floating') != 'floating' %}
+
+{# Craft's address layout stores these as one element, so the block moves as a unit #}
+{# No input for dependentLocality or sortingCode, so a format needing either cannot be completed #}
+{# Which fields are used and which are required both come from the country's address format at runtime. #}
+{# Chrome mobile skips display:none inputs when autofilling, so unused fields collapse with h-0 instead. #}
+<div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12">
+	<div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:col-span-12">
+		<div :class="isUsed('addressLine1') ? '' : 'h-0 overflow-hidden absolute'">
+			{% if suggestAddress|default %}
+			{# fill() dispatches input on each field, and a synthetic event is untrusted #}
+			<div class="relative" @input="$event.isTrusted && queueSuggest()">
+			{% endif %}
+				{# Chrome ignores autocomplete="off" on address fields but backs off a password token,
+				   so its saved-address list does not cover the suggestions #}
+				{% include 'foster-checkout/_components/base/input-text-clearable' with {
+					addressScope: true,
+					context: context,
+					label: 'addressFields.addressLabel'|t('foster-checkout'),
+					id: 'addressLine1',
+					name: 'addressLine1',
+					type: 'text',
+					autocomplete: suggestAddress|default ? 'new-password' : 'address-line1',
+					placeholder: 'addressFields.addressPlaceholder'|t('foster-checkout'),
+					value: address ? address.addressLine1|e('js') : '',
+					errors: errors.addressLine1 ?? []
+				} %}
+			{% if suggestAddress|default %}
+				<ul
+					x-show="open"
+					x-cloak
+					role="listbox"
+					:id="listboxId()"
+					class="absolute z-20 w-full mt-1 bg-white border border-gray-250 rounded-lg shadow-lg max-h-64 overflow-y-auto"
+				>
+					<template x-for="(suggestion, index) in suggestions" :key="suggestion.id">
+						<li
+							role="option"
+							:id="optionId(index)"
+							:aria-selected="index === activeIndex ? 'true' : 'false'"
+							class="px-4 py-3 cursor-pointer text-sm text-gray-800"
+							:class="index === activeIndex ? 'bg-gray-200' : ''"
+							@mouseenter="activeIndex = index"
+							@click="choose(suggestion)"
+							x-text="suggestion.label"
+						></li>
+					</template>
+				</ul>
+			</div>
+			{% endif %}
+		</div>
+
+		{# The placeholder names this field, so a stacked label repeats it #}
+		<div :class="isUsed('addressLine2') ? '' : 'h-0 overflow-hidden absolute'">
+			{% include 'foster-checkout/_components/base/input-text-clearable' with {
+				addressScope: true,
+				context: context,
+				label: 'addressFields.address2Label'|t('foster-checkout'),
+				hideLabel: stackedLabels,
+				id: 'addressLine2',
+				name: 'addressLine2',
+				type: 'text',
+				autocomplete: 'address-line2',
+				placeholder: 'addressFields.address2Placeholder'|t('foster-checkout'),
+				value: address ? address.addressLine2|e('js') : '',
+				errors: errors.addressLine2 ?? []
+			} %}
+		</div>
+
+		{# The placeholder names this field, so a stacked label repeats it #}
+		<div :class="isUsed('addressLine3') ? '' : 'h-0 overflow-hidden absolute'">
+			{% include 'foster-checkout/_components/base/input-text-clearable' with {
+				addressScope: true,
+				context: context,
+				label: 'addressFields.address3Label'|t('foster-checkout'),
+				hideLabel: stackedLabels,
+				id: 'addressLine3',
+				name: 'addressLine3',
+				type: 'text',
+				autocomplete: 'address-line3',
+				placeholder: 'addressFields.address3Label'|t('foster-checkout'),
+				value: address ? address.addressLine3|e('js') : '',
+				errors: errors.addressLine3 ?? []
+			} %}
+		</div>
+	</div>
+
+	<div class="sm:col-span-4" :class="isUsed('locality') ? '' : 'h-0 overflow-hidden absolute'">
+		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+			addressScope: true,
+			context: context,
+			label: 'addressFields.cityLabel'|t('foster-checkout'),
+			id: 'locality',
+			name: 'locality',
+			type: 'text',
+			autocomplete: 'address-level2',
+			placeholder: 'addressFields.cityPlaceholder'|t('foster-checkout'),
+			value: address ? address.locality|e('js') : '',
+			errors: errors.locality ?? []
+		} %}
+	</div>
+
+	{% include 'foster-checkout/_components/app/address-region-field' with {
+		context: context,
+		address: address
+	} %}
+
+	<div class="sm:col-span-4" :class="isUsed('postalCode') ? '' : 'h-0 overflow-hidden absolute'">
+		{% include 'foster-checkout/_components/base/input-text-clearable' with {
+			addressScope: true,
+			context: context,
+			label: 'addressFields.postcodeLabel'|t('foster-checkout'),
+			id: 'postalCode',
+			name: 'postalCode',
+			type: 'text',
+			autocomplete: 'postal-code',
+			placeholder: 'addressFields.postcodePlaceholder'|t('foster-checkout'),
+			value: address ? address.postalCode|e('js') : '',
+			errors: errors.postalCode ?? []
+		} %}
+	</div>
+</div>

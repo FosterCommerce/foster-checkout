@@ -1,3 +1,7 @@
+{% if craft.fostercheckout.settings.options.isSinglePageCheckout %}
+	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) %}
+{% endif %}
+
 {% extends 'foster-checkout/_layouts/default' %}
 
 {% block head %}
@@ -22,7 +26,7 @@
 {% block body %}
 	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
 
-	{# ---- Billing state from cart (truth table) ---- #}
+	{# Billing state derived from the cart #}
 	{% set _sourceBillId = cart.sourceBillingAddressId ?? null %}
 	{% set _shippingId = cart.sourceShippingAddressId ?? null %}
 	{% set _hasMatch = cart.hasMatchingAddresses() %}
@@ -34,7 +38,7 @@
 
 
 	<div class="mt-10 pb-28 lg:pb-32">
-		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6 xl:gap-8">
 			<main
 				x-data="{
 				// billing selection
@@ -59,11 +63,11 @@
 
 
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
+					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
+
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'billing' } %}
 
 					{{ include('foster-checkout/_components/app/flash-message') }}
-
-					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
 
 					<form method="post">
 						{{ csrfInput() }}
@@ -77,7 +81,7 @@
 
 
 
-								{# ===================== BILLING ADDRESS SECTION ===================== #}
+								{# Billing address #}
 								<section>
 
 
@@ -105,7 +109,6 @@
 											<input type="hidden" x-ref="postBillingId" name="billingAddressId" value="">
 											<input type="hidden" x-ref="postNewBilling" name="useNewBillingAddress" value="">
 
-											{# Same as shipping #}
 											<div class="p-4" :class="{ 'bg-gray-100': parseInt(billingSameAsShipping) === 1 }">
 												<div class="radio">
 													<input
@@ -211,7 +214,6 @@
 
 														{% if currentUser %}
 															<div class="mt-4 p4 checkbox">
-																{# You can switch this to a cart custom field if you want cart-truth only #}
 																<input type="checkbox" class="absolute opacity-0 w-px h-px" id="saveBillingAddressOnOrderComplete" name="saveBillingAddressOnOrderComplete" value="1">
 																<label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveBillingAddressOnOrderComplete">
 																	{{ 'billing.saveToAddressBook'|t('foster-checkout') }}
@@ -226,6 +228,8 @@
 											</div>
 
 									</div>
+
+									{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'billing' } %}
 
 									{% set note = craft.fostercheckout.note('billing', {cart}) %}
 									{% if note %}
@@ -253,33 +257,7 @@
 				</div>
 			</main>
 
-			<aside>
-				<div class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
-					<div class="grid grid-cols-1 gap-6">
-						<div class="flex justify-between items-center gap-4">
-							<h2 class="text-xl font-bold text-gray-800 leading-snug">
-								{{ 'summary.itemsTitle'|t('foster-checkout') }}
-							</h2>
-							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}" class="inline-block text-[var(--brandColor)] underline">
-								{{ 'misc.edit'|t('foster-checkout') }}
-							</a>
-						</div>
-
-						<ul class="grid grid-cols-1 gap-4">
-							{% for lineItem in cart.lineItems %}
-								<li>
-									{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem } %}
-								</li>
-							{% endfor %}
-						</ul>
-					</div>
-
-					{% include 'foster-checkout/_components/app/summary-cart' with { estimated: false } %}
-				</div>
-
-				{% include 'foster-checkout/_components/app/global-checkout-note' %}
-
-			</aside>
+			{% include 'foster-checkout/_components/app/checkout-aside' with { estimated: false } %}
 		</div>
 
 		{% include 'foster-checkout/_components/app/checkout-footer-links' %}
@@ -294,7 +272,7 @@
 		{% include bodyInclude with {
 			context: 'checkout',
 			location: 'body',
-			step: 'payment',
+			step: 'billing',
 			cart: cart
 		} %}
 	{% endif %}

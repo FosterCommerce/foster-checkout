@@ -27,7 +27,7 @@
 {% block body %}
 
 	<div
-		class="grid grid-cols-1 gap-4 mt-10 pb-10 lg:grid-cols-[1fr_380px] lg:gap-6 lg:mt-20 lg:pb-20 xl:grid-cols-[1fr_32.03125%] xl:gap-8">
+		class="grid grid-cols-1 gap-4 mt-10 pb-10 lg:grid-cols-[1fr_42%] lg:gap-6 lg:mt-20 lg:pb-20 xl:gap-8">
 
 		<main class="grid grid-cols-1 gap-8">
 			<header>
@@ -35,7 +35,7 @@
 					{{ 'order.stepName'|t('foster-checkout') }}
 				</h1>
 
-				{% set note = craft.fostercheckout.note('order', {order}) %}
+				{% set note = craft.fostercheckout.note('confirmation', {order}) %}
 				{% if note %}
 					<div class="mt-4 [&_a]:underline [&_a:hover]:decoration-current">
 						{{ note|raw }}
@@ -110,27 +110,16 @@
 							<h2 class="text-lg font-medium text-gray-700">{{ 'order.payment'|t('foster-checkout') }}</h2>
 							<p>{{ 'order.gateway'|t('foster-checkout') }} {{ order.gateway.name }}</p>
 							{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
-								{# Check for applied / redeemed gift card vouchers in orders #}
-
 								{% if order.orderAdjustments|length >= 1 %}
-									{#
-									We currently only have access to the redeemed gift card vouchers code using order.orderAdjustments[0].description
-									which appears in the form "Gift Voucher discount using code MTLYZKVDAQ"
-									In order to get the code, we'll have to split the description string using 'code ' as its delimeter
-									#}
-
 									{% set voucherAdjustments = order.orderAdjustments|filter(adjustment => adjustment.type == 'voucher') %}
 									{% if voucherAdjustments|length >= 1 %}
 										<p class="mt-1">{{ 'order.giftCard'|t('foster-checkout') }}</p>
 										{% for voucher in voucherAdjustments %}
-											{# Get redeemed voucher code from description #}
-											{% set voucherCode = voucher.description|split('code ')[1] is defined ? voucher.description|split('code ')[1] : false %}
-											{# Get voucher remaining amount #}
+											{% set voucherCode = craft.fostercheckout.voucherCode(voucher) %}
 											{% if voucherCode %}
 												{% set amountRemaining = craft.giftVoucher.codes().codeKey(voucherCode).one().currentAmount %}
 												{% set appliedVoucherAmount = (order.storedItemTotal - (voucher.amount|abs)) < 0 ? order.storedItemTotal : voucher.amount|abs %}
-												{% set appliedVoucherDescription = voucher.description|split('code ')[1] ~ ' (' ~ appliedVoucherAmount|currency ~ ' applied, ' ~ amountRemaining|currency ~ ' remaining)' %}
-												<p class="mt-1">{{ appliedVoucherDescription }}</p>
+												<p class="mt-1">{{ voucherCode }} ({{ appliedVoucherAmount|currency }} applied, {{ amountRemaining|currency }} remaining)</p>
 											{% endif %}
 										{% endfor %}
 									{% endif %}
@@ -190,35 +179,21 @@
 					</div>
 				</div>
 
-				{% if order[craft.fostercheckout.settings.notes.customersOrderNotes.fieldHandle] %}
+				{% set customerOrderNotesFieldHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
+				{% if customerOrderNotesFieldHandle and order[customerOrderNotesFieldHandle] %}
 					<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
-						<h2 class="text-lg font-medium text-gray-700">Customer Note</h2>
-						{{ order[craft.fostercheckout.settings.notes.customersOrderNotes.fieldHandle]|nl2br }}
+						<h2 class="text-lg font-medium text-gray-700">{{ 'order.customerNoteHeading'|t('foster-checkout') }}</h2>
+						{{ order[customerOrderNotesFieldHandle]|nl2br }}
 					</div>
 				{% endif %}
 
 			</div>
 
-			{% if craft.fostercheckout.settings.options.enableMadeAMistake %}
-				{% set mistakeHeading = craft.fostercheckout.note('mistakeHeading', {order}) %}
-				{% set mistakeText = craft.fostercheckout.note('mistakeText', {order}) %}
-				<div class="hidden lg:block">
-					{% if mistakeHeading %}
-						<h3 class="font-semibold text-2xl">{{ mistakeHeading }}</h3>
-					{% endif %}
-					{% if mistakeText %}
-						<div class="mt-6 space-y-2 text-gray-500">
-							{{ mistakeText | raw }}
-						</div>
-					{% endif %}
-				</div>
-			{% endif %}
-
 		</main>
 
 		<aside>
 			<div
-				class="grid grid-cols-1 gap-10 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
+				class="grid grid-cols-1 gap-10 lg:sticky lg:top-4 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 
 				<div class="grid grid-cols-1 gap-4 xl:gap-6">
 

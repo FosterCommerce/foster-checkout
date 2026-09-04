@@ -3,19 +3,31 @@
 namespace fostercommerce\fostercheckout\services;
 
 use Craft;
+use craft\base\FieldLayoutElement;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
 use craft\commerce\enums\LineItemType;
+use craft\commerce\helpers\Currency;
 use craft\commerce\models\LineItem;
+use craft\commerce\models\OrderAdjustment;
 use craft\commerce\Plugin as Commerce;
+use craft\elements\Address;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
-use craft\errors\InvalidFieldException;
+use craft\fieldlayoutelements\addresses\AddressField;
+use craft\fieldlayoutelements\addresses\CountryCodeField;
+use craft\fieldlayoutelements\addresses\OrganizationField;
+use craft\fieldlayoutelements\addresses\OrganizationTaxIdField;
+use craft\fieldlayoutelements\BaseField;
+use craft\fieldlayoutelements\CustomField;
+use craft\fieldlayoutelements\FullNameField;
+use craft\helpers\StringHelper;
 use DateTime;
-use fostercommerce\fostercheckout\formatters\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\FosterCheckout;
+use fostercommerce\fostercheckout\helpers\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\models\DeliveryDate;
+use fostercommerce\fostercheckout\models\LineItemOptionRule;
 use fostercommerce\fostercheckout\models\PaymentGatewayConfig;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\models\ValueConfig;
@@ -25,7 +37,29 @@ use yii\base\InvalidConfigException;
 /**
  * Checkout service
  *
+ * @phpstan-import-type RenderableField from CheckoutFieldLayouts
+ * @phpstan-import-type RenderableUiElement from CheckoutFieldLayouts
+ * @phpstan-type AddressFormElement array{type: string, required: bool, width: int, field: ?RenderableField}
  * @phpstan-type LinksTable array<array-key, array{text: non-empty-string, url: non-empty-string}>
+ * @phpstan-type CheckoutShippingMethod array{handle: string, name: string, description: string, price: float, priceAsCurrency: string}
+ * @phpstan-type CheckoutTotals array{
+ *     itemsAsCurrency: string,
+ *     shipping: float,
+ *     shippingAsCurrency: string,
+ *     taxAsCurrency: string,
+ *     total: float,
+ *     totalAsCurrency: string,
+ *     currency: string,
+ *     discounts: list<array{name: string, amountAsCurrency: string}>,
+ *     vouchers: list<array{name: string, amountAsCurrency: string}>
+ * }
+ * @phpstan-type CheckoutLiveState array{
+ *     shippingMethods: list<CheckoutShippingMethod>,
+ *     shippingMethodHandle: string,
+ *     totals: CheckoutTotals,
+ *     shippingPreview: string,
+ *     couponCodeError?: string
+ * }
  */
 class Checkout extends Component
 {
@@ -33,6 +67,11 @@ class Checkout extends Component
 	 * @var array<string, array<int, string>>|null
 	 */
 	private ?array $addressRequiredFields = null;
+
+	/**
+	 * @var array<string, array<int, string>>|null
+	 */
+	private ?array $addressUsedFields = null;
 
 	public function addressFormatter(): CheckoutAddressFormatter
 	{
@@ -64,6 +103,30 @@ class Checkout extends Component
 	}
 
 	/**
+	 * Address fields each country's format actually uses, keyed by country code.
+	 *
+	 * Read through the Addresses service rather than the format repository, so `EVENT_DEFINE_USED_FIELDS`
+	 * applies, and this plugin adds the administrative area for GB through it.
+	 *
+	 * @return array<string, array<int, string>>
+	 */
+	public function addressUsedFields(): array
+	{
+		if ($this->addressUsedFields !== null) {
+			return $this->addressUsedFields;
+		}
+
+		$addressesService = Craft::$app->getAddresses();
+		$usedFields = [];
+
+		foreach (array_keys($this->storeCountries()) as $countryCode) {
+			$usedFields[$countryCode] = array_values($addressesService->getUsedFields($countryCode));
+		}
+
+		return $this->addressUsedFields = $usedFields;
+	}
+
+	/**
 	 * @return array<string, string>
 	 */
 	public function storeCountries(): array
@@ -72,6 +135,14 @@ class Checkout extends Component
 		$commerce = Commerce::getInstance();
 
 		return $commerce->getStores()->getCurrentStore()->getSettings()->getCountriesList();
+	}
+
+	public function content(): Content
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $plugin->getContent();
 	}
 
 	public function settings(): Settings
@@ -86,14 +157,28 @@ class Checkout extends Component
 	}
 
 	/**
-	 * Gets the 'dist' javascript asset bundle from the plugin
-	 * Note: We are getting it this way as running view.registerAssetBundle() in the template does not output the
-	 * script tag with type="module" attribute
+	 * The site template places the tag itself, so the URL is published rather than registered.
 	 */
 	public function jsBundle(): string
 	{
 		/** @var string $bundleUrl */
-		$bundleUrl = Craft::$app->assetManager->getPublishedUrl('@fostercheckout/web/assets/checkout/dist/js/alpine.js', true);
+		$bundleUrl = Craft::$app->assetManager->getPublishedUrl(
+			'@fostercheckout/web/assets/checkout/dist/js',
+			true,
+			'alpine.js'
+		);
+
+		return $bundleUrl;
+	}
+
+	public function tailwindBundle(): string
+	{
+		/** @var string $bundleUrl */
+		$bundleUrl = Craft::$app->assetManager->getPublishedUrl(
+			'@fostercheckout/web/assets/checkout/vendor',
+			true,
+			'tailwind-3.4.17.js'
+		);
 
 		return $bundleUrl;
 	}
@@ -103,45 +188,38 @@ class Checkout extends Component
 	 */
 	public function links(string $field): ?array
 	{
-		$links = $this->settings()->links;
+		$links = $this->content()->get("links.{$field}");
 
-		/** @var ?ValueConfig $links */
-		$link = $links->{$field} ?? null;
-
-		try {
-			if ($link instanceof ValueConfig) {
-				/** @var LinksTable $value */
-				$value = $link->getValue();
-				return $value;
-			}
-		} catch (InvalidFieldException) {
+		if (! is_array($links)) {
 			return null;
 		}
 
-		return null;
+		// A row missing either column would render a link with no destination or no label
+		$complete = array_filter(
+			$links,
+			static fn ($link): bool => is_array($link) && ($link['text'] ?? '') !== '' && ($link['url'] ?? '') !== ''
+		);
+
+		/** @var LinksTable $completeLinks */
+		$completeLinks = array_values($complete);
+
+		return $completeLinks;
 	}
 
 	/**
-	 * Gets the custom note data based on the template page we are on
+	 * Stored copy is rendered as a Twig template, so a note can reference the cart or order.
 	 *
-	 * @param array<non-empty-string, mixed> $context additional context to pass to the callable or twig template
+	 * @param array<non-empty-string, mixed> $context additional context to pass to the twig template
 	 */
-	public function note(string $field, array $context = []): string|null
+	public function note(string $field, array $context = []): ?string
 	{
-		$notes = $this->settings()->notes;
+		$note = $this->content()->get("notes.{$field}");
 
-		/** @var ?ValueConfig $note */
-		$note = $notes->{$field} ?? null;
-
-		try {
-			if ($note instanceof ValueConfig) {
-				return $note->toStringWithContext($context);
-			}
-		} catch (InvalidFieldException) {
+		if (! is_string($note)) {
 			return null;
 		}
 
-		return null;
+		return Craft::$app->getView()->renderString($note, $context);
 	}
 
 	/**
@@ -214,27 +292,37 @@ class Checkout extends Component
 	 */
 	public function getLineItemOptions(LineItem $lineItem): array
 	{
-		$enableLineItemOptions = $this->settings()->options->enableLineItemOptions;
-		if ($enableLineItemOptions === '') {
-			$enableLineItemOptions = true;
-		}
+		$lineItems = $this->settings()->lineItems;
 
-		if ($enableLineItemOptions === false) {
+		if (! $lineItems->enableLineItemOptions) {
 			return [];
 		}
 
-		/** @var array<array-key, array{name: string, value: string}> $options */
-		$options = collect($lineItem->options)
-			->filter(fn ($value, $name): bool =>
-				// If the line item options are not set, or the name does not start with the line item options, return the option
-				$enableLineItemOptions === true || ! str_starts_with((string) $name, $enableLineItemOptions))
-			->map(fn ($value, $name): array => [
-				'name' => $name,
-				'value' => $value,
-			])
-			->toArray();
+		$hiddenPrefix = $lineItems->hiddenLineItemOptionPrefix;
+		$maxLength = $lineItems->lineItemOptionValueMaxLength;
+		$displayed = [];
 
-		return $options;
+		foreach ($lineItem->options as $optionName => $optionValue) {
+			$optionName = (string) $optionName;
+
+			if ($hiddenPrefix !== '' && str_starts_with($optionName, $hiddenPrefix)) {
+				continue;
+			}
+
+			$rewritten = $this->rewriteOption(
+				$optionName,
+				is_scalar($optionValue) ? (string) $optionValue : '',
+				$this->settings()->lineItemOptionRules
+			);
+
+			if ($maxLength !== null && $maxLength > 0) {
+				$rewritten['value'] = StringHelper::safeTruncate($rewritten['value'], $maxLength, '…');
+			}
+
+			$displayed[] = $rewritten;
+		}
+
+		return $displayed;
 	}
 
 	public function getDeliveryDate(Order $order): false|DeliveryDate
@@ -263,8 +351,8 @@ class Checkout extends Component
 		}
 
 		return new DeliveryDate([
-			'label' => $deliveryDateConfig->label->getValue($context),
-			'message' => $deliveryDateConfig->message->getValue($context),
+			'label' => $this->contentOrConfig('deliveryDateLabel', $deliveryDateConfig->label, $context),
+			'message' => $this->contentOrConfig('deliveryDateMessage', $deliveryDateConfig->message, $context),
 			'estimate' => $estimate,
 		]);
 	}
@@ -272,5 +360,415 @@ class Checkout extends Component
 	public function getManualGatewayConfig(string $gateway): ?PaymentGatewayConfig
 	{
 		return $this->settings()->paymentGateways[$gateway] ?? null;
+	}
+
+	/**
+	 * @return array<int, RenderableField|RenderableUiElement>
+	 */
+	public function gatewayFields(string $gatewayHandle, ?Order $order = null): array
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $plugin->getCheckoutFieldLayouts()->getRenderableFields($gatewayHandle, $order);
+	}
+
+	/**
+	 * @return array<int, RenderableField|RenderableUiElement>
+	 */
+	public function checkoutFields(string $position, ?Order $order = null): array
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $plugin->getCheckoutFieldLayouts()->getRenderableCheckoutFields($position, $order);
+	}
+
+	/**
+	 * Labels of a position's required fields the order has no value for.
+	 *
+	 * @return list<string>
+	 */
+	public function missingRequiredFields(string $position, ?Order $order = null): array
+	{
+		$missing = [];
+
+		foreach ($this->checkoutFields($position, $order) as $field) {
+			if (! array_key_exists('required', $field)) {
+				continue;
+			}
+
+			if ($field['required'] && ($field['value'] === '' || $field['value'] === [])) {
+				$missing[] = $field['label'];
+			}
+		}
+
+		return $missing;
+	}
+
+	/**
+	 * The address form, in the order and widths the address field layout sets.
+	 *
+	 * @return array<int, AddressFormElement>
+	 */
+	public function addressFields(?Address $address = null): array
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+		$layout = Craft::$app->getAddresses()->getFieldLayout();
+
+		// Without an address there is nothing to test a visibility condition against, so list them all
+		$layoutElements = $address instanceof Address
+			? $layout->getVisibleElementsByType(FieldLayoutElement::class, $address)
+			: $layout->getAllElements();
+
+		$elements = [];
+		$settings = $this->settings();
+
+		foreach ($this->addressLayoutFields($layoutElements) as $type => $layoutElement) {
+			$configurable = $this->isConfigurableAddressField($type, $layoutElement);
+			$attribute = $layoutElement->attribute();
+
+			if ($configurable && in_array($attribute, $settings->hiddenAddressFields, true)) {
+				continue;
+			}
+
+			$field = $layoutElement instanceof CustomField
+				? $plugin->getCheckoutFieldLayouts()->renderableField($layoutElement)
+				: null;
+
+			// A custom field whose type has no storefront input has nothing to show the customer
+			if ($type === 'custom' && $field === null) {
+				continue;
+			}
+
+			$elements[] = [
+				'type' => $type,
+				'required' => $layoutElement->required
+					|| ($configurable && in_array($attribute, $settings->requiredAddressFields, true)),
+				'width' => $layoutElement->width,
+				'field' => $field,
+			];
+		}
+
+		return $elements;
+	}
+
+	/**
+	 * @param array<non-empty-string, mixed> $context additional context to pass to the twig template
+	 */
+	public function gatewayNote(string $gatewayHandle, array $context = []): ?string
+	{
+		return $this->contentOrConfig(
+			"gateways.{$gatewayHandle}",
+			$this->getManualGatewayConfig($gatewayHandle)?->note,
+			$context
+		);
+	}
+
+	public function subscribeText(): ?string
+	{
+		return $this->contentOrConfig('subscribe', $this->settings()->options->subscribe);
+	}
+
+	/**
+	 * @return CheckoutLiveState
+	 */
+	public function checkoutLiveState(Order $cart): array
+	{
+		$shippingMethods = $this->checkoutShippingMethods($cart);
+		$handles = array_column($shippingMethods, 'handle');
+		$cartHandle = $cart->shippingMethodHandle ?? '';
+		$shippingMethodHandle = $cartHandle !== '' && in_array($cartHandle, $handles, true)
+			? $cartHandle
+			: ($handles[0] ?? '');
+
+		return [
+			'shippingMethods' => $shippingMethods,
+			'shippingMethodHandle' => $shippingMethodHandle,
+			'totals' => $this->checkoutTotals($cart),
+			'shippingPreview' => $this->checkoutAddressPreview($cart->getShippingAddress()),
+		];
+	}
+
+	/**
+	 * Address fields an admin may hide or require at the checkout, as control panel options.
+	 *
+	 * @return array<int, array{label: string, value: string}>
+	 */
+	public function configurableAddressFields(): array
+	{
+		$options = [];
+		$layoutElements = Craft::$app->getAddresses()->getFieldLayout()->getAllElements();
+
+		foreach ($this->addressLayoutFields($layoutElements) as $type => $layoutElement) {
+			if (! $this->isConfigurableAddressField($type, $layoutElement)) {
+				continue;
+			}
+
+			$options[] = [
+				'label' => $this->addressFieldLabel($type, $layoutElement),
+				'value' => $layoutElement->attribute(),
+			];
+		}
+
+		return $options;
+	}
+
+	/**
+	 * The line items total, with any discount belonging to a single item already taken off.
+	 */
+	public function itemsTotal(Order $order): string
+	{
+		$teller = $order->getTeller();
+		$lineItemDiscount = '0';
+
+		foreach ($order->getAdjustments() ?? [] as $adjustment) {
+			if ($adjustment->type === 'discount' && $adjustment->lineItemId) {
+				$lineItemDiscount = $teller->add($lineItemDiscount, $adjustment->amount);
+			}
+		}
+
+		return Currency::formatAsCurrency(
+			$teller->add($order->getItemSubtotal(), $lineItemDiscount),
+			$order->currency
+		);
+	}
+
+	/**
+	 * What a line item would have cost at its original price, before any sale.
+	 */
+	public function lineItemOriginalTotal(LineItem $lineItem): string
+	{
+		/** @var Order $order a line item in a cart always belongs to one */
+		$order = $lineItem->getOrder();
+
+		return Currency::formatAsCurrency(
+			$order->getTeller()->multiply($lineItem->price, (string) $lineItem->qty),
+			$order->currency
+		);
+	}
+
+	/**
+	 * Gift Voucher snapshots the code element, whose description is translated and so cannot be parsed.
+	 */
+	public function voucherCode(OrderAdjustment $adjustment): ?string
+	{
+		$codeKey = $adjustment->sourceSnapshot['codeKey'] ?? null;
+
+		return is_string($codeKey) && $codeKey !== '' ? $codeKey : null;
+	}
+
+	public function voucherLabel(OrderAdjustment $adjustment): string
+	{
+		return $this->voucherCode($adjustment) ?? Craft::t(FosterCheckout::HANDLE, 'voucher.fallbackLabel');
+	}
+
+	/**
+	 * Every rule tests the stored name and value, so renaming in one rule cannot hide the option
+	 * from a later one. Rules run top to bottom, so the last to set a field wins.
+	 *
+	 * @param list<LineItemOptionRule> $rules
+	 * @return array{name: string, value: string}
+	 */
+	private function rewriteOption(string $optionName, string $optionValue, array $rules): array
+	{
+		$displayed = [
+			'name' => $optionName,
+			'value' => $optionValue,
+		];
+
+		foreach ($rules as $rule) {
+			if (! $rule->getCondition()->matches($optionName, $optionValue)) {
+				continue;
+			}
+
+			if ((string) $rule->setName !== '') {
+				$displayed['name'] = (string) $rule->setName;
+			}
+
+			if ((string) $rule->setValue !== '') {
+				$displayed['value'] = (string) $rule->setValue;
+			}
+		}
+
+		return $displayed;
+	}
+
+	/**
+	 * A native field is labelled by the plugin rather than by Craft, so the option an admin picks
+	 * reads the same as the field the customer sees.
+	 */
+	private function addressFieldLabel(string $type, BaseField $layoutElement): string
+	{
+		$label = match ($type) {
+			'country' => 'addressFields.countryLabel',
+			'fullName' => 'addressFields.fullnameLabel',
+			'organization' => 'addressFields.organizationLabel',
+			'organizationTaxId' => 'addressFields.organizationTaxIdLabel',
+			default => null,
+		};
+
+		return $label === null
+			? (string) $layoutElement->label()
+			: Craft::t(FosterCheckout::HANDLE, $label);
+	}
+
+	/**
+	 * The layout's elements the storefront can render, keyed by the type it renders them as.
+	 *
+	 * @param array<int, FieldLayoutElement> $layoutElements
+	 * @return \Generator<string, BaseField>
+	 */
+	private function addressLayoutFields(array $layoutElements): \Generator
+	{
+		foreach ($layoutElements as $layoutElement) {
+			$type = $this->addressElementType($layoutElement);
+
+			if ($type === null) {
+				continue;
+			}
+
+			if (! $layoutElement instanceof BaseField) {
+				continue;
+			}
+
+			yield $type => $layoutElement;
+		}
+	}
+
+	/**
+	 * Country and the address block are what an address needs to resolve at all, and a field the
+	 * layout already marks required cannot be loosened without failing Craft's validation.
+	 */
+	private function isConfigurableAddressField(string $type, BaseField $layoutElement): bool
+	{
+		return ! in_array($type, ['address', 'country'], true) && ! $layoutElement->required;
+	}
+
+	/**
+	 * Commerce overwrites an order address's `title`, and lat/long is not something a customer types,
+	 * so neither is rendered.
+	 */
+	private function addressElementType(FieldLayoutElement $layoutElement): ?string
+	{
+		return match (true) {
+			$layoutElement instanceof CountryCodeField => 'country',
+			$layoutElement instanceof FullNameField => 'fullName',
+			$layoutElement instanceof OrganizationTaxIdField => 'organizationTaxId',
+			$layoutElement instanceof OrganizationField => 'organization',
+			$layoutElement instanceof AddressField => 'address',
+			$layoutElement instanceof CustomField => 'custom',
+			default => null,
+		};
+	}
+
+	private function checkoutAddressPreview(?Address $address): string
+	{
+		if (! $address instanceof Address) {
+			return '';
+		}
+
+		$formatted = $this->addressFormatter()->format($address);
+		$name = trim((string) $address->fullName);
+
+		if ($name === '') {
+			return $formatted;
+		}
+
+		if ($formatted === '') {
+			return $name;
+		}
+
+		return $name . ', ' . $formatted;
+	}
+
+	/**
+	 * @return list<CheckoutShippingMethod>
+	 */
+	private function checkoutShippingMethods(Order $cart): array
+	{
+		$commerce = Commerce::getInstance();
+		if ($commerce === null) {
+			return [];
+		}
+
+		$methods = [];
+
+		foreach ($cart->availableShippingMethodOptions as $handle => $method) {
+			$rule = $commerce->getShippingMethods()->getMatchingShippingRule($cart, $method);
+			$description = $rule?->getDescription() ?: '';
+
+			$methods[] = [
+				'handle' => (string) $handle,
+				'name' => Craft::t(FosterCheckout::HANDLE, $method->name ?? (string) $handle),
+				'description' => $description !== '' ? Craft::t(FosterCheckout::HANDLE, $description) : '',
+				'price' => (float) $method->price,
+				'priceAsCurrency' => $method->priceAsCurrency,
+			];
+		}
+
+		return $methods;
+	}
+
+	/**
+	 * @return CheckoutTotals
+	 */
+	private function checkoutTotals(Order $cart): array
+	{
+		$discounts = [];
+		$vouchers = [];
+
+		foreach ($cart->getAdjustments() ?? [] as $adjustment) {
+			if ($adjustment->type === 'discount') {
+				if ($adjustment->lineItemId) {
+					continue;
+				}
+
+				$discounts[] = [
+					'name' => $adjustment->name,
+					'amountAsCurrency' => $adjustment->amountAsCurrency,
+				];
+				continue;
+			}
+
+			if ($adjustment->type === 'voucher') {
+				$vouchers[] = [
+					'name' => $this->voucherLabel($adjustment),
+					'amountAsCurrency' => $adjustment->amountAsCurrency,
+				];
+			}
+		}
+
+		return [
+			'itemsAsCurrency' => $this->itemsTotal($cart),
+			'shipping' => $cart->getTotalShippingCost(),
+			'shippingAsCurrency' => $cart->totalShippingCostAsCurrency,
+			'taxAsCurrency' => $cart->totalTaxAsCurrency,
+			'total' => $cart->getTotal(),
+			'totalAsCurrency' => $cart->totalAsCurrency,
+			'currency' => (string) $cart->currency,
+			'discounts' => $discounts,
+			'vouchers' => $vouchers,
+		];
+	}
+
+	/**
+	 * Reads copy from content storage, falling back to its config value.
+	 *
+	 * The fallback covers installs that have not run the migration, and values config can express
+	 * but content cannot, such as a gateway note defined as a PHP closure.
+	 *
+	 * @param array<non-empty-string, mixed> $context additional context to pass to the twig template
+	 */
+	private function contentOrConfig(string $field, ?ValueConfig $configValue, array $context = []): ?string
+	{
+		$note = $this->note($field, $context);
+
+		if ($note !== null && trim($note) !== '') {
+			return $note;
+		}
+
+		return $configValue instanceof ValueConfig ? $configValue->toStringWithContext($context) : null;
 	}
 }

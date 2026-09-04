@@ -1,0 +1,39 @@
+{% set positionFields = positionFields|default(craft.fostercheckout.checkoutFields(position, cart)) %}
+
+{% if positionFields|length %}
+	{# Only the single page checkout saves as you go, so the panel it belongs to comes from the caller #}
+	{% if panel|default %}
+		<div
+			data-fc-collect
+			@blur.capture="saveIfValid('{{ panel }}', $event)"
+			@change="saveIfValid('{{ panel }}', $event)"
+			@selected="$nextTick(() => saveIfValid('{{ panel }}', $event))"
+		>
+	{% endif %}
+
+	<div class="grid grid-cols-1 gap-y-4 gap-x-4 mt-4 sm:grid-cols-12">
+		{% for field in positionFields %}
+			{# The layout stores width as a percentage; the grid is in twelfths #}
+			<div class="sm:col-span-{{ (field.width / 100 * 12)|round }}">
+				{# A line break needs no markup of its own, the full width cell ends the row #}
+				{% if field.type in ['hr', 'heading', 'linebreak'] %}
+					{% include 'foster-checkout/_components/app/checkout-ui-element' with { field: field } %}
+				{% else %}
+					{% set fieldErrors = cart.getErrors(field.handle) %}
+					{% if showRequired|default(false) and field.required and field.value in ['', []] %}
+						{% set fieldErrors = fieldErrors|merge(['misc.required'|t('foster-checkout')]) %}
+					{% endif %}
+					{% include 'foster-checkout/_components/app/checkout-field' with {
+						field: field,
+						value: field.value,
+						errors: fieldErrors,
+					} %}
+				{% endif %}
+			</div>
+		{% endfor %}
+	</div>
+
+	{% if panel|default %}
+		</div>
+	{% endif %}
+{% endif %}

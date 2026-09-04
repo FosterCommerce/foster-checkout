@@ -1,0 +1,109 @@
+{% set subscribeText = craft.fostercheckout.subscribeText()|striptags|trim %}
+{% set klaviyoListId = craft.fostercheckout.settings.options.klaviyoListId %}
+{% set klaviyoEnabled = craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
+{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
+
+<section
+	class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
+	data-fc-panel="contact"
+>
+	<div class="flex justify-between items-center p-4 gap-4 bg-gray-200">
+		<div class="flex items-center gap-2 min-w-0">
+			<h2 class="font-semibold">
+				{{ 'email.stepName'|t('foster-checkout') }}
+			</h2>
+			{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'contact' } %}
+		</div>
+		{% if currentUser %}
+			<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}" target="_blank"
+			   class="text-sm text-[var(--brandColor)] underline">
+				{{ 'misc.viewAccount'|t('foster-checkout') }}
+			</a>
+		{% else %}
+			<a href="{{ loginUrl }}" class="text-sm text-[var(--brandColor)] underline">
+				{{ 'email.signIn'|t('foster-checkout') }}
+			</a>
+		{% endif %}
+	</div>
+
+	{% include 'foster-checkout/checkout/single-page/_panel-error' with { panel: 'contact' } %}
+
+	{% if currentUser %}
+		<div class="p-4">
+			<p class="text-black">{{ cart.email }}</p>
+			{# The signed-in branch renders no email form, so these declare their own collect block #}
+			{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'email', panel: 'contact', showRequired: true } %}
+		</div>
+	{% else %}
+	<div
+		class="p-4"
+		data-fc-collect
+		@input="onDetailsChange($event)"
+		@blur.capture="saveIfValid('contact', $event)"
+		@change="saveIfValid('contact', $event)"
+		@selected="$nextTick(() => saveIfValid('contact', $event))"
+	>
+		<div class="grid grid-cols-1 gap-6">
+			{% include 'foster-checkout/_components/base/input-text-clearable' with {
+				label: 'email.emailLabel'|t('foster-checkout'),
+				id: 'email',
+				name: 'email',
+				type: 'email',
+				autocomplete: 'email',
+				placeholder: 'email.emailPlaceholder'|t('foster-checkout'),
+				value: cart ? cart.email : '',
+				required: true,
+				errors: cart.getErrors('email'),
+			} %}
+
+			<div class="checkbox" x-data="{ createAccount: {{ cart.registerUserOnOrderComplete ? 'true' : 'false' }} }">
+				<input type="hidden" name="registerUserOnOrderComplete" :value="createAccount ? 1 : 0">
+				<input
+					type="checkbox"
+					id="registerUserOnOrderComplete"
+					class="sr-only"
+					x-model="createAccount"
+					:checked="createAccount"
+					:aria-checked="createAccount ? 'true' : 'false'"
+				/>
+				<label
+					class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
+					for="registerUserOnOrderComplete"
+				>
+					{{ 'email.createAccount'|t('foster-checkout') }}
+				</label>
+			</div>
+		</div>
+
+		{% if klaviyoEnabled and klaviyoListId and subscribeText %}
+			<div
+				x-data="{
+					subscribe: JSON.parse(localStorage.getItem(window.FC_SUBSCRIBE_KEY) ?? 'false'),
+					init() {
+						this.$watch('subscribe', v => localStorage.setItem(window.FC_SUBSCRIBE_KEY, JSON.stringify(v)))
+					}
+				}"
+				class="mt-4 checkbox"
+			>
+				<input type="hidden" name="subscribe" :value="subscribe ? 1 : 0">
+				<template x-if="subscribe">
+					<input type="hidden" name="list" value="{{ klaviyoListId }}">
+				</template>
+				<input type="checkbox" id="subscribe" class="sr-only" x-model="subscribe" :aria-checked="subscribe ? 'true' : 'false'">
+				<label for="subscribe" class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500">
+					{{ subscribeText|raw }}
+				</label>
+			</div>
+		{% endif %}
+
+		{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'email', showRequired: true } %}
+
+		{% set note = craft.fostercheckout.note('email', {cart}) %}
+		{% if note %}
+			<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
+				{{ note|raw }}
+			</div>
+		{% endif %}
+	</div>
+	{% endif %}
+</section>

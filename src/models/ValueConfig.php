@@ -81,14 +81,11 @@ class ValueConfig extends Model implements Stringable
 	public function getValue(array $context = []): mixed
 	{
 		if (is_string($this->value)) {
-			// If it's a string, then we render it as a twig template
 			return Craft::$app->getView()->renderString($this->value, $context);
 		}
 
 		if (is_callable($this->value)) {
-			// If it's a callable, then we call it with the context
 			$callable = $this->value;
-			// TODO we probably want to ensure that this is returning the correct data
 			return $callable($context);
 		}
 
@@ -97,7 +94,6 @@ class ValueConfig extends Model implements Stringable
 		}
 
 		if ($this->elementHandle !== null && $this->fieldHandle !== null) {
-			// If it's an element and field handle, then we get the field value
 			$elementHandle = trim($this->elementHandle);
 			$fieldHandle = trim($this->fieldHandle);
 
