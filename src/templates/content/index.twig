@@ -1,5 +1,6 @@
 {% extends "_layouts/cp" %}
 {% import "_includes/forms" as forms %}
+{% do view.registerAssetBundle('fostercommerce\\fostercheckout\\web\\assets\\cp\\CpAsset') %}
 
 {% set title = 'nav.content'|t('foster-checkout') %}
 {% set docTitle = title %}
@@ -80,5 +81,7 @@
 		allowReorder: true,
 		static: readOnly,
 	}) }}
+
+	{% include 'foster-checkout/_includes/plugin-footer' %}
 
 {% endblock %}

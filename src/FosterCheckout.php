@@ -662,8 +662,7 @@ class FosterCheckout extends Plugin
 					$this->singlePageCouponCodeError = null;
 				}
 
-				// Gift Voucher reports a rejected code as a session flash and still returns success,
-				// so without this the JSON response says nothing went wrong.
+				// A site rule can strip a code and report it with setError(), which no JSON response carries
 				$request = Craft::$app->getRequest();
 
 				if ($request instanceof WebRequest && $request->getBodyParam('action') === self::VOUCHER_ACTION) {
@@ -679,8 +678,8 @@ class FosterCheckout extends Plugin
 		);
 	}
 
-	// Commerce persists a coupon notice on the order, so the cart page would have to write
-	// on a GET to make it appear only once. A flash survives the redirect and expires itself.
+	// Commerce persists a coupon notice on the order, so the cart page would have to write on a
+	// GET to show it once. A flash is read once instead.
 	private function flashOrderNoticesOnce(): void
 	{
 		Event::on(
@@ -702,7 +701,7 @@ class FosterCheckout extends Plugin
 		);
 	}
 
-	// A 'reasonable' list of UK county names
+	// commerceguys/addressing ships no GB subdivisions, so the store lists its own
 	private function listUkCounties(): void
 	{
 		Event::on(

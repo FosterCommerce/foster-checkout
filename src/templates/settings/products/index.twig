@@ -1,5 +1,6 @@
 {% extends "foster-checkout/_layouts/settings" %}
 {% import "_includes/forms" as forms %}
+{% do view.registerAssetBundle('fostercommerce\\fostercheckout\\web\\assets\\cp\\CpAsset') %}
 
 {# @var settings \fostercommerce\fostercheckout\models\Settings #}
 
@@ -58,5 +59,7 @@
 		static: readOnly or 'products' in overriddenSettings,
 		warning: 'products' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'products' }),
 	}) }}
+
+	{% include 'foster-checkout/_includes/plugin-footer' %}
 
 {% endblock %}

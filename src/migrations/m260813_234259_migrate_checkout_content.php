@@ -179,7 +179,7 @@ class m260813_234259_migrate_checkout_content extends Migration
 			return null;
 		}
 
-		// Rich text fields hand back a Markup object rather than a string.
+		// A rich text field returns a Markup object rather than a string.
 		return is_scalar($fieldValue) || $fieldValue instanceof \Stringable ? (string) $fieldValue : null;
 	}
 

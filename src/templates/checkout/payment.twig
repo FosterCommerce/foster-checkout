@@ -27,7 +27,7 @@
 	{% set gateways = cart.getAvailableGateways() %}
 	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
 
-	{# ---- Gateway cart-truthy init ---- #}
+	{# Gateway seeded from the cart #}
 	{% set _cartGatewayId = cart.gatewayId ?? (gateways|length ? gateways[0].id : null) %}
 	{% set _gatewayIds = gateways|map(g => g.id) %}
 	{% set _hasGateway = _cartGatewayId and (_cartGatewayId in _gatewayIds) %}
@@ -56,7 +56,6 @@
 
 						<div class="grid grid-cols-1 gap-5 xl:gap-6 p-4">
 
-							{# Optional note #}
 							{% set note = craft.fostercheckout.note('payment', {cart}) %}
 							{% if note %}
 								<div class="mt-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
@@ -66,7 +65,6 @@
 
 
 
-							{# Gift voucher #}
 							<section>
 								{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
 									{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
@@ -78,9 +76,7 @@
 
 										{% set voucherCodeError = cart.getFirstError('voucherCode') ?? null %}
 
-										{# If there are no gift voucher code errors #}
 										{% set voucherCodeSuccess = craft.app.session.getFlash('success') ?? null %}
-										{# Not working for now #}
 
 										{% if voucherCodeError %}
 											{% set voucherMessage = voucherCodeError %}
@@ -121,7 +117,6 @@
 										</div>
 
 
-										{# Check for applied / redeemed gift card vouchers in orders #}
 
 										{% set voucherAdjustments = cart.adjustments|filter(adjustment => adjustment.type == 'voucher') %}
 
@@ -145,7 +140,6 @@
 								{% endif %}
 							</section>
 
-							{# Payment method #}
 							<section>
 								<h3 class="px-4 mb-4 font-semibold xl:px-0">
 									{{ 'payment.paymentMethod'|t('foster-checkout') }}
@@ -155,7 +149,7 @@
 									{{ csrfInput() }}
 									{{ actionInput('commerce/payments/pay') }}
 
-									{# IMPORTANT: these must NOT be namespaced #}
+									{# Commerce reads redirect and cancelUrl from the un-namespaced body #}
 									{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order', { number: cart.number, success: 'true' })) }}
 									{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
 									{{ hiddenInput('orderEmail', cart.email) }}
@@ -312,7 +306,6 @@
 																	{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
 																</button>
 															{% else %}
-																{# Native gateway fields #}
 																{% namespace gateway.handle|commercePaymentFormNamespace %}
 																	{{ gateway.getPaymentFormHtml(params)|raw }}
 																{% endnamespace %}

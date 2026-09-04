@@ -46,7 +46,6 @@
 		{% endfor %}
 
 		{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
-			{# Check for applied / redeemed gift card vouchers in orders #}
 
 			{% set voucherAdjustments = cart.adjustments|filter(adjustment => adjustment.type == 'voucher') %}
 

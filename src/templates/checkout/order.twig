@@ -110,15 +110,7 @@
 							<h2 class="text-lg font-medium text-gray-700">{{ 'order.payment'|t('foster-checkout') }}</h2>
 							<p>{{ 'order.gateway'|t('foster-checkout') }} {{ order.gateway.name }}</p>
 							{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
-								{# Check for applied / redeemed gift card vouchers in orders #}
-
 								{% if order.orderAdjustments|length >= 1 %}
-									{#
-									We currently only have access to the redeemed gift card vouchers code using order.orderAdjustments[0].description
-									which appears in the form "Gift Voucher discount using code MTLYZKVDAQ"
-									In order to get the code, we'll have to split the description string using 'code ' as its delimeter
-									#}
-
 									{% set voucherAdjustments = order.orderAdjustments|filter(adjustment => adjustment.type == 'voucher') %}
 									{% if voucherAdjustments|length >= 1 %}
 										<p class="mt-1">{{ 'order.giftCard'|t('foster-checkout') }}</p>

@@ -4,7 +4,7 @@ Assign these under **Settings -> Users -> User Groups**, or per user.
 
 ## Craft's plugin access
 
-Every user needs Craft's own `accessPlugin-foster-checkout` before any permission below takes effect. Without it Craft returns a 403 for every page under `/admin/foster-checkout`, even for a user who holds `foster-checkout-viewContent`.
+Every user needs Craft's own `accessPlugin-foster-checkout` to open any of these screens. Craft checks it on page loads only, so the permissions below are what gate a save. Without it Craft returns a 403 for every page under `/admin/foster-checkout`, even for a user who holds `foster-checkout-viewContent`.
 
 ## Content
 

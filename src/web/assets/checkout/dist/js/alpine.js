@@ -6819,7 +6819,6 @@ const AddressAutocomplete = (props) => ({
   container: null,
   session: "",
   timer: null,
-  filling: false,
   latestRequest: 0,
   listboxId() {
     return `${this.prefix || "address"}-suggestions`;
@@ -6882,9 +6881,6 @@ const AddressAutocomplete = (props) => ({
     }
   },
   queueSuggest() {
-    if (this.filling) {
-      return;
-    }
     clearTimeout(this.timer);
     this.container = null;
     this.timer = setTimeout(() => this.suggest(), 300);
@@ -6927,7 +6923,6 @@ const AddressAutocomplete = (props) => ({
     }
   },
   fill(address) {
-    this.filling = true;
     FIELDS$1.forEach((attribute) => {
       const input = this.input(attribute);
       if (!input) {
@@ -6949,8 +6944,6 @@ const AddressAutocomplete = (props) => ({
       input.dispatchEvent(new Event("input", { bubbles: true }));
       input.dispatchEvent(new Event("change", { bubbles: true }));
     });
-    this.filling = false;
-    window.dispatchEvent(new CustomEvent("addresschosen"));
   },
   move(step) {
     if (!this.open) {
@@ -6975,16 +6968,81 @@ const FIELDS = [
   "postalCode",
   "countryCode"
 ];
+const STREET_SUFFIXES = {
+  ALLEY: "ALY",
+  AVENUE: "AVE",
+  BOULEVARD: "BLVD",
+  CENTER: "CTR",
+  CIRCLE: "CIR",
+  COURT: "CT",
+  COVE: "CV",
+  CREEK: "CRK",
+  CRESCENT: "CRES",
+  CROSSING: "XING",
+  DRIVE: "DR",
+  ESTATE: "EST",
+  EXPRESSWAY: "EXPY",
+  EXTENSION: "EXT",
+  FREEWAY: "FWY",
+  GARDEN: "GDN",
+  GROVE: "GRV",
+  HEIGHTS: "HTS",
+  HIGHWAY: "HWY",
+  HILL: "HL",
+  ISLAND: "IS",
+  JUNCTION: "JCT",
+  LAKE: "LK",
+  LANDING: "LNDG",
+  LANE: "LN",
+  LOOP: "LOOP",
+  MANOR: "MNR",
+  MEADOW: "MDW",
+  MOUNT: "MT",
+  MOUNTAIN: "MTN",
+  PARKWAY: "PKWY",
+  PASS: "PASS",
+  PLACE: "PL",
+  PLAZA: "PLZ",
+  POINT: "PT",
+  RIDGE: "RDG",
+  RIVER: "RIV",
+  ROAD: "RD",
+  ROUTE: "RTE",
+  SQUARE: "SQ",
+  STATION: "STA",
+  STREET: "ST",
+  SUMMIT: "SMT",
+  TERRACE: "TER",
+  TRAIL: "TRL",
+  TURNPIKE: "TPKE",
+  VALLEY: "VLY",
+  VIEW: "VW",
+  VILLAGE: "VLG",
+  WAY: "WAY"
+};
+const DIRECTIONS = {
+  NORTH: "N",
+  SOUTH: "S",
+  EAST: "E",
+  WEST: "W",
+  NORTHEAST: "NE",
+  NORTHWEST: "NW",
+  SOUTHEAST: "SE",
+  SOUTHWEST: "SW"
+};
 const normalize = (value, attribute) => {
   const text = attribute === "postalCode" ? String(value ?? "").trim().replace(/^(\d{5})-\d{4}$/, "$1") : String(value ?? "");
-  return text.toUpperCase().replace(/[^A-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  const cleaned = text.toUpperCase().replace(/[^A-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  if (attribute !== "addressLine1" && attribute !== "addressLine2") {
+    return cleaned;
+  }
+  return cleaned.split(" ").map((word) => STREET_SUFFIXES[word] ?? DIRECTIONS[word] ?? word).join(" ");
 };
 const AddressVerification = (props) => ({
   prefix: props.prefix ?? "",
   suggestion: null,
   verifying: false,
   dismissed: "",
-  chosen: false,
   timer: null,
   init() {
     this.dismissed = localStorage.getItem(this.storageKey()) ?? "";
@@ -7018,12 +7076,6 @@ const AddressVerification = (props) => ({
   },
   async verify() {
     const entered = this.entered();
-    if (this.chosen) {
-      this.chosen = false;
-      this.remember(entered);
-      this.suggestion = null;
-      return;
-    }
     if (!this.isComplete(entered) || this.signature(entered) === this.dismissed) {
       this.suggestion = null;
       return;
@@ -7098,12 +7150,9 @@ const AddressVerification = (props) => ({
     this.suggestion = null;
   },
   dismiss() {
-    this.remember(this.entered());
-    this.suggestion = null;
-  },
-  remember(address) {
-    this.dismissed = this.signature(address);
+    this.dismissed = this.signature(this.entered());
     localStorage.setItem(this.storageKey(), this.dismissed);
+    this.suggestion = null;
   },
   formatted(address) {
     return [

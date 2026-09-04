@@ -7,7 +7,73 @@ const FIELDS = [
 	'countryCode',
 ];
 
-// Avalara appends ZIP+4 and expands abbreviations on every address
+// Avalara returns the USPS spelling, so a suffix the customer wrote in full is not a correction.
+// Standard abbreviations from USPS Publication 28, Appendix C1.
+const STREET_SUFFIXES = {
+	ALLEY: 'ALY',
+	AVENUE: 'AVE',
+	BOULEVARD: 'BLVD',
+	CENTER: 'CTR',
+	CIRCLE: 'CIR',
+	COURT: 'CT',
+	COVE: 'CV',
+	CREEK: 'CRK',
+	CRESCENT: 'CRES',
+	CROSSING: 'XING',
+	DRIVE: 'DR',
+	ESTATE: 'EST',
+	EXPRESSWAY: 'EXPY',
+	EXTENSION: 'EXT',
+	FREEWAY: 'FWY',
+	GARDEN: 'GDN',
+	GROVE: 'GRV',
+	HEIGHTS: 'HTS',
+	HIGHWAY: 'HWY',
+	HILL: 'HL',
+	ISLAND: 'IS',
+	JUNCTION: 'JCT',
+	LAKE: 'LK',
+	LANDING: 'LNDG',
+	LANE: 'LN',
+	LOOP: 'LOOP',
+	MANOR: 'MNR',
+	MEADOW: 'MDW',
+	MOUNT: 'MT',
+	MOUNTAIN: 'MTN',
+	PARKWAY: 'PKWY',
+	PASS: 'PASS',
+	PLACE: 'PL',
+	PLAZA: 'PLZ',
+	POINT: 'PT',
+	RIDGE: 'RDG',
+	RIVER: 'RIV',
+	ROAD: 'RD',
+	ROUTE: 'RTE',
+	SQUARE: 'SQ',
+	STATION: 'STA',
+	STREET: 'ST',
+	SUMMIT: 'SMT',
+	TERRACE: 'TER',
+	TRAIL: 'TRL',
+	TURNPIKE: 'TPKE',
+	VALLEY: 'VLY',
+	VIEW: 'VW',
+	VILLAGE: 'VLG',
+	WAY: 'WAY',
+};
+
+const DIRECTIONS = {
+	NORTH: 'N',
+	SOUTH: 'S',
+	EAST: 'E',
+	WEST: 'W',
+	NORTHEAST: 'NE',
+	NORTHWEST: 'NW',
+	SOUTHEAST: 'SE',
+	SOUTHWEST: 'SW',
+};
+
+// Avalara appends ZIP+4 and abbreviates street words on every address
 const normalize = (value, attribute) => {
 	const text =
 		attribute === 'postalCode'
@@ -16,11 +82,20 @@ const normalize = (value, attribute) => {
 					.replace(/^(\d{5})-\d{4}$/, '$1')
 			: String(value ?? '');
 
-	return text
+	const cleaned = text
 		.toUpperCase()
 		.replace(/[^A-Z0-9 ]/g, ' ')
 		.replace(/\s+/g, ' ')
 		.trim();
+
+	if (attribute !== 'addressLine1' && attribute !== 'addressLine2') {
+		return cleaned;
+	}
+
+	return cleaned
+		.split(' ')
+		.map((word) => STREET_SUFFIXES[word] ?? DIRECTIONS[word] ?? word)
+		.join(' ');
 };
 
 export const AddressVerification = (props) => ({
@@ -28,7 +103,6 @@ export const AddressVerification = (props) => ({
 	suggestion: null,
 	verifying: false,
 	dismissed: '',
-	chosen: false,
 	timer: null,
 
 	init() {
@@ -71,13 +145,6 @@ export const AddressVerification = (props) => ({
 
 	async verify() {
 		const entered = this.entered();
-
-		if (this.chosen) {
-			this.chosen = false;
-			this.remember(entered);
-			this.suggestion = null;
-			return;
-		}
 
 		if (
 			!this.isComplete(entered) ||
@@ -152,7 +219,7 @@ export const AddressVerification = (props) => ({
 				return;
 			}
 
-			// A searchable select rebinds its hidden input from modelValue, so a direct write is overwritten
+			// SearchableSelect derives its label from modelValue, so a direct write leaves the old one showing
 			if (input.type === 'hidden') {
 				window.dispatchEvent(
 					new CustomEvent('setvalue', {
@@ -175,13 +242,9 @@ export const AddressVerification = (props) => ({
 	},
 
 	dismiss() {
-		this.remember(this.entered());
-		this.suggestion = null;
-	},
-
-	remember(address) {
-		this.dismissed = this.signature(address);
+		this.dismissed = this.signature(this.entered());
 		localStorage.setItem(this.storageKey(), this.dismissed);
+		this.suggestion = null;
 	},
 
 	formatted(address) {

@@ -54,7 +54,7 @@ class m260901_101659_rename_checkout_step_note_keys extends Migration
 			$content['notes'] = $notes;
 			$record->content = $content;
 
-			// Failing here would drop copy an admin wrote, so the migration stops instead
+			// A partial run is safe to repeat, since the rename only fills an unset key
 			if (! $record->save()) {
 				return false;
 			}

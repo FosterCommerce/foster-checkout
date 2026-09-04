@@ -1,5 +1,6 @@
 {% extends "foster-checkout/_layouts/settings" %}
 {% import "_includes/forms" as forms %}
+{% do view.registerAssetBundle('fostercommerce\\fostercheckout\\web\\assets\\cp\\CpAsset') %}
 
 {# @var settings \fostercommerce\fostercheckout\models\Settings #}
 
@@ -98,5 +99,7 @@
 		disabled: readOnly or 'branding.title' in overriddenSettings,
 		warning: 'branding.title' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.title' }),
 	}) }}
+
+	{% include 'foster-checkout/_includes/plugin-footer' %}
 
 {% endblock %}

@@ -157,9 +157,7 @@ class Checkout extends Component
 	}
 
 	/**
-	 * Gets the 'dist' javascript asset bundle from the plugin
-	 * Note: We are getting it this way as running view.registerAssetBundle() in the template does not output the
-	 * script tag with type="module" attribute
+	 * The site template places the tag itself, so the URL is published rather than registered.
 	 */
 	public function jsBundle(): string
 	{
@@ -196,7 +194,7 @@ class Checkout extends Component
 			return null;
 		}
 
-		// Twig fatals on a missing attribute, so a half-filled row is dropped.
+		// A row missing either column would render a link with no destination or no label
 		$complete = array_filter(
 			$links,
 			static fn ($link): bool => is_array($link) && ($link['text'] ?? '') !== '' && ($link['url'] ?? '') !== ''
@@ -650,7 +648,7 @@ class Checkout extends Component
 
 	/**
 	 * Commerce overwrites an order address's `title`, and lat/long is not something a customer types,
-	 * so neither reaches the storefront.
+	 * so neither is rendered.
 	 */
 	private function addressElementType(FieldLayoutElement $layoutElement): ?string
 	{

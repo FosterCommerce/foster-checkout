@@ -17,7 +17,6 @@ export const AddressAutocomplete = (props) => ({
 	container: null,
 	session: '',
 	timer: null,
-	filling: false,
 	latestRequest: 0,
 
 	listboxId() {
@@ -97,11 +96,6 @@ export const AddressAutocomplete = (props) => ({
 	},
 
 	queueSuggest() {
-		// Filling the fields dispatches input, which would search for the address just chosen
-		if (this.filling) {
-			return;
-		}
-
 		clearTimeout(this.timer);
 		this.container = null;
 		this.timer = setTimeout(() => this.suggest(), 300);
@@ -157,8 +151,6 @@ export const AddressAutocomplete = (props) => ({
 	},
 
 	fill(address) {
-		this.filling = true;
-
 		FIELDS.forEach((attribute) => {
 			const input = this.input(attribute);
 
@@ -168,7 +160,7 @@ export const AddressAutocomplete = (props) => ({
 
 			const value = address[attribute] ?? '';
 
-			// A searchable select rebinds its hidden input from modelValue, so a direct write is overwritten
+			// SearchableSelect derives its label from modelValue, so a direct write leaves the old one showing
 			if (input.type === 'hidden') {
 				window.dispatchEvent(
 					new CustomEvent('setvalue', {
@@ -185,11 +177,6 @@ export const AddressAutocomplete = (props) => ({
 			input.dispatchEvent(new Event('input', { bubbles: true }));
 			input.dispatchEvent(new Event('change', { bubbles: true }));
 		});
-
-		this.filling = false;
-
-		// The provider already resolved this address, so verification has nothing to add
-		window.dispatchEvent(new CustomEvent('addresschosen'));
 	},
 
 	move(step) {

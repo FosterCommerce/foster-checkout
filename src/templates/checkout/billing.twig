@@ -26,7 +26,7 @@
 {% block body %}
 	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
 
-	{# ---- Billing state from cart (truth table) ---- #}
+	{# Billing state derived from the cart #}
 	{% set _sourceBillId = cart.sourceBillingAddressId ?? null %}
 	{% set _shippingId = cart.sourceShippingAddressId ?? null %}
 	{% set _hasMatch = cart.hasMatchingAddresses() %}
@@ -109,7 +109,6 @@
 											<input type="hidden" x-ref="postBillingId" name="billingAddressId" value="">
 											<input type="hidden" x-ref="postNewBilling" name="useNewBillingAddress" value="">
 
-											{# Same as shipping #}
 											<div class="p-4" :class="{ 'bg-gray-100': parseInt(billingSameAsShipping) === 1 }">
 												<div class="radio">
 													<input
@@ -215,7 +214,6 @@
 
 														{% if currentUser %}
 															<div class="mt-4 p4 checkbox">
-																{# You can switch this to a cart custom field if you want cart-truth only #}
 																<input type="checkbox" class="absolute opacity-0 w-px h-px" id="saveBillingAddressOnOrderComplete" name="saveBillingAddressOnOrderComplete" value="1">
 																<label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveBillingAddressOnOrderComplete">
 																	{{ 'billing.saveToAddressBook'|t('foster-checkout') }}
@@ -274,7 +272,7 @@
 		{% include bodyInclude with {
 			context: 'checkout',
 			location: 'body',
-			step: 'payment',
+			step: 'billing',
 			cart: cart
 		} %}
 	{% endif %}

@@ -6,14 +6,8 @@ use craft\base\Model;
 
 class BrandingConfig extends Model
 {
-	/**
-	 * The brand primary custom color in HEX color
-	 */
 	public string $color = '#1F2937';
 
-	/**
-	 * The background color of the header in HEX color
-	 */
 	public string $headerBgColor = '#F3F3F3';
 
 	/**
@@ -28,14 +22,8 @@ class BrandingConfig extends Model
 	 */
 	public string $logo = '';
 
-	/**
-	 * The general component styles. Either 'rounded' (default) or 'flat'
-	 */
 	public string $style = 'rounded';
 
-	/**
-	 * Where field labels sit. Either 'floating' (default), inside the field, or 'above' it
-	 */
 	public string $labelStyle = 'floating';
 
 	/**

@@ -27,8 +27,8 @@ use yii\web\Response;
 /**
  * Renders the plugin's settings pages and handles saves.
  *
- * Uses its own CP routes rather than `plugins/save-plugin-settings` so the form escapes the
- * `_layouts/cp` delta-tracking wrapper, which silently strips the POST body.
+ * Craft's plugin-settings routes require admin; this plugin gates each section on its own
+ * permission, and saves only the keys a section posts.
  */
 class SettingsController extends Controller
 {
@@ -237,7 +237,7 @@ class SettingsController extends Controller
 	public function actionTestAddressLookup(): Response
 	{
 		$this->requirePostRequest();
-		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_SETTINGS);
+		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_FEATURES);
 
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
@@ -454,9 +454,6 @@ class SettingsController extends Controller
 	}
 
 	/**
-	 * @throws NotFoundHttpException
-	 */
-	/**
 	 * @param list<string> $fields
 	 */
 	private function fieldLayoutFailure(string $messageKey, array $fields, FieldLayout $layout): null
@@ -542,7 +539,7 @@ class SettingsController extends Controller
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		// The field layout is stored outside plugin settings, so it stays editable. These two do not.
+		// The field layout is stored outside plugin settings, so it stays editable. Columns and params do not.
 		if (in_array('paymentGateways', $plugin->getOverriddenSettings(), true)) {
 			return;
 		}

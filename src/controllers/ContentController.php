@@ -52,8 +52,7 @@ class ContentController extends Controller
 		$plugin = $this->plugin();
 
 		return $this->renderTemplate('foster-checkout/content/index', [
-			// Not `requestedSite`: Craft registers that as a CP Twig global, and it resolves to
-			// null for users with no editable sites, which would shadow whatever is passed here.
+			// _layouts/base.twig sets `requestedSite` itself, so one passed here is overwritten
 			'contentSite' => $this->resolveSite(),
 			'showSiteMenu' => $this->showSiteMenu(),
 			'noteKeys' => self::NOTE_KEYS,
@@ -200,7 +199,7 @@ class ContentController extends Controller
 
 	/**
 	 * Copy is shared across sites when it is not translatable, so switching sites would be a no-op.
-	 * The menu lists editable sites, so it is also pointless for a user who has none.
+	 * The menu lists editable sites, so Non-translatable copy is shared, so the site menu has nothing to switch.
 	 */
 	private function showSiteMenu(): bool
 	{

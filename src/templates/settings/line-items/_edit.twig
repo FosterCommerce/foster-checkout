@@ -1,5 +1,6 @@
 {% extends "foster-checkout/_layouts/settings" %}
 {% import "_includes/forms" as forms %}
+{% do view.registerAssetBundle('fostercommerce\\fostercheckout\\web\\assets\\cp\\CpAsset') %}
 
 {# @var rule \fostercommerce\fostercheckout\models\LineItemOptionRule #}
 
@@ -51,5 +52,7 @@
 		value: rule.setValue,
 		disabled: readOnly,
 	}) }}
+
+	{% include 'foster-checkout/_includes/plugin-footer' %}
 
 {% endblock %}

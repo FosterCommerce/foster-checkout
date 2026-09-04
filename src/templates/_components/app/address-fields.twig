@@ -1,4 +1,3 @@
-{# Set defaults for context and the address object, in case they are null #}
 {% set context = context ?? '' %}
 {% set address = address ?? null %}
 {% set errors = address ? address.getErrors : {} %}
@@ -57,7 +56,10 @@ since the array key will be the same #}
 	and craft.app.plugins.isPluginEnabled('avatax')
 	and (avatax.settings.enableAddressValidation ?? false) %}
 
-{% set suggestAddress = context == 'shippingAddress' and craft.fostercheckout.settings.addressLookup.enabled %}
+{# One address tool at a time, and verification checks the address the customer settled on #}
+{% set suggestAddress = not verifyAddress
+	and context == 'shippingAddress'
+	and craft.fostercheckout.settings.addressLookup.enabled %}
 
 {% if verifyAddress %}
 	{# Scoped per cart, so a dismissal does not carry to the next order or another site #}
@@ -76,14 +78,13 @@ since the array key will be the same #}
 	x-data="AddressVerification({ prefix: '{{ context }}' })"
 	@input="queueVerify()"
 	@selected.window="queueVerify()"
-	@addresschosen.window="chosen = true"
 >
 {% endif %}
 
 {% if suggestAddress %}
 <div
 	x-data="AddressAutocomplete({ prefix: '{{ context }}' })"
-	{# .prevent fires before the expression, so it would swallow Enter for every field here #}
+	{# .prevent fires before the expression, so .prevent runs before the expression, so Enter would be blocked on every field #}
 	@keydown.down="if (open) { $event.preventDefault(); move(1) }"
 	@keydown.up="if (open) { $event.preventDefault(); move(-1) }"
 	@keydown.enter="if (open && activeIndex >= 0) { $event.preventDefault(); choose(suggestions[activeIndex]) }"

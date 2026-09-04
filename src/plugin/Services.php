@@ -11,9 +11,6 @@ use yii\base\InvalidConfigException;
 trait Services
 {
 	/**
-	 * Returns the address lookup service.
-	 *
-	 * @return AddressLookup The address lookup service
 	 * @throws InvalidConfigException
 	 */
 	public function getAddressLookup(): AddressLookup
@@ -28,9 +25,6 @@ trait Services
 	}
 
 	/**
-	 * Returns the checkout service.
-	 *
-	 * @return Checkout The checkout service
 	 * @throws InvalidConfigException
 	 */
 	public function getCheckout(): Checkout
@@ -45,9 +39,6 @@ trait Services
 	}
 
 	/**
-	 * Returns the content service.
-	 *
-	 * @return Content The content service
 	 * @throws InvalidConfigException
 	 */
 	public function getContent(): Content
@@ -62,9 +53,6 @@ trait Services
 	}
 
 	/**
-	 * Returns the checkout field layouts service.
-	 *
-	 * @return CheckoutFieldLayouts The checkout field layouts service
 	 * @throws InvalidConfigException
 	 */
 	public function getCheckoutFieldLayouts(): CheckoutFieldLayouts

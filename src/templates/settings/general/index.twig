@@ -1,5 +1,6 @@
 {% extends "foster-checkout/_layouts/settings" %}
 {% import "_includes/forms" as forms %}
+{% do view.registerAssetBundle('fostercommerce\\fostercheckout\\web\\assets\\cp\\CpAsset') %}
 
 {# @var settings \fostercommerce\fostercheckout\models\Settings #}
 
@@ -11,7 +12,7 @@
 {% set readOnly = not adminChangesAllowed %}
 {% set fullPageForm = not readOnly %}
 
-{# This screen edits seven config keys, so one being overridden must not lock the other six. #}
+{# Each top-level key is overridden on its own, so one pinned key must not lock the rest #}
 {% set pathsOverridden = 'paths' in overriddenSettings %}
 
 {% if readOnly %}
@@ -204,5 +205,7 @@
 		disabled: translationOverridden or not craft.app.config.general.allowAdminChanges,
 		warning: translationOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'contentTranslationMethod' }),
 	}) }}
+
+	{% include 'foster-checkout/_includes/plugin-footer' %}
 
 {% endblock %}

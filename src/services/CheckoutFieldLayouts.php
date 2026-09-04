@@ -296,7 +296,7 @@ class CheckoutFieldLayouts extends Component
 
 		$value = $element->getFieldValue((string) $field->handle);
 
-		// The input posts a list, so an unset Checkboxes value is still a list
+		// Checkboxes normalizes to MultiOptionsFieldData, so an unset value is still iterable
 		if ($field instanceof Checkboxes) {
 			$selected = [];
 

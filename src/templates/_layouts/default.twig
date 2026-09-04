@@ -143,7 +143,6 @@
 		}
 	</style>
 
-	{# Host site head include block #}
 	{% block includeHead %}
 	{% endblock %}
 </head>
@@ -152,27 +151,22 @@
 
 <div>
 
-	{# Main header #}
 	{% include 'foster-checkout/_components/app/header' %}
 
 	<div class="max-w-[1200px] mx-auto px-4 text-gray-800 bg-white sm:px-6">
-		{# Main body block #}
 		{% block body %}
 		{% endblock %}
 	</div>
 
 </div>
 
-{# Get the Craft CSRF Token into javascript #}
 <script type="text/javascript">
 	window.csrfTokenName = "{{ craft.app.config.general.csrfTokenName|e('js') }}";
 	window.csrfTokenValue = "{{ craft.app.request.csrfToken|e('js') }}";
 </script>
 
-{# Inject the javascript bundle #}
 <script src="{{ craft.fostercheckout.jsBundle }}" type="module"></script>
 
-{# Host site body include block #}
 {% block includeBody %}
 {% endblock %}
 </body>

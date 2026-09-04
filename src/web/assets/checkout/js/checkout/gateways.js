@@ -1,5 +1,6 @@
 const CARD_FIELDS = ['number', 'month', 'year', 'cvv'];
 
+// Accept.js response codes, from Authorize.net's API reference
 const AUTHORIZE_ERROR_FIELDS = {
 	E_WC_04: 'number',
 	E_WC_05: 'number',
@@ -17,6 +18,7 @@ const AUTHORIZE_ERROR_FIELDS = {
  */
 export const gatewayHandling = () => ({
 	async onPaySubmit(event) {
+		// Commerce's Authorize.net form submits itself through Accept.js
 		if (event.submitter?.id?.endsWith('authorizeSubmit')) {
 			return;
 		}
@@ -99,6 +101,8 @@ export const gatewayHandling = () => ({
 		this.wrapCardFields();
 		const checkout = this;
 
+		// Accept.js exposes this global and Commerce's form calls it directly, so the card is
+		// checked by wrapping it. Kept once, since a reinit would otherwise wrap the wrapper.
 		if (
 			!this.originalSendPayment &&
 			typeof window.sendPaymentDataToAnet === 'function'
@@ -368,6 +372,7 @@ export const gatewayHandling = () => ({
 				cloneError.textContent = '';
 			}
 
+			// Replacing the node is what drops Stripe Elements' own listeners; they are not exposed
 			form.replaceWith(clone);
 		}
 
@@ -431,8 +436,10 @@ export const gatewayHandling = () => ({
 			this.paypalInitTimer = null;
 		}
 
+		// Commerce renders this wrapper with the gateway form
 		const wrapper = this.$root.querySelector('.paypal-rest-form');
 		if (!wrapper) {
+			// A missing wrapper means this gateway is not selected, so stop early
 			if (attempt >= 5) {
 				return;
 			}
@@ -452,6 +459,7 @@ export const gatewayHandling = () => ({
 			typeof window.initPaypalCheckout !== 'function' ||
 			!wrapper.firstElementChild
 		) {
+			// The SDK is a third-party script, so it gets the longer budget
 			if (attempt >= 50) {
 				return;
 			}

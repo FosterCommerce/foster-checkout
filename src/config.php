@@ -33,11 +33,11 @@ return [
 	// 'enableEstimatedShipping' => false, // true|false
 
 	// Whether or not to show the "No Image" placeholder images
-	// 'enablePlaceholderImages' => false,
+	// 'enablePlaceholderImages' => false, // true|false
 
 	// Whether or not to enable CSS page transitions
 	//(see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#browser_compatibility for browser compatibility)
-	// 'enablePageTransitions' => false,
+	// 'enablePageTransitions' => false, // true|false
 
 	// Whether or not to show Avalara's corrected shipping address
 	// (needs the AvaTax plugin with its own address validation turned on)
@@ -152,7 +152,7 @@ return [
 	// 'cart' => '',
 
 	// If true, use the cart template for the cart page, otherwise use the path only and let users define their own cart template.
-	// 'useCartTemplate' => true,
+	// 'useCartTemplate' => true, // true|false
 
 	// The site relative path to where the checkout should be accessible
 	// (ex. 'checkout')
@@ -168,7 +168,7 @@ return [
 	// the cart and checkout pages. Within these includes the following variables will be available :
 	// context : Either "cart" or "checkout"
 	// location : Either "head" or "body"
-	// step : Either "email", "shipping-address", "shipping-method", "payment", "confirmation" or an empty string
+	// step : See docs/dev-guide/custom-includes.md for the values
 	// cart : The current Commerce cart/order
 	// */
 	// 'includes' => [
@@ -187,8 +187,8 @@ return [
 	//  * Add for each product type using the product type handle, to define the field handles used for the
 	//  * product and/or variant preview image to display in the cart view
 	// 'shirts' => [
-	// productImageHandle => 'productPreviewImage',
-	// variantImageHandle => 'variantPreviewImage',
+	// 'productImageHandle' => 'productPreviewImage',
+	// 'variantImageHandle' => 'variantPreviewImage',
 	// ]
 	// */
 	// ],

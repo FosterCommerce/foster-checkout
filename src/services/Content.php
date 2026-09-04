@@ -39,7 +39,7 @@ class Content extends Component
 	}
 
 	/**
-	 * Reads a dotted path, so `notes.cart` reaches into the stored structure.
+	 * Dotted path, such as `notes.cart`.
 	 */
 	public function get(string $path): mixed
 	{
@@ -74,7 +74,7 @@ class Content extends Component
 		return match ($this->settings()->contentTranslationMethod) {
 			Field::TRANSLATION_METHOD_NONE => '1',
 			Field::TRANSLATION_METHOD_LANGUAGE => $site->language,
-			// Craft falls back to a supported method rather than erroring on an unknown one.
+			// Only none, site and language are offered in the CP, so anything else keys by site
 			default => (string) $site->id,
 		};
 	}

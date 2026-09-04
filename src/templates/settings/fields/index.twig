@@ -1,4 +1,5 @@
 {% extends "foster-checkout/_layouts/settings" %}
+{% do view.registerAssetBundle('fostercommerce\\fostercheckout\\web\\assets\\cp\\CpAsset') %}
 
 {% set selectedSubnavItem = 'fields' %}
 {% set title = 'nav.fields'|t('foster-checkout') %}
@@ -36,4 +37,6 @@
 			{% endfor %}
 		</tbody>
 	</table>
+	{% include 'foster-checkout/_includes/plugin-footer' %}
+
 {% endblock %}

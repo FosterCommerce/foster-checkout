@@ -70,7 +70,7 @@ See [`docs/reference/permissions.md`](./docs/reference/permissions.md).
 
 ## License
 
-Proprietary.
+MIT.
 
 ## Documentation
 

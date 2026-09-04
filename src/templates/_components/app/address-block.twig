@@ -1,13 +1,15 @@
 {% set stackedLabels = craft.fostercheckout.settings.branding.labelStyle|default('floating') != 'floating' %}
 
-{# Craft's address field layout treats these six as one element, so they move and size together. #}
+{# Craft's address layout stores these as one element, so the block moves as a unit #}
+{# No input for dependentLocality or sortingCode, so a format needing either cannot be completed #}
 {# Which fields are used and which are required both come from the country's address format at runtime. #}
 {# Chrome mobile skips display:none inputs when autofilling, so unused fields collapse with h-0 instead. #}
 <div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12">
 	<div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:col-span-12">
 		<div :class="isUsed('addressLine1') ? '' : 'h-0 overflow-hidden absolute'">
 			{% if suggestAddress|default %}
-			<div class="relative" @input="queueSuggest()">
+			{# fill() dispatches input on each field, and a synthetic event is untrusted #}
+			<div class="relative" @input="$event.isTrusted && queueSuggest()">
 			{% endif %}
 				{# Chrome ignores autocomplete="off" on address fields but backs off a password token,
 				   so its saved-address list does not cover the suggestions #}

@@ -27,7 +27,7 @@ Other keys on the General screen:
 
 ## What overrides what
 
-The config file is merged over stored settings on every request, so a key set in the file always wins. That field is shown disabled with a warning naming it, and the save is rejected server side as well.
+The config file is merged over stored settings on every request, so a key set in the file always wins. That field is shown disabled with a warning naming it, and a posted value for a pinned key is discarded server side.
 
 > This is being overridden by the `branding.color` setting in the `config/foster-checkout.php` file.
 
@@ -49,11 +49,15 @@ FC_ADDRESS_LOOKUP_KEY=your-key-here
 
 Then set the control panel's API key field to `$FC_ADDRESS_LOOKUP_KEY`, not the key itself.
 
-Suggestions appear on the shipping address only, and are off until a provider and key are set. **Test the connection** on the Features screen runs one lookup and names the error, which is the only place a wrong key shows.
+Suggestions appear on the shipping address only, and are off until a provider and key are set.
 
-Both providers bill per lookup, and the endpoint that calls them is public because the checkout is. **Cap the spend at the provider.** In Google Cloud, set a daily and a per-minute quota on the Places API. Loqate sells prepaid credit, which caps itself.
+Only one address tool runs at a time. Avalara address verification wins: while it is running, suggestions are skipped, because verification checks the address the customer settled on rather than the one they picked from a list. Turning verification off hands the shipping address to suggestions.
 
-The plugin sets no rate limit of its own.
+Avalara covers the United States and Canada. It answers `Country not supported` for anywhere else, which the checkout treats as no suggestion, so a store shipping elsewhere gets nothing from verification and nothing to say why. Both suggestion providers work internationally, Loqate the more widely. A store outside the United States and Canada gets more from turning verification off.
+
+**Test the connection** on the Features screen runs one lookup and names the error, which is the only place a wrong key shows.
+
+Both providers bill per lookup, and the endpoint that calls them is public because the checkout is. **Cap the spend at the provider.** In Google Cloud, set a daily and a per-minute quota on the Places API. Loqate sells prepaid credit, which caps itself. The plugin sets no rate limit of its own.
 
 A failed lookup is never shown to the customer. A revoked key, an exhausted account or an unreachable provider returns no suggestions, the reason is written to the log, and the customer types the address as they would with the feature turned off.
 
@@ -71,7 +75,7 @@ How checkout copy varies across sites, using Craft's own field translation metho
 
 A gateway's fields are chosen with Craft's field layout designer, which sets their order, width, label and whether each is required.
 
-**Only fields already on the order can be used.** An order saves values through its own field layout, so a field missing from it would render, accept what the customer types, then be discarded with no error. Saving such a layout is rejected and names the offending handles. Add the field under **Commerce -> System Settings -> Order Fields** first.
+**Only fields already on the order can be used.** An order saves values through its own field layout, so a field missing from it would render, accept what the customer types, then be discarded with no error. Saving such a layout is rejected and names the offending handles. Add the field under **Commerce -> Settings -> Order Fields** first.
 
 A field's placeholder and its length or value limits are set on the field itself, not the layout, so they apply everywhere that field is used.
 

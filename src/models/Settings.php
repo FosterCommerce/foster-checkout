@@ -125,7 +125,7 @@ class Settings extends Model
 
 	/**
 	 * An include pointing at a template that does not exist throws while rendering every cart and
-	 * checkout page, so it is rejected on save rather than taking the storefront down.
+	 * checkout page, so it is rejected on save A missing include template throws on every cart and checkout render.
 	 */
 	public function validateIncludes(string $attribute): void
 	{
@@ -199,7 +199,7 @@ class Settings extends Model
 		}
 
 		// `notes` and `links` moved to content storage so admins can edit them on production.
-		// The one developer setting they held is carried over, so existing config files keep working.
+		// The one developer setting they held is kept, so existing config files keep working.
 		if (array_key_exists('notes', $values)) {
 			$fieldHandle = $values['notes']['customersOrderNotes']['fieldHandle'] ?? null;
 
@@ -233,7 +233,7 @@ class Settings extends Model
 	}
 
 	/**
-	 * These four settings used to sit in `options`, which is one node a config file replaces whole.
+	 * These four moved out of `options`, which is one node a config file replaces whole.
 	 *
 	 * @param array<mixed, mixed> $values
 	 * @return array<mixed, mixed>

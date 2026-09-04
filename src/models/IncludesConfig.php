@@ -6,14 +6,8 @@ use craft\base\Model;
 
 class IncludesConfig extends Model
 {
-	/**
-	 * The host site relative template path to the head include
-	 */
 	public string $head = '';
 
-	/**
-	 * The host site relative template path to the body include
-	 */
 	public string $body = '';
 
 	/**
