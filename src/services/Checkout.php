@@ -15,6 +15,8 @@ use craft\commerce\Plugin as Commerce;
 use craft\elements\Address;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
+use craft\elements\User;
+use craft\events\DefineValueEvent;
 use craft\fieldlayoutelements\addresses\AddressField;
 use craft\fieldlayoutelements\addresses\CountryCodeField;
 use craft\fieldlayoutelements\addresses\OrganizationField;
@@ -64,6 +66,11 @@ use yii\base\InvalidConfigException;
 class Checkout extends Component
 {
 	/**
+	 * @event DefineValueEvent The event that is triggered when defining the contact shown at checkout.
+	 */
+	public const string EVENT_DEFINE_CONTACT = 'defineContact';
+
+	/**
 	 * @var array<string, array<int, string>>|null
 	 */
 	private ?array $addressRequiredFields = null;
@@ -72,6 +79,40 @@ class Checkout extends Component
 	 * @var array<string, array<int, string>>|null
 	 */
 	private ?array $addressUsedFields = null;
+
+	/**
+	 * The contact shown at checkout.
+	 */
+	public function contact(Order $order): string
+	{
+		if (! $order->hasEventHandlers(self::EVENT_DEFINE_CONTACT)) {
+			return (string) $order->email;
+		}
+
+		$defineContactEvent = new DefineValueEvent();
+		$order->trigger(self::EVENT_DEFINE_CONTACT, $defineContactEvent);
+
+		return is_string($defineContactEvent->value)
+			? $defineContactEvent->value
+			: (string) $order->email;
+	}
+
+	/**
+	 * Whether the signed-in user may change the customer's saved addresses.
+	 */
+	public function canSaveAddresses(Order $order): bool
+	{
+		$customer = $order->getCustomer();
+		$user = Craft::$app->getUser()->getIdentity();
+
+		if (! $customer instanceof User || ! $user instanceof User) {
+			return false;
+		}
+
+		return Craft::$app->getElements()->canSave(new Address([
+			'ownerId' => $customer->id,
+		]), $user);
+	}
 
 	public function addressFormatter(): CheckoutAddressFormatter
 	{
@@ -133,8 +174,18 @@ class Checkout extends Component
 	{
 		/** @var Commerce $commerce */
 		$commerce = Commerce::getInstance();
+		$store = $commerce->getStores()->getCurrentStore();
+		$countries = $store->getSettings()->getCountriesList();
 
-		return $commerce->getStores()->getCurrentStore()->getSettings()->getCountriesList();
+		// Fail here rather than in the address form, which would render an empty country select
+		if ($countries === []) {
+			throw new InvalidConfigException(
+				"The {$store->getName()} store has no countries selected, so checkout cannot build an address form. "
+				. 'Choose them under Commerce, Store Management, General.'
+			);
+		}
+
+		return $countries;
 	}
 
 	public function content(): Content

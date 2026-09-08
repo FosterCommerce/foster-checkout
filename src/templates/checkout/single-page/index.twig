@@ -23,11 +23,12 @@
 	{% set site = craft.app.sites.currentSite %}
 	{% include 'foster-checkout/_components/app/subscribe-storage-key' %}
 
-	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
+	{% set addresses = (currentUser and cart.customer) ? cart.customer.addresses.all() : [] %}
 	{% set sourceId = cart.sourceShippingAddressId ?? null %}
 	{% set hasCartShip = cart.shippingAddressId is not empty %}
 	{% set hasBookAddresses = currentUser and addresses|length %}
-	{% set isNewAddress = (sourceId is null) and (hasCartShip or not hasBookAddresses) %}
+	{# With no book to pick from, open on the new address form, since no radio renders to reach it #}
+	{% set isNewAddress = not hasBookAddresses or ((sourceId is null) and hasCartShip) %}
 	{% set initialShippingAddressId = isNewAddress ? 0 : (sourceId ?? (addresses|length ? addresses|first.id : 0)) %}
 
 	{% set live = craft.fostercheckout.checkoutLiveState(cart) %}

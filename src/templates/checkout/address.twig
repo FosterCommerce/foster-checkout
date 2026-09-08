@@ -3,8 +3,10 @@
 {% endif %}
 
 {% extends 'foster-checkout/_layouts/default' %}
-{% set addresses = currentUser ? (currentUser.addresses.all() ?? null) : null %}
-{% set primaryShippingAddressId = currentUser ? (currentUser.getPrimaryShippingAddressId() ?? -1) : -1 %}
+{% set cart = cart is not defined ? craft.commerce.carts.cart : cart %}
+{% set addresses = (currentUser and cart.customer) ? cart.customer.addresses.all() : null %}
+{% set primaryShippingAddressId = (currentUser and cart.customer) ? (cart.customer.getPrimaryShippingAddressId() ?? -1) : -1 %}
+{% set canSaveAddresses = craft.fostercheckout.canSaveAddresses(cart) %}
 
 {% block head %}
 	<title>
@@ -110,7 +112,7 @@
 														{% include 'foster-checkout/_components/app/formatted-address' with { address: address } %}
 													</label>
 
-													<template x-if="parseInt(shippingAddressId) === {{ address.id }} && useNewAddress === 0">
+													<template x-if="parseInt(shippingAddressId) === {{ address.id }} && useNewAddress === 0 && {{ canSaveAddresses ? 'true' : 'false' }}">
 														<button
 															type="button"
 															class="text-[var(--brandColor)] underline"
@@ -140,7 +142,7 @@
 									{% endif %}
 									{# end address list #}
 
-									<div :class="{ 'bg-gray-100': parseInt(shippingAddressId) === 0 || useNewAddress }">
+									<div :class="{ 'bg-gray-100': parseInt(shippingAddressId) === 0 || useNewAddress }" {{ not canSaveAddresses ? 'hidden' }}>
 										<div class="p-4 radio">
 											<input
 												id="address_0"

@@ -24,7 +24,8 @@
 {% endblock %}
 
 {% block body %}
-	{% set addresses = currentUser ? (currentUser.addresses.all() ?? []) : [] %}
+	{% set addresses = (currentUser and cart.customer) ? cart.customer.addresses.all() : [] %}
+	{% set canSaveAddresses = craft.fostercheckout.canSaveAddresses(cart) %}
 
 	{# Billing state derived from the cart #}
 	{% set _sourceBillId = cart.sourceBillingAddressId ?? null %}
@@ -155,7 +156,7 @@
 																{% include 'foster-checkout/_components/app/formatted-address' with { address: address } %}
 															</label>
 
-															<template x-if="parseInt(billingAddressId) === {{ address.id }}">
+															<template x-if="parseInt(billingAddressId) === {{ address.id }} && {{ canSaveAddresses ? 'true' : 'false' }}">
 																<button
 																	type="button"
 																	class="text-[var(--brandColor)] underline"
@@ -185,7 +186,7 @@
 											{% endfor %}
 
 											{# New billing address #}
-											<div class="border-t border-gray-250" :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }">
+											<div class="border-t border-gray-250" :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }" {{ not canSaveAddresses ? 'hidden' }}>
 												<div class="p-4 radio">
 													<input
 														id="newBillingAddress"

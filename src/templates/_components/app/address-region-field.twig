@@ -19,7 +19,8 @@
 
 {% set fallbackOptions = null %}
 {% if address.countryCode|default %}
-	{% set fallbackOptions = countriesAndRegions[address.countryCode] %}
+	{# Fall back to nothing when the store's list has no such country #}
+	{% set fallbackOptions = countriesAndRegions[address.countryCode]|default(null) %}
 {% endif %}
 
 <div

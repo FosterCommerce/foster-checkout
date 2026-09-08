@@ -221,6 +221,7 @@ return [
 	'permission.manageFeatures' => 'Manage checkout features',
 	'permission.manageSettings' => 'Manage checkout settings',
 
+	'contact.signedInAs' => 'Signed in as {name} ({email})',
 	'error.adminChangesDisallowed' => 'Checkout settings are stored in project config, which is read-only in this environment.',
 	'settings.saveFailed' => 'Couldn’t save checkout settings.',
 	'settings.overridden' => 'This is being overridden by the `{setting}` setting in the `config/foster-checkout.php` file.',

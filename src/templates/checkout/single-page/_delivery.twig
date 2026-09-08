@@ -23,6 +23,7 @@
 		@change="saveIfValid('delivery', $event)"
 		@selected="$nextTick(() => saveIfValid('delivery', $event))"
 	>
+		{% set canSaveAddresses = craft.fostercheckout.canSaveAddresses(cart) %}
 		<div class="xl:border xl:border-gray-250 xl:rounded-lg">
 			{% if currentUser and addresses|length %}
 				{% for address in addresses %}
@@ -53,6 +54,7 @@
 									type="button"
 									class="text-[var(--brandColor)] underline"
 									@click="editBillingAddressId = 0; editExistingAddress = parseInt(editExistingAddress) === {{ address.id }} ? 0 : {{ address.id }}"
+									{{ not canSaveAddresses ? 'hidden' }}
 								>
 									<template x-if="parseInt(editExistingAddress) === {{ address.id }}"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
 									<template x-if="parseInt(editExistingAddress) !== {{ address.id }}"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
@@ -90,7 +92,7 @@
 					</div>
 				{% endfor %}
 
-				<div :class="{ 'bg-gray-100': useNewAddress }">
+				<div :class="{ 'bg-gray-100': useNewAddress }" {{ not canSaveAddresses ? 'hidden' }}>
 					<div class="p-4 radio">
 						<input
 							id="sp_address_0"

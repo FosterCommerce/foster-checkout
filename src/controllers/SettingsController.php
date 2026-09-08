@@ -704,13 +704,14 @@ class SettingsController extends Controller
 		foreach ($postedSettings as $name => $value) {
 			$path = $prefix === '' ? (string) $name : "{$prefix}.{$name}";
 
-			if (in_array($path, $overridden, true)) {
-				unset($postedSettings[$name]);
+			// Match the keys, not the group, since a pinned group would drop its editable siblings
+			if (is_array($value) && ! array_is_list($value)) {
+				$postedSettings[$name] = $this->withoutOverriddenSettings($value, $overridden, $path);
 				continue;
 			}
 
-			if (is_array($value)) {
-				$postedSettings[$name] = $this->withoutOverriddenSettings($value, $overridden, $path);
+			if (in_array($path, $overridden, true)) {
+				unset($postedSettings[$name]);
 			}
 		}
 

@@ -30,7 +30,11 @@
 
 	{% if currentUser %}
 		<div class="p-4">
-			<p class="text-black">{{ cart.email }}</p>
+			<p class="text-black">{{ craft.fostercheckout.contact(cart) }}</p>
+			{# Name the person checking out where the order is filed under someone else #}
+			{% if currentUser.email != cart.email %}
+				<p class="text-sm">{{ 'contact.signedInAs'|t('foster-checkout', { name: currentUser.name, email: currentUser.email }) }}</p>
+			{% endif %}
 			{# The signed-in branch renders no email form, so these declare their own collect block #}
 			{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'email', panel: 'contact', showRequired: true } %}
 		</div>
