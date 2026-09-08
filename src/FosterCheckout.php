@@ -535,15 +535,24 @@ class FosterCheckout extends Plugin
 				foreach ($this->getCheckout()->settings()->requiredAddressFields as $attribute) {
 					$field = $layout?->getFieldByHandle($attribute);
 
-					// A field value can be an object or a bool, which the default emptiness test never
-					// counts as empty, so the field decides for itself as it does in Craft's own rules.
-					$event->rules[] = $field instanceof FieldInterface
-						? [
+					if ($field instanceof FieldInterface) {
+						// A field value can be an object or a bool, which the default emptiness test never
+						// counts as empty, so the field decides for itself as it does in Craft's own rules.
+						$event->rules[] = [
 							$attribute,
 							'required',
 							'isEmpty' => static fn (mixed $value): bool => $field->isValueEmpty($value, $address),
-						]
-						: [$attribute, 'required'];
+						];
+						continue;
+					}
+
+					// Skip a handle the layout dropped, since validating it would read a property the
+					// address does not have and fail the save with an unknown property error
+					if (! $address->canGetProperty($attribute)) {
+						continue;
+					}
+
+					$event->rules[] = [$attribute, 'required'];
 				}
 			}
 		);

@@ -64,6 +64,7 @@
 								type="button"
 								class="text-[var(--brandColor)] underline"
 								@click="editExistingAddress = 0; editBillingAddressId = parseInt(editBillingAddressId) === {{ address.id }} ? 0 : {{ address.id }}"
+								{{ not craft.fostercheckout.canSaveAddresses(cart) ? 'hidden' }}
 							>
 								<template x-if="parseInt(editBillingAddressId) === {{ address.id }}"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
 								<template x-if="parseInt(editBillingAddressId) !== {{ address.id }}"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
@@ -102,7 +103,7 @@
 			{% endif %}
 		{% endfor %}
 
-		<div class="border-t border-gray-250" :class="{ 'bg-gray-100': useNewBillingAddress }">
+		<div class="border-t border-gray-250" :class="{ 'bg-gray-100': useNewBillingAddress }" {{ not craft.fostercheckout.canSaveAddresses(cart) ? 'hidden' }}>
 			<div class="p-4 radio">
 				<input
 					id="sp_newBillingAddress"

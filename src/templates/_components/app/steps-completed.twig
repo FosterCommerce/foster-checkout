@@ -22,7 +22,13 @@
 					{% endif %}
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
-					<span class="text-black">{{ cart.email }}</span>
+					<span class="text-black">
+						{{ craft.fostercheckout.contact(cart) }}
+						{# Name the person checking out where the order is filed under someone else #}
+						{% if currentUser and currentUser.email != cart.email %}
+							<span class="block text-sm">{{ 'contact.signedInAs'|t('foster-checkout', { name: currentUser.name, email: currentUser.email }) }}</span>
+						{% endif %}
+					</span>
 					{% if currentUser %}
 						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}"
 						   class="hidden sm:inline-block  underline text-[var(--brandColor)]"
