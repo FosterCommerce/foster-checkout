@@ -9,6 +9,7 @@ Everything here is under **Checkout -> Line Items**.
 | Setting | Controls |
 | --- | --- |
 | **Show the SKU** | Whether the SKU appears under the product title. On by default |
+| **Show the stock count** | Whether the cart says how many are left in stock. On by default. The quantity stepper still names the count when a customer asks for more than the stock |
 | **Show line item options** | Whether options appear at all. Off hides every option and stops the rules below from running. On by default |
 | **Hidden option prefix** | Options whose name starts with this are never shown. Default `_`. Leave empty to show every option |
 | **Truncate values to** | How many characters of an option value to show. Empty shows the whole value |

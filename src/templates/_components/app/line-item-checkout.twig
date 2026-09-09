@@ -1,5 +1,8 @@
 {% set previewImage = craft.fostercheckout.lineItemImage(lineItem) %}
 
+{% set hasDiscount = lineItem.getDiscount() ? true : false %}
+{% set discountNames = lineItem.getAdjustments()|filter(adjustment => adjustment.type == 'discount')|map(adjustment => adjustment.name) %}
+
 {% set hasImage = true %}
 {% set imageUrl = null %}
 
@@ -60,12 +63,21 @@
 			{% endif %}
 		</div>
 		<h4 class="font-semibold text-right leading-snug">
-			{% if lineItem.getDiscount() %}
-				{% for adjustment in lineItem.getAdjustments() %}
-					{% if adjustment.type == 'discount' %}
-						<span class="text-sm text-[var(--brandColor)]">{{ adjustment.name|raw }}</span><br>
-					{% endif %}
-				{% endfor %}
+			{% if liveTotals|default %}
+				{# Bind what a coupon changes, since the single-page checkout applies one without rendering the page #}
+				<span
+					class="block text-sm text-[var(--brandColor)] {{ not hasDiscount ? 'hidden' }}"
+					:class="totalsForLineItem({{ lineItem.id }}).hasDiscount ? '' : 'hidden'"
+					x-text="totalsForLineItem({{ lineItem.id }}).discountNames.join(', ')"
+				>{{ discountNames|join(', ') }}</span>
+				<span
+					class="line-through text-sm text-gray-500 {{ not hasDiscount ? 'hidden' }}"
+					:class="totalsForLineItem({{ lineItem.id }}).hasDiscount ? '' : 'hidden'"
+					x-text="totalsForLineItem({{ lineItem.id }}).originalTotalAsCurrency"
+				>{{ hasDiscount ? craft.fostercheckout.lineItemOriginalTotal(lineItem) }}</span>
+				<span x-text="totalsForLineItem({{ lineItem.id }}).priceAsCurrency">{{ hasDiscount ? lineItem.totalAsCurrency : lineItem.subtotalAsCurrency }}</span>
+			{% elseif hasDiscount %}
+				<span class="block text-sm text-[var(--brandColor)]">{{ discountNames|join(', ') }}</span>
 				<span class="line-through text-sm text-gray-500">{{ craft.fostercheckout.lineItemOriginalTotal(lineItem) }}</span> {{ lineItem.totalAsCurrency }}
 			{% else %}
 				{{ lineItem.subtotalAsCurrency }}

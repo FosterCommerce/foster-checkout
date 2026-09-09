@@ -6,7 +6,7 @@ All checkout copy is edited at **Checkout -> Content**. It is stored in the plug
 
 - **Notes** for each step: cart, empty cart, login, email, shipping address, shipping method, billing, payment, order confirmation, and a global note shown on every checkout step.
 - **Newsletter checkbox label**, and the **delivery date** label and message.
-- **Payment method notes**, one per gateway configured in Commerce, shown when a customer picks that method.
+- **Payment method notes**, one per gateway configured in Commerce, shown when a customer picks that method. The name a customer reads for that gateway is set at **Checkout -> Gateways**, not here.
 - **Footer links**, shown at the bottom of the cart and checkout pages.
 
 

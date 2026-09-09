@@ -71,22 +71,25 @@
 			} %}
 		</div>
 
-		{# The placeholder names this field, so a stacked label repeats it #}
-		<div :class="isUsed('addressLine3') ? '' : 'h-0 overflow-hidden absolute'">
-			{% include 'foster-checkout/_components/base/input-text-clearable' with {
-				addressScope: true,
-				context: context,
-				label: 'addressFields.address3Label'|t('foster-checkout'),
-				hideLabel: stackedLabels,
-				id: 'addressLine3',
-				name: 'addressLine3',
-				type: 'text',
-				autocomplete: 'address-line3',
-				placeholder: 'addressFields.address3Label'|t('foster-checkout'),
-				value: address ? address.addressLine3|e('js') : '',
-				errors: errors.addressLine3 ?? []
-			} %}
-		</div>
+		{# Render a third line only when the store asks for one, since nearly every country format lists one #}
+		{% if craft.fostercheckout.settings.showAddressLine3 %}
+			{# The placeholder names this field, so a stacked label repeats it #}
+			<div :class="isUsed('addressLine3') ? '' : 'h-0 overflow-hidden absolute'">
+				{% include 'foster-checkout/_components/base/input-text-clearable' with {
+					addressScope: true,
+					context: context,
+					label: 'addressFields.address3Label'|t('foster-checkout'),
+					hideLabel: stackedLabels,
+					id: 'addressLine3',
+					name: 'addressLine3',
+					type: 'text',
+					autocomplete: 'address-line3',
+					placeholder: 'addressFields.address3Label'|t('foster-checkout'),
+					value: address ? address.addressLine3|e('js') : '',
+					errors: errors.addressLine3 ?? []
+				} %}
+			</div>
+		{% endif %}
 	</div>
 
 	<div class="sm:col-span-4" :class="isUsed('locality') ? '' : 'h-0 overflow-hidden absolute'">

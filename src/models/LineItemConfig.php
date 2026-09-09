@@ -12,6 +12,11 @@ class LineItemConfig extends Model
 	public bool $showLineItemSku = true;
 
 	/**
+	 * Whether the cart shows how many of a line item are left in stock.
+	 */
+	public bool $showLineItemStock = true;
+
+	/**
 	 * Whether to show line item options at all. Gates the prefix and the rewrite rules.
 	 */
 	public bool $enableLineItemOptions = true;
@@ -44,13 +49,14 @@ class LineItemConfig extends Model
 	{
 		$posted = $config['enableLineItemOptions'] ?? null;
 
-		if (! is_string($posted)) {
+		// A lightswitch posts its state as a string, where the setting this replaced held a prefix
+		if (! is_string($posted) || in_array($posted, ['', '0', '1'], true)) {
 			return $config;
 		}
 
 		$config['enableLineItemOptions'] = true;
 
-		if ($posted !== '' && ! isset($config['hiddenLineItemOptionPrefix'])) {
+		if (! isset($config['hiddenLineItemOptionPrefix'])) {
 			$config['hiddenLineItemOptionPrefix'] = $posted;
 		}
 

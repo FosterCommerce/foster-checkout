@@ -47,7 +47,7 @@ If you need something the checkout does not collect, open **Checkout -> Fields**
 
 ## 8. Set up your gateways
 
-Open **Checkout -> Gateways**. Every gateway configured in Commerce is listed. Open one to add fields the customer fills in when they pick it, and any extra parameters the gateway needs.
+Open **Checkout -> Gateways**. Every gateway configured in Commerce is listed. Open one to set the name customers see, add fields the customer fills in when they pick it, and any extra parameters the gateway needs.
 
 Place a test order to confirm payment works end to end.
 

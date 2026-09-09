@@ -103,6 +103,8 @@ return [
 	'addressFields.fullnameLabel' => 'Full name',
 	'addressFields.organizationLabel' => 'Organization',
 	'addressFields.organizationTaxIdLabel' => 'Tax ID',
+	'addressFields.savedAddressLabel' => 'Address label',
+	'addressFields.savedAddressPlaceholder' => 'Home',
 	'addressFields.fullnamePlaceholder' => 'Enter your name',
 	'addressFields.addressLabel' => 'Address',
 	'addressFields.addressPlaceholder' => 'Street address',
@@ -333,6 +335,8 @@ return [
 	'settings.gateways.unsupportedFields' => 'These field types cannot be shown at checkout: {fields}. Use plain text, number, dropdown, radio buttons, checkboxes, lightswitch, date or time.',
 	'settings.gateways.unstorableFields' => 'These fields are not on the order, so nothing would be saved: {fields}. Add them to the order field layout first.',
 	'settings.gateways.fieldsHelp' => 'Fields a customer fills in when they pick this payment method. Only fields on the order can be used.',
+	'settings.gateways.label' => 'Name shown to customers',
+	'settings.gateways.labelHelp' => 'What the checkout calls this gateway. Leave it blank to use the gateway’s own name.',
 	'settings.gateways.params' => 'Extra parameters',
 	'settings.gateways.paramsHelp' => 'Merged into the gateway’s payment form parameters, such as PayPal SDK options.',
 	'settings.gateways.paramKey' => 'Key',
@@ -370,6 +374,11 @@ return [
 	'settings.general.hiddenAddressFieldsHelp' => 'Address fields left off the checkout. A field the address layout marks required is always shown.',
 	'settings.general.requiredAddressFields' => 'Required address fields',
 	'settings.general.requiredAddressFieldsHelp' => 'Address fields required at the checkout, beyond what the address layout asks for.',
+
+	'settings.general.showAddressLine3' => 'Show a third address line',
+	'settings.general.showAddressLine3Help' => 'Whether checkout address forms offer a third address line, for the countries whose address format uses one.',
+	'settings.general.showAddressLabelField' => 'Let customers name a saved address',
+	'settings.general.showAddressLabelFieldHelp' => 'Whether a customer editing one of their saved addresses at the checkout can change its label. A new address is labeled by Commerce.',
 
 	'settings.general.cart' => 'Cart path',
 	'settings.general.cartHelp' => 'Site-relative path where the cart is accessible.',
@@ -416,5 +425,8 @@ return [
 	'settings.lineItemOptions.valueMaxLengthHelp' => 'How many characters of an option value to show. Leave empty to show all.',
 	'settings.lineItemOptions.showLineItemSku' => 'Show the SKU',
 	'settings.lineItemOptions.showLineItemSkuHelp' => 'Whether each line item in the cart shows its SKU.',
+
+	'settings.lineItemOptions.showLineItemStock' => 'Show the stock count',
+	'settings.lineItemOptions.showLineItemStockHelp' => 'Whether each line item in the cart names how many are left in stock.',
 	'settings.lineItemOptions.anyValue' => 'Any {subject}',
 ];

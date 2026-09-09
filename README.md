@@ -38,7 +38,7 @@ See [`docs/user-guide/content.md`](./docs/user-guide/content.md).
 
 ## Settings
 
-Appearance, features, line items, products, payment gateways and paths each get a control panel screen under **Checkout**. Anything a site sets in `config/foster-checkout.php` wins over the control panel, per key, and those fields are shown as read-only so it is clear why an edit will not take.
+Appearance, features, line items, products, payment gateways and paths each get a control panel screen under **Checkout**. A gateway carries the name customers see, so Stripe can read as Secure payment at the checkout. Anything a site sets in `config/foster-checkout.php` wins over the control panel, per key, and those fields are shown as read-only so it is clear why an edit will not take.
 
 See [`docs/reference/settings.md`](./docs/reference/settings.md).
 
@@ -46,7 +46,7 @@ See [`docs/reference/settings.md`](./docs/reference/settings.md).
 
 Rules rewrite what a cart line shows for an option a customer chose, so a stored `blessing: true` reads as `Blessing Services: Yes`. Each rule pairs a condition on the option's name or value with a replacement name, a replacement value, or both.
 
-Values are left alone unless a rule sets one, which keeps free text as the customer typed it. Long values can be truncated, and the SKU can be hidden.
+Values are left alone unless a rule sets one, which keeps free text as the customer typed it. Long values can be truncated, and the SKU and stock count can each be hidden.
 
 See [`docs/user-guide/line-items.md`](./docs/user-guide/line-items.md).
 
@@ -68,7 +68,9 @@ See [`docs/user-guide/single-page-checkout.md`](./docs/user-guide/single-page-ch
 
 Catch a bad shipping address before it reaches fulfillment. Avalara returns a corrected address the customer can accept, or Google Places and Loqate suggest addresses as they type. Both need their own account and key.
 
-See [`docs/reference/settings.md`](./docs/reference/settings.md).
+Which fields the address form asks for, and which of them are required, follow Craft's address field layout, with hidden and required lists of the checkout's own.
+
+See [`docs/user-guide/address-fields.md`](./docs/user-guide/address-fields.md) and [`docs/reference/settings.md`](./docs/reference/settings.md).
 
 ## Custom includes
 

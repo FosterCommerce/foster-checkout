@@ -4,6 +4,7 @@ namespace fostercommerce\fostercheckout\services;
 
 use Craft;
 use craft\base\FieldLayoutElement;
+use craft\commerce\base\Gateway;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
@@ -19,6 +20,7 @@ use craft\elements\User;
 use craft\events\DefineValueEvent;
 use craft\fieldlayoutelements\addresses\AddressField;
 use craft\fieldlayoutelements\addresses\CountryCodeField;
+use craft\fieldlayoutelements\addresses\LabelField;
 use craft\fieldlayoutelements\addresses\OrganizationField;
 use craft\fieldlayoutelements\addresses\OrganizationTaxIdField;
 use craft\fieldlayoutelements\BaseField;
@@ -55,10 +57,17 @@ use yii\base\InvalidConfigException;
  *     discounts: list<array{name: string, amountAsCurrency: string}>,
  *     vouchers: list<array{name: string, amountAsCurrency: string}>
  * }
+ * @phpstan-type CheckoutLineItemTotals array{
+ *     discountNames: list<string>,
+ *     originalTotalAsCurrency: string,
+ *     priceAsCurrency: string,
+ *     hasDiscount: bool
+ * }
  * @phpstan-type CheckoutLiveState array{
  *     shippingMethods: list<CheckoutShippingMethod>,
  *     shippingMethodHandle: string,
  *     totals: CheckoutTotals,
+ *     lineItemTotals: array<int, CheckoutLineItemTotals>,
  *     shippingPreview: string,
  *     couponCodeError?: string
  * }
@@ -483,7 +492,7 @@ class Checkout extends Component
 	 *
 	 * @return array<int, AddressFormElement>
 	 */
-	public function addressFields(?Address $address = null): array
+	public function addressFields(?Address $address = null, bool $includeLabel = false): array
 	{
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
@@ -502,6 +511,11 @@ class Checkout extends Component
 			$attribute = $layoutElement->attribute();
 
 			if ($configurable && in_array($attribute, $settings->hiddenAddressFields, true)) {
+				continue;
+			}
+
+			// Only an address the customer already saved can keep a label, since Commerce titles the order's own
+			if ($type === 'label' && (! $includeLabel || ! $settings->showAddressLabelField)) {
 				continue;
 			}
 
@@ -538,6 +552,17 @@ class Checkout extends Component
 		);
 	}
 
+	public function gatewayLabel(?Gateway $gateway): string
+	{
+		if (! $gateway instanceof Gateway) {
+			return '';
+		}
+
+		$label = $this->getManualGatewayConfig((string) $gateway->handle)?->label ?? '';
+
+		return Craft::t(FosterCheckout::HANDLE, $label === '' ? (string) $gateway->name : $label);
+	}
+
 	public function subscribeText(): ?string
 	{
 		return $this->contentOrConfig('subscribe', $this->settings()->options->subscribe);
@@ -559,6 +584,7 @@ class Checkout extends Component
 			'shippingMethods' => $shippingMethods,
 			'shippingMethodHandle' => $shippingMethodHandle,
 			'totals' => $this->checkoutTotals($cart),
+			'lineItemTotals' => $this->checkoutLineItemTotals($cart),
 			'shippingPreview' => $this->checkoutAddressPreview($cart->getShippingAddress()),
 		];
 	}
@@ -715,16 +741,16 @@ class Checkout extends Component
 	 */
 	private function isConfigurableAddressField(string $type, BaseField $layoutElement): bool
 	{
-		return ! in_array($type, ['address', 'country'], true) && ! $layoutElement->required;
+		return ! in_array($type, ['address', 'country', 'label'], true) && ! $layoutElement->required;
 	}
 
 	/**
-	 * Commerce overwrites an order address's `title`, and lat/long is not something a customer types,
-	 * so neither is rendered.
+	 * Latitude and longitude are not something a customer types, so they are not rendered.
 	 */
 	private function addressElementType(FieldLayoutElement $layoutElement): ?string
 	{
 		return match (true) {
+			$layoutElement instanceof LabelField => 'label',
 			$layoutElement instanceof CountryCodeField => 'country',
 			$layoutElement instanceof FullNameField => 'fullName',
 			$layoutElement instanceof OrganizationTaxIdField => 'organizationTaxId',
@@ -781,6 +807,38 @@ class Checkout extends Component
 		}
 
 		return $methods;
+	}
+
+	/**
+	 * What a coupon changes about each line item, keyed by line item id.
+	 *
+	 * @return array<int, CheckoutLineItemTotals>
+	 */
+	private function checkoutLineItemTotals(Order $cart): array
+	{
+		// Group the discounts once, since each line item would otherwise read the order's whole list
+		$discountNames = [];
+
+		foreach ($cart->getAdjustments() ?? [] as $adjustment) {
+			if ($adjustment->type === 'discount' && $adjustment->lineItemId) {
+				$discountNames[$adjustment->lineItemId][] = $adjustment->name;
+			}
+		}
+
+		$lineItemTotals = [];
+
+		foreach ($cart->getLineItems() as $lineItem) {
+			$hasDiscount = $lineItem->getDiscount() !== 0.0;
+
+			$lineItemTotals[(int) $lineItem->id] = [
+				'discountNames' => $discountNames[$lineItem->id] ?? [],
+				'originalTotalAsCurrency' => $this->lineItemOriginalTotal($lineItem),
+				'priceAsCurrency' => $hasDiscount ? $lineItem->totalAsCurrency : $lineItem->subtotalAsCurrency,
+				'hasDiscount' => $hasDiscount,
+			];
+		}
+
+		return $lineItemTotals;
 	}
 
 	/**

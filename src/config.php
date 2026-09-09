@@ -83,6 +83,9 @@ return [
 	// Whether each line item shows its SKU
 	// 'showLineItemSku' => true, // true|false
 
+	// Whether each line item names how many are left in stock
+	// 'showLineItemStock' => true, // true|false
+
 	// Whether line item options are shown at all. Gates the prefix and the rules below.
 	// 'enableLineItemOptions' => true, // true|false
 
@@ -200,6 +203,8 @@ return [
 	// Example:
 	// /*
 	// 'myGatewayHandle' => [
+	// What the checkout calls the gateway. Leave it out to use the gateway's own name.
+	// 'label' => 'Secure payment',
 	// 'note' => static fn (array $context): string => 'Computed note',
 	// 'params' => [
 	// Extra params merged into the gateway's payment form params.
@@ -226,4 +231,10 @@ return [
 	// field handle. A hidden field is never required, since it is not rendered.
 	// (ex. ['fullName'])
 	// 'requiredAddressFields' => [],
+
+	// Whether checkout address forms offer a third address line for the countries whose format uses one
+	// 'showAddressLine3' => false, // true|false
+
+	// Whether a customer editing one of their saved addresses at the checkout can name it
+	// 'showAddressLabelField' => false, // true|false
 ];

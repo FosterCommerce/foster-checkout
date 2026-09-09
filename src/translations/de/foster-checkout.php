@@ -208,6 +208,8 @@ return [
 	'addressFields.address3Label' => 'Adresszeile 3',
 	'addressFields.organizationLabel' => 'Firma',
 	'addressFields.organizationTaxIdLabel' => 'Steuernummer',
+	'addressFields.savedAddressLabel' => 'Adressbezeichnung',
+	'addressFields.savedAddressPlaceholder' => 'Zuhause',
 	'checkout.payIncomplete' => 'Bitte füllen Sie alle erforderlichen Angaben aus, um die Zahlung freizuschalten.',
 	'permission.editContent' => 'Checkout-Inhalte bearbeiten',
 	'permission.editContentWarning' => 'Checkout-Texte werden als Twig-Template gerendert. Diese Berechtigung erlaubt es also, Code auf dem Server auszuführen. Nur an Personen vergeben, denen auch Template-Zugriff anvertraut würde.',
@@ -330,6 +332,8 @@ return [
 	'settings.gateways.unsupportedFields' => 'Diese Feldtypen können im Checkout nicht angezeigt werden: {fields}. Verwenden Sie Klartext, Zahl, Dropdown, Optionsfelder, Checkboxen, Lichtschalter, Datum oder Uhrzeit.',
 	'settings.gateways.unstorableFields' => 'Diese Felder gehören nicht zur Bestellung, es würde also nichts gespeichert: {fields}. Zuerst dem Feldlayout der Bestellung hinzufügen.',
 	'settings.gateways.fieldsHelp' => 'Felder, die ein Kunde ausfüllt, wenn er diese Zahlungsart wählt. Es können nur Felder der Bestellung verwendet werden.',
+	'settings.gateways.label' => 'Für Kunden sichtbarer Name',
+	'settings.gateways.labelHelp' => 'Wie der Checkout dieses Zahlungsgateway nennt. Leer lassen, um den eigenen Namen des Gateways zu verwenden.',
 	'settings.gateways.params' => 'Zusätzliche Parameter',
 	'settings.gateways.paramsHelp' => 'Werden in die Parameter des Zahlungsformulars übernommen, etwa PayPal-SDK-Optionen.',
 	'settings.gateways.paramKey' => 'Schlüssel',
@@ -367,6 +371,11 @@ return [
 	'settings.general.hiddenAddressFieldsHelp' => 'Adressfelder, die im Checkout weggelassen werden. Ein Feld, das das Adresslayout als Pflichtfeld führt, wird immer angezeigt.',
 	'settings.general.requiredAddressFields' => 'Pflichtfelder der Adresse',
 	'settings.general.requiredAddressFieldsHelp' => 'Adressfelder, die im Checkout Pflicht sind, zusätzlich zu den Vorgaben des Adresslayouts.',
+
+	'settings.general.showAddressLine3' => 'Dritte Adresszeile anzeigen',
+	'settings.general.showAddressLine3Help' => 'Ob Adressformulare im Checkout eine dritte Adresszeile anbieten, für die Länder, deren Adressformat eine vorsieht.',
+	'settings.general.showAddressLabelField' => 'Kunden dürfen eine gespeicherte Adresse benennen',
+	'settings.general.showAddressLabelFieldHelp' => 'Ob ein Kunde beim Bearbeiten einer gespeicherten Adresse im Checkout deren Bezeichnung ändern kann. Eine neue Adresse benennt Commerce.',
 
 	'settings.general.cart' => 'Pfad zum Warenkorb',
 	'settings.general.cartHelp' => 'Site-relativer Pfad, unter dem der Warenkorb erreichbar ist.',
@@ -413,5 +422,8 @@ return [
 	'settings.lineItemOptions.valueMaxLengthHelp' => 'Wie viele Zeichen eines Optionswerts angezeigt werden. Leer lassen, um alle anzuzeigen.',
 	'settings.lineItemOptions.showLineItemSku' => 'SKU anzeigen',
 	'settings.lineItemOptions.showLineItemSkuHelp' => 'Ob jede Position im Warenkorb ihre SKU anzeigt.',
+
+	'settings.lineItemOptions.showLineItemStock' => 'Lagerbestand anzeigen',
+	'settings.lineItemOptions.showLineItemStockHelp' => 'Ob jede Position im Warenkorb nennt, wie viele noch auf Lager sind.',
 	'settings.lineItemOptions.anyValue' => 'Beliebiger {subject}',
 ];

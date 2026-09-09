@@ -7,7 +7,7 @@
 		<ul x-ref="items" class="grid grid-cols-1 gap-4">
 			{% for lineItem in cart.lineItems %}
 				<li>
-					{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem } %}
+					{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem, liveTotals: liveTotals|default(false) } %}
 				</li>
 			{% endfor %}
 		</ul>
