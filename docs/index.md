@@ -11,6 +11,7 @@ A drop-in checkout for Craft Commerce, with its copy and settings managed from t
 - [Content](./user-guide/content.md), editing checkout copy, payment method notes and footer links
 - [Line items](./user-guide/line-items.md), what a cart line shows, and rewriting option names and values
 - [Checkout fields](./user-guide/checkout-fields.md), asking a customer for something the checkout does not collect
+- [Address fields](./user-guide/address-fields.md), what the checkout asks for on an address, and address labels
 - [Single-page checkout](./user-guide/single-page-checkout.md), running the checkout as one page
 
 **Setting the plugin up?** See:

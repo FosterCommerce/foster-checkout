@@ -551,6 +551,8 @@ class SettingsController extends Controller
 		$storedGateways = is_array($storedSettings['paymentGateways'] ?? null) ? $storedSettings['paymentGateways'] : [];
 		$gateway = is_array($storedGateways[$gatewayHandle] ?? null) ? $storedGateways[$gatewayHandle] : [];
 
+		$postedLabel = $this->request->getBodyParam('label');
+		$gateway['label'] = is_string($postedLabel) ? trim($postedLabel) : '';
 		$gateway['params'] = $this->normalizeGatewayParams((array) $this->request->getBodyParam('params', []));
 
 		$storedGateways[$gatewayHandle] = $gateway;

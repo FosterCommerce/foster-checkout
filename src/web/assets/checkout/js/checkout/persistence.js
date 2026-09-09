@@ -392,6 +392,10 @@ export const cartPersistence = () => ({
 						...live.totals,
 					};
 				}
+
+				if (live.lineItemTotals && typeof live.lineItemTotals === 'object') {
+					this.lineItemTotals = live.lineItemTotals;
+				}
 			}
 
 			if (cart.billingAddress && typeof cart.billingAddress === 'object') {

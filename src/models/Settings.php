@@ -87,6 +87,16 @@ class Settings extends Model
 	public array $requiredAddressFields = [];
 
 	/**
+	 * Whether checkout address forms offer a third address line.
+	 */
+	public bool $showAddressLine3 = false;
+
+	/**
+	 * Whether a customer editing one of their saved addresses at the checkout can name it.
+	 */
+	public bool $showAddressLabelField = false;
+
+	/**
 	 * @param array<array-key, mixed> $config
 	 */
 	public function __construct(array $config = [])

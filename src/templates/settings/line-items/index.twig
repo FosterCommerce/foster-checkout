@@ -38,6 +38,16 @@
 	}) }}
 
 	{{ forms.lightswitchField({
+		label: 'settings.lineItemOptions.showLineItemStock'|t('foster-checkout'),
+		instructions: 'settings.lineItemOptions.showLineItemStockHelp'|t('foster-checkout'),
+		id: 'options-showLineItemStock',
+		name: 'settings[lineItems][showLineItemStock]',
+		on: settings.lineItems.showLineItemStock,
+		disabled: readOnly or 'lineItems.showLineItemStock' in overriddenSettings,
+		warning: 'lineItems.showLineItemStock' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.showLineItemStock' }),
+	}) }}
+
+	{{ forms.lightswitchField({
 		label: 'settings.lineItemOptions.enableLineItemOptions'|t('foster-checkout'),
 		instructions: 'settings.lineItemOptions.enableLineItemOptionsHelp'|t('foster-checkout'),
 		id: 'options-enableLineItemOptions',

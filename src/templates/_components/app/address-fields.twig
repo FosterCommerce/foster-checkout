@@ -111,10 +111,22 @@ since the array key will be the same #}
 	class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12"
 	@selected.window="if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') { administrativeArea = '' }"
 >
-	{% for element in craft.fostercheckout.addressFields(address) %}
+	{% for element in craft.fostercheckout.addressFields(address, showAddressLabel|default(false)) %}
 		{# The layout stores width as a percentage; the grid is in twelfths #}
 		<div class="sm:col-span-{{ (element.width / 100 * 12)|round }}">
-			{% if element.type == 'country' %}
+			{% if element.type == 'label' %}
+				{% include 'foster-checkout/_components/base/input-text-clearable' with {
+					context: context,
+					label: 'addressFields.savedAddressLabel'|t('foster-checkout'),
+					id: 'title',
+					name: 'title',
+					type: 'text',
+					placeholder: 'addressFields.savedAddressPlaceholder'|t('foster-checkout'),
+					value: address ? address.title|e('js') : '',
+					required: element.required,
+					errors: errors.title ?? []
+				} %}
+			{% elseif element.type == 'country' %}
 				{% include 'foster-checkout/_components/base/input-select-searchable' with {
 					context: context,
 					id: 'countryCode',

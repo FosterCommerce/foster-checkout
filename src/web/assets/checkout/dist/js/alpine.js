@@ -5690,6 +5690,9 @@ const cartPersistence = () => ({
             ...live.totals
           };
         }
+        if (live.lineItemTotals && typeof live.lineItemTotals === "object") {
+          this.lineItemTotals = live.lineItemTotals;
+        }
       }
       if (cart.billingAddress && typeof cart.billingAddress === "object") {
         this.latestBillingAddress = cart.billingAddress;
@@ -6326,6 +6329,7 @@ const SinglePageCheckout = (props) => {
     latestShippingAddress: null,
     latestBillingAddress: null,
     shippingMethods: asList(props.shippingMethods),
+    lineItemTotals: props.lineItemTotals ?? {},
     totals: props.totals ?? {
       itemsAsCurrency: "",
       shipping: 0,
@@ -6740,6 +6744,9 @@ const SinglePageCheckout = (props) => {
         );
       }
       return this.panelFieldsReady(panel);
+    },
+    totalsForLineItem(lineItemId) {
+      return this.lineItemTotals[lineItemId];
     },
     shippingRateKey(payload) {
       return [

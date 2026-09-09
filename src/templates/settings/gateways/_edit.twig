@@ -38,6 +38,22 @@
 
 	<p class="light code">{{ gateway.handle }}</p>
 
+	{% set labelSetting = 'paymentGateways.' ~ gateway.handle ~ '.label' %}
+	{% set labelOverridden = labelSetting in overriddenSettings %}
+
+	{{ forms.textField({
+		label: 'settings.gateways.label'|t('foster-checkout'),
+		instructions: 'settings.gateways.labelHelp'|t('foster-checkout'),
+		id: 'label',
+		name: 'label',
+		value: gatewayConfig ? gatewayConfig.label : '',
+		placeholder: gateway.name,
+		disabled: readOnly or labelOverridden,
+		warning: labelOverridden ? 'settings.overridden'|t('foster-checkout', { setting: labelSetting }),
+	}) }}
+
+	<hr>
+
 	<p>{{ 'settings.gateways.fieldsHelp'|t('foster-checkout') }}</p>
 
 	{{ forms.fieldLayoutDesignerField({

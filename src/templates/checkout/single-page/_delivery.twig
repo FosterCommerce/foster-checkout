@@ -68,7 +68,7 @@
 								data-fc-address-edit="{{ address.id }}"
 								x-init="applyAddressFields({{ address.id }})"
 							>
-								{% include 'foster-checkout/_components/app/address-fields' with { address: address } %}
+								{% include 'foster-checkout/_components/app/address-fields' with { address: address, showAddressLabel: true } %}
 								<div class="flex justify-start items-center gap-4 mt-4 pt-4">
 									<button
 										type="button"

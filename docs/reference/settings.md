@@ -8,9 +8,9 @@ Every setting is editable in the control panel under **Checkout**. A site may al
 | --- | --- | --- |
 | **Appearance** | `branding` | Brand color, header background, Google font family, logo path, component style, field label placement, title prefix |
 | **Features** | `options` and `addressLookup` | Checkout page layout format, the other `enable*` switches, and the Klaviyo list ID. Blank list ID hides the newsletter checkbox. Multi-page is the default |
-| **Line Items** | `lineItems` and `lineItemOptionRules` | Whether a line item shows its SKU, whether its options are shown, which option names are hidden, how far option values are cut, and the rules that rewrite an option's name and value |
+| **Line Items** | `lineItems` and `lineItemOptionRules` | Whether a line item shows its SKU and its stock count, whether its options are shown, which option names are hidden, how far option values are cut, and the rules that rewrite an option's name and value |
 | **Products** | `products` | Per product type, the field holding the cart preview image. Blank falls back to the product's own image |
-| **Gateways** | `paymentGateways` | Per gateway: a field layout and extra payment form parameters |
+| **Gateways** | `paymentGateways` | Per gateway: the name customers see, a field layout, and extra payment form parameters |
 | **General** | `paths` and the keys below | Cart, checkout, account and cancel paths, plus the built-in cart template switch |
 
 Other keys on the General screen:
@@ -18,9 +18,11 @@ Other keys on the General screen:
 | Setting | Config key | Holds |
 | --- | --- | --- |
 | Head include, Body include | `includes` | Template paths injected into every cart and checkout page. See [custom includes](../dev-guide/custom-includes.md) |
-| Priority countries | `priorityCountries` | Country codes shown at the top of country dropdowns, in the order listed |
+| Priority countries | `priorityCountries` | Country codes shown at the top of country dropdowns, in the order listed. See [address fields](../user-guide/address-fields.md) |
 | Hidden address fields | `hiddenAddressFields` | Address fields left off the checkout. They stay in the control panel. A field the address layout marks required is always shown |
 | Required address fields | `requiredAddressFields` | Address fields required at the checkout beyond what the address layout asks for. A hidden field is never required |
+| Show a third address line | `showAddressLine3` | Whether checkout address forms offer a third address line. Off, even though nearly every country format lists one |
+| Let customers name a saved address | `showAddressLabelField` | Whether the label of a saved address is editable at the checkout. It shows only when a customer edits an address they already saved |
 | Zero value gateways | `zeroValueGatewayHandles` | Gateways available when an order totals zero |
 | Customer order notes field | `customerOrderNotesFieldHandle` | Field on Orders holding the customer's note. Blank hides the order notes form |
 | Content translation method | `contentTranslationMethod` | See below |
@@ -52,6 +54,7 @@ Every setting and its default, as the plugin ships.
 | Suggestion provider | `addressLookup.provider` | `google` |
 | Suggestion API key | `addressLookup.apiKey` | none |
 | Show line item SKU | `lineItems.showLineItemSku` | `true` |
+| Show line item stock count | `lineItems.showLineItemStock` | `true` |
 | Show line item options | `lineItems.enableLineItemOptions` | `true` |
 | Hidden option prefix | `lineItems.hiddenLineItemOptionPrefix` | `_` |
 | Option value length limit | `lineItems.lineItemOptionValueMaxLength` | none |
@@ -60,17 +63,30 @@ Every setting and its default, as the plugin ships.
 | Checkout path | `paths.checkout` | `checkout` |
 | Cancel path | `paths.cancel` | `/` |
 | Account path | `paths.account` | `/` |
+| Head include | `includes.head` | empty |
+| Body include | `includes.body` | empty |
+| Newsletter checkbox label | `options.subscribe` | none |
+| Delivery date label, message, estimate, display | `options.deliveryDate.label`, `.message`, `.estimate`, `.display` | none |
 | Content translation method | `contentTranslationMethod` | `site` |
 | Customer order notes field | `customerOrderNotesFieldHandle` | none |
 | Priority countries | `priorityCountries` | empty |
 | Hidden address fields | `hiddenAddressFields` | empty |
 | Required address fields | `requiredAddressFields` | empty |
+| Show a third address line | `showAddressLine3` | `false` |
+| Let customers name a saved address | `showAddressLabelField` | `false` |
 | Zero value gateways | `zeroValueGatewayHandles` | empty |
 | Line item option rules | `lineItemOptionRules` | empty |
 | Product image fields | `products` | empty |
-| Payment gateway params | `paymentGateways` | empty |
+| Product image field | `products.<handle>.productImageHandle` | none, so the product's own image is used |
+| Variant image field | `products.<handle>.variantImageHandle` | none |
+| Payment gateways | `paymentGateways` | empty |
+| Gateway name customers see | `paymentGateways.<handle>.label` | empty, so the gateway's own name is used |
+| Gateway note | `paymentGateways.<handle>.note` | empty |
+| Gateway payment form params | `paymentGateways.<handle>.params` | empty |
 
-Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig`, `options.paymentDueDateFieldHandle`, `options.imagerXConfig`, `options.enableEstimatedShipping` and the delivery date keys.
+Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig`, `options.paymentDueDateFieldHandle`, `options.imagerXConfig` and `options.enableEstimatedShipping`.
+
+`options.subscribe`, `paymentGateways.<handle>.note` and the delivery date label and message are edited at **Checkout -> Content**. A config file may still set any of them, and a note or estimate written as a PHP closure can only live there. See [content](../user-guide/content.md).
 
 `options.enableEstimatedShipping` is unfinished.
 

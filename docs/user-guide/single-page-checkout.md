@@ -12,7 +12,7 @@ The URL stays the same throughout. The stepped URLs (`/checkout/email`, `/checko
 
 ## What stays the same
 
-Every setting outside this one applies to both layouts: checkout copy, checkout fields, payment gateways, line item display, address verification and address suggestions. A store can switch between layouts without reconfiguring any of it.
+Every setting outside this one applies to both layouts: checkout copy, checkout fields, payment gateways and the names customers read for them, line item display, address fields, address verification and address suggestions. A store can switch between layouts without reconfiguring any of it.
 
 ## Two behaviors that only apply here
 

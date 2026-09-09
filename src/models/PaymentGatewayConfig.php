@@ -17,6 +17,11 @@ class PaymentGatewayConfig extends Model
 	public ValueConfig $note;
 
 	/**
+	 * What the checkout calls this gateway. Empty uses the gateway's own name.
+	 */
+	public string $label = '';
+
+	/**
 	 * Extra params merged into the gateway's payment form params (e.g. PayPal SDK options like `disable-funding`)
 	 *
 	 * @var array<string, mixed>

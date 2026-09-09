@@ -40,6 +40,7 @@ export const SinglePageCheckout = (props) => {
 		latestShippingAddress: null,
 		latestBillingAddress: null,
 		shippingMethods: asList(props.shippingMethods),
+		lineItemTotals: props.lineItemTotals ?? {},
 		totals: props.totals ?? {
 			itemsAsCurrency: '',
 			shipping: 0,
@@ -559,6 +560,10 @@ export const SinglePageCheckout = (props) => {
 			}
 
 			return this.panelFieldsReady(panel);
+		},
+
+		totalsForLineItem(lineItemId) {
+			return this.lineItemTotals[lineItemId];
 		},
 
 		shippingRateKey(payload) {

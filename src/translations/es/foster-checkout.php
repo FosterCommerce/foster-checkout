@@ -209,6 +209,8 @@ return [
 	'addressFields.address3Label' => 'Línea de dirección 3',
 	'addressFields.organizationLabel' => 'Empresa',
 	'addressFields.organizationTaxIdLabel' => 'Identificación fiscal',
+	'addressFields.savedAddressLabel' => 'Etiqueta de la dirección',
+	'addressFields.savedAddressPlaceholder' => 'Casa',
 	'checkout.payIncomplete' => 'Completa los datos obligatorios para habilitar el pago.',
 	'permission.editContent' => 'Editar el contenido del pago',
 	'permission.editContentWarning' => 'Los textos del pago se renderizan como una plantilla Twig, así que este permiso permite ejecutar código en el servidor. Concédelo solo a personas a las que confiarías el acceso a las plantillas.',
@@ -331,6 +333,8 @@ return [
 	'settings.gateways.unsupportedFields' => 'Estos tipos de campo no se pueden mostrar en el checkout: {fields}. Usa texto plano, número, desplegable, botones de opción, casillas, interruptor, fecha u hora.',
 	'settings.gateways.unstorableFields' => 'Estos campos no están en el pedido, así que no se guardaría nada: {fields}. Añádelos primero al diseño de campos del pedido.',
 	'settings.gateways.fieldsHelp' => 'Campos que rellena el cliente al elegir este método de pago. Solo se pueden usar campos del pedido.',
+	'settings.gateways.label' => 'Nombre visible para los clientes',
+	'settings.gateways.labelHelp' => 'Cómo llama el checkout a esta pasarela. Déjalo en blanco para usar el nombre propio de la pasarela.',
 	'settings.gateways.params' => 'Parámetros adicionales',
 	'settings.gateways.paramsHelp' => 'Se combinan con los parámetros del formulario de pago de la pasarela, por ejemplo las opciones del SDK de PayPal.',
 	'settings.gateways.paramKey' => 'Clave',
@@ -368,6 +372,11 @@ return [
 	'settings.general.hiddenAddressFieldsHelp' => 'Campos de dirección omitidos en el checkout. Un campo que el diseño de dirección marca como obligatorio siempre se muestra.',
 	'settings.general.requiredAddressFields' => 'Campos de dirección obligatorios',
 	'settings.general.requiredAddressFieldsHelp' => 'Campos de dirección obligatorios en el checkout, además de los que pide el diseño de dirección.',
+
+	'settings.general.showAddressLine3' => 'Mostrar una tercera línea de dirección',
+	'settings.general.showAddressLine3Help' => 'Si los formularios de dirección del checkout ofrecen una tercera línea de dirección, para los países cuyo formato de dirección usa una.',
+	'settings.general.showAddressLabelField' => 'Permitir a los clientes nombrar una dirección guardada',
+	'settings.general.showAddressLabelFieldHelp' => 'Si un cliente que edita una de sus direcciones guardadas en el checkout puede cambiar su etiqueta. Commerce etiqueta las direcciones nuevas.',
 
 	'settings.general.cart' => 'Ruta del carrito',
 	'settings.general.cartHelp' => 'Ruta relativa al sitio donde el carrito está accesible.',
@@ -414,5 +423,8 @@ return [
 	'settings.lineItemOptions.valueMaxLengthHelp' => 'Cuántos caracteres del valor de una opción se muestran. Déjelo vacío para mostrarlos todos.',
 	'settings.lineItemOptions.showLineItemSku' => 'Mostrar el SKU',
 	'settings.lineItemOptions.showLineItemSkuHelp' => 'Si cada línea de pedido del carrito muestra su SKU.',
+
+	'settings.lineItemOptions.showLineItemStock' => 'Mostrar las existencias',
+	'settings.lineItemOptions.showLineItemStockHelp' => 'Si cada línea de pedido del carrito indica cuántas quedan en existencias.',
 	'settings.lineItemOptions.anyValue' => 'Cualquier {subject}',
 ];

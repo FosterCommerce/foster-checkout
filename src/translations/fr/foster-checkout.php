@@ -208,6 +208,8 @@ return [
 	'addressFields.address3Label' => 'Ligne d’adresse 3',
 	'addressFields.organizationLabel' => 'Société',
 	'addressFields.organizationTaxIdLabel' => 'Numéro fiscal',
+	'addressFields.savedAddressLabel' => 'Libellé de l’adresse',
+	'addressFields.savedAddressPlaceholder' => 'Domicile',
 	'checkout.payIncomplete' => 'Complétez les informations requises pour activer le paiement.',
 	'permission.editContent' => 'Modifier le contenu du paiement',
 	'permission.editContentWarning' => 'Les textes du paiement sont rendus comme un template Twig : cette permission autorise donc l’exécution de code sur le serveur. Ne l’accordez qu’aux personnes à qui vous confieriez l’accès aux templates.',
@@ -330,6 +332,8 @@ return [
 	'settings.gateways.unsupportedFields' => 'Ces types de champ ne peuvent pas être affichés au checkout : {fields}. Utilisez texte simple, nombre, liste déroulante, boutons radio, cases à cocher, interrupteur, date ou heure.',
 	'settings.gateways.unstorableFields' => 'Ces champs ne sont pas sur la commande, rien ne serait donc enregistré : {fields}. Ajoutez-les d’abord au layout de champs de la commande.',
 	'settings.gateways.fieldsHelp' => 'Champs que le client remplit lorsqu’il choisit ce moyen de paiement. Seuls les champs de la commande sont utilisables.',
+	'settings.gateways.label' => 'Nom affiché aux clients',
+	'settings.gateways.labelHelp' => 'Le nom que le checkout donne à cette passerelle. Laisser vide pour utiliser le nom de la passerelle.',
 	'settings.gateways.params' => 'Paramètres supplémentaires',
 	'settings.gateways.paramsHelp' => 'Fusionnés dans les paramètres du formulaire de paiement de la passerelle, par exemple les options du SDK PayPal.',
 	'settings.gateways.paramKey' => 'Clé',
@@ -367,6 +371,11 @@ return [
 	'settings.general.hiddenAddressFieldsHelp' => 'Champs d’adresse retirés du checkout. Un champ que la mise en page d’adresse rend obligatoire reste affiché.',
 	'settings.general.requiredAddressFields' => 'Champs d’adresse obligatoires',
 	'settings.general.requiredAddressFieldsHelp' => 'Champs d’adresse obligatoires au checkout, en plus de ceux exigés par la mise en page d’adresse.',
+
+	'settings.general.showAddressLine3' => 'Afficher une troisième ligne d’adresse',
+	'settings.general.showAddressLine3Help' => 'Indique si les formulaires d’adresse du checkout proposent une troisième ligne d’adresse, pour les pays dont le format d’adresse en prévoit une.',
+	'settings.general.showAddressLabelField' => 'Permettre aux clients de nommer une adresse enregistrée',
+	'settings.general.showAddressLabelFieldHelp' => 'Indique si un client qui modifie une de ses adresses enregistrées au checkout peut en changer le libellé. Commerce nomme les nouvelles adresses.',
 
 	'settings.general.cart' => 'Chemin du panier',
 	'settings.general.cartHelp' => 'Chemin relatif au site où le panier est accessible.',
@@ -413,5 +422,8 @@ return [
 	'settings.lineItemOptions.valueMaxLengthHelp' => 'Combien de caractères d’une valeur d’option afficher. Laissez vide pour tout afficher.',
 	'settings.lineItemOptions.showLineItemSku' => 'Afficher le SKU',
 	'settings.lineItemOptions.showLineItemSkuHelp' => 'Indique si chaque ligne du panier affiche son SKU.',
+
+	'settings.lineItemOptions.showLineItemStock' => 'Afficher le stock',
+	'settings.lineItemOptions.showLineItemStockHelp' => 'Indique si chaque ligne du panier précise combien d’unités restent en stock.',
 	'settings.lineItemOptions.anyValue' => 'N’importe quel {subject}',
 ];
