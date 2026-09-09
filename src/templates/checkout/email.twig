@@ -58,7 +58,7 @@
 						<div class="p-4">
 							{% set subscribeText = craft.fostercheckout.subscribeText()|striptags|trim %}
 							{% set klaviyoListId = craft.fostercheckout.settings.options.klaviyoListId %}
-							{% set klaviyoEnabled = craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
+							{% set klaviyoEnabled = craft.fostercheckout.klaviyoTrackingEnabled(cart) %}
 
 							<form
 								class="mt-2"

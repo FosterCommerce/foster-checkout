@@ -114,6 +114,27 @@ class Checkout extends Component
 		]), $user);
 	}
 
+	/**
+	 * Whether Klaviyo should receive events for this order.
+	 *
+	 * Someone buying on another account's behalf would file the events under a customer who is not
+	 * the shopper, so the order goes untracked.
+	 */
+	public function klaviyoTrackingEnabled(?Order $order = null): bool
+	{
+		if (! Craft::$app->getPlugins()->isPluginEnabled('klaviyo-connect-plus')) {
+			return false;
+		}
+
+		$user = Craft::$app->getUser()->getIdentity();
+
+		if (! $user instanceof User || ! $order instanceof Order) {
+			return true;
+		}
+
+		return $user->email === $order->email;
+	}
+
 	public function addressFormatter(): CheckoutAddressFormatter
 	{
 		return new CheckoutAddressFormatter();

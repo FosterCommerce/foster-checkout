@@ -105,7 +105,7 @@
 						<span class="block w-full md:inline-block md:w-auto lg:block lg:w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl opacity-50 cursor-not-allowed" aria-disabled="true">
 							{{ 'cart.checkout'|t('foster-checkout') }}
 						</span>
-					{% elseif cart.email and craft.app.plugins.isPluginEnabled('klaviyo-connect-plus') %}
+					{% elseif cart.email and craft.fostercheckout.klaviyoTrackingEnabled(cart) %}
 						<form method="POST" accept-charset="UTF-8">
 							{{ csrfInput() }}
 							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout)) }}
