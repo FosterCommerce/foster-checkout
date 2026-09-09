@@ -52,9 +52,11 @@ See [`docs/user-guide/line-items.md`](./docs/user-guide/line-items.md).
 
 ## Checkout fields
 
-Ask a customer for anything the checkout does not collect. Five positions across the checkout each hold a field layout, and a field added to one is shown at that point. Fields have to exist on the order first, and a required field on the summary blocks the cart rather than payment.
+Ask a customer for anything the checkout does not collect. Five positions across the checkout each hold a field layout, and a field added to one is shown at that point. A layout field has to exist on the order first, and a required field on the summary blocks the cart rather than payment.
 
-See [`docs/user-guide/checkout-fields.md`](./docs/user-guide/checkout-fields.md).
+A module or plugin can also contribute a field of its own and store the value itself.
+
+See [`docs/user-guide/checkout-fields.md`](./docs/user-guide/checkout-fields.md) and [`docs/dev-guide/contributed-fields.md`](./docs/dev-guide/contributed-fields.md).
 
 ## Single-page checkout
 

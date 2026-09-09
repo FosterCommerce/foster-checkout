@@ -26,6 +26,8 @@ use craft\fields\Time;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
 use DateTime;
+use fostercommerce\fostercheckout\events\ApplyCheckoutFieldsEvent;
+use fostercommerce\fostercheckout\events\DefineCheckoutFieldsEvent;
 use yii\base\Component;
 
 /**
@@ -35,10 +37,50 @@ use yii\base\Component;
  * table up by element type and a stored row could come back as the order's own layout.
  *
  * @phpstan-type RenderableUiElement array{type: string, label: string, width: int}
- * @phpstan-type RenderableField array{value: string|list<string>, handle: string, label: string, instructions: ?string, required: bool, width: int, type: string, placeholder: ?string, maxLength: ?int, min: int|float|null, max: int|float|null, step: float|null, initialRows: ?int, options: list<array{label: string, value: string}>}
+ * @phpstan-type RenderableField array{value: string|list<string>, handle: string, label: string, instructions: ?string, required: bool, width: int, type: string, placeholder: ?string, maxLength: ?int, min: int|float|null, max: int|float|null, step: float|null, initialRows: ?int, options: list<array{label: string, value: string}>, template: ?string}
  */
 class CheckoutFieldLayouts extends Component
 {
+	/**
+	 * @event DefineCheckoutFieldsEvent The event that is triggered when listing a position's fields.
+	 *
+	 * ```php
+	 * use fostercommerce\fostercheckout\events\DefineCheckoutFieldsEvent;
+	 * use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
+	 * use yii\base\Event;
+	 *
+	 * Event::on(
+	 *     CheckoutFieldLayouts::class,
+	 *     CheckoutFieldLayouts::EVENT_DEFINE_CHECKOUT_FIELDS,
+	 *     function (DefineCheckoutFieldsEvent $event) {
+	 *         if ($event->position === 'summary') {
+	 *             $event->fields[] = [...];
+	 *         }
+	 *     }
+	 * );
+	 * ```
+	 */
+	public const string EVENT_DEFINE_CHECKOUT_FIELDS = 'defineCheckoutFields';
+
+	/**
+	 * @event ApplyCheckoutFieldsEvent The event that is triggered when a cart update posts field values.
+	 *
+	 * ```php
+	 * use fostercommerce\fostercheckout\events\ApplyCheckoutFieldsEvent;
+	 * use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
+	 * use yii\base\Event;
+	 *
+	 * Event::on(
+	 *     CheckoutFieldLayouts::class,
+	 *     CheckoutFieldLayouts::EVENT_APPLY_CHECKOUT_FIELDS,
+	 *     function (ApplyCheckoutFieldsEvent $event) {
+	 *         $value = $event->values['myHandle'] ?? null;
+	 *     }
+	 * );
+	 * ```
+	 */
+	public const string EVENT_APPLY_CHECKOUT_FIELDS = 'applyCheckoutFields';
+
 	// Renaming this path would orphan every layout already stored under it.
 	public const CONFIG_KEY = 'foster-checkout.gatewayFieldLayouts';
 
@@ -49,6 +91,9 @@ class CheckoutFieldLayouts extends Component
 	 * Where in the checkout a layout's fields render.
 	 */
 	public const CHECKOUT_POSITIONS = ['email', 'shippingAddress', 'shippingMethod', 'billing', 'summary'];
+
+	// A handler that asks this service for a position's fields would otherwise trigger itself
+	private bool $definingFields = false;
 
 	public function getFieldLayout(string $gatewayHandle): FieldLayout
 	{
@@ -73,13 +118,18 @@ class CheckoutFieldLayouts extends Component
 	 */
 	public function getRenderableCheckoutFields(string $position, ?Order $order = null): array
 	{
-		return $this->renderableFields($this->getCheckoutFieldLayout($position), $order);
+		return $this->withContributedFields(
+			$position,
+			$order,
+			$this->renderableFields($this->getCheckoutFieldLayout($position), $order)
+		);
 	}
 
 	/**
-	 * Handles already claimed by another layout.
+	 * Handles a layout cannot take, because something else at checkout already posts them.
 	 *
-	 * Two layouts holding one handle render two inputs posting the same name, and the last one wins.
+	 * Two fields sharing one handle render two inputs posting the same name, and the last one wins.
+	 * A contributed handle is claimed at every position, since it belongs to no layout to be freed from.
 	 *
 	 * @return list<string>
 	 */
@@ -107,6 +157,10 @@ class CheckoutFieldLayouts extends Component
 			foreach ($this->getFieldLayout((string) $gateway->handle)->getCustomFieldElements() as $customField) {
 				$handles[] = (string) $customField->getField()->handle;
 			}
+		}
+
+		foreach (self::CHECKOUT_POSITIONS as $position) {
+			$handles = [...$handles, ...$this->contributedFieldHandles($position)];
 		}
 
 		return array_values(array_unique($handles));
@@ -193,6 +247,7 @@ class CheckoutFieldLayouts extends Component
 			'step' => $field instanceof Number && $field->decimals > 0 ? 10 ** -$field->decimals : null,
 			'initialRows' => $field instanceof PlainText ? $field->initialRows : null,
 			'options' => $this->fieldOptions($field),
+			'template' => null,
 		];
 	}
 
@@ -246,6 +301,73 @@ class CheckoutFieldLayouts extends Component
 	public function saveCheckoutFieldLayout(string $position, FieldLayout $layout): bool
 	{
 		return $this->storeLayout(self::CHECKOUT_CONFIG_KEY, $position, $layout);
+	}
+
+	/**
+	 * Hand a cart update's posted values to whoever contributed the fields.
+	 *
+	 * @param array<string, mixed> $values everything posted under `fields`, keyed by handle
+	 * @return bool false where a contributor refused the values
+	 */
+	public function applyCheckoutFields(Order $order, array $values): bool
+	{
+		if (! $this->hasEventHandlers(self::EVENT_APPLY_CHECKOUT_FIELDS)) {
+			return true;
+		}
+
+		$applyCheckoutFieldsEvent = new ApplyCheckoutFieldsEvent([
+			'order' => $order,
+			'values' => $values,
+		]);
+
+		$this->trigger(self::EVENT_APPLY_CHECKOUT_FIELDS, $applyCheckoutFieldsEvent);
+
+		return $applyCheckoutFieldsEvent->isValid;
+	}
+
+	/**
+	 * The handles contributed to a position, which no field layout lists.
+	 *
+	 * @return list<string>
+	 */
+	private function contributedFieldHandles(string $position): array
+	{
+		$handles = [];
+
+		foreach ($this->withContributedFields($position, null, []) as $field) {
+			if (array_key_exists('handle', $field)) {
+				$handles[] = $field['handle'];
+			}
+		}
+
+		return $handles;
+	}
+
+	/**
+	 * @param array<int, RenderableField|RenderableUiElement> $fields
+	 * @return array<int, RenderableField|RenderableUiElement>
+	 */
+	private function withContributedFields(string $position, ?Order $order, array $fields): array
+	{
+		if ($this->definingFields || ! $this->hasEventHandlers(self::EVENT_DEFINE_CHECKOUT_FIELDS)) {
+			return $fields;
+		}
+
+		$defineCheckoutFieldsEvent = new DefineCheckoutFieldsEvent([
+			'position' => $position,
+			'order' => $order,
+			'fields' => $fields,
+		]);
+
+		$this->definingFields = true;
+
+		try {
+			$this->trigger(self::EVENT_DEFINE_CHECKOUT_FIELDS, $defineCheckoutFieldsEvent);
+		} finally {
+			$this->definingFields = false;
+		}
+
+		return $defineCheckoutFieldsEvent->fields;
 	}
 
 	private function layoutAt(string $configKey, string $key): FieldLayout

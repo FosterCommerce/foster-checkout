@@ -28,6 +28,11 @@
 						value: field.value,
 						errors: fieldErrors,
 					} %}
+
+					{# Rendered after the input, not instead of it #}
+					{% if field.template ?? null %}
+						{% include field.template with { field: field, cart: cart|default(null) } %}
+					{% endif %}
 				{% endif %}
 			</div>
 		{% endfor %}

@@ -8,6 +8,7 @@ use craft\base\FieldInterface;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\commerce\controllers\BaseFrontEndController;
+use craft\commerce\controllers\CartController;
 use craft\commerce\elements\Order;
 use craft\commerce\events\ModifyCartInfoEvent;
 use craft\commerce\events\OrderNoticeEvent;
@@ -33,6 +34,7 @@ use fostercommerce\fostercheckout\plugin\Services;
 use fostercommerce\fostercheckout\plugin\Variables;
 use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
 use yii\base\Event;
+use yii\base\ModelEvent;
 
 class FosterCheckout extends Plugin
 {
@@ -566,6 +568,7 @@ class FosterCheckout extends Plugin
 		$this->allowEmptyPhoneOnSinglePageCartSave();
 		$this->requireCheckoutAddressFields();
 		$this->requireCheckoutFields();
+		$this->applyCheckoutFieldsOnCartUpdate();
 		$this->registerPermissions();
 		$this->registerCpRoutes();
 		$this->registerSiteRoutes();
@@ -574,6 +577,49 @@ class FosterCheckout extends Plugin
 		$this->addCheckoutStateToCartResponses();
 		$this->flashOrderNoticesOnce();
 		$this->listUkCounties();
+	}
+
+	/**
+	 * Hand a contributed field its posted value, since the order layout has no field to store it on.
+	 *
+	 * Hooked to validation rather than the save, because a cart update validates once it has applied
+	 * the posted data and skips its save when that fails, while it also saves the cart before the
+	 * request is applied and ignores the result.
+	 */
+	private function applyCheckoutFieldsOnCartUpdate(): void
+	{
+		Event::on(
+			Order::class,
+			Model::EVENT_BEFORE_VALIDATE,
+			function (ModelEvent $modelEvent): void {
+				$request = Craft::$app->getRequest();
+
+				if (! $request instanceof WebRequest || ! $request->getIsSiteRequest()) {
+					return;
+				}
+
+				$controller = Craft::$app->controller;
+
+				if (! $controller instanceof CartController || $controller->action?->id !== 'update-cart') {
+					return;
+				}
+
+				$values = $request->getBodyParam('fields');
+
+				if (! is_array($values)) {
+					return;
+				}
+
+				/** @var Order $order */
+				$order = $modelEvent->sender;
+
+				/** @var array<string, mixed> $values */
+				// Only ever written false, since every handler on this event shares the one flag
+				if (! $this->getCheckoutFieldLayouts()->applyCheckoutFields($order, $values)) {
+					$modelEvent->isValid = false;
+				}
+			}
+		);
 	}
 
 	private function registerTemplateRoots(): void
