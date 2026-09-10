@@ -28,10 +28,10 @@
 	{% set addresses = craft.fostercheckout.canViewAddresses(cart) ? cart.customer.addresses.all() : [] %}
 
 	{# Gateway seeded from the cart #}
-	{% set _cartGatewayId = cart.gatewayId ?? (gateways|length ? gateways[0].id : null) %}
+	{% set _cartGatewayId = cart.gatewayId ?? (gateways|length ? (gateways|first).id : null) %}
 	{% set _gatewayIds = gateways|map(g => g.id) %}
 	{% set _hasGateway = _cartGatewayId and (_cartGatewayId in _gatewayIds) %}
-	{% set _initialGatewayId = _hasGateway ? _cartGatewayId : (gateways|length ? gateways[0].id : null) %}
+	{% set _initialGatewayId = _hasGateway ? _cartGatewayId : (gateways|length ? (gateways|first).id : null) %}
 
 	<div
 		class="mt-10 pb-28 lg:pb-32"

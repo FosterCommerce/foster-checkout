@@ -111,7 +111,10 @@
 					</template>
 					<template x-if="couponCode">
 						<div class="flex justify-between items-center text-sm p-2 rounded-lg {{ isFlat ? 'border border-gray-300' : 'border border-gray-250' }}">
-							<p class="font-bold" x-text="couponCode"></p>
+							<p>
+								<span class="font-bold" x-text="couponCode"></span>
+								<span class="text-xs font-italic" x-show="couponName" x-text="couponName"></span>
+							</p>
 							<button
 								type="button"
 								:disabled="pending > 0"

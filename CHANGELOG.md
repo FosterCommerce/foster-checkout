@@ -1,5 +1,22 @@
 # Release Notes for Foster Checkout
 
+## 1.2.0 - 2026-09-10
+
+### Added
+
+- Added `craft.fostercheckout.couponName()` and `craft.fostercheckout.couponMessages()`.
+
+### Changed
+
+- Improved the single-page checkout to name the discount next to an applied coupon code, as the cart and multi-page checkout do.
+- Improved Advanced Discounts messages on the single-page checkout to update as a coupon is applied or removed, without reloading the page.
+
+### Fixed
+
+- Fixed a bug where only the first Advanced Discounts message was shown.
+- Fixed an error that could occur on the cart and checkout when the applied coupon was an Advanced Discounts code, or a Commerce code whose discount had since been disabled or deleted.
+- Fixed an error that could occur on the payment step and the single-page checkout when the cart's gateway was no longer available to the order.
+
 ## 1.1.0 - 2026-09-10
 
 > {warning} Checkout address forms no longer offer a third address line. Turn on “Show a third address line” under **Checkout -> General** to keep it. Values already stored in the third line still print in formatted addresses.
