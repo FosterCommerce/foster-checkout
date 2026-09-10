@@ -5643,6 +5643,10 @@ const cartPersistence = () => ({
       if (live.addressLabels && typeof live.addressLabels === "object") {
         this.addressLabels = live.addressLabels;
       }
+      if (Array.isArray(live.couponMessages)) {
+        this.couponMessages = live.couponMessages;
+        this.couponName = live.couponName ?? "";
+      }
       if (sameAddress) {
         if (typeof live.shippingPreview === "string") {
           this.shippingPreview = live.shippingPreview;
@@ -6354,6 +6358,8 @@ const SinglePageCheckout = (props) => {
     couponCode: props.couponCode ?? "",
     couponInput: props.couponCode ?? "",
     couponOpen: Boolean(props.couponCode),
+    couponName: props.couponName ?? "",
+    couponMessages: asList(props.couponMessages),
     couponError: "",
     notesError: "",
     notesButtonVisible: false,

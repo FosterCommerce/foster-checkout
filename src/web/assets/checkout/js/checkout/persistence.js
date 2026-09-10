@@ -359,6 +359,11 @@ export const cartPersistence = () => ({
 				this.addressLabels = live.addressLabels;
 			}
 
+			if (Array.isArray(live.couponMessages)) {
+				this.couponMessages = live.couponMessages;
+				this.couponName = live.couponName ?? '';
+			}
+
 			if (sameAddress) {
 				if (typeof live.shippingPreview === 'string') {
 					this.shippingPreview = live.shippingPreview;

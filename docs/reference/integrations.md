@@ -9,7 +9,7 @@ Six plugins change the checkout when installed. None is required, and none is bu
 | Klaviyo Connect Plus | `fostercommerce/klaviyo-connect-plus` | The newsletter checkbox on the contact step |
 | Postie | `verbb/postie` | Carrier shipping rates |
 | Imager X | `spacecatninja/imager-x` | Line item image transforms |
-| Advanced Discounts | `fostercommerce/craft-advanced-discounts` | Coupon messages in the cart |
+| Advanced Discounts | `fostercommerce/advanced-discounts` | Coupon names and messages in the cart and at checkout |
 
 ## AvaTax
 
@@ -35,4 +35,4 @@ Line item images in the cart and checkout are transformed through Imager X when 
 
 ## Advanced Discounts
 
-Coupon messages from Advanced Discounts are rendered in the cart, including why a coupon did not apply.
+An applied Advanced Discounts coupon is named next to its code, as a Commerce coupon is. Messages from Advanced Discounts, including why a coupon did not apply, are rendered in the cart and at checkout. On the single-page checkout they update as a coupon is applied or removed.

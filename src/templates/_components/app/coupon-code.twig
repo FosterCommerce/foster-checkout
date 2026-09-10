@@ -94,7 +94,7 @@
 			</div>
 		</form>
 	{% else %}
-		{% set discount = craft.commerce.discounts.getDiscountByCode(cart.couponCode) %}
+		{% set couponName = craft.fostercheckout.couponName(cart) %}
 		<form
 			class=""
 			:class="sending ? 'grid-cols-[1fr,_120px]' : 'grid-cols-[1fr,_90px]'"
@@ -108,7 +108,9 @@
 			<div class="flex justify-between items-center text-sm text-grey-400 p-2 rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 				<p>
 					<span class="font-bold">{{ cart.couponCode }}</span>
-					<span class="text-xs font-italic">{{ discount.name }}</span>
+					{% if couponName %}
+						<span class="text-xs font-italic">{{ couponName }}</span>
+					{% endif %}
 				</p>
 				<button
 					type="submit"

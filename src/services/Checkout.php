@@ -28,6 +28,8 @@ use craft\fieldlayoutelements\FullNameField;
 use craft\helpers\StringHelper;
 use craft\web\Request as WebRequest;
 use DateTime;
+use fostercommerce\advanceddiscounts\Plugin as AdvancedDiscounts;
+use fostercommerce\advanceddiscounts\variables\AdvancedDiscountsVariable;
 use fostercommerce\fostercheckout\events\DefineCheckoutContactEvent;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\helpers\CheckoutAddressFormatter;
@@ -71,6 +73,8 @@ use yii\base\InvalidConfigException;
  *     lineItemTotals: array<int, CheckoutLineItemTotals>,
  *     addressLabels: array<int, string>,
  *     shippingPreview: string,
+ *     couponName: ?string,
+ *     couponMessages: list<string>,
  *     couponCodeError?: string
  * }
  */
@@ -653,6 +657,8 @@ class Checkout extends Component
 			'lineItemTotals' => $this->checkoutLineItemTotals($cart),
 			'addressLabels' => $this->checkoutAddressLabels($cart),
 			'shippingPreview' => $this->checkoutAddressPreview($cart->getShippingAddress()),
+			'couponName' => $this->couponName($cart),
+			'couponMessages' => $this->couponMessages($cart),
 		];
 	}
 
@@ -727,6 +733,47 @@ class Checkout extends Component
 	public function voucherLabel(OrderAdjustment $adjustment): string
 	{
 		return $this->voucherCode($adjustment) ?? Craft::t(FosterCheckout::HANDLE, 'voucher.fallbackLabel');
+	}
+
+	/**
+	 * Name of the discount that owns the cart's coupon code.
+	 */
+	public function couponName(Order $cart): ?string
+	{
+		$couponCode = $cart->couponCode;
+		if ($couponCode === null || $couponCode === '') {
+			return null;
+		}
+
+		/** @var Commerce $commerce */
+		$commerce = Commerce::getInstance();
+		$discount = $commerce->getDiscounts()->getDiscountByCode($couponCode, $cart->storeId);
+		if ($discount !== null) {
+			return $discount->name;
+		}
+
+		if (! Craft::$app->getPlugins()->isPluginEnabled('advanced-discounts')) {
+			return null;
+		}
+
+		/** @var AdvancedDiscounts $advancedDiscounts */
+		$advancedDiscounts = AdvancedDiscounts::getInstance();
+
+		return $advancedDiscounts->getDiscounts()->getDiscountByCode($couponCode)?->name;
+	}
+
+	/**
+	 * Advanced Discounts' messages for the cart, such as why its coupon did not apply.
+	 *
+	 * @return list<string>
+	 */
+	public function couponMessages(Order $cart): array
+	{
+		if (! Craft::$app->getPlugins()->isPluginEnabled('advanced-discounts')) {
+			return [];
+		}
+
+		return (new AdvancedDiscountsVariable())->getMessages($cart);
 	}
 
 	/**
