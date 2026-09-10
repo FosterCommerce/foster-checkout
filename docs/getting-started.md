@@ -23,7 +23,7 @@ Visit the checkout path. You should see the contact step, or a redirect to the c
 
 Open **Checkout -> Features**. **Checkout layout** switches between separate steps and one page. Multi-page is the default.
 
-Reload the checkout. On single-page you will see contact, delivery, shipping and payment together, with the summary beside them. See [single-page checkout](./user-guide/single-page-checkout.md).
+Reload the checkout. On single-page you see contact, delivery, shipping and payment together, with the summary beside them. See [single-page checkout](./user-guide/single-page-checkout.md).
 
 ## 4. Brand it
 
@@ -56,4 +56,6 @@ Place a test order to confirm payment works end to end.
 - [Settings reference](./reference/settings.md), every setting, its config key and its default
 - [Permissions](./reference/permissions.md), what each permission grants
 - [Plugin integrations](./reference/integrations.md), what changes when AvaTax, Gift Voucher, Postie and others are installed
+- [Address fields](./user-guide/address-fields.md), what the checkout asks for on an address
 - [Custom includes](./dev-guide/custom-includes.md), injecting your own templates into every cart and checkout page
+- [Contributed fields](./dev-guide/contributed-fields.md), adding a checkout field your own code stores

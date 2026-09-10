@@ -70,6 +70,10 @@ export const SinglePageCheckout = (props) => {
 		cardCvvError: props.cardCvvError ?? '',
 		syncingFromCart: false,
 		hasNewBillingContent: false,
+		stripeReinitQueued: false,
+		stripeOptionsChanged: false,
+		// Seed from the rendered total, since the form is already mounted against it
+		stripeMountedTotal: props.totals ? Number(props.totals.total) : null,
 		editExistingAddress: 0,
 		editBillingAddressId: 0,
 		gatewayId: props.gatewayId,
@@ -122,7 +126,6 @@ export const SinglePageCheckout = (props) => {
 					this.applySelectedMethodTotals();
 					this.syncPayButtons();
 					this.invalidatePaypalCheckout();
-					this.invalidateStripeCheckout();
 					this.saveIfValid('shipping');
 				}
 			});
@@ -447,14 +450,16 @@ export const SinglePageCheckout = (props) => {
 				return;
 			}
 
+			// Don't tear down either form here, since payment posts the saved order's billing
 			if (panel === 'payment') {
 				this.refreshNewBillingContent();
 				this.syncPayButtons();
+				this.saveIfValid(panel);
 				return;
 			}
 
+			// Stripe is torn down by its own rebuild, which a second teardown here would orphan
 			this.invalidatePaypalCheckout();
-			this.invalidateStripeCheckout();
 			this.saveIfValid(panel);
 		},
 

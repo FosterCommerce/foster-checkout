@@ -162,8 +162,11 @@
 										</label>
 									</div>
 
-									<template x-if="parseInt(gatewayId) === {{ gateway.id }}">
+									{# Keep the form rendered and hidden, since PayPal's script only initializes on load #}
+									{% set isPaypal = gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
+									{% if not isPaypal %}<template x-if="parseInt(gatewayId) === {{ gateway.id }}">{% endif %}
 										<div
+											{% if isPaypal %}x-show="parseInt(gatewayId) === {{ gateway.id }}" x-cloak{% endif %}
 											class="pt-8
 											[&_form]:grid [&_form]:gap-2
 											[&_fieldset]:border [&_fieldset]:border-gray-250 [&_fieldset]:rounded-lg [&_fieldset]:p-4
@@ -278,7 +281,7 @@
 												{% endnamespace %}
 											{% endif %}
 										</div>
-									</template>
+									{% if not isPaypal %}</template>{% endif %}
 								</div>
 						{% endfor %}
 					</div>

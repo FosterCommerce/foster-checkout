@@ -274,7 +274,7 @@ export const cartPersistence = () => ({
 
 			const cart = data.cart || data.model || (data.data && data.data.cart);
 			this.applyCart(cart, this.shippingRateKey(saved));
-			cartSynced = true;
+			cartSynced = Boolean(cart) && typeof cart === 'object';
 
 			const couponError = this.couponRejectedMessage(saved, cart);
 			if (couponError) {
@@ -315,8 +315,8 @@ export const cartPersistence = () => ({
 			if (next) {
 				await this.saveCart(next);
 			} else if (cartSynced) {
+				// Only PayPal here, since applyCart already remounts Stripe
 				this.maybeReinitPaypalCheckout();
-				this.scheduleStripeReinit();
 			}
 		}
 	},
@@ -354,14 +354,22 @@ export const cartPersistence = () => ({
 
 			const live = cart.fosterCheckout || {};
 
+			// Apply outside the address gate, since book labels don't depend on the cart's address
+			if (live.addressLabels && typeof live.addressLabels === 'object') {
+				this.addressLabels = live.addressLabels;
+			}
+
 			if (sameAddress) {
 				if (typeof live.shippingPreview === 'string') {
 					this.shippingPreview = live.shippingPreview;
 				}
 
 				if (cart.shippingAddress && typeof cart.shippingAddress === 'object') {
-					this.latestShippingAddress = cart.shippingAddress;
-					this.rememberAddress(
+					// Keep only an address the customer typed, since a saved one would refill the new form
+					this.latestShippingAddress = cart.sourceShippingAddressId
+						? null
+						: cart.shippingAddress;
+					this.rememberAddressFields(
 						cart.sourceShippingAddressId,
 						cart.shippingAddress
 					);
@@ -399,8 +407,14 @@ export const cartPersistence = () => ({
 			}
 
 			if (cart.billingAddress && typeof cart.billingAddress === 'object') {
-				this.latestBillingAddress = cart.billingAddress;
-				this.rememberAddress(cart.sourceBillingAddressId, cart.billingAddress);
+				this.latestBillingAddress = cart.sourceBillingAddressId
+					? null
+					: cart.billingAddress;
+				this.rememberAddressFields(
+					cart.sourceBillingAddressId,
+					cart.billingAddress
+				);
+				this.applyStripeBillingDefaults(cart.billingAddress);
 			}
 		} finally {
 			this.syncingFromCart = false;

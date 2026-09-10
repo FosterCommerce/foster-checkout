@@ -23,11 +23,11 @@
 	{% set site = craft.app.sites.currentSite %}
 	{% include 'foster-checkout/_components/app/subscribe-storage-key' %}
 
-	{% set addresses = (currentUser and cart.customer) ? cart.customer.addresses.all() : [] %}
+	{% set addresses = craft.fostercheckout.canViewAddresses(cart) ? cart.customer.addresses.all() : [] %}
 	{% set sourceId = cart.sourceShippingAddressId ?? null %}
 	{% set hasCartShip = cart.shippingAddressId is not empty %}
 	{% set hasBookAddresses = currentUser and addresses|length %}
-	{# With no book to pick from, open on the new address form, since no radio renders to reach it #}
+	{# Open on the new address form when the book is empty, since no radio renders #}
 	{% set isNewAddress = not hasBookAddresses or ((sourceId is null) and hasCartShip) %}
 	{% set initialShippingAddressId = isNewAddress ? 0 : (sourceId ?? (addresses|length ? addresses|first.id : 0)) %}
 
@@ -64,7 +64,7 @@
 		totals: live.totals,
 		lineItemTotals: live.lineItemTotals,
 		billingSameAsShipping: hasMatch ? true : false,
-		billingAddressId: sourceBillId,
+		billingAddressId: hasMatch ? null : sourceBillId,
 		useNewBillingAddress: isNewBilling ? true : false,
 		gatewayId: initialGatewayId,
 		hasShippingAddress: cart.shippingAddressId ? true : false,

@@ -6,7 +6,7 @@
 {# Chrome mobile skips display:none inputs when autofilling, so unused fields collapse with h-0 instead. #}
 <div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12">
 	{% if cart.customer %}
-		{# Name the customer as owner, since Craft's users/save-address defaults it to the signed-in user #}
+		{# Name the cart's customer as owner, since the signed-in user may not be them #}
 		{{ hiddenInput('userId', cart.customer.id) }}
 	{% endif %}
 	<div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:col-span-12">

@@ -4,8 +4,9 @@
 
 {% extends 'foster-checkout/_layouts/default' %}
 {% set cart = cart is not defined ? craft.commerce.carts.cart : cart %}
-{% set addresses = (currentUser and cart.customer) ? cart.customer.addresses.all() : null %}
-{% set primaryShippingAddressId = (currentUser and cart.customer) ? (cart.customer.getPrimaryShippingAddressId() ?? -1) : -1 %}
+{% set canViewAddresses = craft.fostercheckout.canViewAddresses(cart) %}
+{% set addresses = canViewAddresses ? cart.customer.addresses.all() : null %}
+{% set primaryShippingAddressId = canViewAddresses ? (cart.customer.getPrimaryShippingAddressId() ?? -1) : -1 %}
 {% set canSaveAddresses = craft.fostercheckout.canSaveAddresses(cart) %}
 
 {% block head %}
@@ -142,7 +143,7 @@
 									{% endif %}
 									{# end address list #}
 
-									<div :class="{ 'bg-gray-100': parseInt(shippingAddressId) === 0 || useNewAddress }" {{ not canSaveAddresses ? 'hidden' }}>
+									<div :class="{ 'bg-gray-100': parseInt(shippingAddressId) === 0 || useNewAddress }">
 										<div class="p-4 radio">
 											<input
 												id="address_0"
@@ -186,7 +187,7 @@
 														address: address,
 													} %}
 
-													{% if currentUser %}
+													{% if currentUser and canSaveAddresses %}
 														<div class="mt-4 p4 checkbox">
 															<input type="hidden" name="saveShippingAddressOnOrderComplete" :value="saveToBook ? 1 : 0">
 

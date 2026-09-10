@@ -67,12 +67,12 @@
 				{# Bind what a coupon changes, since the single-page checkout applies one without rendering the page #}
 				<span
 					class="block text-sm text-[var(--brandColor)] {{ not hasDiscount ? 'hidden' }}"
-					:class="totalsForLineItem({{ lineItem.id }}).hasDiscount ? '' : 'hidden'"
+					:class="{ hidden: !totalsForLineItem({{ lineItem.id }}).hasDiscount }"
 					x-text="totalsForLineItem({{ lineItem.id }}).discountNames.join(', ')"
 				>{{ discountNames|join(', ') }}</span>
 				<span
 					class="line-through text-sm text-gray-500 {{ not hasDiscount ? 'hidden' }}"
-					:class="totalsForLineItem({{ lineItem.id }}).hasDiscount ? '' : 'hidden'"
+					:class="{ hidden: !totalsForLineItem({{ lineItem.id }}).hasDiscount }"
 					x-text="totalsForLineItem({{ lineItem.id }}).originalTotalAsCurrency"
 				>{{ hasDiscount ? craft.fostercheckout.lineItemOriginalTotal(lineItem) }}</span>
 				<span x-text="totalsForLineItem({{ lineItem.id }}).priceAsCurrency">{{ hasDiscount ? lineItem.totalAsCurrency : lineItem.subtotalAsCurrency }}</span>

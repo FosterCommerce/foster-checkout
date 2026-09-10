@@ -17,7 +17,6 @@ use craft\elements\Address;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
 use craft\elements\User;
-use craft\events\DefineValueEvent;
 use craft\fieldlayoutelements\addresses\AddressField;
 use craft\fieldlayoutelements\addresses\CountryCodeField;
 use craft\fieldlayoutelements\addresses\LabelField;
@@ -27,7 +26,9 @@ use craft\fieldlayoutelements\BaseField;
 use craft\fieldlayoutelements\CustomField;
 use craft\fieldlayoutelements\FullNameField;
 use craft\helpers\StringHelper;
+use craft\web\Request as WebRequest;
 use DateTime;
+use fostercommerce\fostercheckout\events\DefineCheckoutContactEvent;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\helpers\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\models\DeliveryDate;
@@ -68,6 +69,7 @@ use yii\base\InvalidConfigException;
  *     shippingMethodHandle: string,
  *     totals: CheckoutTotals,
  *     lineItemTotals: array<int, CheckoutLineItemTotals>,
+ *     addressLabels: array<int, string>,
  *     shippingPreview: string,
  *     couponCodeError?: string
  * }
@@ -75,7 +77,23 @@ use yii\base\InvalidConfigException;
 class Checkout extends Component
 {
 	/**
-	 * @event DefineValueEvent The event that is triggered when defining the contact shown at checkout.
+	 * @event DefineCheckoutContactEvent The event that is triggered when naming the contact shown at checkout.
+	 *
+	 * ```php
+	 * use fostercommerce\fostercheckout\events\DefineCheckoutContactEvent;
+	 * use fostercommerce\fostercheckout\services\Checkout;
+	 * use yii\base\Event;
+	 *
+	 * Event::on(
+	 *     Checkout::class,
+	 *     Checkout::EVENT_DEFINE_CONTACT,
+	 *     function (DefineCheckoutContactEvent $event) {
+	 *         $event->value = $event->order->getCustomer()?->fullName;
+	 *     }
+	 * );
+	 * ```
+	 *
+	 * @since 1.1.0
 	 */
 	public const string EVENT_DEFINE_CONTACT = 'defineContact';
 
@@ -90,37 +108,48 @@ class Checkout extends Component
 	private ?array $addressUsedFields = null;
 
 	/**
+	 * @var array<string, bool>
+	 */
+	private array $addressAccess = [];
+
+	/**
 	 * The contact shown at checkout.
+	 *
+	 * @since 1.1.0
 	 */
 	public function contact(Order $order): string
 	{
-		if (! $order->hasEventHandlers(self::EVENT_DEFINE_CONTACT)) {
+		if (! $this->hasEventHandlers(self::EVENT_DEFINE_CONTACT)) {
 			return (string) $order->email;
 		}
 
-		$defineContactEvent = new DefineValueEvent();
-		$order->trigger(self::EVENT_DEFINE_CONTACT, $defineContactEvent);
+		$defineContactEvent = new DefineCheckoutContactEvent([
+			'order' => $order,
+		]);
 
-		return is_string($defineContactEvent->value)
-			? $defineContactEvent->value
-			: (string) $order->email;
+		$this->trigger(self::EVENT_DEFINE_CONTACT, $defineContactEvent);
+
+		return $defineContactEvent->value ?? (string) $order->email;
 	}
 
 	/**
 	 * Whether the signed-in user may change the customer's saved addresses.
+	 *
+	 * @since 1.1.0
 	 */
 	public function canSaveAddresses(Order $order): bool
 	{
-		$customer = $order->getCustomer();
-		$user = Craft::$app->getUser()->getIdentity();
+		return $this->addressAccess($order, 'save');
+	}
 
-		if (! $customer instanceof User || ! $user instanceof User) {
-			return false;
-		}
-
-		return Craft::$app->getElements()->canSave(new Address([
-			'ownerId' => $customer->id,
-		]), $user);
+	/**
+	 * Whether the signed-in user may ship to the customer's saved addresses.
+	 *
+	 * @since 1.1.0
+	 */
+	public function canViewAddresses(Order $order): bool
+	{
+		return $this->addressAccess($order, 'view');
 	}
 
 	/**
@@ -129,7 +158,7 @@ class Checkout extends Component
 	 * Someone buying on another account's behalf would file the events under a customer who is not
 	 * the shopper, so the order goes untracked.
 	 */
-	public function klaviyoTrackingEnabled(?Order $order = null): bool
+	public function klaviyoTrackingEnabled(Order $order): bool
 	{
 		if (! Craft::$app->getPlugins()->isPluginEnabled('klaviyo-connect-plus')) {
 			return false;
@@ -137,7 +166,7 @@ class Checkout extends Component
 
 		$user = Craft::$app->getUser()->getIdentity();
 
-		if (! $user instanceof User || ! $order instanceof Order) {
+		if (! $user instanceof User) {
 			return true;
 		}
 
@@ -199,6 +228,7 @@ class Checkout extends Component
 
 	/**
 	 * @return array<string, string>
+	 * @throws InvalidConfigException when the store has no countries selected
 	 */
 	public function storeCountries(): array
 	{
@@ -216,6 +246,42 @@ class Checkout extends Component
 		}
 
 		return $countries;
+	}
+
+	/**
+	 * Copy a saved address the cart update named onto the order.
+	 *
+	 * Needed for an order filed under someone other than the signed-in user, since a posted address
+	 * id is only resolved against the signed-in user's own book.
+	 */
+	public function applyCustomerAddresses(Order $order, WebRequest $request): void
+	{
+		$customerId = $order->getCustomer()?->id;
+
+		// Leave both addresses alone when billing drives shipping, since that path resolves elsewhere
+		if ($request->getBodyParam('shippingAddressSameAsBilling') || $customerId === null || ! $this->canViewAddresses($order)) {
+			return;
+		}
+
+		$shippingAddress = $this->customerAddress($customerId, $request->getBodyParam('shippingAddressId'), $order->sourceShippingAddressId);
+
+		if ($shippingAddress instanceof Address) {
+			$order->sourceShippingAddressId = $shippingAddress->id;
+			$order->setShippingAddress($this->duplicateOntoOrder($shippingAddress, $order));
+		}
+
+		if ($request->getBodyParam('billingAddressSameAsShipping')) {
+			$this->mirrorShippingToBilling($order);
+
+			return;
+		}
+
+		$billingAddress = $this->customerAddress($customerId, $request->getBodyParam('billingAddressId'), $order->sourceBillingAddressId);
+
+		if ($billingAddress instanceof Address) {
+			$order->sourceBillingAddressId = $billingAddress->id;
+			$order->setBillingAddress($this->duplicateOntoOrder($billingAddress, $order));
+		}
 	}
 
 	public function content(): Content
@@ -514,7 +580,7 @@ class Checkout extends Component
 				continue;
 			}
 
-			// Only an address the customer already saved can keep a label, since Commerce titles the order's own
+			// Skip the label on an order address, since its title is overwritten on save
 			if ($type === 'label' && (! $includeLabel || ! $settings->showAddressLabelField)) {
 				continue;
 			}
@@ -560,7 +626,7 @@ class Checkout extends Component
 
 		$label = $this->getManualGatewayConfig((string) $gateway->handle)?->label ?? '';
 
-		return Craft::t(FosterCheckout::HANDLE, $label === '' ? (string) $gateway->name : $label);
+		return Craft::t('site', $label === '' ? (string) $gateway->name : $label);
 	}
 
 	public function subscribeText(): ?string
@@ -585,6 +651,7 @@ class Checkout extends Component
 			'shippingMethodHandle' => $shippingMethodHandle,
 			'totals' => $this->checkoutTotals($cart),
 			'lineItemTotals' => $this->checkoutLineItemTotals($cart),
+			'addressLabels' => $this->checkoutAddressLabels($cart),
 			'shippingPreview' => $this->checkoutAddressPreview($cart->getShippingAddress()),
 		];
 	}
@@ -660,6 +727,81 @@ class Checkout extends Component
 	public function voucherLabel(OrderAdjustment $adjustment): string
 	{
 		return $this->voucherCode($adjustment) ?? Craft::t(FosterCheckout::HANDLE, 'voucher.fallbackLabel');
+	}
+
+	/**
+	 * A saved address of the customer, when the order's source id does not already match.
+	 */
+	private function customerAddress(int $customerId, mixed $postedId, ?int $sourceId): ?Address
+	{
+		if (! is_numeric($postedId) || (int) $postedId === $sourceId) {
+			return null;
+		}
+
+		/** @var ?Address $address */
+		$address = Address::find()
+			->id((int) $postedId)
+			->ownerId($customerId)
+			->one();
+
+		return $address;
+	}
+
+	/**
+	 * Copy the order's shipping address over its billing address.
+	 *
+	 * Copy rather than share, since an address the order names twice is duplicated on every save.
+	 */
+	private function mirrorShippingToBilling(Order $order): void
+	{
+		if ($order->sourceBillingAddressId === $order->sourceShippingAddressId && $order->hasMatchingAddresses()) {
+			return;
+		}
+
+		$shippingAddress = $order->getShippingAddress();
+
+		$order->sourceBillingAddressId = $order->sourceShippingAddressId;
+		$order->setBillingAddress(
+			$shippingAddress instanceof Address ? $this->duplicateOntoOrder($shippingAddress, $order) : null
+		);
+	}
+
+	/**
+	 * Craft resolves the owner with an element query, so each answer is kept for the request.
+	 */
+	private function addressAccess(Order $order, string $check): bool
+	{
+		$customer = $order->getCustomer();
+		$user = Craft::$app->getUser()->getIdentity();
+
+		if (! $customer instanceof User || ! $user instanceof User) {
+			return false;
+		}
+
+		$cacheKey = "{$customer->id}:{$user->id}:{$check}";
+
+		if (isset($this->addressAccess[$cacheKey])) {
+			return $this->addressAccess[$cacheKey];
+		}
+
+		$address = new Address([
+			'ownerId' => $customer->id,
+		]);
+
+		return $this->addressAccess[$cacheKey] = $check === 'save'
+			? Craft::$app->getElements()->canSave($address, $user)
+			: Craft::$app->getElements()->canView($address, $user);
+	}
+
+	private function duplicateOntoOrder(Address $address, Order $order): Address
+	{
+		/** @var Address $duplicate */
+		$duplicate = Craft::$app->getElements()->duplicateElement($address, [
+			'primaryOwner' => $order,
+			'owner' => $order,
+		]);
+
+		return $duplicate;
 	}
 
 	/**
@@ -761,6 +903,27 @@ class Checkout extends Component
 		};
 	}
 
+	/**
+	 * The one-line preview of each of the customer's saved addresses, keyed by id.
+	 *
+	 * @return array<int, string>
+	 */
+	private function checkoutAddressLabels(Order $cart): array
+	{
+		if (! $this->canViewAddresses($cart)) {
+			return [];
+		}
+
+		$labels = [];
+
+		/** @var Address $address */
+		foreach ($cart->getCustomer()?->getAddresses() ?? [] as $address) {
+			$labels[(int) $address->id] = $this->checkoutAddressPreview($address);
+		}
+
+		return $labels;
+	}
+
 	private function checkoutAddressPreview(?Address $address): string
 	{
 		if (! $address instanceof Address) {
@@ -786,11 +949,8 @@ class Checkout extends Component
 	 */
 	private function checkoutShippingMethods(Order $cart): array
 	{
+		/** @var Commerce $commerce */
 		$commerce = Commerce::getInstance();
-		if ($commerce === null) {
-			return [];
-		}
-
 		$methods = [];
 
 		foreach ($cart->availableShippingMethodOptions as $handle => $method) {
@@ -799,8 +959,8 @@ class Checkout extends Component
 
 			$methods[] = [
 				'handle' => (string) $handle,
-				'name' => Craft::t(FosterCheckout::HANDLE, $method->name ?? (string) $handle),
-				'description' => $description !== '' ? Craft::t(FosterCheckout::HANDLE, $description) : '',
+				'name' => Craft::t('site', $method->name ?? (string) $handle),
+				'description' => $description !== '' ? Craft::t('site', $description) : '',
 				'price' => (float) $method->price,
 				'priceAsCurrency' => $method->priceAsCurrency,
 			];

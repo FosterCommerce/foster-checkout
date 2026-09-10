@@ -59,6 +59,8 @@ class CheckoutFieldLayouts extends Component
 	 *     }
 	 * );
 	 * ```
+	 *
+	 * @since 1.1.0
 	 */
 	public const string EVENT_DEFINE_CHECKOUT_FIELDS = 'defineCheckoutFields';
 
@@ -78,6 +80,8 @@ class CheckoutFieldLayouts extends Component
 	 *     }
 	 * );
 	 * ```
+	 *
+	 * @since 1.1.0
 	 */
 	public const string EVENT_APPLY_CHECKOUT_FIELDS = 'applyCheckoutFields';
 
@@ -92,8 +96,12 @@ class CheckoutFieldLayouts extends Component
 	 */
 	public const CHECKOUT_POSITIONS = ['email', 'shippingAddress', 'shippingMethod', 'billing', 'summary'];
 
-	// A handler that asks this service for a position's fields would otherwise trigger itself
-	private bool $definingFields = false;
+	/**
+	 * Positions being defined now, since a handler that lists a position's fields would trigger this again.
+	 *
+	 * @var array<string, true>
+	 */
+	private array $definingFields = [];
 
 	public function getFieldLayout(string $gatewayHandle): FieldLayout
 	{
@@ -349,7 +357,7 @@ class CheckoutFieldLayouts extends Component
 	 */
 	private function withContributedFields(string $position, ?Order $order, array $fields): array
 	{
-		if ($this->definingFields || ! $this->hasEventHandlers(self::EVENT_DEFINE_CHECKOUT_FIELDS)) {
+		if (isset($this->definingFields[$position]) || ! $this->hasEventHandlers(self::EVENT_DEFINE_CHECKOUT_FIELDS)) {
 			return $fields;
 		}
 
@@ -359,12 +367,12 @@ class CheckoutFieldLayouts extends Component
 			'fields' => $fields,
 		]);
 
-		$this->definingFields = true;
+		$this->definingFields[$position] = true;
 
 		try {
 			$this->trigger(self::EVENT_DEFINE_CHECKOUT_FIELDS, $defineCheckoutFieldsEvent);
 		} finally {
-			$this->definingFields = false;
+			unset($this->definingFields[$position]);
 		}
 
 		return $defineCheckoutFieldsEvent->fields;

@@ -25,7 +25,7 @@
 
 {% block body %}
 	{% set gateways = cart.getAvailableGateways() %}
-	{% set addresses = (currentUser and cart.customer) ? cart.customer.addresses.all() : [] %}
+	{% set addresses = craft.fostercheckout.canViewAddresses(cart) ? cart.customer.addresses.all() : [] %}
 
 	{# Gateway seeded from the cart #}
 	{% set _cartGatewayId = cart.gatewayId ?? (gateways|length ? gateways[0].id : null) %}

@@ -24,7 +24,7 @@
 {% endblock %}
 
 {% block body %}
-	{% set addresses = (currentUser and cart.customer) ? cart.customer.addresses.all() : [] %}
+	{% set addresses = craft.fostercheckout.canViewAddresses(cart) ? cart.customer.addresses.all() : [] %}
 	{% set canSaveAddresses = craft.fostercheckout.canSaveAddresses(cart) %}
 
 	{# Billing state derived from the cart #}
@@ -34,7 +34,8 @@
 	{% set _hasBillingRecord = cart.billingAddressId is not empty %}
 	{% set _isNewBilling = (not _hasMatch) and (_sourceBillId is null) and _hasBillingRecord %}
 	{% set _initialBillingSame = _hasMatch ? 1 : 0 %}
-	{% set _initialBillingAddressId = _sourceBillId ?? null %}
+	{# Leave the book id null when same as shipping, so only one radio reads as selected #}
+	{% set _initialBillingAddressId = _hasMatch ? null : _sourceBillId %}
 	{% set _initialNewBilling = _isNewBilling ? 1 : 0 %}
 
 
@@ -116,6 +117,7 @@
 														id="billingSameAsShipping_1"
 														type="radio"
 														class="absolute opacity-0 w-px h-px"
+														name="billingAddressId_radio"
 														x-model.number="billingSameAsShipping"
 														value="1"
 														@change="newBillingAddress = 0; billingAddressId = null; editBillingAddressId = 0"
@@ -186,12 +188,13 @@
 											{% endfor %}
 
 											{# New billing address #}
-											<div class="border-t border-gray-250" :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }" {{ not canSaveAddresses ? 'hidden' }}>
+											<div class="border-t border-gray-250" :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }">
 												<div class="p-4 radio">
 													<input
 														id="newBillingAddress"
 														type="radio"
 														class="absolute opacity-0 w-px h-px"
+														name="billingAddressId_radio"
 														x-model.number="newBillingAddress"
 														value="1"
 														@change="billingSameAsShipping = 0; billingAddressId = null; editBillingAddressId = 0"
@@ -213,7 +216,7 @@
 															address: cart.billingAddress ?? null,
 														} %}
 
-														{% if currentUser %}
+														{% if currentUser and canSaveAddresses %}
 															<div class="mt-4 p4 checkbox">
 																<input type="checkbox" class="absolute opacity-0 w-px h-px" id="saveBillingAddressOnOrderComplete" name="saveBillingAddressOnOrderComplete" value="1">
 																<label class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500" for="saveBillingAddressOnOrderComplete">

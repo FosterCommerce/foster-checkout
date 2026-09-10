@@ -92,7 +92,7 @@
 					</div>
 				{% endfor %}
 
-				<div :class="{ 'bg-gray-100': useNewAddress }" {{ not canSaveAddresses ? 'hidden' }}>
+				<div :class="{ 'bg-gray-100': useNewAddress }">
 					<div class="p-4 radio">
 						<input
 							id="sp_address_0"
@@ -128,7 +128,7 @@
 						address: address,
 					} %}
 
-					{% if currentUser %}
+					{% if currentUser and canSaveAddresses %}
 						<div class="mt-4 checkbox">
 							<input
 								type="checkbox"

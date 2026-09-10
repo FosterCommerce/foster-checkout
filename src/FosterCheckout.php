@@ -19,6 +19,7 @@ use craft\events\DefineAddressSubdivisionsEvent;
 use craft\events\DefineRulesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUserPermissionsEvent;
+use craft\fieldlayoutelements\BaseField;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
 use craft\helpers\UrlHelper;
 use craft\i18n\PhpMessageSource;
@@ -533,8 +534,23 @@ class FosterCheckout extends Plugin
 				}
 
 				$layout = $address->getFieldLayout();
+				$settings = $this->getCheckout()->settings();
 
-				foreach ($this->getCheckout()->settings()->requiredAddressFields as $attribute) {
+				// Match what the address form renders, since a rule on anything else can never be met
+				$renderedAttributes = array_map(
+					static fn (BaseField $layoutField): string => $layoutField->attribute(),
+					$layout?->getVisibleElementsByType(BaseField::class, $address) ?? []
+				);
+
+				foreach ($settings->requiredAddressFields as $attribute) {
+					if (! in_array($attribute, $renderedAttributes, true)) {
+						continue;
+					}
+
+					if (in_array($attribute, $settings->hiddenAddressFields, true)) {
+						continue;
+					}
+
 					$field = $layout?->getFieldByHandle($attribute);
 
 					if ($field instanceof FieldInterface) {
@@ -545,12 +561,6 @@ class FosterCheckout extends Plugin
 							'required',
 							'isEmpty' => static fn (mixed $value): bool => $field->isValueEmpty($value, $address),
 						];
-						continue;
-					}
-
-					// Skip a handle the layout dropped, since validating it would read a property the
-					// address does not have and fail the save with an unknown property error
-					if (! $address->canGetProperty($attribute)) {
 						continue;
 					}
 
@@ -569,6 +579,7 @@ class FosterCheckout extends Plugin
 		$this->requireCheckoutAddressFields();
 		$this->requireCheckoutFields();
 		$this->applyCheckoutFieldsOnCartUpdate();
+		$this->applyCustomerAddressesOnCartUpdate();
 		$this->registerPermissions();
 		$this->registerCpRoutes();
 		$this->registerSiteRoutes();
@@ -582,9 +593,7 @@ class FosterCheckout extends Plugin
 	/**
 	 * Hand a contributed field its posted value, since the order layout has no field to store it on.
 	 *
-	 * Hooked to validation rather than the save, because a cart update validates once it has applied
-	 * the posted data and skips its save when that fails, while it also saves the cart before the
-	 * request is applied and ignores the result.
+	 * Hook validation, since the cart is already saved once before the posted data is applied.
 	 */
 	private function applyCheckoutFieldsOnCartUpdate(): void
 	{
@@ -592,15 +601,9 @@ class FosterCheckout extends Plugin
 			Order::class,
 			Model::EVENT_BEFORE_VALIDATE,
 			function (ModelEvent $modelEvent): void {
-				$request = Craft::$app->getRequest();
+				$request = $this->cartUpdateRequest();
 
-				if (! $request instanceof WebRequest || ! $request->getIsSiteRequest()) {
-					return;
-				}
-
-				$controller = Craft::$app->controller;
-
-				if (! $controller instanceof CartController || $controller->action?->id !== 'update-cart') {
+				if (! $request instanceof WebRequest) {
 					return;
 				}
 
@@ -614,12 +617,54 @@ class FosterCheckout extends Plugin
 				$order = $modelEvent->sender;
 
 				/** @var array<string, mixed> $values */
-				// Only ever written false, since every handler on this event shares the one flag
+				// Never set true, since that would undo an earlier handler's refusal
 				if (! $this->getCheckoutFieldLayouts()->applyCheckoutFields($order, $values)) {
 					$modelEvent->isValid = false;
 				}
 			}
 		);
+	}
+
+	/**
+	 * Apply a saved address of the order's customer.
+	 *
+	 * Hook validation, so the required address field rules read the address that was picked.
+	 */
+	private function applyCustomerAddressesOnCartUpdate(): void
+	{
+		Event::on(
+			Order::class,
+			Model::EVENT_BEFORE_VALIDATE,
+			function (ModelEvent $modelEvent): void {
+				$request = $this->cartUpdateRequest();
+
+				if (! $request instanceof WebRequest) {
+					return;
+				}
+
+				/** @var Order $order */
+				$order = $modelEvent->sender;
+
+				$this->getCheckout()->applyCustomerAddresses($order, $request);
+			}
+		);
+	}
+
+	private function cartUpdateRequest(): ?WebRequest
+	{
+		$request = Craft::$app->getRequest();
+
+		if (! $request instanceof WebRequest || ! $request->getIsSiteRequest()) {
+			return null;
+		}
+
+		$controller = Craft::$app->controller;
+
+		if (! $controller instanceof CartController || $controller->action?->id !== 'update-cart') {
+			return null;
+		}
+
+		return $request;
 	}
 
 	private function registerTemplateRoots(): void

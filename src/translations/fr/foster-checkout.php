@@ -216,6 +216,8 @@ return [
 	'permission.manageAppearance' => 'Gérer l’apparence du paiement',
 	'permission.manageFeatures' => 'Gérer les fonctionnalités du paiement',
 	'permission.manageSettings' => 'Gérer les réglages du paiement',
+
+	'contact.signedInAs' => 'Connecté en tant que {name} ({email})',
 	'permission.viewContent' => 'Voir le contenu du paiement',
 
 	'nav.checkout' => 'Paiement',

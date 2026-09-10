@@ -216,6 +216,8 @@ return [
 	'permission.manageAppearance' => 'Checkout-Darstellung verwalten',
 	'permission.manageFeatures' => 'Checkout-Funktionen verwalten',
 	'permission.manageSettings' => 'Checkout-Einstellungen verwalten',
+
+	'contact.signedInAs' => 'Angemeldet als {name} ({email})',
 	'permission.viewContent' => 'Checkout-Inhalte ansehen',
 
 	'nav.checkout' => 'Checkout',

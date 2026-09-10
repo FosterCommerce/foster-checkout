@@ -1,4 +1,5 @@
 {% set shippingSourceId = cart.sourceShippingAddressId ?? null %}
+{% set canSaveAddresses = craft.fostercheckout.canSaveAddresses(cart) %}
 
 <div
 	data-fc-collect
@@ -15,7 +16,7 @@
 					id="sp_billingSameAsShipping"
 					type="radio"
 					class="absolute opacity-0 w-px h-px"
-					name="billingSameAsShipping_radio"
+					name="billingAddressId_radio"
 					:checked="billingSameAsShipping"
 					@change="billingSameAsShipping = true; useNewBillingAddress = false; billingAddressId = null; editBillingAddressId = 0"
 				>
@@ -64,7 +65,7 @@
 								type="button"
 								class="text-[var(--brandColor)] underline"
 								@click="editExistingAddress = 0; editBillingAddressId = parseInt(editBillingAddressId) === {{ address.id }} ? 0 : {{ address.id }}"
-								{{ not craft.fostercheckout.canSaveAddresses(cart) ? 'hidden' }}
+								{{ not canSaveAddresses ? 'hidden' }}
 							>
 								<template x-if="parseInt(editBillingAddressId) === {{ address.id }}"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
 								<template x-if="parseInt(editBillingAddressId) !== {{ address.id }}"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
@@ -103,7 +104,7 @@
 			{% endif %}
 		{% endfor %}
 
-		<div class="border-t border-gray-250" :class="{ 'bg-gray-100': useNewBillingAddress }" {{ not craft.fostercheckout.canSaveAddresses(cart) ? 'hidden' }}>
+		<div class="border-t border-gray-250" :class="{ 'bg-gray-100': useNewBillingAddress }">
 			<div class="p-4 radio">
 				<input
 					id="sp_newBillingAddress"
@@ -129,7 +130,7 @@
 						address: cart.billingAddress ?? null,
 					} %}
 
-					{% if currentUser %}
+					{% if currentUser and canSaveAddresses %}
 						<div class="mt-4 checkbox">
 							<input
 								type="checkbox"

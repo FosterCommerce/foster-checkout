@@ -45,40 +45,40 @@ use yii\base\Module as BaseModule;
 
 class Module extends BaseModule
 {
-    public function init(): void
-    {
-        parent::init();
+	public function init(): void
+	{
+		parent::init();
 
-        Event::on(
-            CheckoutFieldLayouts::class,
-            CheckoutFieldLayouts::EVENT_DEFINE_CHECKOUT_FIELDS,
-            function (DefineCheckoutFieldsEvent $event): void {
-                if ($event->position !== 'summary') {
-                    return;
-                }
+		Event::on(
+			CheckoutFieldLayouts::class,
+			CheckoutFieldLayouts::EVENT_DEFINE_CHECKOUT_FIELDS,
+			function (DefineCheckoutFieldsEvent $event): void {
+				if ($event->position !== 'summary') {
+					return;
+				}
 
-                $order = $event->order;
+				$order = $event->order;
 
-                $event->fields[] = [
-                    'handle' => 'projectId',
-                    'label' => 'Project',
-                    'instructions' => 'The job this order is for.',
-                    'value' => $order instanceof Order ? $this->storedProjectId($order) : '',
-                    'required' => true,
-                    'width' => 100,
-                    'type' => 'select',
-                    'placeholder' => null,
-                    'maxLength' => null,
-                    'min' => null,
-                    'max' => null,
-                    'step' => null,
-                    'initialRows' => null,
-                    'options' => $order instanceof Order ? $this->projectOptions($order) : [],
-                    'template' => null,
-                ];
-            }
-        );
-    }
+				$event->fields[] = [
+					'handle' => 'projectId',
+					'label' => 'Project',
+					'instructions' => 'The job this order is for.',
+					'value' => $order instanceof Order ? $this->storedProjectId($order) : '',
+					'required' => true,
+					'width' => 100,
+					'type' => 'select',
+					'placeholder' => null,
+					'maxLength' => null,
+					'min' => null,
+					'max' => null,
+					'step' => null,
+					'initialRows' => null,
+					'options' => $order instanceof Order ? $this->projectOptions($order) : [],
+					'template' => null,
+				];
+			}
+		);
+	}
 }
 ```
 
@@ -88,9 +88,7 @@ class Module extends BaseModule
 | `order` | the order being rendered, or null |
 | `fields` | the position's fields so far, in render order. Append to it |
 
-`order` is null on the settings screen and when the plugin collects handles, so contribute the field either way and compute the options only when there is an order. The example above does that.
-
-A field at `summary` renders on the cart page and in the checkout summary, and the cart's Checkout button refuses to move on while a required one is empty.
+`order` is null on the settings screen and when the plugin collects handles, so contribute the field either way and compute the options only when there is an order. A field at `summary` renders on the cart page and in the checkout summary, and the cart's Checkout button refuses to move on while a required one is empty.
 
 The event fires more than once per page, since a position's fields are listed both to render them and to check the required ones. Cache anything expensive on your side. Asking this service for a position's fields from inside the handler returns the layout's fields without firing the event again, so a handler cannot trigger itself.
 
@@ -98,7 +96,7 @@ The event fires more than once per page, since a position's fields are listed bo
 
 Pick a handle no order field uses. Both post under `fields`, and the order's own field would take the value.
 
-Contributed handles are collected the same way a layout's are, so saving a checkout layout that uses one is rejected with an error naming it. The field layout designer still offers the field; the save is what refuses it. Gateway layouts are not checked.
+Contributed handles are collected the same way a layout's are, so saving a checkout layout that uses one is rejected with an error naming it. The field layout designer still offers the field; saving rejects it. Gateway layouts are not checked.
 
 ## Storing the value
 
@@ -118,25 +116,25 @@ use yii\base\Module as BaseModule;
 
 class Module extends BaseModule
 {
-    public function init(): void
-    {
-        parent::init();
+	public function init(): void
+	{
+		parent::init();
 
-        Event::on(
-            CheckoutFieldLayouts::class,
-            CheckoutFieldLayouts::EVENT_APPLY_CHECKOUT_FIELDS,
-            function (ApplyCheckoutFieldsEvent $event): void {
-                if (! array_key_exists('projectId', $event->values)) {
-                    return;
-                }
+		Event::on(
+			CheckoutFieldLayouts::class,
+			CheckoutFieldLayouts::EVENT_APPLY_CHECKOUT_FIELDS,
+			function (ApplyCheckoutFieldsEvent $event): void {
+				if (! array_key_exists('projectId', $event->values)) {
+					return;
+				}
 
-                if (! $this->store($event->order, $event->values['projectId'])) {
-                    $event->order->addError('projectId', 'That project is no longer available.');
-                    $event->isValid = false;
-                }
-            }
-        );
-    }
+				if (! $this->store($event->order, $event->values['projectId'])) {
+					$event->order->addError('projectId', 'That project is no longer available.');
+					$event->isValid = false;
+				}
+			}
+		);
+	}
 }
 ```
 
@@ -146,11 +144,11 @@ It fires once per request, after the posted data has been applied to the cart an
 
 It is not a validation hook for payment. A field that must be filled in before paying needs its own check on `Payments::EVENT_BEFORE_PROCESS_PAYMENT`, since a customer can reach payment without passing through the cart page again.
 
-Craft opens the element save's transaction after this event, so a write made here is not rolled back when the save fails afterward.
+The event fires from the cart's own validation, before the save begins, so a write made here is not rolled back if the save fails afterward.
 
 ## Adding your own markup
 
-Set `template` to a template path and it renders directly after the input. The input still renders: `template` adds markup, it does not replace the field.
+Set `template` to a template path and it renders directly after the input. `template` adds markup after the input; it does not replace it.
 
 ```php
 'template' => '_checkout/new-project',

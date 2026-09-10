@@ -9,7 +9,6 @@ All checkout copy is edited at **Checkout -> Content**. It is stored in the plug
 - **Payment method notes**, one per gateway configured in Commerce, shown when a customer picks that method. The name a customer reads for that gateway is set at **Checkout -> Gateways**, not here.
 - **Footer links**, shown at the bottom of the cart and checkout pages.
 
-
 ## HTML and Twig
 
 Notes accept HTML. Each one is also rendered as a Twig template, so copy can reference the cart or the order:
@@ -18,7 +17,7 @@ Notes accept HTML. Each one is also rendered as a Twig template, so copy can ref
 <p>Your cart has {{ cart.totalQty }} item(s).</p>
 ```
 
-A note that references something unavailable on that page will throw, so keep references to what the page has: `cart` on cart and checkout steps, `order` on the confirmation page.
+A note that references something unavailable on that page throws, so keep references to what the page has: `cart` on cart and checkout steps, `order` on the confirmation page.
 
 Because notes run as Twig, editing them is equivalent to template access. See [permissions](../reference/permissions.md).
 
