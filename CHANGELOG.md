@@ -1,6 +1,6 @@
 # Release Notes for Foster Checkout
 
-## Unreleased
+## 1.2.0 - 2026-09-10
 
 ### Added
 

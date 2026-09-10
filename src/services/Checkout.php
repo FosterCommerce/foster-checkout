@@ -737,6 +737,8 @@ class Checkout extends Component
 
 	/**
 	 * Name of the discount that owns the cart's coupon code.
+	 *
+	 * @since 1.2.0
 	 */
 	public function couponName(Order $cart): ?string
 	{
@@ -766,6 +768,7 @@ class Checkout extends Component
 	 * Advanced Discounts' messages for the cart, such as why its coupon did not apply.
 	 *
 	 * @return list<string>
+	 * @since 1.2.0
 	 */
 	public function couponMessages(Order $cart): array
 	{
