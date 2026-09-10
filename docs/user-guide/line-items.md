@@ -22,7 +22,7 @@ free text: a "special instructions" option can run to thousands of characters an
 An option is a name and a value stored against the line when the item was added. Without any
 rules, both show exactly as stored, so an option named `blessing` holding `true` reads:
 
-```
+```text
 blessing: true
 ```
 
@@ -32,7 +32,7 @@ reads.
 ## Rewrite rules
 
 Each rule has a condition and up to two changes: a new name, a new value. A rule with no new
-value leaves the customer's own text alone, which is what you want for anything they typed.
+value leaves the customer's own text alone.
 
 To add one, click **Add a rule**, build the condition, and fill in either field. Leave a field
 empty to keep what was stored.

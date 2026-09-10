@@ -434,7 +434,7 @@ class SettingsController extends Controller
 			(array) (Craft::$app->getProjectConfig()->get(ProjectConfig::PATH_PLUGINS . '.' . FosterCheckout::HANDLE . '.settings') ?? [])
 		);
 
-		$allSettings = array_merge($storedSettings, $this->normalizeTables($postedSettings));
+		$allSettings = $this->mergeStoredSettings($storedSettings, $this->normalizeTables($postedSettings));
 
 		if (! Craft::$app->getPlugins()->savePluginSettings($plugin, $allSettings)) {
 			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
@@ -540,9 +540,6 @@ class SettingsController extends Controller
 		$plugin = FosterCheckout::getInstance();
 
 		// The field layout is stored outside plugin settings, so it stays editable. Columns and params do not.
-		if (in_array('paymentGateways', $plugin->getOverriddenSettings(), true)) {
-			return;
-		}
 
 		$storedSettings = ProjectConfigHelper::unpackAssociativeArrays(
 			(array) (Craft::$app->getProjectConfig()->get(ProjectConfig::PATH_PLUGINS . '.' . FosterCheckout::HANDLE . '.settings') ?? [])
@@ -551,9 +548,20 @@ class SettingsController extends Controller
 		$storedGateways = is_array($storedSettings['paymentGateways'] ?? null) ? $storedSettings['paymentGateways'] : [];
 		$gateway = is_array($storedGateways[$gatewayHandle] ?? null) ? $storedGateways[$gatewayHandle] : [];
 
+		$overridden = $plugin->getOverriddenSettings();
 		$postedLabel = $this->request->getBodyParam('label');
-		$gateway['label'] = is_string($postedLabel) ? trim($postedLabel) : '';
-		$gateway['params'] = $this->normalizeGatewayParams((array) $this->request->getBodyParam('params', []));
+
+		// Keep the stored label where the field was disabled, since a disabled field posts nothing
+		if (is_string($postedLabel) && ! in_array("paymentGateways.{$gatewayHandle}.label", $overridden, true)) {
+			$gateway['label'] = trim($postedLabel);
+		}
+
+		$postedParams = $this->request->getBodyParam('params');
+
+		// Only a static field posts nothing, since an emptied table posts a hidden fallback
+		if ($postedParams !== null && ! in_array("paymentGateways.{$gatewayHandle}.params", $overridden, true)) {
+			$gateway['params'] = $this->normalizeGatewayParams((array) $postedParams);
+		}
 
 		$storedGateways[$gatewayHandle] = $gateway;
 		$storedSettings['paymentGateways'] = $storedGateways;
@@ -614,6 +622,32 @@ class SettingsController extends Controller
 	 * Editable tables and checkbox groups post rows, but the settings model holds a map keyed by
 	 * product type handle and plain lists of codes and handles.
 	 *
+	 * @param array<array-key, mixed> $postedSettings
+	 * @return array<array-key, mixed>
+	 */
+	/**
+	 * @param array<array-key, mixed> $storedSettings
+	 * @param array<array-key, mixed> $postedSettings
+	 * @return array<array-key, mixed>
+	 */
+	private function mergeStoredSettings(array $storedSettings, array $postedSettings): array
+	{
+		foreach ($postedSettings as $name => $value) {
+			// A products row an admin deleted has to go, so that table replaces what is stored
+			$mergeGroup = $name !== 'products'
+				&& is_array($value)
+				&& ! array_is_list($value)
+				&& is_array($storedSettings[$name] ?? null);
+
+			$storedSettings[$name] = $mergeGroup
+				? $this->mergeStoredSettings($storedSettings[$name], $value)
+				: $value;
+		}
+
+		return $storedSettings;
+	}
+
+	/**
 	 * @param array<array-key, mixed> $postedSettings
 	 * @return array<array-key, mixed>
 	 */

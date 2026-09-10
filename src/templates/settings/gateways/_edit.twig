@@ -6,8 +6,7 @@
 {% set title = gateway.name %}
 {% set docTitle = title %}
 
-{# The field layout is stored outside plugin settings, so a config file cannot override it.
-   Only the params below come from settings. #}
+{# The field layout is stored outside plugin settings, so a config file cannot override it #}
 {% set paramsSetting = 'paymentGateways.' ~ gateway.handle ~ '.params' %}
 {% set optionsOverridden = paramsSetting in overriddenSettings %}
 {% set readOnly = not craft.app.config.general.allowAdminChanges %}

@@ -348,6 +348,41 @@ export const gatewayHandling = () => ({
 		}
 	},
 
+	// Rewrite the billing details the payment element pre-fills, since it mounts from the address the page was rendered with
+	applyStripeBillingDefaults(billingAddress) {
+		const form = this.$root.querySelector('.stripe-payment-elements-form');
+		if (!form) {
+			return;
+		}
+
+		const elementOptions = JSON.parse(form.dataset.elementOptions);
+
+		elementOptions.defaultValues = {
+			...elementOptions.defaultValues,
+			billingDetails: {
+				name: billingAddress.fullName ?? '',
+				email: this.email ?? '',
+				address: {
+					country: billingAddress.countryCode ?? '',
+					line1: billingAddress.addressLine1 ?? '',
+					line2: billingAddress.addressLine2 ?? '',
+					city: billingAddress.locality ?? '',
+					postal_code: billingAddress.postalCode ?? '',
+					state: billingAddress.administrativeArea ?? '',
+				},
+			},
+		};
+
+		const nextOptions = JSON.stringify(elementOptions);
+
+		if (nextOptions === form.dataset.elementOptions) {
+			return;
+		}
+
+		form.dataset.elementOptions = nextOptions;
+		this.stripeOptionsChanged = true;
+	},
+
 	invalidateStripeCheckout() {
 		const form = this.$root.querySelector('.stripe-payment-elements-form');
 		if (!form) {
@@ -379,18 +414,43 @@ export const gatewayHandling = () => ({
 		this.stripeInvalidated = true;
 	},
 
+	// One remount per tick, since a second replaces the node the first is still mounting into
 	scheduleStripeReinit() {
-		if (!this.canPay || this.paying) {
+		if (!this.canPay || this.paying || this.stripeReinitQueued) {
 			return;
 		}
 
-		if (!this.$root.querySelector('.stripe-payment-elements-form')) {
+		const form = this.$root.querySelector('.stripe-payment-elements-form');
+
+		if (!form) {
 			return;
 		}
 
-		this.invalidateStripeCheckout();
-		this.stripeInvalidated = true;
-		this.maybeReinitStripeCheckout();
+		// Mounting posts the total, so rebuild a mounted form only when the total changes
+		const total = Number(this.totals.total);
+		// Count an in-flight mount as mounted, since handlerInstance is set before the element renders
+		const isMounted = Boolean(
+			form.handlerInstance ||
+			form.querySelector('.stripe-payment-element')?.childElementCount
+		);
+
+		if (
+			isMounted &&
+			this.stripeMountedTotal === total &&
+			!this.stripeOptionsChanged
+		) {
+			return;
+		}
+
+		this.stripeReinitQueued = true;
+
+		this.$nextTick(() => {
+			this.stripeReinitQueued = false;
+			this.stripeOptionsChanged = false;
+			this.stripeMountedTotal = Number(this.totals.total);
+			this.invalidateStripeCheckout();
+			this.maybeReinitStripeCheckout();
+		});
 	},
 
 	maybeReinitStripeCheckout() {
@@ -467,6 +527,12 @@ export const gatewayHandling = () => ({
 			this.paypalInitTimer = setTimeout(() => {
 				this.initPaypal(attempt + 1);
 			}, 200);
+			return;
+		}
+
+		// Mark it initialized without calling in, since the buttons are already rendered
+		if (wrapper.firstElementChild.childElementCount) {
+			wrapper.dataset.fcPaypalInit = 'true';
 			return;
 		}
 

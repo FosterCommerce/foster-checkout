@@ -39,31 +39,15 @@ export const addressBook = () => ({
 		return fields;
 	},
 
-	countryLabel(address, fields, scope) {
-		if (address) {
-			if (address.countryName) {
-				return address.countryName;
-			}
-
-			if (address.country && address.country.name) {
-				return address.country.name;
-			}
-		}
-
+	// Use the select's label, since the preview lists country names not codes
+	countryNameInForm(formScope) {
 		const countrySelector =
 			'[name="countryCode"], [name="shippingAddress[countryCode]"], [name="billingAddress[countryCode]"]';
-		const countryInput = scope ? scope.querySelector(countrySelector) : null;
+		const countryInput = formScope.querySelector(countrySelector);
 		const selectRoot = countryInput ? countryInput.closest('[x-data]') : null;
 		const selectData = selectRoot ? window.Alpine.$data(selectRoot) : null;
-		if (
-			selectData &&
-			selectData.selectedOption &&
-			selectData.selectedOption.label
-		) {
-			return selectData.selectedOption.label;
-		}
 
-		return (fields && fields.countryCode) || '';
+		return selectData?.selectedOption?.label ?? '';
 	},
 
 	addressFieldsFromPayload(payload, prefix) {
@@ -94,7 +78,7 @@ export const addressBook = () => ({
 			return;
 		}
 
-		this.shippingPreview = this.formatAddress(
+		this.shippingPreview = this.formatEnteredAddress(
 			this.addressFieldsFromPayload(
 				this.collectNamedFields(scope),
 				'shippingAddress['
@@ -103,11 +87,8 @@ export const addressBook = () => ({
 		);
 	},
 
-	formatAddress(fields, scope, address = null) {
-		if (!fields || typeof fields !== 'object') {
-			return '';
-		}
-
+	// Format an entered address the way the server formats a saved one
+	formatEnteredAddress(fields, formScope) {
 		return [
 			fields.fullName,
 			fields.addressLine1,
@@ -115,30 +96,27 @@ export const addressBook = () => ({
 			fields.locality,
 			fields.administrativeArea,
 			fields.postalCode,
-			this.countryLabel(address, fields, scope),
+			this.countryNameInForm(formScope),
 		]
 			.map((part) => String(part || '').trim())
 			.filter(Boolean)
 			.join(', ');
 	},
 
-	rememberAddress(addressId, address, fields, scope) {
+	rememberAddressFields(addressId, address, fields) {
 		if (!addressId) {
-			return;
+			return null;
 		}
 
-		const id = String(addressId);
 		const snapshot = { ...(fields || this.addressToFields(address)) };
 		delete snapshot.action;
 		delete snapshot.addressId;
 		this.addressFields = {
 			...this.addressFields,
-			[id]: snapshot,
+			[String(addressId)]: snapshot,
 		};
-		this.addressLabels = {
-			...this.addressLabels,
-			[id]: this.formatAddress(snapshot, scope, address),
-		};
+
+		return snapshot;
 	},
 
 	writeAddressToScope(scope, fields, prefix = '') {
@@ -287,10 +265,7 @@ export const addressBook = () => ({
 				return;
 			}
 
-			this.rememberAddress(addressId, null, fields, scope);
-			if (parseInt(this.shippingAddressId, 10) === parseInt(addressId, 10)) {
-				this.shippingPreview = this.addressLabels[String(addressId)];
-			}
+			this.rememberAddressFields(addressId, null, fields);
 
 			await this.saveCart({
 				panel,

@@ -38,7 +38,7 @@ See [`docs/user-guide/content.md`](./docs/user-guide/content.md).
 
 ## Settings
 
-Appearance, features, line items, products, payment gateways and paths each get a control panel screen under **Checkout**. A gateway carries the name customers see, so Stripe can read as Secure payment at the checkout. Anything a site sets in `config/foster-checkout.php` wins over the control panel, per key, and those fields are shown as read-only so it is clear why an edit will not take.
+Appearance, features, line items, products, payment gateways and paths each get a control panel screen under **Checkout**. Each gateway can be given the name customers see, so Stripe reads as “Secure payment” at the checkout. Anything a site sets in `config/foster-checkout.php` wins over the control panel, per key, and those fields are shown as read-only so it is clear why an edit will not take.
 
 See [`docs/reference/settings.md`](./docs/reference/settings.md).
 
@@ -57,6 +57,12 @@ Ask a customer for anything the checkout does not collect. Five positions across
 A module or plugin can also contribute a field of its own and store the value itself.
 
 See [`docs/user-guide/checkout-fields.md`](./docs/user-guide/checkout-fields.md) and [`docs/dev-guide/contributed-fields.md`](./docs/dev-guide/contributed-fields.md).
+
+## Checkout for another customer
+
+Let a purchasing agent check out against a company's account. Your own code sets the order's customer, and the address book, the addresses a customer saves and the contact shown then follow that customer rather than the person signed in.
+
+See [`docs/dev-guide/checkout-for-another-customer.md`](./docs/dev-guide/checkout-for-another-customer.md).
 
 ## Single-page checkout
 

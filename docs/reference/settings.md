@@ -21,7 +21,7 @@ Other keys on the General screen:
 | Priority countries | `priorityCountries` | Country codes shown at the top of country dropdowns, in the order listed. See [address fields](../user-guide/address-fields.md) |
 | Hidden address fields | `hiddenAddressFields` | Address fields left off the checkout. They stay in the control panel. A field the address layout marks required is always shown |
 | Required address fields | `requiredAddressFields` | Address fields required at the checkout beyond what the address layout asks for. A hidden field is never required |
-| Show a third address line | `showAddressLine3` | Whether checkout address forms offer a third address line. Off, even though nearly every country format lists one |
+| Show a third address line | `showAddressLine3` | Whether checkout address forms offer a third address line. Off by default |
 | Let customers name a saved address | `showAddressLabelField` | Whether the label of a saved address is editable at the checkout. It shows only when a customer edits an address they already saved |
 | Zero value gateways | `zeroValueGatewayHandles` | Gateways available when an order totals zero |
 | Customer order notes field | `customerOrderNotesFieldHandle` | Field on Orders holding the customer's note. Blank hides the order notes form |
@@ -84,7 +84,7 @@ Every setting and its default, as the plugin ships.
 | Gateway note | `paymentGateways.<handle>.note` | empty |
 | Gateway payment form params | `paymentGateways.<handle>.params` | empty |
 
-Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig`, `options.paymentDueDateFieldHandle`, `options.imagerXConfig` and `options.enableEstimatedShipping`.
+Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig`, `options.paymentDueDateFieldHandle`, `options.imagerXConfig`, `options.enableEstimatedShipping`, `options.deliveryDate.estimate` and `options.deliveryDate.display`.
 
 `options.subscribe`, `paymentGateways.<handle>.note` and the delivery date label and message are edited at **Checkout -> Content**. A config file may still set any of them, and a note or estimate written as a PHP closure can only live there. See [content](../user-guide/content.md).
 
@@ -145,4 +145,4 @@ A gateway's fields are chosen with Craft's field layout designer. The same rules
 | Setting | Why |
 | --- | --- |
 | A gateway `note` | May be a PHP closure, which the control panel cannot represent. The plugin falls back to it whenever the stored copy for that gateway is empty |
-| `deliveryDate.estimate`, `deliveryDate.display` | Accept a closure or a Twig string, because they compute a date and a visibility flag rather than holding copy |
+| `options.deliveryDate.estimate`, `options.deliveryDate.display` | Accept a closure or a Twig string, because they compute a date and a visibility flag rather than holding copy |

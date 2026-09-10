@@ -7,7 +7,9 @@ use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
 use yii\base\Event;
 
 /**
- * Carries a checkout position's fields, for a handler to add ones no field layout holds.
+ * Checkout fields event.
+ *
+ * @since 1.1.0
  *
  * @phpstan-import-type RenderableField from CheckoutFieldLayouts
  * @phpstan-import-type RenderableUiElement from CheckoutFieldLayouts

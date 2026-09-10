@@ -217,6 +217,8 @@ return [
 	'permission.manageAppearance' => 'Gestionar la apariencia del pago',
 	'permission.manageFeatures' => 'Gestionar las funcionalidades del pago',
 	'permission.manageSettings' => 'Gestionar los ajustes del pago',
+
+	'contact.signedInAs' => 'Sesión iniciada como {name} ({email})',
 	'permission.viewContent' => 'Ver el contenido del pago',
 
 	'nav.checkout' => 'Pago',

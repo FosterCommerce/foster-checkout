@@ -5127,23 +5127,13 @@ const addressBook = () => ({
     });
     return fields;
   },
-  countryLabel(address, fields, scope2) {
-    if (address) {
-      if (address.countryName) {
-        return address.countryName;
-      }
-      if (address.country && address.country.name) {
-        return address.country.name;
-      }
-    }
+  // Use the select's label, since the preview lists country names not codes
+  countryNameInForm(formScope) {
     const countrySelector = '[name="countryCode"], [name="shippingAddress[countryCode]"], [name="billingAddress[countryCode]"]';
-    const countryInput = scope2 ? scope2.querySelector(countrySelector) : null;
+    const countryInput = formScope.querySelector(countrySelector);
     const selectRoot = countryInput ? countryInput.closest("[x-data]") : null;
     const selectData = selectRoot ? window.Alpine.$data(selectRoot) : null;
-    if (selectData && selectData.selectedOption && selectData.selectedOption.label) {
-      return selectData.selectedOption.label;
-    }
-    return fields && fields.countryCode || "";
+    return selectData?.selectedOption?.label ?? "";
   },
   addressFieldsFromPayload(payload, prefix2) {
     const fields = {};
@@ -5167,7 +5157,7 @@ const addressBook = () => ({
     if (!scope2) {
       return;
     }
-    this.shippingPreview = this.formatAddress(
+    this.shippingPreview = this.formatEnteredAddress(
       this.addressFieldsFromPayload(
         this.collectNamedFields(scope2),
         "shippingAddress["
@@ -5175,10 +5165,8 @@ const addressBook = () => ({
       scope2
     );
   },
-  formatAddress(fields, scope2, address = null) {
-    if (!fields || typeof fields !== "object") {
-      return "";
-    }
+  // Format an entered address the way the server formats a saved one
+  formatEnteredAddress(fields, formScope) {
     return [
       fields.fullName,
       fields.addressLine1,
@@ -5186,25 +5174,21 @@ const addressBook = () => ({
       fields.locality,
       fields.administrativeArea,
       fields.postalCode,
-      this.countryLabel(address, fields, scope2)
+      this.countryNameInForm(formScope)
     ].map((part) => String(part || "").trim()).filter(Boolean).join(", ");
   },
-  rememberAddress(addressId, address, fields, scope2) {
+  rememberAddressFields(addressId, address, fields) {
     if (!addressId) {
-      return;
+      return null;
     }
-    const id = String(addressId);
     const snapshot = { ...fields || this.addressToFields(address) };
     delete snapshot.action;
     delete snapshot.addressId;
     this.addressFields = {
       ...this.addressFields,
-      [id]: snapshot
+      [String(addressId)]: snapshot
     };
-    this.addressLabels = {
-      ...this.addressLabels,
-      [id]: this.formatAddress(snapshot, scope2, address)
-    };
+    return snapshot;
   },
   writeAddressToScope(scope2, fields, prefix2 = "") {
     if (!scope2 || !fields) {
@@ -5319,10 +5303,7 @@ const addressBook = () => ({
         this.restoreStripeIfSkipped();
         return;
       }
-      this.rememberAddress(addressId, null, fields, scope2);
-      if (parseInt(this.shippingAddressId, 10) === parseInt(addressId, 10)) {
-        this.shippingPreview = this.addressLabels[String(addressId)];
-      }
+      this.rememberAddressFields(addressId, null, fields);
       await this.saveCart({
         panel,
         force: isCurrentShipping || isCurrentBilling
@@ -5592,7 +5573,7 @@ const cartPersistence = () => ({
       }
       const cart = data2.cart || data2.model || data2.data && data2.data.cart;
       this.applyCart(cart, this.shippingRateKey(saved));
-      cartSynced = true;
+      cartSynced = Boolean(cart) && typeof cart === "object";
       const couponError = this.couponRejectedMessage(saved, cart);
       if (couponError) {
         this.applyFieldErrors({
@@ -5630,7 +5611,6 @@ const cartPersistence = () => ({
         await this.saveCart(next);
       } else if (cartSynced) {
         this.maybeReinitPaypalCheckout();
-        this.scheduleStripeReinit();
       }
     }
   },
@@ -5660,13 +5640,16 @@ const cartPersistence = () => ({
         );
       }
       const live = cart.fosterCheckout || {};
+      if (live.addressLabels && typeof live.addressLabels === "object") {
+        this.addressLabels = live.addressLabels;
+      }
       if (sameAddress) {
         if (typeof live.shippingPreview === "string") {
           this.shippingPreview = live.shippingPreview;
         }
         if (cart.shippingAddress && typeof cart.shippingAddress === "object") {
-          this.latestShippingAddress = cart.shippingAddress;
-          this.rememberAddress(
+          this.latestShippingAddress = cart.sourceShippingAddressId ? null : cart.shippingAddress;
+          this.rememberAddressFields(
             cart.sourceShippingAddressId,
             cart.shippingAddress
           );
@@ -5695,8 +5678,12 @@ const cartPersistence = () => ({
         }
       }
       if (cart.billingAddress && typeof cart.billingAddress === "object") {
-        this.latestBillingAddress = cart.billingAddress;
-        this.rememberAddress(cart.sourceBillingAddressId, cart.billingAddress);
+        this.latestBillingAddress = cart.sourceBillingAddressId ? null : cart.billingAddress;
+        this.rememberAddressFields(
+          cart.sourceBillingAddressId,
+          cart.billingAddress
+        );
+        this.applyStripeBillingDefaults(cart.billingAddress);
       }
     } finally {
       this.syncingFromCart = false;
@@ -6205,6 +6192,35 @@ const gatewayHandling = () => ({
       this.maybeReinitPaypalCheckout();
     }
   },
+  // Rewrite the billing details the payment element pre-fills, since it mounts from the address the page was rendered with
+  applyStripeBillingDefaults(billingAddress) {
+    const form = this.$root.querySelector(".stripe-payment-elements-form");
+    if (!form) {
+      return;
+    }
+    const elementOptions = JSON.parse(form.dataset.elementOptions);
+    elementOptions.defaultValues = {
+      ...elementOptions.defaultValues,
+      billingDetails: {
+        name: billingAddress.fullName ?? "",
+        email: this.email ?? "",
+        address: {
+          country: billingAddress.countryCode ?? "",
+          line1: billingAddress.addressLine1 ?? "",
+          line2: billingAddress.addressLine2 ?? "",
+          city: billingAddress.locality ?? "",
+          postal_code: billingAddress.postalCode ?? "",
+          state: billingAddress.administrativeArea ?? ""
+        }
+      }
+    };
+    const nextOptions = JSON.stringify(elementOptions);
+    if (nextOptions === form.dataset.elementOptions) {
+      return;
+    }
+    form.dataset.elementOptions = nextOptions;
+    this.stripeOptionsChanged = true;
+  },
   invalidateStripeCheckout() {
     const form = this.$root.querySelector(".stripe-payment-elements-form");
     if (!form) {
@@ -6227,16 +6243,30 @@ const gatewayHandling = () => ({
     }
     this.stripeInvalidated = true;
   },
+  // One remount per tick, since a second replaces the node the first is still mounting into
   scheduleStripeReinit() {
-    if (!this.canPay || this.paying) {
+    if (!this.canPay || this.paying || this.stripeReinitQueued) {
       return;
     }
-    if (!this.$root.querySelector(".stripe-payment-elements-form")) {
+    const form = this.$root.querySelector(".stripe-payment-elements-form");
+    if (!form) {
       return;
     }
-    this.invalidateStripeCheckout();
-    this.stripeInvalidated = true;
-    this.maybeReinitStripeCheckout();
+    const total = Number(this.totals.total);
+    const isMounted = Boolean(
+      form.handlerInstance || form.querySelector(".stripe-payment-element")?.childElementCount
+    );
+    if (isMounted && this.stripeMountedTotal === total && !this.stripeOptionsChanged) {
+      return;
+    }
+    this.stripeReinitQueued = true;
+    this.$nextTick(() => {
+      this.stripeReinitQueued = false;
+      this.stripeOptionsChanged = false;
+      this.stripeMountedTotal = Number(this.totals.total);
+      this.invalidateStripeCheckout();
+      this.maybeReinitStripeCheckout();
+    });
   },
   maybeReinitStripeCheckout() {
     if (!this.stripeInvalidated) {
@@ -6292,6 +6322,10 @@ const gatewayHandling = () => ({
       this.paypalInitTimer = setTimeout(() => {
         this.initPaypal(attempt + 1);
       }, 200);
+      return;
+    }
+    if (wrapper.firstElementChild.childElementCount) {
+      wrapper.dataset.fcPaypalInit = "true";
       return;
     }
     wrapper.dataset.fcPaypalInit = "true";
@@ -6359,6 +6393,10 @@ const SinglePageCheckout = (props) => {
     cardCvvError: props.cardCvvError ?? "",
     syncingFromCart: false,
     hasNewBillingContent: false,
+    stripeReinitQueued: false,
+    stripeOptionsChanged: false,
+    // Seed from the rendered total, since the form is already mounted against it
+    stripeMountedTotal: props.totals ? Number(props.totals.total) : null,
     editExistingAddress: 0,
     editBillingAddressId: 0,
     gatewayId: props.gatewayId,
@@ -6410,7 +6448,6 @@ const SinglePageCheckout = (props) => {
           this.applySelectedMethodTotals();
           this.syncPayButtons();
           this.invalidatePaypalCheckout();
-          this.invalidateStripeCheckout();
           this.saveIfValid("shipping");
         }
       });
@@ -6664,10 +6701,10 @@ const SinglePageCheckout = (props) => {
       if (panel === "payment") {
         this.refreshNewBillingContent();
         this.syncPayButtons();
+        this.saveIfValid(panel);
         return;
       }
       this.invalidatePaypalCheckout();
-      this.invalidateStripeCheckout();
       this.saveIfValid(panel);
     },
     onDetailsChange(event) {

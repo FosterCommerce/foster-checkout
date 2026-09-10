@@ -22,16 +22,18 @@ Custom fields you add to the address layout are listed alongside the native ones
 
 ## The country decides the rest of the form
 
-Each country has an address format, and the format names which fields it uses and what they are called. Pick France and the state field goes away; pick the United States and it becomes State. Only the fields that country's format uses are shown, so the form changes as the customer picks a country.
+Each country has an address format naming which fields it uses. Pick France and the second address line stays, the postal code stays, and the state field goes away. The form changes as the customer picks a country.
 
-Two additions the plugin makes for the United Kingdom: the county field, which the format itself leaves out, and its list of counties.
+The state field is the exception. It shows wherever the country has a list of states, provinces or regions, and its label reads State / Province everywhere.
 
-The third address line is the exception. Nearly every country format lists one, so it is behind its own switch rather than the format.
+The United Kingdom has no administrative area in its format. Craft fills the gap with a county list, and the checkout replaces that list with its own.
+
+The third address line has a switch of its own on top of the format, since nearly every country format lists one. Turn it on and it still shows only where the country's format uses it.
 
 ## Address labels
 
 An address has a label, which is what names it in the customer's address book. Commerce sets that label on the addresses attached to an order, so a new address a customer saves during checkout arrives as "Shipping Address" or "Billing Address".
 
-Turn on **Let customers name a saved address** and the label becomes an editable field, but only where a customer edits an address they already saved. It is left off the new address form, where anything typed would be replaced by Commerce.
+Turn on **Let customers name a saved address** and the label becomes an editable field, but only when a customer edits an address they already saved. It is left off the new address form, where anything typed would be replaced by Commerce.
 
 Labels a store sets for its own purposes are never overwritten by the checkout. Leave the switch off to keep customers out of them.

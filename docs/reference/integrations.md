@@ -23,6 +23,8 @@ Adds a code field to the payment step and lists applied vouchers in the order su
 
 The newsletter checkbox needs this plugin **and** a list ID at **Checkout -> Features -> Klaviyo list ID**. Without both, the checkbox is not shown. Its label is edited at **Checkout -> Content**.
 
+Events are not sent when the signed-in user's email is not the order's, since they would be filed under someone who is not the shopper. See [checkout for another customer](../dev-guide/checkout-for-another-customer.md#whether-klaviyo-is-tracking).
+
 ## Postie
 
 Postie's rates appear as shipping methods. On single-page checkout the plugin registers the checkout path with Postie at runtime, so rates are fetched there as well.

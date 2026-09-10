@@ -14,11 +14,13 @@ How to ask a customer for something the checkout does not collect by default.
 
 Click a position to open its field layout designer. Drag a field in, set its width and whether it is required, then save.
 
-## Only fields on the order can be used
+## Only fields on the order can be added to a layout
 
 An order stores values through its own field layout. A field that is not on it would render, take what the customer types, and then be discarded with no error. Saving a layout that uses one is rejected, and the message names the handles.
 
 Add the field under **Commerce -> Settings -> Order Fields** first, then come back.
+
+A module or plugin can contribute a field it stores itself, which is not bound by this. See [contributed fields](../dev-guide/contributed-fields.md).
 
 ## Supported field types
 
@@ -34,8 +36,6 @@ Where a required field stops the customer depends on the position.
 
 - **Summary** blocks the cart. The Checkout button is disabled and the missing fields are named above it.
 - **Every other position** blocks payment. The customer can move through the checkout and is stopped when they try to pay.
-
-This is worth knowing before you mark a summary field required, because it stops a customer at the cart with no way past it.
 
 ## Placeholders and limits
 

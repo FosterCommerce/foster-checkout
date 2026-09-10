@@ -49,16 +49,19 @@ class LineItemConfig extends Model
 	{
 		$posted = $config['enableLineItemOptions'] ?? null;
 
-		// A lightswitch posts its state as a string, where the setting this replaced held a prefix
-		if (! is_string($posted) || in_array($posted, ['', '0', '1'], true)) {
+		if (! is_string($posted)) {
+			return $config;
+		}
+
+		// Read the switch value, since the legacy setting also held the hidden-name prefix
+		if (in_array($posted, ['', '0', '1'], true)) {
+			$config['enableLineItemOptions'] = $posted === '1';
+
 			return $config;
 		}
 
 		$config['enableLineItemOptions'] = true;
-
-		if (! isset($config['hiddenLineItemOptionPrefix'])) {
-			$config['hiddenLineItemOptionPrefix'] = $posted;
-		}
+		$config['hiddenLineItemOptionPrefix'] ??= $posted;
 
 		return $config;
 	}

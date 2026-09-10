@@ -12,7 +12,7 @@ The URL stays the same throughout. The stepped URLs (`/checkout/email`, `/checko
 
 ## What stays the same
 
-Every setting outside this one applies to both layouts: checkout copy, checkout fields, payment gateways and the names customers read for them, line item display, address fields, address verification and address suggestions. A store can switch between layouts without reconfiguring any of it.
+Every setting outside this one applies to both layouts: checkout copy, checkout fields, payment gateways and the names customers read for them, line item display, [address fields](./address-fields.md), address verification and address suggestions. A store can switch between layouts without reconfiguring any of it.
 
 ## Two behaviors that only apply here
 
@@ -22,4 +22,4 @@ Every setting outside this one applies to both layouts: checkout copy, checkout 
 
 ## Payment forms
 
-Stripe and PayPal mount their own forms and hold the order total at the moment they mount. Because the total can change while the customer is still on the page, those forms are rebuilt whenever the cart changes. A customer who edits their address after opening the payment panel sees the form reload, which is expected.
+Stripe and PayPal mount their own forms against the order total at the moment they mount. Stripe's form is rebuilt when the total changes, or when the billing address it pre-fills changes, so editing an address after opening the payment panel reloads it only when one of those moves. PayPal's form is rebuilt whenever the cart changes.

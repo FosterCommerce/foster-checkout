@@ -6,9 +6,9 @@ use craft\commerce\elements\Order;
 use yii\base\Event;
 
 /**
- * Hands a cart update's posted values to whoever contributed the fields.
+ * Checkout field values event.
  *
- * A contributed field is stored by its contributor, since the order layout has no field for it.
+ * @since 1.1.0
  */
 class ApplyCheckoutFieldsEvent extends Event
 {
@@ -22,7 +22,7 @@ class ApplyCheckoutFieldsEvent extends Event
 	public array $values = [];
 
 	/**
-	 * Set false to refuse the cart update, which reports the errors added to the order.
+	 * Set false to refuse the cart update. Add errors to the order to say why.
 	 */
 	public bool $isValid = true;
 }

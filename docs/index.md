@@ -24,6 +24,7 @@ A drop-in checkout for Craft Commerce, with its copy and settings managed from t
 
 - [Custom includes](./dev-guide/custom-includes.md), injecting your own templates into every checkout page
 - [Contributed fields](./dev-guide/contributed-fields.md), adding a checkout field your own code stores
+- [Checkout for another customer](./dev-guide/checkout-for-another-customer.md), running the checkout against an account the shopper is buying for
 
 **Managing access?**
 
