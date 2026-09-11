@@ -232,7 +232,6 @@ class Settings extends Model
 						...array_diff_key($paymentGateway, [
 							'columns' => null,
 						]),
-						'fields' => $paymentGateway['fields'] ?? [],
 						'note' => new ValueConfig($paymentGateway['note'] ?? []),
 					]
 				);

@@ -1,5 +1,11 @@
 # Release Notes for Foster Checkout
 
+## 1.2.1 - 2026-09-10
+
+### Fixed
+
+- Fixed a deprecation warning that was logged on every request, even when no config file set the removed `fields` gateway setting.
+
 ## 1.2.0 - 2026-09-10
 
 ### Added
