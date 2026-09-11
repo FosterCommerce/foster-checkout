@@ -21,8 +21,9 @@
 
 	{% if cart.lineItems|length > 0 %}
 
+		<div class="mt-10 pb-32 lg:mt-20">
 		<div
-			class="grid grid-cols-1 gap-16 mt-10 pb-32 lg:grid-cols-[1fr_42%] lg:gap-6 lg:mt-20 xl:gap-8">
+			class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6 xl:gap-8">
 
 			<main class="flex flex-col justify-start items-stretch gap-6 lg:justify-between">
 
@@ -132,6 +133,7 @@
 		</div>
 
 		{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+		</div>
 
 	{% else %}
 

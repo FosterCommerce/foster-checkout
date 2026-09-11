@@ -1,5 +1,12 @@
 # Release Notes for Foster Checkout
 
+## 1.2.2 - 2026-09-10
+
+### Fixed
+
+- Fixed footer padding of all pages
+
+
 ## 1.2.1 - 2026-09-10
 
 ### Fixed
