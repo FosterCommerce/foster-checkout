@@ -200,6 +200,33 @@
 
 	<hr>
 
+	{% set enableCustomerPickupOverridden = 'enableCustomerPickup' in overriddenSettings %}
+
+	{{ forms.lightswitchField({
+		label: 'settings.general.enableCustomerPickup'|t('foster-checkout'),
+		instructions: 'settings.general.enableCustomerPickupHelp'|t('foster-checkout'),
+		id: 'enable-customer-pickup',
+		name: 'settings[enableCustomerPickup]',
+		on: settings.enableCustomerPickup,
+		disabled: enableCustomerPickupOverridden or not adminChangesAllowed,
+		warning: enableCustomerPickupOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'enableCustomerPickup' }),
+	}) }}
+
+	{% set customerPickupLabelOverridden = 'customerPickupLabel' in overriddenSettings %}
+
+	{{ forms.textField({
+		label: 'settings.general.customerPickupLabel'|t('foster-checkout'),
+		instructions: 'settings.general.customerPickupLabelHelp'|t('foster-checkout'),
+		id: 'customer-pickup-label',
+		name: 'settings[customerPickupLabel]',
+		value: settings.customerPickupLabel,
+		placeholder: 'address.customerPickup'|t('foster-checkout'),
+		disabled: customerPickupLabelOverridden or not adminChangesAllowed,
+		warning: customerPickupLabelOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'customerPickupLabel' }),
+	}) }}
+
+	<hr>
+
 	{# Its own top-level config key, so it is overridden independently of the paths above. #}
 	{% set orderNotesOverridden = 'customerOrderNotesFieldHandle' in overriddenSettings %}
 

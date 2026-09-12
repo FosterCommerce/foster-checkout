@@ -5146,6 +5146,10 @@ const addressBook = () => ({
     return fields;
   },
   refreshShippingPreview() {
+    if (this.shippingPickup) {
+      this.shippingPreview = this.pickupPreview;
+      return;
+    }
     if (!this.useNewAddress && this.shippingAddressId) {
       const label = this.addressLabel(this.shippingAddressId, "");
       if (label) {
@@ -5375,7 +5379,14 @@ const cartPersistence = () => ({
       payload,
       "shippingAddress["
     );
-    if (!this.useNewAddress && this.shippingAddressId) {
+    if (this.pickupAvailable) {
+      payload.shippingPickup = this.shippingPickup ? "1" : "0";
+    }
+    if (this.shippingPickup) {
+      this.stripAddressGroup(payload, "shippingAddress[");
+      delete payload.shippingAddressId;
+      delete payload.useNewAddress;
+    } else if (!this.useNewAddress && this.shippingAddressId) {
       this.stripAddressGroup(payload, "shippingAddress[");
       payload.shippingAddressId = String(this.shippingAddressId);
       payload.useNewAddress = "0";
@@ -5652,7 +5663,7 @@ const cartPersistence = () => ({
           this.shippingPreview = live.shippingPreview;
         }
         if (cart.shippingAddress && typeof cart.shippingAddress === "object") {
-          this.latestShippingAddress = cart.sourceShippingAddressId ? null : cart.shippingAddress;
+          this.latestShippingAddress = cart.sourceShippingAddressId || live.customerPickup ? null : cart.shippingAddress;
           this.rememberAddressFields(
             cart.sourceShippingAddressId,
             cart.shippingAddress
@@ -6368,6 +6379,8 @@ const SinglePageCheckout = (props) => {
     addressLabels: {},
     addressFields: {},
     shippingPreview: props.shippingPreview ?? "",
+    pickupAvailable: props.pickupAvailable ?? false,
+    pickupPreview: props.pickupPreview ?? "",
     latestShippingAddress: null,
     latestBillingAddress: null,
     shippingMethods: asList(props.shippingMethods),
@@ -6571,6 +6584,9 @@ const SinglePageCheckout = (props) => {
         return this.hasNewBillingContent;
       }
       return Boolean(this.billingAddressId);
+    },
+    get shippingPickup() {
+      return this.pickupAvailable && this.shippingAddressId === "pickup";
     },
     get hasShippingSelection() {
       if (!this.collectShipping) {
@@ -6804,6 +6820,7 @@ const SinglePageCheckout = (props) => {
     },
     shippingRateKey(payload) {
       return [
+        payload.shippingPickup ?? "",
         payload.shippingAddressId ?? "",
         payload.useNewAddress ?? "",
         payload["shippingAddress[countryCode]"] ?? "",

@@ -20,7 +20,15 @@ export const cartPersistence = () => ({
 			'shippingAddress['
 		);
 
-		if (!this.useNewAddress && this.shippingAddressId) {
+		if (this.pickupAvailable) {
+			payload.shippingPickup = this.shippingPickup ? '1' : '0';
+		}
+
+		if (this.shippingPickup) {
+			this.stripAddressGroup(payload, 'shippingAddress[');
+			delete payload.shippingAddressId;
+			delete payload.useNewAddress;
+		} else if (!this.useNewAddress && this.shippingAddressId) {
 			this.stripAddressGroup(payload, 'shippingAddress[');
 			payload.shippingAddressId = String(this.shippingAddressId);
 			payload.useNewAddress = '0';
@@ -370,10 +378,11 @@ export const cartPersistence = () => ({
 				}
 
 				if (cart.shippingAddress && typeof cart.shippingAddress === 'object') {
-					// Keep only an address the customer typed, since a saved one would refill the new form
-					this.latestShippingAddress = cart.sourceShippingAddressId
-						? null
-						: cart.shippingAddress;
+					// Keep only an address the customer typed, since a saved one or the store location would refill the new form
+					this.latestShippingAddress =
+						cart.sourceShippingAddressId || live.customerPickup
+							? null
+							: cart.shippingAddress;
 					this.rememberAddressFields(
 						cart.sourceShippingAddressId,
 						cart.shippingAddress

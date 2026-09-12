@@ -1,5 +1,16 @@
 # Release Notes for Foster Checkout
 
+## 1.4.0 - 2026-09-12
+
+### Added
+
+- Added an “Offer pickup at the store location” switch and a “Pickup label” at **Checkout -> General** (`enableCustomerPickup` and `customerPickupLabel` in config), which list the Commerce store location as a shipping address choice at both checkouts.
+- Added `craft.fostercheckout.isCustomerPickup(order)` for templates and modules, and a `customerPickup` flag in the cart response’s checkout state.
+
+### Fixed
+
+- Fixed an error that could occur when a saved address that no longer validates was chosen at the checkout.
+
 ## 1.3.0 - 2026-09-12
 
 ### Added

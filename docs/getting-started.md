@@ -57,5 +57,7 @@ Place a test order to confirm payment works end to end.
 - [Permissions](./reference/permissions.md), what each permission grants
 - [Plugin integrations](./reference/integrations.md), what changes when AvaTax, Gift Voucher, Postie and others are installed
 - [Address fields](./user-guide/address-fields.md), what the checkout asks for on an address
+- [Customer pickup](./user-guide/customer-pickup.md), letting a customer collect an order from the store location
+- [Products that never ship](./user-guide/products-that-never-ship.md), skipping shipping for services and other unshippable products
 - [Custom includes](./dev-guide/custom-includes.md), injecting your own templates into every cart and checkout page
 - [Contributed fields](./dev-guide/contributed-fields.md), adding a checkout field your own code stores

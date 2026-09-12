@@ -27,7 +27,9 @@ Events are not sent when the signed-in user's email is not the order's, since th
 
 ## Postie
 
-Postie's rates appear as shipping methods. On single-page checkout the plugin registers the checkout path with Postie at runtime, so rates are fetched there as well.
+Postie's rates appear as shipping methods. The plugin registers the checkout path with Postie at runtime, the one page or the multi-page shipping step, so rates are fetched where the customer picks a method.
+
+Variants matched by [Products that never ship](../user-guide/products-that-never-ship.md) are left out of Postie's parcel. Postie still quotes carriers for a [customer pickup](../user-guide/customer-pickup.md) order, since the store location is an address like any other; a module can leave them off; see [detecting a pickup order](../dev-guide/customer-pickup.md).
 
 ## Imager X
 

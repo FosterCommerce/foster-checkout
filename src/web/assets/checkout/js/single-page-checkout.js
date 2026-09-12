@@ -41,6 +41,8 @@ export const SinglePageCheckout = (props) => {
 		addressLabels: {},
 		addressFields: {},
 		shippingPreview: props.shippingPreview ?? '',
+		pickupAvailable: props.pickupAvailable ?? false,
+		pickupPreview: props.pickupPreview ?? '',
 		latestShippingAddress: null,
 		latestBillingAddress: null,
 		shippingMethods: asList(props.shippingMethods),
@@ -266,6 +268,10 @@ export const SinglePageCheckout = (props) => {
 			}
 
 			return Boolean(this.billingAddressId);
+		},
+
+		get shippingPickup() {
+			return this.pickupAvailable && this.shippingAddressId === 'pickup';
 		},
 
 		get hasShippingSelection() {
@@ -589,6 +595,7 @@ export const SinglePageCheckout = (props) => {
 
 		shippingRateKey(payload) {
 			return [
+				payload.shippingPickup ?? '',
 				payload.shippingAddressId ?? '',
 				payload.useNewAddress ?? '',
 				payload['shippingAddress[countryCode]'] ?? '',

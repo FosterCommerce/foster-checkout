@@ -25,7 +25,7 @@
 	>
 		{% set canSaveAddresses = craft.fostercheckout.canSaveAddresses(cart) %}
 		<div class="xl:border xl:border-gray-250 xl:rounded-lg">
-			{% if currentUser and addresses|length %}
+			{% if (currentUser and addresses|length) or pickupAvailable %}
 				{% for address in addresses %}
 					<div class="p-4 border-b border-gray-250" :class="{ 'bg-gray-100': parseInt(shippingAddressId) === {{ address.id }} && !useNewAddress }">
 						<div class="flex justify-between items-center gap-4 radio">
@@ -112,12 +112,38 @@
 						</label>
 					</div>
 				</div>
+
+				{% if pickupAvailable %}
+					<div class="border-t border-gray-250" :class="{ 'bg-gray-100': shippingPickup }">
+						<div class="p-4 radio">
+							<input
+								id="sp_address_pickup"
+								name="shippingAddressId_radio"
+								type="radio"
+								class="sr-only"
+								x-model="shippingAddressId"
+								value="pickup"
+								@change="useNewAddress = false; editExistingAddress = 0; billingSameAsShipping = false"
+							/>
+							<label
+								for="sp_address_pickup"
+								class="inline-flex justify-start items-center gap-4 cursor-pointer"
+								:class="{ 'font-medium text-black': shippingPickup }"
+							>
+								<span class="block">
+									<span class="block">{{ craft.fostercheckout.customerPickupLabel() }}</span>
+									<span class="block mt-2 font-normal text-gray-500">{{ craft.fostercheckout.customerPickupPreview(cart) }}</span>
+								</span>
+							</label>
+						</div>
+					</div>
+				{% endif %}
 			{% endif %}
 
 			<template x-if="useNewAddress">
 				<div class="p-4" data-fc-new-shipping x-init="applyDraftAddress('shipping')">
 					{% set address = null %}
-					{% if cart.shippingAddressId is not null and cart.sourceShippingAddressId is null %}
+					{% if cart.shippingAddressId is not null and cart.sourceShippingAddressId is null and not customerPickup %}
 						{% set address = craft.addresses().id(cart.shippingAddressId).one() %}
 					{% elseif cart.shippingAddress %}
 						{% set address = cart.shippingAddress %}
