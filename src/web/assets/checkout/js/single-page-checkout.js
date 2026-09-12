@@ -442,11 +442,15 @@ export const SinglePageCheckout = (props) => {
 				[panel]: tone,
 			};
 
-			// The page level status is screen reader only, so the panel keeps its own copy to show
-			this.panelErrors = {
-				...this.panelErrors,
-				[panel]: tone === 'error' ? this.status : '',
-			};
+			// The page level status is screen reader only, so the panel keeps its own copy to show.
+			// A save accepts the whole cart, so it clears every panel's copy, not only this one's.
+			this.panelErrors =
+				tone === 'saved'
+					? {}
+					: {
+							...this.panelErrors,
+							[panel]: tone === 'error' ? this.status : '',
+						};
 
 			if (tone !== 'saved') {
 				return;
@@ -594,6 +598,12 @@ export const SinglePageCheckout = (props) => {
 		},
 
 		shippingRateKey(payload) {
+			// Custom address fields count too, since a rate plugin can read them
+			const customFields = Object.keys(payload)
+				.filter((key) => key.startsWith('shippingAddress[fields]['))
+				.sort()
+				.map((key) => `${key}=${payload[key]}`);
+
 			return [
 				payload.shippingPickup ?? '',
 				payload.shippingAddressId ?? '',
@@ -601,6 +611,7 @@ export const SinglePageCheckout = (props) => {
 				payload['shippingAddress[countryCode]'] ?? '',
 				payload['shippingAddress[administrativeArea]'] ?? '',
 				payload['shippingAddress[postalCode]'] ?? '',
+				...customFields,
 			].join('|');
 		},
 

@@ -1,5 +1,12 @@
 # Release Notes for Foster Checkout
 
+## 1.4.3 - 2026-09-12
+
+### Fixed
+
+- Fixed the single-page checkout not saving or re-quoting shipping when only a custom address field changed.
+- Fixed a panel keeping an earlier save error after a later save succeeded.
+
 ## 1.4.2 - 2026-09-12
 
 ### Added
