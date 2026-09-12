@@ -6707,13 +6707,14 @@ const SinglePageCheckout = (props) => {
         ...this.panelStatus,
         [panel]: tone
       };
-      this.panelErrors = tone === "saved" ? {} : {
-        ...this.panelErrors,
-        [panel]: tone === "error" ? this.status : ""
-      };
       if (tone !== "saved") {
+        this.panelErrors = {
+          ...this.panelErrors,
+          [panel]: tone === "error" ? this.status : ""
+        };
         return;
       }
+      this.panelErrors = {};
       const timer = setTimeout(() => {
         if (this.panelStatus[panel] === "saved") {
           this.panelStatus = {
