@@ -6707,7 +6707,7 @@ const SinglePageCheckout = (props) => {
         ...this.panelStatus,
         [panel]: tone
       };
-      this.panelErrors = {
+      this.panelErrors = tone === "saved" ? {} : {
         ...this.panelErrors,
         [panel]: tone === "error" ? this.status : ""
       };
@@ -6819,13 +6819,15 @@ const SinglePageCheckout = (props) => {
       return this.lineItemTotals[lineItemId];
     },
     shippingRateKey(payload) {
+      const customFields = Object.keys(payload).filter((key) => key.startsWith("shippingAddress[fields][")).sort().map((key) => `${key}=${payload[key]}`);
       return [
         payload.shippingPickup ?? "",
         payload.shippingAddressId ?? "",
         payload.useNewAddress ?? "",
         payload["shippingAddress[countryCode]"] ?? "",
         payload["shippingAddress[administrativeArea]"] ?? "",
-        payload["shippingAddress[postalCode]"] ?? ""
+        payload["shippingAddress[postalCode]"] ?? "",
+        ...customFields
       ].join("|");
     },
     deliveryNeedsSave(payload) {
