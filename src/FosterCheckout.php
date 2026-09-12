@@ -10,8 +10,12 @@ use craft\base\Plugin;
 use craft\commerce\controllers\BaseFrontEndController;
 use craft\commerce\controllers\CartController;
 use craft\commerce\elements\Order;
+use craft\commerce\elements\Product;
+use craft\commerce\elements\Variant;
 use craft\commerce\events\ModifyCartInfoEvent;
 use craft\commerce\events\OrderNoticeEvent;
+use craft\commerce\events\PurchasableShippableEvent;
+use craft\commerce\services\Purchasables;
 use craft\elements\Address;
 use craft\events\DefineAddressFieldLabelEvent;
 use craft\events\DefineAddressFieldsEvent;
@@ -384,6 +388,14 @@ class FosterCheckout extends Plugin
 			return null;
 		}
 
+		return $this->checkoutRequestPath();
+	}
+
+	/**
+	 * The checkout path, when the request is a site request under it.
+	 */
+	private function checkoutRequestPath(): ?string
+	{
 		$request = Craft::$app->getRequest();
 		if (! $request instanceof WebRequest || ! $request->getIsSiteRequest()) {
 			return null;
@@ -410,9 +422,9 @@ class FosterCheckout extends Plugin
 		return $request instanceof WebRequest && $request->getAcceptsJson();
 	}
 
-	private function allowPostieRatesOnSinglePageCheckout(): void
+	private function allowPostieRatesOnCheckout(): void
 	{
-		$checkoutPath = $this->singlePageCheckoutPath();
+		$checkoutPath = $this->checkoutRequestPath();
 		if ($checkoutPath === null) {
 			return;
 		}
@@ -432,7 +444,8 @@ class FosterCheckout extends Plugin
 			return;
 		}
 
-		$route = '/' . $checkoutPath;
+		// Postie fetches rates only on listed routes: the one page, or the multi-page shipping step
+		$route = '/' . $checkoutPath . ($this->getCheckout()->settings()->options->isSinglePageCheckout() ? '' : '/shipping');
 		if (in_array($route, $routesChecks, true)) {
 			return;
 		}
@@ -488,7 +501,19 @@ class FosterCheckout extends Plugin
 					return;
 				}
 
+				$shippable = $order->hasShippableItems();
+				$collectShipping = $shippable || $order->getStore()->getRequireShippingAddressAtCheckout();
+
 				foreach (CheckoutFieldLayouts::CHECKOUT_POSITIONS as $position) {
+					// A position that never renders cannot be filled in
+					if ($position === 'shippingMethod' && ! $shippable) {
+						continue;
+					}
+
+					if ($position === 'shippingAddress' && ! $collectShipping) {
+						continue;
+					}
+
 					$layout = $this->getCheckoutFieldLayouts()->getCheckoutFieldLayout($position);
 
 					foreach ($layout->getVisibleCustomFieldElements($order) as $layoutElement) {
@@ -574,10 +599,11 @@ class FosterCheckout extends Plugin
 	{
 		$this->registerTwigVariable();
 		$this->registerTemplateRoots();
-		$this->allowPostieRatesOnSinglePageCheckout();
+		$this->allowPostieRatesOnCheckout();
 		$this->allowEmptyPhoneOnSinglePageCartSave();
 		$this->requireCheckoutAddressFields();
 		$this->requireCheckoutFields();
+		$this->markNotShippableProducts();
 		$this->applyCheckoutFieldsOnCartUpdate();
 		$this->applyCustomerAddressesOnCartUpdate();
 		$this->registerPermissions();
@@ -674,6 +700,32 @@ class FosterCheckout extends Plugin
 			View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
 			static function (RegisterTemplateRootsEvent $event): void {
 				$event->roots['foster-checkout'] = __DIR__ . '/templates';
+			}
+		);
+	}
+
+	/**
+	 * Commerce ships every variant, so a product condition is the only per-build answer.
+	 */
+	private function markNotShippableProducts(): void
+	{
+		Event::on(
+			Purchasables::class,
+			Purchasables::EVENT_PURCHASABLE_SHIPPABLE,
+			function (PurchasableShippableEvent $purchasableShippableEvent): void {
+				/** @var Settings $settings */
+				$settings = $this->getSettings();
+				$purchasable = $purchasableShippableEvent->purchasable;
+
+				if ($settings->notShippableProducts === [] || ! $purchasable instanceof Variant) {
+					return;
+				}
+
+				$product = $purchasable->getOwner();
+
+				if ($product instanceof Product && $settings->getNotShippableProductsCondition()->matchElement($product)) {
+					$purchasableShippableEvent->isShippable = false;
+				}
 			}
 		);
 	}

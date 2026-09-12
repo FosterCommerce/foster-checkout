@@ -326,6 +326,8 @@ return [
 	'settings.products.productImage' => 'Product image field',
 	'settings.products.variantImage' => 'Variant image field',
 	'settings.products.addRow' => 'Add a product type',
+	'settings.products.notShippable' => 'Products that never ship',
+	'settings.products.notShippableHelp' => 'Variants of a matching product need no shipping address or method, and Commerce and shipping plugins treat them as not shippable. Leave empty to ship everything.',
 
 	'settings.gateways.intro' => 'Extra fields and options shown when a customer picks a payment method. Every gateway configured in Commerce is listed.',
 	'settings.gateways.none' => 'No payment gateways are set up in Commerce yet.',

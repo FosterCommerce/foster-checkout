@@ -197,6 +197,11 @@ return [
 	// ]
 	// */
 	// ],
+	// Products whose variants never ship, as a Commerce product condition. Their orders skip the
+	// shipping address and method at checkout and count as not shippable for Commerce and Postie.
+	// Build it at Checkout -> Products and copy the project config value, or leave it to the CP.
+	// 'notShippableProducts' => [],
+
 	// Payment Gateways: keyed by the payment gateway handle configured in Craft Commerce.
 	// Which fields a gateway asks for is a field layout, edited at Checkout -> Gateways, not config.
 	// A note may be a closure when it needs to be computed; otherwise it is edited at Checkout -> Content.

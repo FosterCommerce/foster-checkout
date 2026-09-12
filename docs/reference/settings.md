@@ -10,6 +10,7 @@ Every setting is editable in the control panel under **Checkout**. A site may al
 | **Features** | `options` and `addressLookup` | Checkout page layout format, the other `enable*` switches, and the Klaviyo list ID. Blank list ID hides the newsletter checkbox. Multi-page is the default |
 | **Line Items** | `lineItems` and `lineItemOptionRules` | Whether a line item shows its SKU and its stock count, whether its options are shown, which option names are hidden, how far option values are cut, and the rules that rewrite an option's name and value |
 | **Products** | `products` | Per product type, the field holding the cart preview image. Blank falls back to the product's own image |
+| **Products** | `notShippableProducts` | A product condition. Variants of a matching product are not shippable: their orders skip the shipping address and method, and Commerce and shipping plugins leave them out. Empty ships everything |
 | **Gateways** | `paymentGateways` | Per gateway: the name customers see, a field layout, and extra payment form parameters |
 | **General** | `paths` and the keys below | Cart, checkout, account and cancel paths, plus the built-in cart template switch |
 
@@ -79,6 +80,7 @@ Every setting and its default, as the plugin ships.
 | Product image fields | `products` | empty |
 | Product image field | `products.<handle>.productImageHandle` | none, so the product's own image is used |
 | Variant image field | `products.<handle>.variantImageHandle` | none |
+| Products that never ship | `notShippableProducts` | empty |
 | Payment gateways | `paymentGateways` | empty |
 | Gateway name customers see | `paymentGateways.<handle>.label` | empty, so the gateway's own name is used |
 | Gateway note | `paymentGateways.<handle>.note` | empty |

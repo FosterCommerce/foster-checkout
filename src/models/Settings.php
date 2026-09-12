@@ -5,6 +5,7 @@ namespace fostercommerce\fostercheckout\models;
 use Craft;
 use craft\base\Field;
 use craft\base\Model;
+use craft\commerce\elements\conditions\products\ProductCondition;
 use craft\web\View;
 
 class Settings extends Model
@@ -87,6 +88,13 @@ class Settings extends Model
 	public array $requiredAddressFields = [];
 
 	/**
+	 * Products whose variants never ship, as a product condition. Empty means every variant ships.
+	 *
+	 * @var array<string, mixed>
+	 */
+	public array $notShippableProducts = [];
+
+	/**
 	 * Whether checkout address forms offer a third address line.
 	 */
 	public bool $showAddressLine3 = false;
@@ -120,6 +128,19 @@ class Settings extends Model
 		if (! isset($this->includes)) {
 			$this->includes = new IncludesConfig();
 		}
+	}
+
+	public function getNotShippableProductsCondition(): ProductCondition
+	{
+		/** @var list<array<string, mixed>> $rules */
+		$rules = (array) ($this->notShippableProducts['conditionRules'] ?? []);
+		$condition = new ProductCondition();
+		$condition->setConditionRules($rules);
+
+		$condition->mainTag = 'div';
+		$condition->name = 'settings[notShippableProducts]';
+
+		return $condition;
 	}
 
 	/**

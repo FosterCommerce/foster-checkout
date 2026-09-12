@@ -33,7 +33,9 @@
 	{% set _hasMatch = cart.hasMatchingAddresses() %}
 	{% set _hasBillingRecord = cart.billingAddressId is not empty %}
 	{% set _isNewBilling = (not _hasMatch) and (_sourceBillId is null) and _hasBillingRecord %}
-	{% set _initialBillingSame = _hasMatch ? 1 : 0 %}
+	{# Commerce refuses payment without a shipping address when the store requires one, shippable or not #}
+	{% set _collectShipping = cart.hasShippableItems() or currentStore.requireShippingAddressAtCheckout %}
+	{% set _initialBillingSame = (_hasMatch and _collectShipping) ? 1 : 0 %}
 	{# Leave the book id null when same as shipping, so only one radio reads as selected #}
 	{% set _initialBillingAddressId = _hasMatch ? null : _sourceBillId %}
 	{% set _initialNewBilling = _isNewBilling ? 1 : 0 %}
@@ -111,33 +113,36 @@
 											<input type="hidden" x-ref="postBillingId" name="billingAddressId" value="">
 											<input type="hidden" x-ref="postNewBilling" name="useNewBillingAddress" value="">
 
-											<div class="p-4" :class="{ 'bg-gray-100': parseInt(billingSameAsShipping) === 1 }">
-												<div class="radio">
-													<input
-														id="billingSameAsShipping_1"
-														type="radio"
-														class="absolute opacity-0 w-px h-px"
-														name="billingAddressId_radio"
-														x-model.number="billingSameAsShipping"
-														value="1"
-														@change="newBillingAddress = 0; billingAddressId = null; editBillingAddressId = 0"
-													>
-													<label for="billingSameAsShipping_1" class="flex justify-start items-center gap-4 cursor-pointer">
-														<span class="block">
-															<span class="block" :class="{ 'font-medium text-black': parseInt(billingSameAsShipping) === 1 }">
-															{{ 'billing.sameAsShippingAddress'|t('foster-checkout') }}
+											{# Skip the same-as-shipping choice, since no shipping address is collected #}
+											{% if _collectShipping %}
+												<div class="p-4" :class="{ 'bg-gray-100': parseInt(billingSameAsShipping) === 1 }">
+													<div class="radio">
+														<input
+															id="billingSameAsShipping_1"
+															type="radio"
+															class="absolute opacity-0 w-px h-px"
+															name="billingAddressId_radio"
+															x-model.number="billingSameAsShipping"
+															value="1"
+															@change="newBillingAddress = 0; billingAddressId = null; editBillingAddressId = 0"
+														>
+														<label for="billingSameAsShipping_1" class="flex justify-start items-center gap-4 cursor-pointer">
+															<span class="block">
+																<span class="block" :class="{ 'font-medium text-black': parseInt(billingSameAsShipping) === 1 }">
+																{{ 'billing.sameAsShippingAddress'|t('foster-checkout') }}
+																</span>
+																<span class="block mt-2 text-gray-500">
+																{% include 'foster-checkout/_components/app/formatted-address' with { address: cart.shippingAddress } %}
+																</span>
 															</span>
-															<span class="block mt-2 text-gray-500">
-															{% include 'foster-checkout/_components/app/formatted-address' with { address: cart.shippingAddress } %}
-															</span>
-														</span>
-													</label>
+														</label>
+													</div>
 												</div>
-											</div>
+											{% endif %}
 
 											{# Address book choices (exclude the shipping source id so the first option is meaningfully different) #}
 											{% for address in addresses %}
-												{% if _shippingId is not defined or address.id != _shippingId %}
+												{% if not _collectShipping or _shippingId is not defined or address.id != _shippingId %}
 													<div class="p-4 border-t"
 															:class="{ 'bg-gray-100': parseInt(billingAddressId) === {{ address.id }} && !billingSameAsShipping }">
 														<div class="flex justify-between items-center gap-4 radio">
