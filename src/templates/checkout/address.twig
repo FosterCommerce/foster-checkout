@@ -177,29 +177,6 @@
 											</label>
 										</div>
 
-										{% if _pickupAvailable %}
-											<div class="p-4 radio border-t border-gray-250" :class="{ 'bg-gray-100': shippingPickup }">
-												<input
-													id="address_pickup"
-													name="shippingAddressId_radio"
-													type="radio"
-													class="sr-only"
-													x-model="shippingAddressId"
-													value="pickup"
-													@change="useNewAddress = 0; editExistingAddress = 0"
-												/>
-												<label
-													for="address_pickup"
-													class="inline-flex justify-start items-center gap-4 cursor-pointer"
-													:class="{ 'font-medium text-black': shippingPickup }"
-												>
-													<span class="block">
-														<span class="block">{{ craft.fostercheckout.customerPickupLabel() }}</span>
-														<span class="block mt-2 font-normal text-gray-500">{{ craft.fostercheckout.customerPickupPreview(cart) }}</span>
-													</span>
-												</label>
-											</div>
-										{% endif %}
 
 										{# Save-to-book checkbox and new address form #}
 										{%- set initialSaveParam = craft.app.request.getParam('saveShippingAddressOnOrderComplete') -%}
@@ -249,6 +226,30 @@
 											</template>
 										</div>
 									</div>
+
+									{% if _pickupAvailable %}
+										<div class="p-4 radio border-t border-gray-250" :class="{ 'bg-gray-100': shippingPickup }">
+											<input
+												id="address_pickup"
+												name="shippingAddressId_radio"
+												type="radio"
+												class="sr-only"
+												x-model="shippingAddressId"
+												value="pickup"
+												@change="useNewAddress = 0; editExistingAddress = 0"
+											/>
+											<label
+												for="address_pickup"
+												class="inline-flex justify-start items-center gap-4 cursor-pointer"
+												:class="{ 'font-medium text-black': shippingPickup }"
+											>
+												<span class="block">
+													<span class="block">{{ craft.fostercheckout.customerPickupLabel() }}</span>
+													<span class="block mt-2 font-normal text-gray-500">{{ craft.fostercheckout.customerPickupPreview(cart) }}</span>
+												</span>
+											</label>
+										</div>
+									{% endif %}
 								</div>
 
 								{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'shippingAddress' } %}

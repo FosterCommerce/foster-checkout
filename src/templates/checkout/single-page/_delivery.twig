@@ -24,6 +24,43 @@
 		@selected="$nextTick(() => saveIfValid('delivery', $event))"
 	>
 		{% set canSaveAddresses = craft.fostercheckout.canSaveAddresses(cart) %}
+		{# Captured once, since it renders under the new-address radio or on its own when no radio does #}
+		{% set newAddressForm %}
+			<template x-if="useNewAddress">
+				<div class="p-4" data-fc-new-shipping x-init="applyDraftAddress('shipping')">
+					{% set address = null %}
+					{% if cart.shippingAddressId is not null and cart.sourceShippingAddressId is null and not customerPickup %}
+						{% set address = craft.addresses().id(cart.shippingAddressId).one() %}
+					{% elseif cart.shippingAddress %}
+						{% set address = cart.shippingAddress %}
+					{% endif %}
+
+					{% include 'foster-checkout/_components/app/address-fields' with {
+						context: 'shippingAddress',
+						address: address,
+					} %}
+
+					{% if currentUser and canSaveAddresses %}
+						<div class="mt-4 checkbox">
+							<input
+								type="checkbox"
+								id="saveShippingAddressOnOrderComplete"
+								class="sr-only"
+								name="saveShippingAddressOnOrderComplete"
+								value="1"
+							/>
+							<label
+								class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
+								for="saveShippingAddressOnOrderComplete"
+							>
+								{{ 'address.saveToAddressBook'|t('foster-checkout') }}
+							</label>
+						</div>
+					{% endif %}
+				</div>
+			</template>
+		{% endset %}
+
 		<div class="xl:border xl:border-gray-250 xl:rounded-lg">
 			{% if (currentUser and addresses|length) or pickupAvailable %}
 				{% for address in addresses %}
@@ -111,6 +148,7 @@
 							{{ 'address.newAddress'|t('foster-checkout') }}
 						</label>
 					</div>
+					{{ newAddressForm }}
 				</div>
 
 				{% if pickupAvailable %}
@@ -138,41 +176,9 @@
 						</div>
 					</div>
 				{% endif %}
+			{% else %}
+				{{ newAddressForm }}
 			{% endif %}
-
-			<template x-if="useNewAddress">
-				<div class="p-4" data-fc-new-shipping x-init="applyDraftAddress('shipping')">
-					{% set address = null %}
-					{% if cart.shippingAddressId is not null and cart.sourceShippingAddressId is null and not customerPickup %}
-						{% set address = craft.addresses().id(cart.shippingAddressId).one() %}
-					{% elseif cart.shippingAddress %}
-						{% set address = cart.shippingAddress %}
-					{% endif %}
-
-					{% include 'foster-checkout/_components/app/address-fields' with {
-						context: 'shippingAddress',
-						address: address,
-					} %}
-
-					{% if currentUser and canSaveAddresses %}
-						<div class="mt-4 checkbox">
-							<input
-								type="checkbox"
-								id="saveShippingAddressOnOrderComplete"
-								class="sr-only"
-								name="saveShippingAddressOnOrderComplete"
-								value="1"
-							/>
-							<label
-								class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
-								for="saveShippingAddressOnOrderComplete"
-							>
-								{{ 'address.saveToAddressBook'|t('foster-checkout') }}
-							</label>
-						</div>
-					{% endif %}
-				</div>
-			</template>
 		</div>
 
 		{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'shippingAddress', showRequired: true } %}
