@@ -77,6 +77,15 @@
 			</section>
 		{% endif %}
 
+		{% set paymentBlock = craft.fostercheckout.paymentBlock(cart) %}
+		{% if paymentBlock %}
+		<section>
+			<h3 class="mb-4 font-semibold">
+				{{ 'payment.paymentMethod'|t('foster-checkout') }}
+			</h3>
+			<p class="text-sm text-gray-500" role="status">{{ paymentBlock }}</p>
+		</section>
+		{% else %}
 		<section class="relative">
 			<h3 class="mb-4 font-semibold" x-show="!paying">
 				{{ 'payment.paymentMethod'|t('foster-checkout') }}
@@ -289,5 +298,6 @@
 				</div>
 			</div>
 		</section>
+		{% endif %}
 	</div>
 </section>

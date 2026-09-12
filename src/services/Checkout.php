@@ -31,6 +31,7 @@ use DateTime;
 use fostercommerce\advanceddiscounts\Plugin as AdvancedDiscounts;
 use fostercommerce\advanceddiscounts\variables\AdvancedDiscountsVariable;
 use fostercommerce\fostercheckout\events\DefineCheckoutContactEvent;
+use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\helpers\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\models\DeliveryDate;
@@ -86,6 +87,7 @@ class Checkout extends Component
 	 *
 	 * ```php
 	 * use fostercommerce\fostercheckout\events\DefineCheckoutContactEvent;
+use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
 	 * use fostercommerce\fostercheckout\services\Checkout;
 	 * use yii\base\Event;
 	 *
@@ -101,6 +103,29 @@ class Checkout extends Component
 	 * @since 1.1.0
 	 */
 	public const string EVENT_DEFINE_CONTACT = 'defineContact';
+
+	/**
+	 * @event DefinePaymentBlockEvent The event that is triggered when deciding whether an order can be paid at checkout.
+	 *
+	 * ```php
+	 * use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
+	 * use fostercommerce\fostercheckout\services\Checkout;
+	 * use yii\base\Event;
+	 *
+	 * Event::on(
+	 *     Checkout::class,
+	 *     Checkout::EVENT_DEFINE_PAYMENT_BLOCK,
+	 *     function (DefinePaymentBlockEvent $event) {
+	 *         if ($event->order->getCustomer()?->isCredentialed === false) {
+	 *             $event->reason = 'Activate your account before paying.';
+	 *         }
+	 *     }
+	 * );
+	 * ```
+	 *
+	 * @since 1.4.1
+	 */
+	public const string EVENT_DEFINE_PAYMENT_BLOCK = 'definePaymentBlock';
 
 	/**
 	 * @var array<string, array<int, string>>|null
@@ -135,6 +160,26 @@ class Checkout extends Component
 		$this->trigger(self::EVENT_DEFINE_CONTACT, $defineContactEvent);
 
 		return $defineContactEvent->value ?? (string) $order->email;
+	}
+
+	/**
+	 * Why the order cannot be paid at checkout, or null when it can. Shown in place of the payment form.
+	 *
+	 * @since 1.4.1
+	 */
+	public function paymentBlock(Order $order): ?string
+	{
+		if (! $this->hasEventHandlers(self::EVENT_DEFINE_PAYMENT_BLOCK)) {
+			return null;
+		}
+
+		$definePaymentBlockEvent = new DefinePaymentBlockEvent([
+			'order' => $order,
+		]);
+
+		$this->trigger(self::EVENT_DEFINE_PAYMENT_BLOCK, $definePaymentBlockEvent);
+
+		return $definePaymentBlockEvent->reason;
 	}
 
 	/**

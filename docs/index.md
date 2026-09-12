@@ -28,6 +28,7 @@ A drop-in checkout for Craft Commerce, with its copy and settings managed from t
 - [Contributed fields](./dev-guide/contributed-fields.md), adding a checkout field your own code stores
 - [Checkout for another customer](./dev-guide/checkout-for-another-customer.md), running the checkout against an account the shopper is buying for
 - [Detecting a pickup order](./dev-guide/customer-pickup.md), telling a pickup order from a shipped one in PHP, Twig or the cart response
+- [Blocking payment](./dev-guide/blocking-payment.md), hiding the payment form with a reason your code decides
 
 **Managing access?**
 

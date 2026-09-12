@@ -1,5 +1,16 @@
 # Release Notes for Foster Checkout
 
+## 1.4.1 - 2026-09-12
+
+### Added
+
+- Added a `Checkout::EVENT_DEFINE_PAYMENT_BLOCK` event and `craft.fostercheckout.paymentBlock(order)`, so a module can hide the payment form and show a reason instead.
+
+### Fixed
+
+- Fixed the new shipping address form rendering below the “Customer pickup” choice on both checkouts.
+- Fixed the single-page checkout's error and coupon messages sitting flush against the panels below them.
+
 ## 1.4.0 - 2026-09-12
 
 ### Added
