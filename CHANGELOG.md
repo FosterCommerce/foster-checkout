@@ -1,5 +1,20 @@
 # Release Notes for Foster Checkout
 
+## 1.4.2 - 2026-09-12
+
+### Added
+
+- Added a `Checkout::EVENT_DEFINE_PAYMENT_FORM_PARAMS` event, so a module can change what a gateway's payment form is rendered with for one order.
+- Added a “No shipping methods message” at **Checkout -> Content**, shown in the shipping method panel when nothing can be quoted.
+
+### Changed
+
+- A gateway's **Extra parameters** now merge into the Stripe payment form as well, not only PayPal's.
+
+### Fixed
+
+- Fixed stray import lines inside two event docblocks.
+
 ## 1.4.1 - 2026-09-12
 
 ### Added

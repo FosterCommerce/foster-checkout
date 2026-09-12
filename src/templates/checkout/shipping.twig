@@ -112,7 +112,7 @@
 										{% endfor %}
 									</div>
 								{% else %}
-									<p>{{ 'shipping.noMethodAvailable'|t('foster-checkout') }}.</p>
+									<div class="[&_a]:underline [&_a:hover]:decoration-current">{{ craft.fostercheckout.noShippingMethodsText(cart)|raw }}</div>
 								{% endif %}
 
 								{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'shippingMethod' } %}
