@@ -62,4 +62,19 @@
 
 	{% include 'foster-checkout/_includes/plugin-footer' %}
 
+	<hr>
+
+	{% if 'notShippableProducts' in overriddenSettings %}
+		<p class="warning with-icon">{{ 'settings.overridden'|t('foster-checkout', { setting: 'notShippableProducts' }) }}</p>
+	{% else %}
+		{% set notShippableInput %}
+			{{ settings.getNotShippableProductsCondition().getBuilderHtml()|raw }}
+		{% endset %}
+
+		{{ forms.field({
+			label: 'settings.products.notShippable'|t('foster-checkout'),
+			instructions: 'settings.products.notShippableHelp'|t('foster-checkout'),
+			id: 'notShippableProducts',
+		}, notShippableInput) }}
+	{% endif %}
 {% endblock %}

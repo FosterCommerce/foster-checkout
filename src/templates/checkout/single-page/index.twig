@@ -32,6 +32,9 @@
 	{% set initialShippingAddressId = isNewAddress ? 0 : (sourceId ?? (addresses|length ? addresses|first.id : 0)) %}
 
 	{% set live = craft.fostercheckout.checkoutLiveState(cart) %}
+	{% set shippable = cart.hasShippableItems() %}
+	{# Commerce refuses payment without a shipping address when the store requires one, shippable or not #}
+	{% set collectShipping = shippable or currentStore.requireShippingAddressAtCheckout %}
 
 	{% set sourceBillId = cart.sourceBillingAddressId ?? null %}
 	{% set hasMatch = cart.hasMatchingAddresses() %}
@@ -56,14 +59,16 @@
 		email: cart.email ?? '',
 		cartId: cart.id,
 		klaviyoEnabled: craft.fostercheckout.klaviyoTrackingEnabled(cart) ? true : false,
-		shippingAddressId: initialShippingAddressId,
-		useNewAddress: isNewAddress ? true : false,
+		shippingAddressId: collectShipping ? initialShippingAddressId : 0,
+		useNewAddress: (collectShipping and isNewAddress) ? true : false,
 		shippingMethodHandle: live.shippingMethodHandle,
+		shippable: shippable,
+		collectShipping: collectShipping,
 		requireShippingMethod: currentStore.requireShippingMethodSelectionAtCheckout ? true : false,
 		shippingMethods: live.shippingMethods,
 		totals: live.totals,
 		lineItemTotals: live.lineItemTotals,
-		billingSameAsShipping: hasMatch ? true : false,
+		billingSameAsShipping: (hasMatch and collectShipping) ? true : false,
 		billingAddressId: hasMatch ? null : sourceBillId,
 		useNewBillingAddress: isNewBilling ? true : false,
 		gatewayId: initialGatewayId,
@@ -107,8 +112,12 @@
 				<p class="sr-only" role="status" aria-live="polite" aria-atomic="true" x-text="status"></p>
 				<div class="grid grid-cols-1 gap-6">
 					{% include 'foster-checkout/checkout/single-page/_contact' %}
-					{% include 'foster-checkout/checkout/single-page/_delivery' %}
-					{% include 'foster-checkout/checkout/single-page/_shipping' %}
+					{% if collectShipping %}
+						{% include 'foster-checkout/checkout/single-page/_delivery' %}
+					{% endif %}
+					{% if shippable %}
+						{% include 'foster-checkout/checkout/single-page/_shipping' %}
+					{% endif %}
 				</div>
 			</main>
 

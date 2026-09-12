@@ -10,34 +10,37 @@
 	</h3>
 
 	<div class="xl:border xl:border-gray-250 xl:rounded-lg">
-		<div class="p-4" :class="{ 'bg-gray-100': billingSameAsShipping }">
-			<div class="radio">
-				<input
-					id="sp_billingSameAsShipping"
-					type="radio"
-					class="absolute opacity-0 w-px h-px"
-					name="billingAddressId_radio"
-					:checked="billingSameAsShipping"
-					@change="billingSameAsShipping = true; useNewBillingAddress = false; billingAddressId = null; editBillingAddressId = 0"
-				>
-				<label for="sp_billingSameAsShipping" class="flex justify-start items-center gap-4 cursor-pointer">
-					<span class="block">
-						<span class="block" :class="{ 'font-medium text-black': billingSameAsShipping }">
-							{{ 'billing.sameAsShippingAddress'|t('foster-checkout') }}
+		{# Skip the same-as-shipping choice, since no shipping address is collected #}
+		{% if collectShipping %}
+			<div class="p-4" :class="{ 'bg-gray-100': billingSameAsShipping }">
+				<div class="radio">
+					<input
+						id="sp_billingSameAsShipping"
+						type="radio"
+						class="absolute opacity-0 w-px h-px"
+						name="billingAddressId_radio"
+						:checked="billingSameAsShipping"
+						@change="billingSameAsShipping = true; useNewBillingAddress = false; billingAddressId = null; editBillingAddressId = 0"
+					>
+					<label for="sp_billingSameAsShipping" class="flex justify-start items-center gap-4 cursor-pointer">
+						<span class="block">
+							<span class="block" :class="{ 'font-medium text-black': billingSameAsShipping }">
+								{{ 'billing.sameAsShippingAddress'|t('foster-checkout') }}
+							</span>
+							{# An unfilled shipping address is not a missing one, so it goes unremarked #}
+							<span class="block mt-2 text-gray-500" x-show="shippingPreview">
+								<p>
+									<span class="block" x-text="shippingPreview">{{ live.shippingPreview ?? '' }}</span>
+								</p>
+							</span>
 						</span>
-						{# An unfilled shipping address is not a missing one, so it goes unremarked #}
-						<span class="block mt-2 text-gray-500" x-show="shippingPreview">
-							<p>
-								<span class="block" x-text="shippingPreview">{{ live.shippingPreview ?? '' }}</span>
-							</p>
-						</span>
-					</span>
-				</label>
+					</label>
+				</div>
 			</div>
-		</div>
+		{% endif %}
 
 		{% for address in addresses %}
-			{% if shippingSourceId is empty or address.id != shippingSourceId %}
+			{% if not collectShipping or shippingSourceId is empty or address.id != shippingSourceId %}
 				<div class="p-4 border-t" :class="{ 'bg-gray-100': parseInt(billingAddressId) === {{ address.id }} && !billingSameAsShipping }">
 					<div class="flex justify-between items-center gap-4 radio">
 						<input

@@ -5962,7 +5962,7 @@ const gatewayHandling = () => ({
       this.panelFieldsReady("delivery", null, true);
       return;
     }
-    if (!this.hasEmail || !this.hasShippingSelection || !this.cartHasShippingAddress || !this.hasShippingMethod || !this.hasBilling) {
+    if (!this.hasEmail || !this.hasShippingSelection || !this.cartHasShippingAddress && this.collectShipping || !this.hasShippingMethod || !this.hasBilling) {
       this.panelFieldsReady("delivery", null, true);
       return;
     }
@@ -6350,6 +6350,8 @@ const SinglePageCheckout = (props) => {
     shippingAddressId: props.shippingAddressId,
     useNewAddress: props.useNewAddress ?? false,
     shippingMethodHandle: props.shippingMethodHandle ?? "",
+    shippable: props.shippable ?? true,
+    collectShipping: props.collectShipping ?? true,
     requireShippingMethod: props.requireShippingMethod ?? false,
     billingSameAsShipping: props.billingSameAsShipping ?? true,
     billingAddressId: props.billingAddressId,
@@ -6553,6 +6555,9 @@ const SinglePageCheckout = (props) => {
       return isValidEmail(this.email);
     },
     get hasShippingMethod() {
+      if (!this.shippable) {
+        return true;
+      }
       if (!this.hasShippingMethods) {
         return !this.requireShippingMethod;
       }
@@ -6568,9 +6573,15 @@ const SinglePageCheckout = (props) => {
       return Boolean(this.billingAddressId);
     },
     get hasShippingSelection() {
+      if (!this.collectShipping) {
+        return true;
+      }
       return Boolean(this.useNewAddress) || Boolean(this.shippingAddressId);
     },
     get deliveryReadyForPay() {
+      if (!this.collectShipping) {
+        return true;
+      }
       if (!this.useNewAddress && this.shippingAddressId) {
         return true;
       }
@@ -6597,7 +6608,7 @@ const SinglePageCheckout = (props) => {
       );
     },
     get canPay() {
-      return this.checkoutFieldsReady && this.pending === 0 && !this.saveTimer && this.statusTone !== "error" && this.hasEmail && this.hasShippingSelection && this.cartHasShippingAddress && this.hasShippingMethod && this.hasBilling && this.deliveryReadyForPay && !this.loadingShippingMethods;
+      return this.checkoutFieldsReady && this.pending === 0 && !this.saveTimer && this.statusTone !== "error" && this.hasEmail && this.hasShippingSelection && (this.cartHasShippingAddress || !this.collectShipping) && this.hasShippingMethod && this.hasBilling && this.deliveryReadyForPay && !this.loadingShippingMethods;
     },
     get payButtonLabel() {
       return `${this.payButtonText} ${this.totals.totalAsCurrency || ""}`.trim();

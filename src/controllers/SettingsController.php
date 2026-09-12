@@ -4,6 +4,7 @@ namespace fostercommerce\fostercheckout\controllers;
 
 use Craft;
 use craft\commerce\base\GatewayInterface;
+use craft\commerce\elements\conditions\products\ProductCondition;
 use craft\commerce\elements\Order;
 use craft\commerce\Plugin as Commerce;
 use craft\helpers\ArrayHelper;
@@ -653,6 +654,16 @@ class SettingsController extends Controller
 	 */
 	private function normalizeTables(array $postedSettings): array
 	{
+		if (isset($postedSettings['notShippableProducts'])) {
+			$posted = (array) $postedSettings['notShippableProducts'];
+			/** @var list<array<string, mixed>> $rules */
+			$rules = (array) ($posted['conditionRules'] ?? []);
+			$condition = new ProductCondition();
+			$condition->setConditionRules($rules);
+			$config = $condition->getConfig();
+			$postedSettings['notShippableProducts'] = $config['conditionRules'] === [] ? [] : $config;
+		}
+
 		if (isset($postedSettings['products'])) {
 			$products = [];
 

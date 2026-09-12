@@ -137,7 +137,7 @@
 					<dd class="text-right text-black" x-text="totals.itemsAsCurrency">{{ live.totals.itemsAsCurrency ?? '' }}</dd>
 				</div>
 
-				<div class="flex justify-between items-center gap-4" x-show="cartHasShippingAddress" x-cloak>
+				<div class="flex justify-between items-center gap-4" x-show="cartHasShippingAddress && shippable" x-cloak>
 					<dt class="text-gray-500">{{ 'summary.shippingLabel'|t('foster-checkout') }}</dt>
 					<dd
 						class="text-right"

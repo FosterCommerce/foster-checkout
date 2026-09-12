@@ -23,6 +23,8 @@ export const SinglePageCheckout = (props) => {
 		shippingAddressId: props.shippingAddressId,
 		useNewAddress: props.useNewAddress ?? false,
 		shippingMethodHandle: props.shippingMethodHandle ?? '',
+		shippable: props.shippable ?? true,
+		collectShipping: props.collectShipping ?? true,
 		requireShippingMethod: props.requireShippingMethod ?? false,
 		billingSameAsShipping: props.billingSameAsShipping ?? true,
 		billingAddressId: props.billingAddressId,
@@ -243,6 +245,10 @@ export const SinglePageCheckout = (props) => {
 		},
 
 		get hasShippingMethod() {
+			if (!this.shippable) {
+				return true;
+			}
+
 			if (!this.hasShippingMethods) {
 				return !this.requireShippingMethod;
 			}
@@ -263,10 +269,18 @@ export const SinglePageCheckout = (props) => {
 		},
 
 		get hasShippingSelection() {
+			if (!this.collectShipping) {
+				return true;
+			}
+
 			return Boolean(this.useNewAddress) || Boolean(this.shippingAddressId);
 		},
 
 		get deliveryReadyForPay() {
+			if (!this.collectShipping) {
+				return true;
+			}
+
 			if (!this.useNewAddress && this.shippingAddressId) {
 				return true;
 			}
@@ -311,7 +325,7 @@ export const SinglePageCheckout = (props) => {
 				this.statusTone !== 'error' &&
 				this.hasEmail &&
 				this.hasShippingSelection &&
-				this.cartHasShippingAddress &&
+				(this.cartHasShippingAddress || !this.collectShipping) &&
 				this.hasShippingMethod &&
 				this.hasBilling &&
 				this.deliveryReadyForPay &&

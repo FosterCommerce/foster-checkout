@@ -32,8 +32,8 @@
 	{% set _hasCartHandle = _cartHandle and (_cartHandle in availableShippingMethodOptions|keys) %}
 	{% set _initialHandle = _hasCartHandle ? _cartHandle : onlyMethod %}
 
-	{# If store doesn’t require selection and no methods, skip #}
-	{% if optionCount == 0 and currentStore.requireShippingMethodSelectionAtCheckout == false %}
+	{# Skip when there are no methods, since Commerce only insists on one when something ships #}
+	{% if optionCount == 0 and (currentStore.requireShippingMethodSelectionAtCheckout == false or not cart.hasShippableItems()) %}
 		{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/payment' %}
 	{% endif %}
 

@@ -38,7 +38,7 @@ export const gatewayHandling = () => ({
 		if (
 			!this.hasEmail ||
 			!this.hasShippingSelection ||
-			!this.cartHasShippingAddress ||
+			(!this.cartHasShippingAddress && this.collectShipping) ||
 			!this.hasShippingMethod ||
 			!this.hasBilling
 		) {

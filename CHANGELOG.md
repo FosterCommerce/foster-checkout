@@ -1,5 +1,18 @@
 # Release Notes for Foster Checkout
 
+## 1.3.0 - 2026-09-12
+
+### Added
+
+- Added a “Products that never ship” condition at **Checkout -> Products**, also settable as `notShippableProducts` in config. Variants of a matching product count as not shippable for Commerce, Postie and other shipping plugins.
+
+### Changed
+
+- The single-page checkout no longer shows the shipping address panel, the shipping method panel, the “same as shipping address” option or the shipping row when nothing in the cart ships. The address panel stays when the store requires a shipping address.
+- The multi-page address and shipping steps now redirect past themselves when nothing in the cart ships.
+- Required checkout fields at the shipping address and shipping method positions are no longer enforced when that step does not render.
+- Postie rates are now fetched on the multi-page shipping step, not only on the single-page checkout.
+
 ## 1.2.2 - 2026-09-10
 
 ### Fixed

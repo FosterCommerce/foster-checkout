@@ -2,6 +2,11 @@
 	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) %}
 {% endif %}
 
+{# Commerce refuses payment without a shipping address when the store requires one, shippable or not #}
+{% if not (craft.commerce.carts.cart.hasShippableItems() or currentStore.requireShippingAddressAtCheckout) %}
+	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/billing' %}
+{% endif %}
+
 {% extends 'foster-checkout/_layouts/default' %}
 {% set cart = cart is not defined ? craft.commerce.carts.cart : cart %}
 {% set canViewAddresses = craft.fostercheckout.canViewAddresses(cart) %}
