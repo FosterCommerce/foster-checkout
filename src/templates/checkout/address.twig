@@ -39,8 +39,10 @@
 	{% set _sourceId = cart.sourceShippingAddressId ?? null %}
 	{% set _hasCartShip = cart.shippingAddressId is not empty %}
 	{% set _hasBookAddresses = currentUser and addresses|length %}
+	{% set _pickupAvailable = craft.fostercheckout.customerPickupAvailable(cart) %}
+	{% set _pickup = craft.fostercheckout.isCustomerPickup(cart) %}
 	{# Treat as "new address" if no source ID and either a cart address exists or user has no saved addresses #}
-	{% set _isNew = (_sourceId is null) and (_hasCartShip or not _hasBookAddresses) %}
+	{% set _isNew = (not _pickup) and (_sourceId is null) and (_hasCartShip or not _hasBookAddresses) %}
 	{# Default to first saved address if available, otherwise source ID, otherwise new address (0) #}
 	{% set _initialRadio = _isNew ? 0 : (_sourceId ?? (addresses|length ? addresses|first.id : 0)) %}
 
@@ -49,13 +51,18 @@
 			<main
 				x-data="{
 				  editExistingAddress: 0,
-				  shippingAddressId: {{ _initialRadio }},
+				  shippingAddressId: {{ _pickup ? "'pickup'" : _initialRadio }},
 				  useNewAddress: {{ _isNew ? 1 : 0 }},
+				  get shippingPickup() { return this.shippingAddressId === 'pickup'; },
 				}"
 				x-init="useNewAddress = Number(shippingAddressId) === 0 ? 1 : useNewAddress"
 				x-effect="
-				  $refs.postShipId.value = shippingAddressId;
+				  $refs.postShipId.value = shippingPickup ? 0 : shippingAddressId;
 				  $refs.postUseNew.value = useNewAddress ? 1 : 0;
+				  $refs.postPickup.value = shippingPickup ? 1 : 0;
+				  if ($refs.postBillingSame) {
+				    $refs.postBillingSame.value = shippingPickup ? 0 : 1;
+				  }
 				"
 				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0"
 			>
@@ -70,14 +77,16 @@
 						{{ csrfInput() }}
 
 						{# Always post the current selection. When new is selected, this posts 0 which tells Commerce not to bind to an address-book id. #}
-						<input type="hidden" x-ref="postShipId" name="shippingAddressId" value="{{ _initialRadio }}">
+						<input type="hidden" x-ref="postShipId" name="shippingAddressId" value="{{ _pickup ? 0 : _initialRadio }}">
 						<input type="hidden" x-ref="postUseNew" name="useNewAddress" value="{{ _isNew ? 1 : 0 }}">
+						<input type="hidden" x-ref="postPickup" name="shippingPickup" value="{{ _pickup ? 1 : 0 }}">
 
 						<template x-if="editExistingAddress === 0">
 							<div>
 								{{ actionInput('commerce/cart/update-cart') }}
 								{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/shipping') }}
-								{{ hiddenInput('billingAddressSameAsShipping', 1) }}
+								{# A pickup order is billed to the customer, never to the store location #}
+								<input type="hidden" x-ref="postBillingSame" name="billingAddressSameAsShipping" value="{{ _pickup ? 0 : 1 }}">
 							</div>
 						</template>
 						<template x-if="editExistingAddress !== 0">
@@ -96,7 +105,7 @@
 							<div class="p-4">
 								<div class="xl:border xl:border-gray-250 xl:rounded-lg">
 
-									{% if currentUser and addresses|length %}
+									{% if _hasBookAddresses or _pickupAvailable %}
 										{% for address in addresses %}
 											<div class="p-4 border-b border-gray-250"
 													 :class="{ 'bg-gray-100': (parseInt(shippingAddressId) === {{ address.id }} && useNewAddress === 0) }">
@@ -168,6 +177,30 @@
 											</label>
 										</div>
 
+										{% if _pickupAvailable %}
+											<div class="p-4 radio border-t border-gray-250" :class="{ 'bg-gray-100': shippingPickup }">
+												<input
+													id="address_pickup"
+													name="shippingAddressId_radio"
+													type="radio"
+													class="sr-only"
+													x-model="shippingAddressId"
+													value="pickup"
+													@change="useNewAddress = 0; editExistingAddress = 0"
+												/>
+												<label
+													for="address_pickup"
+													class="inline-flex justify-start items-center gap-4 cursor-pointer"
+													:class="{ 'font-medium text-black': shippingPickup }"
+												>
+													<span class="block">
+														<span class="block">{{ craft.fostercheckout.customerPickupLabel() }}</span>
+														<span class="block mt-2 font-normal text-gray-500">{{ craft.fostercheckout.customerPickupPreview(cart) }}</span>
+													</span>
+												</label>
+											</div>
+										{% endif %}
+
 										{# Save-to-book checkbox and new address form #}
 										{%- set initialSaveParam = craft.app.request.getParam('saveShippingAddressOnOrderComplete') -%}
 										{%- set initialSaveChecked = initialSaveParam is not empty and initialSaveParam|trim != '0' -%}
@@ -183,7 +216,7 @@
 											<template x-if="useNewAddress" x-cloak>
 												<div class="p-4">
 													{% set address = null %}
-													{% if cart.shippingAddressId is not null and cart.sourceShippingAddressId is null %}
+													{% if cart.shippingAddressId is not null and cart.sourceShippingAddressId is null and not _pickup %}
 														{% set address = craft.addresses().id(cart.shippingAddressId).one() %}
 													{% endif %}
 

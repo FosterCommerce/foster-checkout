@@ -27,9 +27,11 @@
 	{% set sourceId = cart.sourceShippingAddressId ?? null %}
 	{% set hasCartShip = cart.shippingAddressId is not empty %}
 	{% set hasBookAddresses = currentUser and addresses|length %}
+	{% set pickupAvailable = craft.fostercheckout.customerPickupAvailable(cart) %}
+	{% set customerPickup = craft.fostercheckout.isCustomerPickup(cart) %}
 	{# Open on the new address form when the book is empty, since no radio renders #}
-	{% set isNewAddress = not hasBookAddresses or ((sourceId is null) and hasCartShip) %}
-	{% set initialShippingAddressId = isNewAddress ? 0 : (sourceId ?? (addresses|length ? addresses|first.id : 0)) %}
+	{% set isNewAddress = not customerPickup and (not hasBookAddresses or ((sourceId is null) and hasCartShip)) %}
+	{% set initialShippingAddressId = customerPickup ? 'pickup' : (isNewAddress ? 0 : (sourceId ?? (addresses|length ? addresses|first.id : 0))) %}
 
 	{% set live = craft.fostercheckout.checkoutLiveState(cart) %}
 	{% set shippable = cart.hasShippableItems() %}
@@ -68,7 +70,7 @@
 		shippingMethods: live.shippingMethods,
 		totals: live.totals,
 		lineItemTotals: live.lineItemTotals,
-		billingSameAsShipping: (hasMatch and collectShipping) ? true : false,
+		billingSameAsShipping: (hasMatch and collectShipping and not customerPickup) ? true : false,
 		billingAddressId: hasMatch ? null : sourceBillId,
 		useNewBillingAddress: isNewBilling ? true : false,
 		gatewayId: initialGatewayId,
@@ -77,6 +79,8 @@
 		couponName: live.couponName ?? '',
 		couponMessages: live.couponMessages,
 		shippingPreview: live.shippingPreview,
+		pickupAvailable: pickupAvailable,
+		pickupPreview: pickupAvailable ? craft.fostercheckout.customerPickupPreview(cart) : '',
 		payButtonText: 'payment.payButtonText'|t('foster-checkout'),
 		processingLabel: 'payment.processing'|t('foster-checkout'),
 		placingOrderLabel: 'payment.placingOrder'|t('foster-checkout'),

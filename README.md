@@ -78,6 +78,18 @@ Which fields the address form asks for, and which of them are required, follow C
 
 See [`docs/user-guide/address-fields.md`](./docs/user-guide/address-fields.md) and [`docs/reference/settings.md`](./docs/reference/settings.md).
 
+## Products that never ship
+
+Mark services, training seats and other unshippable products with a product condition, and a cart holding only those skips the shipping address and method on both layouts. Commerce and shipping plugins treat their variants as not shippable, so a mixed cart is rated on what actually ships.
+
+See [`docs/user-guide/products-that-never-ship.md`](./docs/user-guide/products-that-never-ship.md).
+
+## Customer pickup
+
+Offer the store location as a shipping address choice, so a customer can collect an order. A pickup order ships to your own address, which a free shipping method can match by zone.
+
+See [`docs/user-guide/customer-pickup.md`](./docs/user-guide/customer-pickup.md) and [`docs/dev-guide/customer-pickup.md`](./docs/dev-guide/customer-pickup.md).
+
 ## Custom includes
 
 Two of your own templates can be injected into every cart and checkout page, one into the head and one before the closing body tag, for analytics, tracking pixels or support widgets. Each receives the current context, step and cart, so a single template can target one step or run across all of them.

@@ -73,6 +73,7 @@ use yii\base\InvalidConfigException;
  *     lineItemTotals: array<int, CheckoutLineItemTotals>,
  *     addressLabels: array<int, string>,
  *     shippingPreview: string,
+ *     customerPickup: bool,
  *     couponName: ?string,
  *     couponMessages: list<string>,
  *     couponCodeError?: string
@@ -253,13 +254,14 @@ class Checkout extends Component
 	}
 
 	/**
-	 * Copy a saved address the cart update named onto the order.
+	 * Copy the pickup location or a saved address the cart update named onto the order.
 	 *
 	 * Needed for an order filed under someone other than the signed-in user, since a posted address
 	 * id is only resolved against the signed-in user's own book.
 	 */
 	public function applyCustomerAddresses(Order $order, WebRequest $request): void
 	{
+		$pickupChosen = $this->applyCustomerPickup($order, $request);
 		$customerId = $order->getCustomer()?->id;
 
 		// Leave both addresses alone when billing drives shipping, since that path resolves elsewhere
@@ -267,14 +269,17 @@ class Checkout extends Component
 			return;
 		}
 
-		$shippingAddress = $this->customerAddress($customerId, $request->getBodyParam('shippingAddressId'), $order->sourceShippingAddressId);
+		if (! $pickupChosen) {
+			$shippingAddress = $this->customerAddress($customerId, $request->getBodyParam('shippingAddressId'), $order->sourceShippingAddressId);
 
-		if ($shippingAddress instanceof Address) {
-			$order->sourceShippingAddressId = $shippingAddress->id;
-			$order->setShippingAddress($this->duplicateOntoOrder($shippingAddress, $order));
+			if ($shippingAddress instanceof Address) {
+				$order->sourceShippingAddressId = $shippingAddress->id;
+				$this->bookAddressOntoOrder($order, $shippingAddress, 'shippingAddress');
+			}
 		}
 
-		if ($request->getBodyParam('billingAddressSameAsShipping')) {
+		// A pickup order is billed to the customer, never to the store location
+		if ($request->getBodyParam('billingAddressSameAsShipping') && ! $pickupChosen) {
 			$this->mirrorShippingToBilling($order);
 
 			return;
@@ -284,8 +289,61 @@ class Checkout extends Component
 
 		if ($billingAddress instanceof Address) {
 			$order->sourceBillingAddressId = $billingAddress->id;
-			$order->setBillingAddress($this->duplicateOntoOrder($billingAddress, $order));
+			$this->bookAddressOntoOrder($order, $billingAddress, 'billingAddress');
 		}
+	}
+
+	/**
+	 * Whether the checkout offers pickup at the order's store location. Off while the location is
+	 * blank, since one always exists.
+	 */
+	public function customerPickupAvailable(Order $order): bool
+	{
+		if (! $this->settings()->enableCustomerPickup) {
+			return false;
+		}
+
+		return trim((string) $this->pickupLocation($order)?->addressLine1) !== '';
+	}
+
+	public function customerPickupLabel(): string
+	{
+		$label = trim((string) $this->settings()->customerPickupLabel);
+
+		return $label !== '' ? Craft::t('site', $label) : Craft::t('foster-checkout', 'address.customerPickup');
+	}
+
+	/**
+	 * The store location, formatted the way a saved address is.
+	 */
+	public function customerPickupPreview(Order $order): string
+	{
+		return $this->checkoutAddressPreview($this->pickupLocation($order));
+	}
+
+	/**
+	 * Whether the order ships to the store location, since no pickup flag is stored on the order.
+	 */
+	public function isCustomerPickup(Order $order): bool
+	{
+		if (! $this->customerPickupAvailable($order)) {
+			return false;
+		}
+
+		$shippingAddress = $order->getShippingAddress();
+		$location = $this->pickupLocation($order);
+
+		if (! $shippingAddress instanceof Address || ! $location instanceof Address) {
+			return false;
+		}
+
+		foreach (['countryCode', 'postalCode', 'addressLine1'] as $attribute) {
+			if ($this->comparableAddressPart($shippingAddress->{$attribute}) !== $this->comparableAddressPart($location->{$attribute})) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	public function content(): Content
@@ -657,6 +715,7 @@ class Checkout extends Component
 			'lineItemTotals' => $this->checkoutLineItemTotals($cart),
 			'addressLabels' => $this->checkoutAddressLabels($cart),
 			'shippingPreview' => $this->checkoutAddressPreview($cart->getShippingAddress()),
+			'customerPickup' => $this->isCustomerPickup($cart),
 			'couponName' => $this->couponName($cart),
 			'couponMessages' => $this->couponMessages($cart),
 		];
@@ -841,6 +900,92 @@ class Checkout extends Component
 		return $this->addressAccess[$cacheKey] = $check === 'save'
 			? Craft::$app->getElements()->canSave($address, $user)
 			: Craft::$app->getElements()->canView($address, $user);
+	}
+
+	/**
+	 * Set the store location as the shipping address when pickup is chosen, and unset it when not.
+	 */
+	private function applyCustomerPickup(Order $order, WebRequest $request): bool
+	{
+		$postedPickup = $request->getBodyParam('shippingPickup');
+
+		if ($postedPickup === null || ! $this->customerPickupAvailable($order)) {
+			return false;
+		}
+
+		if (! $postedPickup) {
+			// Only unset a location no posted address replaced, since those are applied before validation.
+			// Keep the source id, so the address step reselects the invalid saved address.
+			if ($this->isCustomerPickup($order) && ! $request->getBodyParam('shippingAddress')) {
+				$order->setShippingAddress(null);
+			}
+
+			return false;
+		}
+
+		if ($this->isCustomerPickup($order)) {
+			return true;
+		}
+
+		/** @var Address $location */
+		$location = $this->pickupLocation($order);
+		$collectorName = trim((string) $order->getCustomer()?->fullName);
+
+		if ($collectorName === '') {
+			$collectorName = trim((string) $order->getBillingAddress()?->fullName);
+		}
+
+		if ($collectorName === '') {
+			$collectorName = $this->customerPickupLabel();
+		}
+
+		/** @var Address $pickupAddress */
+		$pickupAddress = Craft::$app->getElements()->duplicateElement($location, [
+			'primaryOwner' => $order,
+			'owner' => $order,
+			// The address names who collects, since the location cannot. The name parts are cleared so
+			// the full name is split on save rather than kept beside the location's own.
+			'fullName' => $collectorName,
+			'firstName' => null,
+			'lastName' => null,
+		]);
+
+		$order->sourceShippingAddressId = null;
+		$order->setShippingAddress($pickupAddress);
+
+		return true;
+	}
+
+	private function pickupLocation(Order $order): ?Address
+	{
+		return $order->getStore()->getSettings()->getLocationAddress();
+	}
+
+	private function comparableAddressPart(?string $addressPart): string
+	{
+		return StringHelper::toLowerCase(trim((string) $addressPart));
+	}
+
+	/**
+	 * Copy a saved address onto the order, or report its errors, since duplicating an invalid element throws.
+	 */
+	private function bookAddressOntoOrder(Order $order, Address $address, string $attribute): void
+	{
+		if (! $address->validate()) {
+			$order->addModelErrors($address, $attribute);
+
+			return;
+		}
+
+		$duplicate = $this->duplicateOntoOrder($address, $order);
+
+		if ($attribute === 'shippingAddress') {
+			$order->setShippingAddress($duplicate);
+
+			return;
+		}
+
+		$order->setBillingAddress($duplicate);
 	}
 
 	private function duplicateOntoOrder(Address $address, Order $order): Address

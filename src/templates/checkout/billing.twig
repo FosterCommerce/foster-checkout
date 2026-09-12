@@ -35,7 +35,9 @@
 	{% set _isNewBilling = (not _hasMatch) and (_sourceBillId is null) and _hasBillingRecord %}
 	{# Commerce refuses payment without a shipping address when the store requires one, shippable or not #}
 	{% set _collectShipping = cart.hasShippableItems() or currentStore.requireShippingAddressAtCheckout %}
-	{% set _initialBillingSame = (_hasMatch and _collectShipping) ? 1 : 0 %}
+	{# A pickup order ships to the store location, which is nobody's billing address #}
+	{% set _offerSameAsShipping = _collectShipping and not craft.fostercheckout.isCustomerPickup(cart) %}
+	{% set _initialBillingSame = (_hasMatch and _offerSameAsShipping) ? 1 : 0 %}
 	{# Leave the book id null when same as shipping, so only one radio reads as selected #}
 	{% set _initialBillingAddressId = _hasMatch ? null : _sourceBillId %}
 	{% set _initialNewBilling = _isNewBilling ? 1 : 0 %}
@@ -114,7 +116,7 @@
 											<input type="hidden" x-ref="postNewBilling" name="useNewBillingAddress" value="">
 
 											{# Skip the same-as-shipping choice, since no shipping address is collected #}
-											{% if _collectShipping %}
+											{% if _offerSameAsShipping %}
 												<div class="p-4" :class="{ 'bg-gray-100': parseInt(billingSameAsShipping) === 1 }">
 													<div class="radio">
 														<input

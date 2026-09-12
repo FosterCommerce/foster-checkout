@@ -37,3 +37,5 @@ An address has a label, which is what names it in the customer's address book. C
 Turn on **Let customers name a saved address** and the label becomes an editable field, but only when a customer edits an address they already saved. It is left off the new address form, where anything typed would be replaced by Commerce.
 
 Labels a store sets for its own purposes are never overwritten by the checkout. Leave the switch off to keep customers out of them.
+
+To offer the store location as a shipping address, see [customer pickup](./customer-pickup.md).

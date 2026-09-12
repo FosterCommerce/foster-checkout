@@ -13,6 +13,8 @@ A drop-in checkout for Craft Commerce, with its copy and settings managed from t
 - [Checkout fields](./user-guide/checkout-fields.md), asking a customer for something the checkout does not collect
 - [Address fields](./user-guide/address-fields.md), what the checkout asks for on an address, and address labels
 - [Single-page checkout](./user-guide/single-page-checkout.md), running the checkout as one page
+- [Customer pickup](./user-guide/customer-pickup.md), offering the store location as a shipping address
+- [Products that never ship](./user-guide/products-that-never-ship.md), skipping shipping for services and other unshippable products
 
 **Setting the plugin up?** See:
 
@@ -25,6 +27,7 @@ A drop-in checkout for Craft Commerce, with its copy and settings managed from t
 - [Custom includes](./dev-guide/custom-includes.md), injecting your own templates into every checkout page
 - [Contributed fields](./dev-guide/contributed-fields.md), adding a checkout field your own code stores
 - [Checkout for another customer](./dev-guide/checkout-for-another-customer.md), running the checkout against an account the shopper is buying for
+- [Detecting a pickup order](./dev-guide/customer-pickup.md), telling a pickup order from a shipped one in PHP, Twig or the cart response
 
 **Managing access?**
 

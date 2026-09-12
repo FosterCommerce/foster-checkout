@@ -105,6 +105,16 @@ class Settings extends Model
 	public bool $showAddressLabelField = false;
 
 	/**
+	 * Whether the store location is offered among the shipping addresses, for orders collected there.
+	 */
+	public bool $enableCustomerPickup = false;
+
+	/**
+	 * Text of the pickup choice. Blank shows “Customer pickup”.
+	 */
+	public ?string $customerPickupLabel = null;
+
+	/**
 	 * @param array<array-key, mixed> $config
 	 */
 	public function __construct(array $config = [])

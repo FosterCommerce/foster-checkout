@@ -12,7 +12,7 @@
 	<div class="xl:border xl:border-gray-250 xl:rounded-lg">
 		{# Skip the same-as-shipping choice, since no shipping address is collected #}
 		{% if collectShipping %}
-			<div class="p-4" :class="{ 'bg-gray-100': billingSameAsShipping }">
+			<div class="p-4" :class="{ 'bg-gray-100': billingSameAsShipping }" x-show="!shippingPickup">
 				<div class="radio">
 					<input
 						id="sp_billingSameAsShipping"

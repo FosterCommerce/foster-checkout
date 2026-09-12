@@ -65,6 +65,11 @@ export const addressBook = () => ({
 	},
 
 	refreshShippingPreview() {
+		if (this.shippingPickup) {
+			this.shippingPreview = this.pickupPreview;
+			return;
+		}
+
 		if (!this.useNewAddress && this.shippingAddressId) {
 			const label = this.addressLabel(this.shippingAddressId, '');
 			if (label) {

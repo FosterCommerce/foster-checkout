@@ -24,6 +24,8 @@ Other keys on the General screen:
 | Required address fields | `requiredAddressFields` | Address fields required at the checkout beyond what the address layout asks for. A hidden field is never required |
 | Show a third address line | `showAddressLine3` | Whether checkout address forms offer a third address line. Off by default |
 | Let customers name a saved address | `showAddressLabelField` | Whether the label of a saved address is editable at the checkout. It shows only when a customer edits an address they already saved |
+| Offer pickup at the store location | `enableCustomerPickup` | Whether the shipping address choices include the store location. See [customer pickup](../user-guide/customer-pickup.md) |
+| Pickup label | `customerPickupLabel` | Text of the pickup choice. Blank shows “Customer pickup” |
 | Zero value gateways | `zeroValueGatewayHandles` | Gateways available when an order totals zero |
 | Customer order notes field | `customerOrderNotesFieldHandle` | Field on Orders holding the customer's note. Blank hides the order notes form |
 | Content translation method | `contentTranslationMethod` | See below |
@@ -75,6 +77,8 @@ Every setting and its default, as the plugin ships.
 | Required address fields | `requiredAddressFields` | empty |
 | Show a third address line | `showAddressLine3` | `false` |
 | Let customers name a saved address | `showAddressLabelField` | `false` |
+| Offer pickup at the store location | `enableCustomerPickup` | `false` |
+| Pickup label | `customerPickupLabel` | none |
 | Zero value gateways | `zeroValueGatewayHandles` | empty |
 | Line item option rules | `lineItemOptionRules` | empty |
 | Product image fields | `products` | empty |

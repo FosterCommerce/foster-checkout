@@ -242,4 +242,10 @@ return [
 
 	// Whether a customer editing one of their saved addresses at the checkout can name it
 	// 'showAddressLabelField' => false, // true|false
+
+	// Whether the shipping address choices include the store location, for orders collected there
+	// 'enableCustomerPickup' => false, // true|false
+
+	// Text of the pickup choice. Null shows "Customer pickup"
+	// 'customerPickupLabel' => null,
 ];
