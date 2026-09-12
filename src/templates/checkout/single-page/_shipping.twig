@@ -70,7 +70,7 @@
 			</svg>
 			<span>{{ 'shipping.gettingMethods'|t('foster-checkout') }}.</span>
 		</p>
-		<p x-show="!hasShippingMethods && !loadingShippingMethods">{{ 'shipping.noMethodAvailable'|t('foster-checkout') }}.</p>
+		<div x-show="!hasShippingMethods && !loadingShippingMethods" class="[&_a]:underline [&_a:hover]:decoration-current">{{ craft.fostercheckout.noShippingMethodsText(cart)|raw }}</div>
 
 		{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'shippingMethod', panel: 'shipping', showRequired: true } %}
 

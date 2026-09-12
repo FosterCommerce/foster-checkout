@@ -36,6 +36,7 @@ class ContentController extends Controller
 		'payment',
 		'confirmation',
 		'globalCheckout',
+		'noShippingMethods',
 		'subscribe',
 		'deliveryDateLabel',
 		'deliveryDateMessage',

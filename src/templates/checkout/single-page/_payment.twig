@@ -247,7 +247,7 @@
 													},
 													submitButtonText: buttonText,
 													submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block'
-												} %}
+												}|merge(craft.fostercheckout.getManualGatewayConfig(gateway.handle).params ?? {}) %}
 											{% elseif gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
 												{% set gatewayConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
 												{% set params = { currency: cart.paymentCurrency }|merge(gatewayConfig.params ?? {}) %}
@@ -256,6 +256,8 @@
 												{% set manualFields = craft.fostercheckout.gatewayFields(gateway.handle, cart) %}
 												{% set gatewayNote = craft.fostercheckout.gatewayNote(gateway.handle, {cart}) %}
 											{% endif %}
+
+											{% set params = craft.fostercheckout.paymentFormParams(cart, gateway, params) %}
 
 											{% if gatewayNote|default %}
 												<div class="mb-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">

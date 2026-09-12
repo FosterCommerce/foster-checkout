@@ -5,6 +5,7 @@ namespace fostercommerce\fostercheckout\services;
 use Craft;
 use craft\base\FieldLayoutElement;
 use craft\commerce\base\Gateway;
+use craft\commerce\base\GatewayInterface;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
@@ -32,6 +33,7 @@ use fostercommerce\advanceddiscounts\Plugin as AdvancedDiscounts;
 use fostercommerce\advanceddiscounts\variables\AdvancedDiscountsVariable;
 use fostercommerce\fostercheckout\events\DefineCheckoutContactEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
+use fostercommerce\fostercheckout\events\DefinePaymentFormParamsEvent;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\helpers\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\models\DeliveryDate;
@@ -87,7 +89,6 @@ class Checkout extends Component
 	 *
 	 * ```php
 	 * use fostercommerce\fostercheckout\events\DefineCheckoutContactEvent;
-use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
 	 * use fostercommerce\fostercheckout\services\Checkout;
 	 * use yii\base\Event;
 	 *
@@ -126,6 +127,29 @@ use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
 	 * @since 1.4.1
 	 */
 	public const string EVENT_DEFINE_PAYMENT_BLOCK = 'definePaymentBlock';
+
+	/**
+	 * @event DefinePaymentFormParamsEvent The event that is triggered before a gateway's payment form is rendered.
+	 *
+	 * ```php
+	 * use fostercommerce\fostercheckout\events\DefinePaymentFormParamsEvent;
+	 * use fostercommerce\fostercheckout\services\Checkout;
+	 * use yii\base\Event;
+	 *
+	 * Event::on(
+	 *     Checkout::class,
+	 *     Checkout::EVENT_DEFINE_PAYMENT_FORM_PARAMS,
+	 *     function (DefinePaymentFormParamsEvent $event) {
+	 *         if ($event->gateway instanceof \craft\commerce\stripe\gateways\PaymentIntents) {
+	 *             $event->params['elementOptions']['wallets']['link'] = 'never';
+	 *         }
+	 *     }
+	 * );
+	 * ```
+	 *
+	 * @since 1.4.2
+	 */
+	public const string EVENT_DEFINE_PAYMENT_FORM_PARAMS = 'definePaymentFormParams';
 
 	/**
 	 * @var array<string, array<int, string>>|null
@@ -180,6 +204,30 @@ use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
 		$this->trigger(self::EVENT_DEFINE_PAYMENT_BLOCK, $definePaymentBlockEvent);
 
 		return $definePaymentBlockEvent->reason;
+	}
+
+	/**
+	 * The parameters a gateway's payment form is rendered with, after any handler has changed them.
+	 *
+	 * @param array<string, mixed> $params
+	 * @return array<string, mixed>
+	 * @since 1.4.2
+	 */
+	public function paymentFormParams(Order $order, GatewayInterface $gateway, array $params): array
+	{
+		if (! $this->hasEventHandlers(self::EVENT_DEFINE_PAYMENT_FORM_PARAMS)) {
+			return $params;
+		}
+
+		$definePaymentFormParamsEvent = new DefinePaymentFormParamsEvent([
+			'order' => $order,
+			'gateway' => $gateway,
+			'params' => $params,
+		]);
+
+		$this->trigger(self::EVENT_DEFINE_PAYMENT_FORM_PARAMS, $definePaymentFormParamsEvent);
+
+		return $definePaymentFormParamsEvent->params;
 	}
 
 	/**
@@ -739,6 +787,18 @@ use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
 	public function subscribeText(): ?string
 	{
 		return $this->contentOrConfig('subscribe', $this->settings()->options->subscribe);
+	}
+
+	/**
+	 * Copy for a shipping method panel with nothing to offer.
+	 *
+	 * @since 1.4.2
+	 */
+	public function noShippingMethodsText(Order $cart): string
+	{
+		return $this->contentOrConfig('noShippingMethods', null, [
+			'cart' => $cart,
+		]) ?? Craft::t('foster-checkout', 'shipping.noMethodAvailable') . '.';
 	}
 
 	/**

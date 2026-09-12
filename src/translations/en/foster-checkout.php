@@ -253,6 +253,8 @@ return [
 	'content.confirmationHelp' => 'Shown on the order confirmation page.',
 	'content.globalCheckout' => 'Global checkout note',
 	'content.globalCheckoutHelp' => 'Shown on every checkout step.',
+	'content.noShippingMethods' => 'No shipping methods message',
+	'content.noShippingMethodsHelp' => 'Shown in the shipping method panel when nothing can be quoted for the address. Blank shows “No shipping options available”.',
 	'content.subscribe' => 'Newsletter checkbox label',
 	'content.subscribeHelp' => 'Text beside the subscribe checkbox on the email step. Leave blank to hide the checkbox.',
 	'content.deliveryDateLabel' => 'Delivery date label',
