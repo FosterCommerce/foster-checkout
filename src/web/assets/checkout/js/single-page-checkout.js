@@ -444,17 +444,16 @@ export const SinglePageCheckout = (props) => {
 
 			// The page level status is screen reader only, so the panel keeps its own copy to show.
 			// A save accepts the whole cart, so it clears every panel's copy, not only this one's.
-			this.panelErrors =
-				tone === 'saved'
-					? {}
-					: {
-							...this.panelErrors,
-							[panel]: tone === 'error' ? this.status : '',
-						};
-
 			if (tone !== 'saved') {
+				this.panelErrors = {
+					...this.panelErrors,
+					[panel]: tone === 'error' ? this.status : '',
+				};
+
 				return;
 			}
+
+			this.panelErrors = {};
 
 			const timer = setTimeout(() => {
 				if (this.panelStatus[panel] === 'saved') {
