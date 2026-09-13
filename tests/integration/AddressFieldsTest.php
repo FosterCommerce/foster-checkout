@@ -2,10 +2,13 @@
 
 namespace fostercommerce\fostercheckout\tests\integration;
 
+use fostercommerce\fostercheckout\services\Checkout;
 use fostercommerce\fostercheckout\tests\Support\CheckoutTestCase;
 
 /**
  * The shipping and billing required lists, split apart in 1.5.0.
+ *
+ * @phpstan-import-type AddressFormElement from Checkout
  */
 final class AddressFieldsTest extends CheckoutTestCase
 {
@@ -153,7 +156,7 @@ final class AddressFieldsTest extends CheckoutTestCase
 	}
 
 	/**
-	 * @param array<int, array{type: string, required: bool, width: int, field: mixed}> $fields
+	 * @param array<int, AddressFormElement> $fields
 	 */
 	private function isRequired(array $fields, string $attribute): bool
 	{
@@ -167,7 +170,7 @@ final class AddressFieldsTest extends CheckoutTestCase
 	}
 
 	/**
-	 * @param array<int, array{type: string, required: bool, width: int, field: mixed}> $fields
+	 * @param array<int, AddressFormElement> $fields
 	 */
 	private function isPresent(array $fields, string $attribute): bool
 	{
@@ -183,7 +186,7 @@ final class AddressFieldsTest extends CheckoutTestCase
 	/**
 	 * The settings screens name a custom address field by its handle and a native one by its attribute.
 	 *
-	 * @param array{type: string, required: bool, width: int, field: mixed} $field
+	 * @param AddressFormElement $field
 	 */
 	private function attributeOf(array $field): string
 	{
@@ -191,9 +194,7 @@ final class AddressFieldsTest extends CheckoutTestCase
 			return $field['type'];
 		}
 
-		$handle = is_array($field['field']) ? $field['field']['handle'] ?? '' : '';
-
-		return is_string($handle) ? $handle : '';
+		return $field['field']['handle'] ?? '';
 	}
 
 	/**
