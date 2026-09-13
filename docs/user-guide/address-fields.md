@@ -2,13 +2,15 @@
 
 What the checkout asks for on a shipping or billing address, and how to change it.
 
-Two screens decide this together. Craft's address field layout, at **Settings -> Addresses**, sets which fields exist, their order and their width. The checkout renders them in that order. **Checkout -> General** then holds what the checkout does with them.
+Two screens decide this together. Craft's address field layout, at **Settings -> Addresses**, sets which fields exist, their order and their width. The checkout renders them in that order. **Checkout -> Addresses** then holds what the checkout does with them.
 
 | Setting | Controls |
 | --- | --- |
 | **Priority countries** | Country codes shown at the top of every country dropdown, in the order listed. They are removed from the alphabetical list below |
 | **Hidden address fields** | Fields left off the checkout. They stay in the control panel |
-| **Required address fields** | Fields the checkout requires beyond what the address layout asks for |
+| **Hidden billing address fields** | Fields also left off a new billing address, such as a delivery switch that means nothing on the address a card is billed to |
+| **Required shipping address fields** | Fields the checkout requires on a shipping address, and on a saved address a customer edits, beyond what the address layout asks for |
+| **Required billing address fields** | The same for a new billing address |
 | **Show a third address line** | Whether the form offers a third address line. Off by default |
 | **Let customers name a saved address** | Whether the label of a saved address is editable at the checkout. Off by default |
 
@@ -17,6 +19,8 @@ Two screens decide this together. Craft's address field layout, at **Settings ->
 The country and the address block itself are always shown, since Craft cannot resolve an address without them. A field the address layout marks required is always shown too, and cannot be un-required at the checkout.
 
 A hidden field is never required, even if it is also ticked in the required list.
+
+The billing lists apply only to the new billing address form. A saved address the customer picks as billing keeps its values, and editing a saved address shows every field, since the address book has no billing or shipping side.
 
 Custom fields you add to the address layout are listed alongside the native ones, so they can be hidden or required in the same way. A custom field only renders where its type has a storefront input: plain text, number, dropdown, radio buttons, checkboxes, lightswitch, date and time.
 

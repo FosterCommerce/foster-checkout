@@ -392,6 +392,11 @@ class SettingsController extends Controller
 		return $this->saveLineItemOptionRules($reordered, true);
 	}
 
+	public function actionAddresses(): Response
+	{
+		return $this->renderSection('addresses');
+	}
+
 	public function actionGeneral(): Response
 	{
 		return $this->renderSection('general');

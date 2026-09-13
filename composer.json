@@ -20,6 +20,11 @@
 			"fostercommerce\\fostercheckout\\": "src/"
 		}
 	},
+	"autoload-dev": {
+		"psr-4": {
+			"fostercommerce\\fostercheckout\\tests\\": "tests/"
+		}
+	},
 	"extra": {
 		"handle": "foster-checkout",
 		"name": "Foster Checkout",
@@ -45,14 +50,17 @@
 		"craftcms/phpstan": "dev-main",
 		"phpstan/phpstan": "^1.11",
 		"craftcms/rector": "dev-main",
-		"fostercommerce/advanced-discounts": "^1.1"
+		"fostercommerce/advanced-discounts": "^1.1",
+		"phpunit/phpunit": "^12.5"
 	},
 	"scripts": {
 		"phpstan": "phpstan --memory-limit=1G",
 		"ecs:check": "ecs check --ansi --memory-limit=1G",
 		"ecs:fix": "ecs check --ansi --fix --memory-limit=1G",
 		"rector:fix": "rector process --config rector.php",
-		"rector:dry-run": "rector process --dry-run --config rector.php"
+		"rector:dry-run": "rector process --dry-run --config rector.php",
+		"test": "phpunit",
+		"test:unit": "phpunit --testsuite unit",
+		"test:integration": "phpunit --testsuite integration"
 	}
 }
-

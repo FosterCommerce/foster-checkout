@@ -5658,6 +5658,14 @@ const cartPersistence = () => ({
         this.couponMessages = live.couponMessages;
         this.couponName = live.couponName ?? "";
       }
+      if (Object.hasOwn(live, "paymentBlock")) {
+        const wasBlocked = Boolean(this.paymentBlock);
+        this.paymentBlock = live.paymentBlock ?? "";
+        if (wasBlocked && !this.paymentBlock) {
+          this.invalidatePaypalCheckout();
+          this.invalidateStripeCheckout();
+        }
+      }
       if (sameAddress) {
         if (typeof live.shippingPreview === "string") {
           this.shippingPreview = live.shippingPreview;
@@ -6373,6 +6381,7 @@ const SinglePageCheckout = (props) => {
     couponOpen: Boolean(props.couponCode),
     couponName: props.couponName ?? "",
     couponMessages: asList(props.couponMessages),
+    paymentBlock: props.paymentBlock ?? "",
     couponError: "",
     notesError: "",
     notesButtonVisible: false,

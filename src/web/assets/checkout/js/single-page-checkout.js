@@ -35,6 +35,7 @@ export const SinglePageCheckout = (props) => {
 		couponOpen: Boolean(props.couponCode),
 		couponName: props.couponName ?? '',
 		couponMessages: asList(props.couponMessages),
+		paymentBlock: props.paymentBlock ?? '',
 		couponError: '',
 		notesError: '',
 		notesButtonVisible: false,

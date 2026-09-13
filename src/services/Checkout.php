@@ -79,6 +79,7 @@ use yii\base\InvalidConfigException;
  *     customerPickup: bool,
  *     couponName: ?string,
  *     couponMessages: list<string>,
+ *     paymentBlock: ?string,
  *     couponCodeError?: string
  * }
  */
@@ -187,7 +188,8 @@ class Checkout extends Component
 	}
 
 	/**
-	 * Why the order cannot be paid at checkout, or null when it can. Shown in place of the payment form.
+	 * Why the order cannot be paid at checkout, or null when it can. Shown in place of the payment form,
+	 * and re-read on every single-page save so a reason the customer can fix clears as they fix it.
 	 *
 	 * @since 1.4.1
 	 */
@@ -711,9 +713,10 @@ class Checkout extends Component
 	/**
 	 * The address form, in the order and widths the address field layout sets.
 	 *
+	 * @param string $context The form's input prefix, `billingAddress` for the order's billing address
 	 * @return array<int, AddressFormElement>
 	 */
-	public function addressFields(?Address $address = null, bool $includeLabel = false): array
+	public function addressFields(?Address $address = null, bool $includeLabel = false, string $context = ''): array
 	{
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
@@ -726,12 +729,17 @@ class Checkout extends Component
 
 		$elements = [];
 		$settings = $this->settings();
+		$isBilling = $context === 'billingAddress';
+		$hiddenAttributes = $isBilling
+			? [...$settings->hiddenAddressFields, ...$settings->hiddenBillingAddressFields]
+			: $settings->hiddenAddressFields;
+		$requiredAttributes = $isBilling ? $settings->requiredBillingAddressFields : $settings->requiredAddressFields;
 
 		foreach ($this->addressLayoutFields($layoutElements) as $type => $layoutElement) {
 			$configurable = $this->isConfigurableAddressField($type, $layoutElement);
 			$attribute = $layoutElement->attribute();
 
-			if ($configurable && in_array($attribute, $settings->hiddenAddressFields, true)) {
+			if ($configurable && in_array($attribute, $hiddenAttributes, true)) {
 				continue;
 			}
 
@@ -752,7 +760,7 @@ class Checkout extends Component
 			$elements[] = [
 				'type' => $type,
 				'required' => $layoutElement->required
-					|| ($configurable && in_array($attribute, $settings->requiredAddressFields, true)),
+					|| ($configurable && in_array($attribute, $requiredAttributes, true)),
 				'width' => $layoutElement->width,
 				'field' => $field,
 			];
@@ -823,6 +831,7 @@ class Checkout extends Component
 			'customerPickup' => $this->isCustomerPickup($cart),
 			'couponName' => $this->couponName($cart),
 			'couponMessages' => $this->couponMessages($cart),
+			'paymentBlock' => $this->paymentBlock($cart),
 		];
 	}
 
