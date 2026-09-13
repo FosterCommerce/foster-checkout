@@ -111,7 +111,7 @@ since the array key will be the same #}
 	class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12"
 	@selected.window="if ($event.detail.name === '{{ context|default ? (context ~ "[countryCode]") : "countryCode" }}') { administrativeArea = '' }"
 >
-	{% for element in craft.fostercheckout.addressFields(address, showAddressLabel|default(false)) %}
+	{% for element in craft.fostercheckout.addressFields(address, showAddressLabel|default(false), context) %}
 		{# The layout stores width as a percentage; the grid is in twelfths #}
 		<div class="sm:col-span-{{ (element.width / 100 * 12)|round }}">
 			{% if element.type == 'label' %}

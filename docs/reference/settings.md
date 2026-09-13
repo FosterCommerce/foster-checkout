@@ -12,18 +12,26 @@ Every setting is editable in the control panel under **Checkout**. A site may al
 | **Products** | `products` | Per product type, the field holding the cart preview image. Blank falls back to the product's own image |
 | **Products** | `notShippableProducts` | A product condition. Variants of a matching product are not shippable: their orders skip the shipping address and method, and Commerce and shipping plugins leave them out. Empty ships everything |
 | **Gateways** | `paymentGateways` | Per gateway: the name customers see, a field layout, and extra payment form parameters |
+| **Addresses** | the keys in the next table | What the checkout asks for on an address. See [address fields](../user-guide/address-fields.md) |
 | **General** | `paths` and the keys below | Cart, checkout, account and cancel paths, plus the built-in cart template switch |
+
+Keys on the Addresses screen:
+
+| Setting | Config key | Holds |
+| --- | --- | --- |
+| Priority countries | `priorityCountries` | Country codes shown at the top of country dropdowns, in the order listed |
+| Hidden address fields | `hiddenAddressFields` | Address fields left off the checkout. They stay in the control panel. A field the address layout marks required is always shown |
+| Hidden billing address fields | `hiddenBillingAddressFields` | Address fields also left off a new billing address, on top of the hidden list. A field the address layout marks required is always shown |
+| Required shipping address fields | `requiredAddressFields` | Address fields required on a shipping address, and on a saved address a customer edits, beyond what the address layout asks for. A hidden field is never required |
+| Required billing address fields | `requiredBillingAddressFields` | The same for a new billing address |
+| Show a third address line | `showAddressLine3` | Whether checkout address forms offer a third address line. Off by default |
+| Let customers name a saved address | `showAddressLabelField` | Whether the label of a saved address is editable at the checkout. It shows only when a customer edits an address they already saved |
 
 Other keys on the General screen:
 
 | Setting | Config key | Holds |
 | --- | --- | --- |
 | Head include, Body include | `includes` | Template paths injected into every cart and checkout page. See [custom includes](../dev-guide/custom-includes.md) |
-| Priority countries | `priorityCountries` | Country codes shown at the top of country dropdowns, in the order listed. See [address fields](../user-guide/address-fields.md) |
-| Hidden address fields | `hiddenAddressFields` | Address fields left off the checkout. They stay in the control panel. A field the address layout marks required is always shown |
-| Required address fields | `requiredAddressFields` | Address fields required at the checkout beyond what the address layout asks for. A hidden field is never required |
-| Show a third address line | `showAddressLine3` | Whether checkout address forms offer a third address line. Off by default |
-| Let customers name a saved address | `showAddressLabelField` | Whether the label of a saved address is editable at the checkout. It shows only when a customer edits an address they already saved |
 | Offer pickup at the store location | `enableCustomerPickup` | Whether the shipping address choices include the store location. See [customer pickup](../user-guide/customer-pickup.md) |
 | Pickup label | `customerPickupLabel` | Text of the pickup choice. Blank shows “Customer pickup” |
 | Zero value gateways | `zeroValueGatewayHandles` | Gateways available when an order totals zero |
@@ -74,7 +82,9 @@ Every setting and its default, as the plugin ships.
 | Customer order notes field | `customerOrderNotesFieldHandle` | none |
 | Priority countries | `priorityCountries` | empty |
 | Hidden address fields | `hiddenAddressFields` | empty |
-| Required address fields | `requiredAddressFields` | empty |
+| Hidden billing address fields | `hiddenBillingAddressFields` | empty |
+| Required shipping address fields | `requiredAddressFields` | empty |
+| Required billing address fields | `requiredBillingAddressFields` | empty |
 | Show a third address line | `showAddressLine3` | `false` |
 | Let customers name a saved address | `showAddressLabelField` | `false` |
 | Offer pickup at the store location | `enableCustomerPickup` | `false` |
@@ -104,7 +114,7 @@ The config file is merged over stored settings on every request, so a key set in
 
 The merge applies per key. Setting `branding.color` in the config file pins that one field and leaves the rest of the Appearance screen editable. Remove the key from the config file to hand the field back.
 
-A list is pinned whole rather than merged. A config file setting `priorityCountries` replaces the stored list; it does not add to it. The same holds for `hiddenAddressFields`, `requiredAddressFields` and `zeroValueGatewayHandles`.
+A list is pinned whole rather than merged. A config file setting `priorityCountries` replaces the stored list; it does not add to it. The same holds for `hiddenAddressFields`, `hiddenBillingAddressFields`, `requiredAddressFields`, `requiredBillingAddressFields` and `zeroValueGatewayHandles`.
 
 A gateway's field layout is stored outside plugin settings, so it stays editable even where `paymentGateways` is set in the config file.
 

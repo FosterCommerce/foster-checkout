@@ -372,6 +372,17 @@ export const cartPersistence = () => ({
 				this.couponName = live.couponName ?? '';
 			}
 
+			if (Object.hasOwn(live, 'paymentBlock')) {
+				const wasBlocked = Boolean(this.paymentBlock);
+				this.paymentBlock = live.paymentBlock ?? '';
+
+				// A payment element mounted while its section was hidden renders blank once shown
+				if (wasBlocked && !this.paymentBlock) {
+					this.invalidatePaypalCheckout();
+					this.invalidateStripeCheckout();
+				}
+			}
+
 			if (sameAddress) {
 				if (typeof live.shippingPreview === 'string') {
 					this.shippingPreview = live.shippingPreview;

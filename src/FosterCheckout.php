@@ -64,7 +64,7 @@ class FosterCheckout extends Plugin
 	/**
 	 * @var array<int, string>
 	 */
-	private const array SETTINGS_SECTIONS = ['appearance', 'features', 'products', 'gateways', 'fields', 'line-items', 'general'];
+	private const array SETTINGS_SECTIONS = ['appearance', 'features', 'products', 'gateways', 'fields', 'line-items', 'addresses', 'general'];
 
 	/**
 	 * @var array<string, string>
@@ -204,7 +204,7 @@ class FosterCheckout extends Plugin
 		'Worcestershire' => 'Worcestershire',
 	];
 
-	public string $schemaVersion = '1.3.0';
+	public string $schemaVersion = '1.4.0';
 
 	public bool $hasCpSection = true;
 
@@ -560,6 +560,11 @@ class FosterCheckout extends Plugin
 
 				$layout = $address->getFieldLayout();
 				$settings = $this->getCheckout()->settings();
+				$isBilling = $this->isBillingOnlyAddress($address);
+				$hiddenAttributes = $isBilling
+					? [...$settings->hiddenAddressFields, ...$settings->hiddenBillingAddressFields]
+					: $settings->hiddenAddressFields;
+				$requiredAttributes = $isBilling ? $settings->requiredBillingAddressFields : $settings->requiredAddressFields;
 
 				// Match what the address form renders, since a rule on anything else can never be met
 				$renderedAttributes = array_map(
@@ -567,32 +572,45 @@ class FosterCheckout extends Plugin
 					$layout?->getVisibleElementsByType(BaseField::class, $address) ?? []
 				);
 
-				foreach ($settings->requiredAddressFields as $attribute) {
-					if (! in_array($attribute, $renderedAttributes, true)) {
+				foreach ($requiredAttributes as $requiredAttribute) {
+					if (! in_array($requiredAttribute, $renderedAttributes, true)) {
 						continue;
 					}
 
-					if (in_array($attribute, $settings->hiddenAddressFields, true)) {
+					if (in_array($requiredAttribute, $hiddenAttributes, true)) {
 						continue;
 					}
 
-					$field = $layout?->getFieldByHandle($attribute);
+					$field = $layout?->getFieldByHandle($requiredAttribute);
 
 					if ($field instanceof FieldInterface) {
 						// A field value can be an object or a bool, which the default emptiness test never
 						// counts as empty, so the field decides for itself as it does in Craft's own rules.
 						$event->rules[] = [
-							$attribute,
+							$requiredAttribute,
 							'required',
 							'isEmpty' => static fn (mixed $value): bool => $field->isValueEmpty($value, $address),
 						];
 						continue;
 					}
 
-					$event->rules[] = [$attribute, 'required'];
+					$event->rules[] = [$requiredAttribute, 'required'];
 				}
 			}
 		);
+	}
+
+	/**
+	 * Compared by instance, since a new address has no id yet and Commerce hands the shipping
+	 * address itself to the billing side when the customer keeps them the same.
+	 */
+	private function isBillingOnlyAddress(Address $address): bool
+	{
+		$owner = $address->getPrimaryOwner();
+
+		return $owner instanceof Order
+			&& $owner->getBillingAddress() === $address
+			&& $owner->getShippingAddress() !== $address;
 	}
 
 	private function attachEventHandlers(): void

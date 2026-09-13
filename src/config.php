@@ -232,10 +232,18 @@ return [
 	// (ex. ['organization', 'organizationTaxId', 'addressNotes'])
 	// 'hiddenAddressFields' => [],
 
-	// Additional address fields to require on checkout address forms, named by attribute or custom
-	// field handle. A hidden field is never required, since it is not rendered.
+	// Address fields to hide from the new billing address form as well, on top of the hidden list
+	// (ex. ['phone', 'deliveryInstructions'])
+	// 'hiddenBillingAddressFields' => [],
+
+	// Additional address fields to require on a shipping address, and on a saved address a customer
+	// edits, named by attribute or custom field handle. A hidden field is never required.
 	// (ex. ['fullName'])
 	// 'requiredAddressFields' => [],
+
+	// The same for a new billing address
+	// (ex. ['fullName'])
+	// 'requiredBillingAddressFields' => [],
 
 	// Whether checkout address forms offer a third address line for the countries whose format uses one
 	// 'showAddressLine3' => false, // true|false

@@ -108,29 +108,6 @@
 
 	<hr>
 
-	{% set countriesOverridden = 'priorityCountries' in overriddenSettings %}
-	{% set countryRows = [] %}
-	{% for countryCode in settings.priorityCountries %}
-		{% set countryRows = countryRows|merge([{ code: countryCode }]) %}
-	{% endfor %}
-
-	{{ forms.editableTableField({
-		label: 'settings.general.priorityCountries'|t('foster-checkout'),
-		instructions: 'settings.general.priorityCountriesHelp'|t('foster-checkout'),
-		id: 'priority-countries',
-		name: 'settings[priorityCountries]',
-		cols: {
-			code: { heading: 'settings.general.countryCode'|t('foster-checkout'), type: 'singleline' },
-		},
-		rows: countryRows,
-		addRowLabel: 'settings.general.addCountry'|t('foster-checkout'),
-		allowAdd: true,
-		allowDelete: true,
-		allowReorder: true,
-		static: countriesOverridden or not adminChangesAllowed,
-		warning: countriesOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'priorityCountries' }),
-	}) }}
-
 	{% set gatewaysOverridden = 'zeroValueGatewayHandles' in overriddenSettings %}
 	{% set gatewayOptions = [] %}
 	{% for gateway in gateways %}
@@ -146,56 +123,6 @@
 		values: settings.zeroValueGatewayHandles,
 		disabled: gatewaysOverridden or not adminChangesAllowed,
 		warning: gatewaysOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'zeroValueGatewayHandles' }),
-	}) }}
-
-	{% set hiddenAddressFieldsOverridden = 'hiddenAddressFields' in overriddenSettings %}
-
-	{{ forms.checkboxGroupField({
-		label: 'settings.general.hiddenAddressFields'|t('foster-checkout'),
-		instructions: 'settings.general.hiddenAddressFieldsHelp'|t('foster-checkout'),
-		id: 'hidden-address-fields',
-		name: 'settings[hiddenAddressFields]',
-		options: configurableAddressFields,
-		values: settings.hiddenAddressFields,
-		disabled: hiddenAddressFieldsOverridden or not adminChangesAllowed,
-		warning: hiddenAddressFieldsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'hiddenAddressFields' }),
-	}) }}
-
-	{% set requiredAddressFieldsOverridden = 'requiredAddressFields' in overriddenSettings %}
-
-	{{ forms.checkboxGroupField({
-		label: 'settings.general.requiredAddressFields'|t('foster-checkout'),
-		instructions: 'settings.general.requiredAddressFieldsHelp'|t('foster-checkout'),
-		id: 'required-address-fields',
-		name: 'settings[requiredAddressFields]',
-		options: configurableAddressFields,
-		values: settings.requiredAddressFields,
-		disabled: requiredAddressFieldsOverridden or not adminChangesAllowed,
-		warning: requiredAddressFieldsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'requiredAddressFields' }),
-	}) }}
-
-	{% set showAddressLine3Overridden = 'showAddressLine3' in overriddenSettings %}
-
-	{{ forms.lightswitchField({
-		label: 'settings.general.showAddressLine3'|t('foster-checkout'),
-		instructions: 'settings.general.showAddressLine3Help'|t('foster-checkout'),
-		id: 'show-address-line-3',
-		name: 'settings[showAddressLine3]',
-		on: settings.showAddressLine3,
-		disabled: showAddressLine3Overridden or not adminChangesAllowed,
-		warning: showAddressLine3Overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'showAddressLine3' }),
-	}) }}
-
-	{% set showAddressLabelFieldOverridden = 'showAddressLabelField' in overriddenSettings %}
-
-	{{ forms.lightswitchField({
-		label: 'settings.general.showAddressLabelField'|t('foster-checkout'),
-		instructions: 'settings.general.showAddressLabelFieldHelp'|t('foster-checkout'),
-		id: 'show-address-label-field',
-		name: 'settings[showAddressLabelField]',
-		on: settings.showAddressLabelField,
-		disabled: showAddressLabelFieldOverridden or not adminChangesAllowed,
-		warning: showAddressLabelFieldOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'showAddressLabelField' }),
 	}) }}
 
 	<hr>

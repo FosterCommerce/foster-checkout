@@ -80,12 +80,28 @@ class Settings extends Model
 	public array $hiddenAddressFields = [];
 
 	/**
-	 * Address fields to require at the checkout beyond what the address layout asks for, named by
-	 * attribute or custom field handle. A hidden field is never required, since it is not rendered.
+	 * Address fields to leave off a new billing address as well, on top of the hidden list, since a
+	 * delivery detail such as a lift gate switch has no meaning on the address a card is billed to.
+	 *
+	 * @var array<string>
+	 */
+	public array $hiddenBillingAddressFields = [];
+
+	/**
+	 * Address fields to require on a shipping address, and on a saved address a customer edits, beyond
+	 * what the address layout asks for. Named by attribute or custom field handle. A hidden field is
+	 * never required, since it is not rendered.
 	 *
 	 * @var array<string>
 	 */
 	public array $requiredAddressFields = [];
+
+	/**
+	 * The same for a new billing address, which can ask for less than delivery does.
+	 *
+	 * @var array<string>
+	 */
+	public array $requiredBillingAddressFields = [];
 
 	/**
 	 * Products whose variants never ship, as a product condition. Empty means every variant ships.

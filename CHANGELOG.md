@@ -1,5 +1,18 @@
 # Release Notes for Foster Checkout
 
+## 1.5.0 - 2026-09-13
+
+### Added
+
+- Added a **Checkout -> Addresses** settings screen, which takes the priority countries, address field and address label settings from **General**.
+- Added **Hidden billing address fields**, for address fields a store asks for on delivery but not on the address a card is billed to.
+- Added **Required billing address fields**. **Required address fields** is now **Required shipping address fields** and applies to shipping addresses and saved address edits; an existing list is copied to the billing side on update.
+
+### Changed
+
+- The single-page checkout now re-reads the payment block after every save, so a reason the customer can fix on the page clears without a reload. The payment form mounts again when it clears.
+- The multi-page payment step no longer repeats a “Payment method” heading under its “Payment” heading.
+
 ## 1.4.3 - 2026-09-12
 
 ### Fixed
