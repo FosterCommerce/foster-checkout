@@ -44,7 +44,6 @@ abstract class CartTestCase extends CheckoutTestCase
 			return $testUser;
 		}
 
-		/** @var Address $address */
 		foreach (Address::find()->limit(200)->all() as $address) {
 			$owner = $address->getOwner();
 
