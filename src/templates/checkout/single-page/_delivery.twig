@@ -29,10 +29,9 @@
 			<template x-if="useNewAddress">
 				<div class="p-4" data-fc-new-shipping x-init="applyDraftAddress('shipping')">
 					{% set address = null %}
+					{# Seed only what the customer typed, since a book or pickup address is not a draft #}
 					{% if cart.shippingAddressId is not null and cart.sourceShippingAddressId is null and not customerPickup %}
 						{% set address = craft.addresses().id(cart.shippingAddressId).one() %}
-					{% elseif cart.shippingAddress %}
-						{% set address = cart.shippingAddress %}
 					{% endif %}
 
 					{% include 'foster-checkout/_components/app/address-fields' with {

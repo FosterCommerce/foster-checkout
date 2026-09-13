@@ -7,6 +7,7 @@ use fostercommerce\rector\SetList;
 return RectorConfig::configure()
     ->withPaths([
         __DIR__ . '/src',
+        __DIR__ . '/tests',
         __FILE__,
     ])
     ->withSets([SetList::CRAFT_CMS_50]);

@@ -79,6 +79,7 @@ use yii\base\InvalidConfigException;
  *     customerPickup: bool,
  *     couponName: ?string,
  *     couponMessages: list<string>,
+ *     paymentBlock: ?string,
  *     couponCodeError?: string
  * }
  */
