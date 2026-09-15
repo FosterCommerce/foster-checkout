@@ -61,6 +61,7 @@ return [
 	'email.stepTitle' => 'Contact',
 	'email.stepName' => 'Contact information',
 	'email.signIn' => 'Sign in',
+	'email.signInDivider' => '— OR —',
 	'email.emailLabel' => 'Email',
 	'email.emailPlaceholder' => 'Enter your email',
 	'email.invalid' => 'Enter a valid email address.',

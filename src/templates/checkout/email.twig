@@ -47,9 +47,6 @@
 							<h2 class="font-semibold">
 								{{ 'email.stepName'|t('foster-checkout') }}
 							</h2>
-							<span class="text-sm text-gray-500 text-right inline-block underline">
-							<a href="{{ loginUrl }}" class="text-[var(--brandColor)] underline">{{ 'email.signIn'|t('foster-checkout') }}</a>
-						</span>
 						</div>
 
 						{{ include('foster-checkout/_components/app/flash-message') }}
@@ -77,19 +74,23 @@
 
 								<fieldset class="grid grid-cols-1 gap-6" x-data="{ createAccount: '{{ cart.registerUserOnOrderComplete }}' }">
 
-									<div>
-										{% include 'foster-checkout/_components/base/input-text-clearable' with {
-											label: 'email.emailLabel'|t('foster-checkout'),
-											id: 'email',
-											name: 'email',
-											type: 'email',
-											autocomplete: 'email',
-											placeholder: 'email.emailPlaceholder'|t('foster-checkout'),
-											value: cart ? cart.email : '',
-											required: true,
-											errors: cart.getErrors('email'),
-											action: '$nextTick(() => { $refs.input.focus() });'
-										} %}
+									<div class="grid grid-cols-1 gap-4">
+										{% include 'foster-checkout/_components/app/sign-in-option' %}
+
+										<div>
+											{% include 'foster-checkout/_components/base/input-text-clearable' with {
+												label: 'email.emailLabel'|t('foster-checkout'),
+												id: 'email',
+												name: 'email',
+												type: 'email',
+												autocomplete: 'email',
+												placeholder: 'email.emailPlaceholder'|t('foster-checkout'),
+												value: cart ? cart.email : '',
+												required: true,
+												errors: cart.getErrors('email'),
+												action: '$nextTick(() => { $refs.input.focus() });'
+											} %}
+										</div>
 									</div>
 
 									<div class="checkbox">

@@ -19,10 +19,6 @@
 			   class="text-sm text-[var(--brandColor)] underline">
 				{{ 'misc.viewAccount'|t('foster-checkout') }}
 			</a>
-		{% else %}
-			<a href="{{ loginUrl }}" class="text-sm text-[var(--brandColor)] underline">
-				{{ 'email.signIn'|t('foster-checkout') }}
-			</a>
 		{% endif %}
 	</div>
 
@@ -48,17 +44,23 @@
 		@selected="$nextTick(() => saveIfValid('contact', $event))"
 	>
 		<div class="grid grid-cols-1 gap-6">
-			{% include 'foster-checkout/_components/base/input-text-clearable' with {
-				label: 'email.emailLabel'|t('foster-checkout'),
-				id: 'email',
-				name: 'email',
-				type: 'email',
-				autocomplete: 'email',
-				placeholder: 'email.emailPlaceholder'|t('foster-checkout'),
-				value: cart ? cart.email : '',
-				required: true,
-				errors: cart.getErrors('email'),
-			} %}
+			<div class="grid grid-cols-1 gap-4">
+				{% include 'foster-checkout/_components/app/sign-in-option' %}
+
+				<div>
+					{% include 'foster-checkout/_components/base/input-text-clearable' with {
+						label: 'email.emailLabel'|t('foster-checkout'),
+						id: 'email',
+						name: 'email',
+						type: 'email',
+						autocomplete: 'email',
+						placeholder: 'email.emailPlaceholder'|t('foster-checkout'),
+						value: cart ? cart.email : '',
+						required: true,
+						errors: cart.getErrors('email'),
+					} %}
+				</div>
+			</div>
 
 			<div class="checkbox" x-data="{ createAccount: {{ cart.registerUserOnOrderComplete ? 'true' : 'false' }} }">
 				<input type="hidden" name="registerUserOnOrderComplete" :value="createAccount ? 1 : 0">

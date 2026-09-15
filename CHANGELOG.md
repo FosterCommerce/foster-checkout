@@ -17,6 +17,7 @@
 
 - **Klaviyo tracking** is off on update, so a store already running Klaviyo turns it on for the checkout deliberately.
 - Replaced the **Edit** link above the summary items with the cart link in the checkout header.
+- Moved the contact step's sign-in link out of the panel heading and onto the email row, where it reads as the alternative to entering an email rather than as part of the heading.
 
 ### Fixed
 
