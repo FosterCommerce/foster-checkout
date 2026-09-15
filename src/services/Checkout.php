@@ -413,7 +413,7 @@ class Checkout extends Component
 	 */
 	public function customerPickupPreview(Order $order): string
 	{
-		return $this->checkoutAddressPreview($this->pickupLocation($order));
+		return $this->addressPreview($this->pickupLocation($order));
 	}
 
 	/**
@@ -827,7 +827,7 @@ class Checkout extends Component
 			'totals' => $this->checkoutTotals($cart),
 			'lineItemTotals' => $this->checkoutLineItemTotals($cart),
 			'addressLabels' => $this->checkoutAddressLabels($cart),
-			'shippingPreview' => $this->checkoutAddressPreview($cart->getShippingAddress()),
+			'shippingPreview' => $this->addressPreview($cart->getShippingAddress(), $cart->sourceShippingAddressId),
 			'customerPickup' => $this->isCustomerPickup($cart),
 			'couponName' => $this->couponName($cart),
 			'couponMessages' => $this->couponMessages($cart),
@@ -950,6 +950,28 @@ class Checkout extends Component
 		}
 
 		return (new AdvancedDiscountsVariable())->getMessages($cart);
+	}
+
+	/**
+	 * The one-line preview of an address.
+	 *
+	 * Pass the cart's `sourceShippingAddressId` or `sourceBillingAddressId` alongside an order address, so
+	 * that it can be named after the address it was copied from.
+	 */
+	public function addressPreview(?Address $address, ?int $sourceAddressId = null): string
+	{
+		if (! $address instanceof Address) {
+			return '';
+		}
+
+		$formatted = $this->addressFormatter()->format($address);
+		$parts = array_filter([
+			$this->previewLabel($address, $sourceAddressId),
+			trim((string) $address->fullName),
+			$formatted,
+		], static fn (string $part): bool => $part !== '');
+
+		return implode(', ', $parts);
 	}
 
 	/**
@@ -1227,43 +1249,33 @@ class Checkout extends Component
 
 		/** @var Address $address */
 		foreach ($cart->getCustomer()?->getAddresses() ?? [] as $address) {
-			$labels[(int) $address->id] = $this->checkoutAddressPreview($address);
+			$labels[(int) $address->id] = $this->addressPreview($address);
 		}
 
 		return $labels;
 	}
 
-	private function checkoutAddressPreview(?Address $address): string
-	{
-		if (! $address instanceof Address) {
-			return '';
-		}
-
-		$formatted = $this->addressFormatter()->format($address);
-		$parts = array_filter([
-			$this->previewLabel($address),
-			trim((string) $address->fullName),
-			$formatted,
-		], static fn (string $part): bool => $part !== '');
-
-		return implode(', ', $parts);
-	}
-
 	/**
 	 * The name a customer gave an address.
 	 */
-	private function previewLabel(Address $address): string
+	private function previewLabel(Address $address, ?int $sourceAddressId): string
 	{
 		if (! $this->settings()->showAddressLabelInPreview) {
 			return '';
 		}
 
-		// Only a customer's own address has a name they chose, not an order address or the store location
-		if (! $address->getPrimaryOwner() instanceof User) {
+		if ($address->getPrimaryOwner() instanceof User) {
+			return trim((string) $address->title);
+		}
+
+		// An order's copy is titled "Shipping Address", and the store location was never named by a customer
+		if ($sourceAddressId === null) {
 			return '';
 		}
 
-		return trim((string) $address->title);
+		$sourceAddress = Craft::$app->getElements()->getElementById($sourceAddressId, Address::class);
+
+		return $sourceAddress instanceof Address ? trim((string) $sourceAddress->title) : '';
 	}
 
 	/**

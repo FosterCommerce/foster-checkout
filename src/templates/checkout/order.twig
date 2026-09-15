@@ -90,7 +90,7 @@
 						<div class="mt-4">
 							<h2 class="text-lg font-medium text-gray-700">{{ 'order.shippingAddress'|t('foster-checkout') }}</h2>
 							<address class="not-italic mt-1">
-								{% include'foster-checkout/_components/app/formatted-address' with { 'address': order.shippingAddress} %}
+								{% include'foster-checkout/_components/app/formatted-address' with { 'address': order.shippingAddress, 'sourceAddressId': order.sourceShippingAddressId } %}
 							</address>
 						</div>
 
@@ -174,7 +174,7 @@
 						<div class="mt-4">
 							<h2 class="text-lg font-medium text-gray-700">{{ 'order.billingAddress'|t('foster-checkout') }}</h2>
 							<address class="not-italic mt-1">
-								{% include'foster-checkout/_components/app/formatted-address' with { 'address': order.billingAddress} %}
+								{% include'foster-checkout/_components/app/formatted-address' with { 'address': order.billingAddress, 'sourceAddressId': order.sourceBillingAddressId } %}
 							</address>
 						</div>
 					</div>

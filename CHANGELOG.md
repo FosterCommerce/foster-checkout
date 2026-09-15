@@ -4,7 +4,8 @@
 
 ### Added
 
-- Added **Show the address label** at **Checkout -> Addresses**, which names a saved address by the label its customer gave it in the checkout's address choices. An order's own addresses and the store location are left out, since neither has a name a customer chose.
+- Added **Show the address label** at **Checkout -> Addresses**, which names a saved address by the label its customer gave it in the checkout's address choices and in the completed steps. An order's address borrows the name from the address it was copied from, and the store location is left out, since a customer never named it.
+- Added `craft.fostercheckout.addressPreview()`, the one-line preview of an address as the checkout renders it.
 
 ### Fixed
 

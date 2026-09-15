@@ -388,7 +388,7 @@ return [
 	'settings.addresses.showAddressLabelField' => 'Permettre aux clients de nommer une adresse enregistrée',
 	'settings.addresses.showAddressLabelFieldHelp' => 'Indique si un client qui modifie une de ses adresses enregistrées au checkout peut en changer le libellé. Commerce nomme les nouvelles adresses.',
 	'settings.addresses.showAddressLabelInPreview' => 'Afficher le libellé de l’adresse',
-	'settings.addresses.showAddressLabelInPreviewHelp' => 'Si une adresse nommée par le client apparaît sous ce nom là où le checkout l’affiche sur une ligne. Les titres que Commerce donne aux adresses d’une commande sont exclus.',
+	'settings.addresses.showAddressLabelInPreviewHelp' => 'Si une adresse nommée par le client apparaît sous ce nom là où le checkout l’affiche sur une ligne. L’adresse d’une commande reprend le nom de l’adresse dont elle est issue, et l’adresse du magasin est exclue.',
 	'settings.general.enableCustomerPickup' => 'Proposer le retrait à l’adresse du magasin',
 	'settings.general.enableCustomerPickupHelp' => 'Si les choix d’adresse de livraison incluent l’adresse du magasin définie dans Commerce -> Store Management -> General. Une commande en retrait est livrée à cette adresse, afin qu’un mode de livraison puisse la cibler par zone.',
 	'settings.general.customerPickupLabel' => 'Libellé du retrait',

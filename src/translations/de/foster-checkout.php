@@ -388,7 +388,7 @@ return [
 	'settings.addresses.showAddressLabelField' => 'Kunden dürfen eine gespeicherte Adresse benennen',
 	'settings.addresses.showAddressLabelFieldHelp' => 'Ob ein Kunde beim Bearbeiten einer gespeicherten Adresse im Checkout deren Bezeichnung ändern kann. Eine neue Adresse benennt Commerce.',
 	'settings.addresses.showAddressLabelInPreview' => 'Adressbezeichnung anzeigen',
-	'settings.addresses.showAddressLabelInPreviewHelp' => 'Ob eine vom Kunden benannte Adresse dort mit diesem Namen erscheint, wo der Checkout sie einzeilig auflistet. Die Titel, die Commerce den Adressen einer Bestellung gibt, bleiben weg.',
+	'settings.addresses.showAddressLabelInPreviewHelp' => 'Ob eine vom Kunden benannte Adresse dort mit diesem Namen erscheint, wo der Checkout sie einzeilig auflistet. Die Adresse einer Bestellung übernimmt den Namen der Adresse, aus der sie kopiert wurde; der Standort des Shops bleibt weg.',
 	'settings.general.enableCustomerPickup' => 'Abholung am Standort des Shops anbieten',
 	'settings.general.enableCustomerPickupHelp' => 'Ob die Auswahl der Lieferadresse den unter Commerce -> Store Management -> General festgelegten Shop-Standort enthält. Eine Abholbestellung wird an diese Adresse geliefert, sodass eine Versandart sie über die Zone treffen kann.',
 	'settings.general.customerPickupLabel' => 'Beschriftung der Abholung',

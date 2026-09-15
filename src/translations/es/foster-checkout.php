@@ -389,7 +389,7 @@ return [
 	'settings.addresses.showAddressLabelField' => 'Permitir a los clientes nombrar una dirección guardada',
 	'settings.addresses.showAddressLabelFieldHelp' => 'Si un cliente que edita una de sus direcciones guardadas en el checkout puede cambiar su etiqueta. Commerce etiqueta las direcciones nuevas.',
 	'settings.addresses.showAddressLabelInPreview' => 'Mostrar la etiqueta de la dirección',
-	'settings.addresses.showAddressLabelInPreviewHelp' => 'Si una dirección que el cliente nombró aparece con ese nombre donde el checkout la muestra en una línea. Los títulos que Commerce da a las direcciones de un pedido se omiten.',
+	'settings.addresses.showAddressLabelInPreviewHelp' => 'Si una dirección que el cliente nombró aparece con ese nombre donde el checkout la muestra en una línea. La dirección de un pedido toma el nombre de la dirección de la que se copió, y la ubicación de la tienda se omite.',
 	'settings.general.enableCustomerPickup' => 'Ofrecer recogida en la ubicación de la tienda',
 	'settings.general.enableCustomerPickupHelp' => 'Si las opciones de dirección de envío incluyen la ubicación de la tienda definida en Commerce -> Store Management -> General. Un pedido de recogida se envía a esa dirección, de modo que un método de envío pueda coincidir por zona.',
 	'settings.general.customerPickupLabel' => 'Etiqueta de recogida',

@@ -57,7 +57,7 @@
 					</a>
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
-					{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.shippingAddress} %}
+					{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.shippingAddress, 'sourceAddressId': cart.sourceShippingAddressId } %}
 					<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]"
 						 href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address' }}">
 						{{ 'misc.change'|t('foster-checkout') }}
@@ -117,7 +117,7 @@
 					</a>
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
-					{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.billingAddress} %}
+					{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.billingAddress, 'sourceAddressId': cart.sourceBillingAddressId } %}
 					<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]"
 						 href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/billing' }}">
 						{{ 'misc.change'|t('foster-checkout') }}

@@ -26,7 +26,7 @@ Keys on the Addresses screen:
 | Required billing address fields | `requiredBillingAddressFields` | The same for a new billing address |
 | Show a third address line | `showAddressLine3` | Whether checkout address forms offer a third address line. Off by default |
 | Let customers name a saved address | `showAddressLabelField` | Whether the label of a saved address is editable at the checkout. It shows only when a customer edits an address they already saved |
-| Show the address label | `showAddressLabelInPreview` | Whether a saved address the customer named is shown by that name in the address choices. An order's own addresses and the store location are left out |
+| Show the address label | `showAddressLabelInPreview` | Whether a saved address the customer named is shown by that name in the address choices and the completed steps. An order's address borrows the name of the address it was copied from, and the store location is left out |
 
 Other keys on the General screen:
 

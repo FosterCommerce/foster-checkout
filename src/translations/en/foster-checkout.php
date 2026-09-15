@@ -389,7 +389,7 @@ return [
 	'settings.addresses.showAddressLabelField' => 'Let customers name a saved address',
 	'settings.addresses.showAddressLabelFieldHelp' => 'Whether a customer editing one of their saved addresses at the checkout can change its label. A new address is labeled by Commerce.',
 	'settings.addresses.showAddressLabelInPreview' => 'Show the address label',
-	'settings.addresses.showAddressLabelInPreviewHelp' => 'Whether a saved address the customer named is shown by that name in the address choices. An order’s own addresses and the store location are left out.',
+	'settings.addresses.showAddressLabelInPreviewHelp' => 'Whether a saved address the customer named is shown by that name wherever the checkout lists it on one line. An order’s address borrows the name of the address it was copied from, and the store location is left out.',
 	'settings.general.enableCustomerPickup' => 'Offer pickup at the store location',
 	'settings.general.enableCustomerPickupHelp' => 'Whether the shipping address choices include the store location set at Commerce -> Store Management -> General. A pickup order ships to that address, so a shipping method can match it by zone.',
 	'settings.general.customerPickupLabel' => 'Pickup label',

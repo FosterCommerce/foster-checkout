@@ -134,7 +134,7 @@
 																{{ 'billing.sameAsShippingAddress'|t('foster-checkout') }}
 																</span>
 																<span class="block mt-2 text-gray-500">
-																{% include 'foster-checkout/_components/app/formatted-address' with { address: cart.shippingAddress } %}
+																{% include 'foster-checkout/_components/app/formatted-address' with { address: cart.shippingAddress, sourceAddressId: cart.sourceShippingAddressId } %}
 																</span>
 															</span>
 														</label>
