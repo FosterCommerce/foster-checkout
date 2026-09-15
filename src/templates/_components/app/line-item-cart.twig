@@ -1,7 +1,11 @@
-{% set minQty = lineItem.purchasable.minQty %}
-{% set maxQty = lineItem.purchasable.maxQty %}
-{% set stock = lineItem.purchasable.stock %}
-{% set unlimitedStock = (lineItem.purchasable.hasUnlimitedStock or lineItem.purchasable.allowOutOfStockPurchases) ? 1 : 0 %}
+{# Render without a purchasable, since a trashed one stays on the line item until the cart recalculates #}
+{% set purchasable = lineItem.purchasable %}
+
+{% set minQty = purchasable ? purchasable.minQty : null %}
+{% set maxQty = purchasable ? purchasable.maxQty : null %}
+{% set stock = purchasable ? purchasable.stock : null %}
+{% set unlimitedStock = purchasable and (purchasable.hasUnlimitedStock or purchasable.allowOutOfStockPurchases) ? 1 : 0 %}
+{% set hasSales = purchasable and purchasable.getSales()|length > 0 %}
 
 {% set onSale = lineItem.onPromotion or lineItem.purchasableId in discountedPurchasableIds|default([]) %}
 
@@ -213,12 +217,12 @@
 							<span class="text-lg font-semibold">{{ lineItem.totalAsCurrency }}</span>
 						</p>
 						<p class="text-sm text-gray-500">
-							{% if lineItem.getOnPromotion() or lineItem.purchasable.getSales()|length %}
+							{% if lineItem.getOnPromotion() or hasSales %}
 								{{ 'summary.onSaleLabel'|t('foster-checkout') }}: {{ lineItem.subtotalAsCurrency }}<br>
 							{% endif %}
 							{{ 'summary.originalPriceLabel'|t('foster-checkout') }}: <span class="line-through">{{ craft.fostercheckout.lineItemOriginalTotal(lineItem) }}</span>
 						</p>
-					{% elseif lineItem.getOnPromotion() or lineItem.purchasable.getSales()|length %}
+					{% elseif lineItem.getOnPromotion() or hasSales %}
 						<p>
 							<span class="text-sm text-gray-500">
 								{{ 'summary.onSaleLabel'|t('foster-checkout') }}
@@ -241,9 +245,9 @@
 		</div>
 
 		<footer class="hidden md:block flex flex-col justify-between items-start gap-3">
-			{% if craft.fostercheckout.settings.lineItems.showLineItemStock and not lineItem.purchasable.hasUnlimitedStock and not lineItem.purchasable.allowOutOfStockPurchases %}
+			{% if craft.fostercheckout.settings.lineItems.showLineItemStock and purchasable and not unlimitedStock %}
 				<p class="text-sm font-medium text-gray-500">
-					{{ 'cart.lineItem.limitedStock'|t('foster-checkout', params = { qty: lineItem.purchasable.stock }) }}
+					{{ 'cart.lineItem.limitedStock'|t('foster-checkout', params = { qty: stock }) }}
 				</p>
 			{% endif %}
 

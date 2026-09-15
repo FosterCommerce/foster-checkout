@@ -6,6 +6,10 @@
 
 - Added **Show the address label** at **Checkout -> Addresses**, which names a saved address by the label its customer gave it in the checkout's address choices. An order's own addresses and the store location are left out, since neither has a name a customer chose.
 
+### Fixed
+
+- Fixed an error that occurred when a cart held a product that had since been moved to the trash.
+
 ## 1.5.0 - 2026-09-13
 
 ### Added
