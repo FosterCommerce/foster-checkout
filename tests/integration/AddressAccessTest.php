@@ -46,17 +46,25 @@ final class AddressAccessTest extends CartTestCase
 	 */
 	public function testALabelIsTheFullNameFollowedByTheFormattedAddress(): void
 	{
-		[, $cart, $book] = $this->signedInCustomerCart();
-		$labels = $this->checkout()->checkoutLiveState($cart)['addressLabels'];
-		$formatter = $this->checkout()->addressFormatter();
+		$settings = $this->settings();
+		$original = $settings->showAddressLabelInPreview;
+		$settings->showAddressLabelInPreview = false;
 
-		foreach ($book as $address) {
-			$expected = implode(', ', array_filter([
-				$address->fullName,
-				Craft::$app->getAddresses()->formatAddress($address, [], $formatter),
-			]));
+		try {
+			[, $cart, $book] = $this->signedInCustomerCart();
+			$labels = $this->checkout()->checkoutLiveState($cart)['addressLabels'];
+			$formatter = $this->checkout()->addressFormatter();
 
-			self::assertSame($expected, $labels[(int) $address->id] ?? null);
+			foreach ($book as $address) {
+				$expected = implode(', ', array_filter([
+					$address->fullName,
+					Craft::$app->getAddresses()->formatAddress($address, [], $formatter),
+				]));
+
+				self::assertSame($expected, $labels[(int) $address->id] ?? null);
+			}
+		} finally {
+			$settings->showAddressLabelInPreview = $original;
 		}
 	}
 

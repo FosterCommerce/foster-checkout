@@ -89,6 +89,7 @@ return [
 	'address.stepTitle' => 'Lieferadresse',
 	'address.stepName' => 'Lieferadresse',
 	'address.newAddress' => 'Neue Lieferadresse',
+	'address.customerPickup' => 'Selbstabholung',
 	'address.saveToAddressBook' => 'Im Adressbuch speichern',
 	'address.nextStep' => 'Nächster Schritt',
 
@@ -256,6 +257,8 @@ return [
 	'content.confirmationHelp' => 'Wird auf der Seite der Bestellbestätigung angezeigt.',
 	'content.globalCheckout' => 'Globaler Checkout-Hinweis',
 	'content.globalCheckoutHelp' => 'Wird in jedem Checkout-Schritt angezeigt.',
+	'content.noShippingMethods' => 'Meldung bei fehlenden Versandarten',
+	'content.noShippingMethodsHelp' => 'Wird im Bereich der Versandart angezeigt, wenn für die Adresse nichts ermittelt werden kann. Leer zeigt „Keine Versandoptionen verfügbar“.',
 	'content.subscribe' => 'Beschriftung der Newsletter-Checkbox',
 	'content.subscribeHelp' => 'Text neben der Newsletter-Checkbox im Schritt E-Mail. Leer lassen, um die Checkbox auszublenden.',
 	'content.deliveryDateLabel' => 'Beschriftung des Liefertermins',
@@ -325,6 +328,8 @@ return [
 	'settings.products.productImage' => 'Feld für Produktbild',
 	'settings.products.variantImage' => 'Feld für Variantenbild',
 	'settings.products.addRow' => 'Produkttyp hinzufügen',
+	'settings.products.notShippable' => 'Produkte, die nie versendet werden',
+	'settings.products.notShippableHelp' => 'Varianten eines passenden Produkts benötigen weder Lieferadresse noch Versandart, und Commerce sowie Versand-Plugins behandeln sie als nicht versandfähig. Leer lassen, um alles zu versenden.',
 
 	'settings.gateways.intro' => 'Zusätzliche Felder und Optionen, die bei Wahl einer Zahlungsart angezeigt werden. Aufgeführt sind alle in Commerce eingerichteten Zahlungsanbieter.',
 	'settings.gateways.none' => 'In Commerce ist noch kein Zahlungsanbieter eingerichtet.',
@@ -382,6 +387,12 @@ return [
 	'settings.addresses.showAddressLine3Help' => 'Ob Adressformulare im Checkout eine dritte Adresszeile anbieten, für die Länder, deren Adressformat eine vorsieht.',
 	'settings.addresses.showAddressLabelField' => 'Kunden dürfen eine gespeicherte Adresse benennen',
 	'settings.addresses.showAddressLabelFieldHelp' => 'Ob ein Kunde beim Bearbeiten einer gespeicherten Adresse im Checkout deren Bezeichnung ändern kann. Eine neue Adresse benennt Commerce.',
+	'settings.addresses.showAddressLabelInPreview' => 'Adressbezeichnung anzeigen',
+	'settings.addresses.showAddressLabelInPreviewHelp' => 'Ob eine vom Kunden benannte Adresse dort mit diesem Namen erscheint, wo der Checkout sie einzeilig auflistet. Die Titel, die Commerce den Adressen einer Bestellung gibt, bleiben weg.',
+	'settings.general.enableCustomerPickup' => 'Abholung am Standort des Shops anbieten',
+	'settings.general.enableCustomerPickupHelp' => 'Ob die Auswahl der Lieferadresse den unter Commerce -> Store Management -> General festgelegten Shop-Standort enthält. Eine Abholbestellung wird an diese Adresse geliefert, sodass eine Versandart sie über die Zone treffen kann.',
+	'settings.general.customerPickupLabel' => 'Beschriftung der Abholung',
+	'settings.general.customerPickupLabelHelp' => 'Text der Abholoption.',
 
 	'settings.general.cart' => 'Pfad zum Warenkorb',
 	'settings.general.cartHelp' => 'Site-relativer Pfad, unter dem der Warenkorb erreichbar ist.',

@@ -89,6 +89,7 @@ return [
 	'address.stepTitle' => 'Adresse de livraison',
 	'address.stepName' => 'Adresse de livraison',
 	'address.newAddress' => 'Nouvelle adresse de livraison',
+	'address.customerPickup' => 'Retrait en magasin',
 	'address.saveToAddressBook' => "Enregistrer dans le carnet d'adresses",
 	'address.nextStep' => 'Étape suivante',
 
@@ -256,6 +257,8 @@ return [
 	'content.confirmationHelp' => 'Affichée sur la page de confirmation de commande.',
 	'content.globalCheckout' => 'Note globale du paiement',
 	'content.globalCheckoutHelp' => 'Affichée à chaque étape du paiement.',
+	'content.noShippingMethods' => 'Message en l’absence de modes de livraison',
+	'content.noShippingMethodsHelp' => 'Affiché dans le panneau du mode de livraison lorsque rien ne peut être calculé pour l’adresse. Vide affiche « Aucune option de livraison disponible ».',
 	'content.subscribe' => 'Libellé de la case newsletter',
 	'content.subscribeHelp' => 'Texte à côté de la case d’inscription à l’étape e-mail. Laisser vide pour masquer la case.',
 	'content.deliveryDateLabel' => 'Libellé de la date de livraison',
@@ -325,6 +328,8 @@ return [
 	'settings.products.productImage' => 'Champ image du produit',
 	'settings.products.variantImage' => 'Champ image de la variante',
 	'settings.products.addRow' => 'Ajouter un type de produit',
+	'settings.products.notShippable' => 'Produits jamais expédiés',
+	'settings.products.notShippableHelp' => 'Les variantes d’un produit correspondant n’ont besoin ni d’adresse ni de mode de livraison, et Commerce et les plugins de livraison les traitent comme non expédiables. Laisser vide pour tout expédier.',
 
 	'settings.gateways.intro' => 'Champs et options supplémentaires affichés lorsqu’un client choisit un moyen de paiement. Toutes les passerelles configurées dans Commerce sont listées.',
 	'settings.gateways.none' => 'Aucune passerelle de paiement n’est encore configurée dans Commerce.',
@@ -382,6 +387,12 @@ return [
 	'settings.addresses.showAddressLine3Help' => 'Indique si les formulaires d’adresse du checkout proposent une troisième ligne d’adresse, pour les pays dont le format d’adresse en prévoit une.',
 	'settings.addresses.showAddressLabelField' => 'Permettre aux clients de nommer une adresse enregistrée',
 	'settings.addresses.showAddressLabelFieldHelp' => 'Indique si un client qui modifie une de ses adresses enregistrées au checkout peut en changer le libellé. Commerce nomme les nouvelles adresses.',
+	'settings.addresses.showAddressLabelInPreview' => 'Afficher le libellé de l’adresse',
+	'settings.addresses.showAddressLabelInPreviewHelp' => 'Si une adresse nommée par le client apparaît sous ce nom là où le checkout l’affiche sur une ligne. Les titres que Commerce donne aux adresses d’une commande sont exclus.',
+	'settings.general.enableCustomerPickup' => 'Proposer le retrait à l’adresse du magasin',
+	'settings.general.enableCustomerPickupHelp' => 'Si les choix d’adresse de livraison incluent l’adresse du magasin définie dans Commerce -> Store Management -> General. Une commande en retrait est livrée à cette adresse, afin qu’un mode de livraison puisse la cibler par zone.',
+	'settings.general.customerPickupLabel' => 'Libellé du retrait',
+	'settings.general.customerPickupLabelHelp' => 'Texte de l’option de retrait.',
 
 	'settings.general.cart' => 'Chemin du panier',
 	'settings.general.cartHelp' => 'Chemin relatif au site où le panier est accessible.',

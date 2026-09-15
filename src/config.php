@@ -251,6 +251,10 @@ return [
 	// Whether a customer editing one of their saved addresses at the checkout can name it
 	// 'showAddressLabelField' => false, // true|false
 
+	// Whether a saved address the customer named is shown by that name in the address choices. An
+	// order's own addresses and the store location are left out
+	// 'showAddressLabelInPreview' => false, // true|false
+
 	// Whether the shipping address choices include the store location, for orders collected there
 	// 'enableCustomerPickup' => false, // true|false
 

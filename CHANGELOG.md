@@ -1,5 +1,11 @@
 # Release Notes for Foster Checkout
 
+## 1.6.0 - 2026-09-14
+
+### Added
+
+- Added **Show the address label** at **Checkout -> Addresses**, which names a saved address by the label its customer gave it in the checkout's address choices. An order's own addresses and the store location are left out, since neither has a name a customer chose.
+
 ## 1.5.0 - 2026-09-13
 
 ### Added
