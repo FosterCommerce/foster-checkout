@@ -44,6 +44,9 @@ return [
 	// 'enableAddressVerification' => false, // true|false
 
 	// The Klaviyo list ID to subscribe the customer to
+	// Whether the checkout reports to Klaviyo. Needs the Klaviyo Connect Plus plugin.
+	// 'enableKlaviyoTracking' => false,
+
 	// 'klaviyoListId' => null,
 
 	// The text to display for the subscribe checkbox. Can also be a plain string, or a callable which returns a string
@@ -115,6 +118,9 @@ return [
 	// The background color of the header in HEX color
 	// 'headerBgColor' => '#F3F3F3',
 
+	// Color of anything drawn on the header bar, such as the cart link
+	// 'headerTextColor' => '#1F2937',
+
 	// The Google web font (https://fonts.google.com/) family name you want to use
 	// 'font' => 'Rubik',
 
@@ -181,6 +187,8 @@ return [
 	// 'head' => '',
 	// Relative path to the include in your template directory that will be injected before the end </body> tag
 	// 'body' => '',
+	// Relative path to the include rendered in its own container above the checkout summary
+	// 'summary' => '',
 	// ],
 
 	// The handle of the field on Orders holding the note a customer leaves with their order
@@ -225,6 +233,13 @@ return [
 
 	// An array of country codes that will be shown first in the country select dropdowns
 	// 'priorityCountries' => [],
+
+	// How many of the customer's saved addresses the checkout offers, most recently updated first.
+	// Their primary address is always among them. Zero offers every address a customer has saved.
+	// 'savedAddressLimit' => 10,
+
+	// Handle of the address field holding a phone number, so its input asks for a phone keypad.
+	// 'addressPhoneFieldHandle' => null,
 
 	// Address fields to hide from checkout address forms, named by attribute or custom field handle.
 	// A field the address layout marks required is always shown, since Craft needs it to validate

@@ -21,14 +21,8 @@
 		{# The forms below take input, so only what a customer reads collapses #}
 		<div class="grid-cols-1 gap-10" :class="summaryOpen ? 'grid' : 'hidden lg:grid'">
 			<div class="grid grid-cols-1 gap-6">
-				<div class="flex justify-between items-center gap-4">
-					<h2 class="text-xl font-bold text-gray-800 leading-snug">
-						{{ 'summary.itemsTitle'|t('foster-checkout') }}
-					</h2>
-					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}" class="inline-block text-[var(--brandColor)] underline">
-						{{ 'misc.edit'|t('foster-checkout') }}
-					</a>
-				</div>
+				{# Kept for screen readers, since the cart link in the header replaced the visible heading #}
+				<h2 class="sr-only">{{ 'summary.itemsTitle'|t('foster-checkout') }}</h2>
 
 				{% include 'foster-checkout/_components/app/summary-items' %}
 			</div>

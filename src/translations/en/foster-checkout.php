@@ -122,6 +122,7 @@ return [
 	// Shipping Method page
 	'shipping.stepTitle' => 'Shipping method',
 	'shipping.noMethodAvailable' => 'No shipping options available',
+	'shipping.addressNeeded' => 'Enter your shipping address to view available shipping methods.',
 	'shipping.gettingMethods' => 'Getting shipping methods',
 	'shipping.nextStep' => 'Next step',
 
@@ -276,6 +277,8 @@ return [
 	'settings.appearance.colorHelp' => 'Primary color used for buttons and links throughout the checkout.',
 	'settings.appearance.headerBgColor' => 'Header background color',
 	'settings.appearance.headerBgColorHelp' => 'Background color of the checkout header.',
+	'settings.appearance.headerTextColor' => 'Header text color',
+	'settings.appearance.headerTextColorHelp' => 'Color of anything drawn on the header bar, such as the cart link.',
 	'settings.appearance.font' => 'Font',
 	'settings.appearance.fontHelp' => 'A Google Fonts family name, for example “Roboto Slab”.',
 	'settings.appearance.logo' => 'Logo',
@@ -375,6 +378,8 @@ return [
 	'settings.addresses.addCountry' => 'Add a country',
 	'settings.general.zeroValueGateways' => 'Zero value gateways',
 	'settings.general.zeroValueGatewaysHelp' => 'Gateways available when an order totals zero.',
+	'settings.addresses.savedAddressLimit' => 'Saved address limit',
+	'settings.addresses.savedAddressLimitHelp' => 'How many of a customer’s saved addresses the checkout offers, most recently updated first. Their primary address is always among them. Zero offers every address they have saved.',
 	'settings.addresses.hiddenAddressFields' => 'Hidden address fields',
 	'settings.addresses.hiddenAddressFieldsHelp' => 'Address fields left off the checkout. A field the address layout marks required is always shown.',
 	'settings.addresses.hiddenBillingAddressFields' => 'Hidden billing address fields',
@@ -445,4 +450,10 @@ return [
 	'settings.lineItemOptions.showLineItemStock' => 'Show the stock count',
 	'settings.lineItemOptions.showLineItemStockHelp' => 'Whether each line item in the cart names how many are left in stock.',
 	'settings.lineItemOptions.anyValue' => 'Any {subject}',
+	'settings.features.enableKlaviyoTracking' => 'Klaviyo tracking',
+	'settings.features.enableKlaviyoTrackingHelp' => 'Whether the checkout reports to Klaviyo and offers the newsletter checkbox. Needs the Klaviyo Connect Plus plugin.',
+	'settings.addresses.addressPhoneFieldHandle' => 'Phone field',
+	'settings.addresses.addressPhoneFieldHandleHelp' => 'Handle of the address field holding a phone number, so its input asks for a phone keypad.',
+	'settings.general.includesSummary' => 'Summary include',
+	'settings.general.includesSummaryHelp' => 'Template path rendered in its own container above the checkout summary. Receives the cart.',
 ];

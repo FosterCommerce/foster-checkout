@@ -235,6 +235,7 @@ class CheckoutFieldLayouts extends Component
 		$field = $layoutElement->getField();
 		$inputType = $this->fieldInputType($field);
 
+
 		// A layout saved before the type check existed can still hold a field with no input to render
 		if ($inputType === null) {
 			return null;

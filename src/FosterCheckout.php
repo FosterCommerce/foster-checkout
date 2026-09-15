@@ -61,6 +61,8 @@ class FosterCheckout extends Plugin
 
 	private const string VOUCHER_ACTION = 'gift-voucher/cart/add-code';
 
+	private const string LINE_ITEM_REMOVED_NOTICE = 'lineItemRemoved';
+
 	/**
 	 * @var array<int, string>
 	 */
@@ -215,6 +217,11 @@ class FosterCheckout extends Plugin
 	public bool $hasReadOnlyCpSettings = true;
 
 	private ?string $singlePageCouponCodeError = null;
+
+	/**
+	 * @var list<string>
+	 */
+	private array $removedLineItemMessages = [];
 
 	#[\Override]
 	public function init(): void
@@ -856,19 +863,44 @@ class FosterCheckout extends Plugin
 			Order::class,
 			Order::EVENT_BEFORE_APPLY_ADD_NOTICE,
 			function (OrderNoticeEvent $event): void {
-				if (! Craft::$app->getRequest()->getIsSiteRequest() || $event->orderNotice->attribute !== 'couponCode') {
+				if (! Craft::$app->getRequest()->getIsSiteRequest()) {
 					return;
 				}
 
-				if ($this->isSinglePageJsonRequest()) {
-					$this->singlePageCouponCodeError = $event->orderNotice->message;
-				} else {
-					Craft::$app->getSession()->setFlash('couponCodeError', $event->orderNotice->message);
+				$orderNotice = $event->orderNotice;
+
+				if ($orderNotice->attribute === 'couponCode') {
+					if ($this->isSinglePageJsonRequest()) {
+						$this->singlePageCouponCodeError = $orderNotice->message;
+					} else {
+						Craft::$app->getSession()->setFlash('couponCodeError', $orderNotice->message);
+					}
+
+					$event->isValid = false;
+
+					return;
 				}
 
-				$event->isValid = false;
+				if ($orderNotice->type === self::LINE_ITEM_REMOVED_NOTICE && ! $this->isSinglePageJsonRequest()) {
+					$this->flashRemovedLineItem($orderNotice->message);
+
+					$event->isValid = false;
+				}
 			}
 		);
+	}
+
+	// Commerce drops a line item it can no longer sell and says so only in a notice, so a cart can
+	// empty with nothing shown. One purchasable can lose several line items in the same save.
+	private function flashRemovedLineItem(string $message): void
+	{
+		if (in_array($message, $this->removedLineItemMessages, true)) {
+			return;
+		}
+
+		$this->removedLineItemMessages[] = $message;
+
+		Craft::$app->getSession()->setFlash('error', implode(' ', $this->removedLineItemMessages));
 	}
 
 	// commerceguys/addressing ships no GB subdivisions, so the store lists its own

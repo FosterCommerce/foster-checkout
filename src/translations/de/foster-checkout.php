@@ -115,6 +115,7 @@ return [
 	// Shipping Method page
 	'shipping.stepTitle' => 'Versandart',
 	'shipping.noMethodAvailable' => 'Keine Versandoptionen verfügbar',
+	'shipping.addressNeeded' => 'Geben Sie Ihre Lieferadresse ein, um verfügbare Versandarten zu sehen.',
 	'shipping.gettingMethods' => 'Versandarten werden ermittelt',
 	'shipping.nextStep' => 'Nächster Schritt',
 
@@ -280,6 +281,8 @@ return [
 	'settings.appearance.colorHelp' => 'Hauptfarbe für Buttons und Links im gesamten Checkout.',
 	'settings.appearance.headerBgColor' => 'Hintergrundfarbe der Kopfzeile',
 	'settings.appearance.headerBgColorHelp' => 'Hintergrundfarbe der Checkout-Kopfzeile.',
+	'settings.appearance.headerTextColor' => 'Kopfzeilen-Textfarbe',
+	'settings.appearance.headerTextColorHelp' => 'Farbe von allem, was auf der Kopfzeile gezeichnet wird, etwa der Warenkorb-Link.',
 	'settings.appearance.font' => 'Schriftart',
 	'settings.appearance.fontHelp' => 'Name einer Google-Fonts-Schriftfamilie, zum Beispiel „Roboto Slab“.',
 	'settings.appearance.logo' => 'Logo',
@@ -374,6 +377,8 @@ return [
 	'settings.addresses.addCountry' => 'Land hinzufügen',
 	'settings.general.zeroValueGateways' => 'Zahlungsanbieter für Nullbeträge',
 	'settings.general.zeroValueGatewaysHelp' => 'Zahlungsanbieter, die bei einem Bestellwert von null verfügbar sind.',
+	'settings.addresses.savedAddressLimit' => 'Limit für gespeicherte Adressen',
+	'settings.addresses.savedAddressLimitHelp' => 'Wie viele der gespeicherten Adressen eines Kunden die Kasse anbietet, zuletzt aktualisierte zuerst. Die primäre Adresse ist immer dabei. Null bietet alle gespeicherten Adressen an.',
 	'settings.addresses.hiddenAddressFields' => 'Ausgeblendete Adressfelder',
 	'settings.addresses.hiddenAddressFieldsHelp' => 'Adressfelder, die im Checkout weggelassen werden. Ein Feld, das das Adresslayout als Pflichtfeld führt, wird immer angezeigt.',
 	'settings.addresses.hiddenBillingAddressFields' => 'Ausgeblendete Rechnungsadressfelder',
@@ -444,4 +449,10 @@ return [
 	'settings.lineItemOptions.showLineItemStock' => 'Lagerbestand anzeigen',
 	'settings.lineItemOptions.showLineItemStockHelp' => 'Ob jede Position im Warenkorb nennt, wie viele noch auf Lager sind.',
 	'settings.lineItemOptions.anyValue' => 'Beliebiger {subject}',
+	'settings.features.enableKlaviyoTracking' => 'Klaviyo-Tracking',
+	'settings.features.enableKlaviyoTrackingHelp' => 'Ob die Kasse an Klaviyo meldet und das Newsletter-Kontrollkästchen anbietet. Benötigt das Plugin Klaviyo Connect Plus.',
+	'settings.addresses.addressPhoneFieldHandle' => 'Telefonfeld',
+	'settings.addresses.addressPhoneFieldHandleHelp' => 'Handle des Adressfelds mit der Telefonnummer, damit dessen Eingabe ein Telefontastenfeld anfordert.',
+	'settings.general.includesSummary' => 'Zusammenfassungs-Include',
+	'settings.general.includesSummaryHelp' => 'Vorlagenpfad, der in einem eigenen Container über der Kassenzusammenfassung gerendert wird. Erhält den Warenkorb.',
 ];

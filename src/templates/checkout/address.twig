@@ -8,9 +8,10 @@
 {% endif %}
 
 {% extends 'foster-checkout/_layouts/default' %}
+{% set showCartLink = true %}
 {% set cart = cart is not defined ? craft.commerce.carts.cart : cart %}
 {% set canViewAddresses = craft.fostercheckout.canViewAddresses(cart) %}
-{% set addresses = canViewAddresses ? cart.customer.addresses.all() : null %}
+{% set addresses = craft.fostercheckout.customerAddresses(cart) %}
 {% set primaryShippingAddressId = canViewAddresses ? (cart.customer.getPrimaryShippingAddressId() ?? -1) : -1 %}
 {% set canSaveAddresses = craft.fostercheckout.canSaveAddresses(cart) %}
 

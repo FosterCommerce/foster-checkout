@@ -638,18 +638,22 @@ export const cartPersistence = () => ({
 	setInputErrors(name, messages) {
 		const input = this.findNamedInput(name);
 		if (!input) {
-			return;
+			return false;
 		}
 
 		const root = input.closest('[x-data]');
 		if (!root || root === this.$root) {
-			return;
+			return false;
 		}
 
 		const data = window.Alpine.$data(root);
-		if (data && Array.isArray(data.errors)) {
-			data.errors = messages;
+		if (!data || !Array.isArray(data.errors)) {
+			return false;
 		}
+
+		data.errors = messages;
+
+		return true;
 	},
 
 	clearInputErrors() {
@@ -667,23 +671,36 @@ export const cartPersistence = () => ({
 			});
 	},
 
+	/**
+	 * @returns {string[]} messages for errors with no input to show them against
+	 */
 	applyFieldErrors(errors) {
 		this.clearInputErrors();
 		const flattened = this.flattenErrors(errors);
 		const noteName = this.$refs.orderNote?.name;
+		const unplaced = [];
 
 		Object.entries(flattened).forEach(([key, messages]) => {
 			const name = this.errorKeyToName(key);
-			this.setInputErrors(name, messages);
+			const placed = this.setInputErrors(name, messages);
 
 			if (name === 'couponCode') {
 				this.couponError = messages.join(' ');
+				return;
 			}
 
 			if (noteName && name === noteName) {
 				this.notesError = messages.join(' ');
+				return;
+			}
+
+			// An address rejected as a whole names no field, such as one outside the store's market
+			if (!placed) {
+				unplaced.push(...messages);
 			}
 		});
+
+		return unplaced;
 	},
 
 	collectResponseErrors(data) {
@@ -694,9 +711,12 @@ export const cartPersistence = () => ({
 	},
 
 	applyErrors(data) {
-		this.status = data.message || data.error || this.failedLabel;
+		const unplaced = this.applyFieldErrors(this.collectResponseErrors(data));
+
+		this.status = unplaced.length
+			? unplaced.join(' ')
+			: data.message || data.error || this.failedLabel;
 		this.statusTone = 'error';
-		this.applyFieldErrors(this.collectResponseErrors(data));
 	},
 
 	applyCoupon() {

@@ -7,6 +7,8 @@ Two screens decide this together. Craft's address field layout, at **Settings ->
 | Setting | Controls |
 | --- | --- |
 | **Priority countries** | Country codes shown at the top of every country dropdown, in the order listed. They are removed from the alphabetical list below |
+| **Saved address limit** | How many of a customer’s saved addresses the checkout offers them to ship to. 10 by default |
+| **Phone field** | Handle of the address field holding a phone number. Its input asks for a phone keypad instead of a text one |
 | **Hidden address fields** | Fields left off the checkout. They stay in the control panel |
 | **Hidden billing address fields** | Fields also left off a new billing address, such as a delivery switch that means nothing on the address a card is billed to |
 | **Required shipping address fields** | Fields the checkout requires on a shipping address, and on a saved address a customer edits, beyond what the address layout asks for |
@@ -14,6 +16,10 @@ Two screens decide this together. Craft's address field layout, at **Settings ->
 | **Show a third address line** | Whether the form offers a third address line. Off by default |
 | **Let customers name a saved address** | Whether the label of a saved address is editable at the checkout. Off by default |
 | **Show the address label** | Whether a saved address the customer named is shown by that name in the address choices and the completed steps. Off by default |
+
+## Saved addresses
+
+A customer who has ordered for years can hold hundreds of saved addresses, and a list that long is no use to pick from. The checkout offers the most recently updated ones, up to **Saved address limit**, and the rest are reached by typing a new address. Their primary address is always the first offered, whatever its age. Set the limit to zero to offer every address a customer has saved.
 
 ## What can be hidden
 

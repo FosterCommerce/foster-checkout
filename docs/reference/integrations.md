@@ -21,7 +21,7 @@ Adds a code field to the payment step and lists applied vouchers in the order su
 
 ## Klaviyo Connect Plus
 
-The newsletter checkbox needs this plugin **and** a list ID at **Checkout -> Features -> Klaviyo list ID**. Without both, the checkbox is not shown. Its label is edited at **Checkout -> Content**.
+The newsletter checkbox needs this plugin, **Klaviyo tracking** turned on at **Checkout -> Features**, and a list ID at **Checkout -> Features -> Klaviyo list ID**. Without all three, the checkbox is not shown. Klaviyo tracking is off on a new install and on update, so a store already running this plugin turns it on for the checkout deliberately. Its label is edited at **Checkout -> Content**.
 
 Events are not sent when the signed-in user's email is not the order's, since they would be filed under someone who is not the shopper. See [checkout for another customer](../dev-guide/checkout-for-another-customer.md#whether-klaviyo-is-tracking).
 

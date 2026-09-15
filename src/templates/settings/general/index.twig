@@ -106,6 +106,17 @@
 		warning: 'includes.body' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'includes.body' }),
 	}) }}
 
+	{{ forms.textField({
+		label: 'settings.general.includesSummary'|t('foster-checkout'),
+		instructions: 'settings.general.includesSummaryHelp'|t('foster-checkout'),
+		id: 'includes-summary',
+		name: 'settings[includes][summary]',
+		value: settings.includes.summary,
+		disabled: includesOverridden or not adminChangesAllowed,
+		errors: settings.getErrors('includes.summary'),
+		warning: 'includes.summary' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'includes.summary' }),
+	}) }}
+
 	<hr>
 
 	{% set gatewaysOverridden = 'zeroValueGatewayHandles' in overriddenSettings %}

@@ -40,6 +40,7 @@
 {% else %}
 	{% include 'foster-checkout/_components/base/input-text-clearable' with common|merge({
 		type: field.type,
+		autocomplete: field.type == 'tel' ? 'tel' : false,
 		placeholder: field.placeholder,
 		minLength: false,
 		maxLength: field.maxLength ?? false,

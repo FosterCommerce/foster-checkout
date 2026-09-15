@@ -6,8 +6,8 @@ Every setting is editable in the control panel under **Checkout**. A site may al
 
 | Screen | Config key | Holds |
 | --- | --- | --- |
-| **Appearance** | `branding` | Brand color, header background, Google font family, logo path, component style, field label placement, title prefix |
-| **Features** | `options` and `addressLookup` | Checkout page layout format, the other `enable*` switches, and the Klaviyo list ID. Blank list ID hides the newsletter checkbox. Multi-page is the default |
+| **Appearance** | `branding` | Brand color, header background, header text color, Google font family, logo path, component style, field label placement, title prefix |
+| **Features** | `options` and `addressLookup` | Checkout page layout format, the other `enable*` switches, and the Klaviyo list ID. The newsletter checkbox needs Klaviyo tracking on and a list ID. Multi-page is the default |
 | **Line Items** | `lineItems` and `lineItemOptionRules` | Whether a line item shows its SKU and its stock count, whether its options are shown, which option names are hidden, how far option values are cut, and the rules that rewrite an option's name and value |
 | **Products** | `products` | Per product type, the field holding the cart preview image. Blank falls back to the product's own image |
 | **Products** | `notShippableProducts` | A product condition. Variants of a matching product are not shippable: their orders skip the shipping address and method, and Commerce and shipping plugins leave them out. Empty ships everything |
@@ -20,6 +20,8 @@ Keys on the Addresses screen:
 | Setting | Config key | Holds |
 | --- | --- | --- |
 | Priority countries | `priorityCountries` | Country codes shown at the top of country dropdowns, in the order listed |
+| Saved address limit | `savedAddressLimit` | How many of a customer's saved addresses the checkout offers, most recently updated first. Their primary address is always among them. Zero offers every address they have saved |
+| Phone field | `addressPhoneFieldHandle` | Handle of the address field holding a phone number, so its input asks for a phone keypad |
 | Hidden address fields | `hiddenAddressFields` | Address fields left off the checkout. They stay in the control panel. A field the address layout marks required is always shown |
 | Hidden billing address fields | `hiddenBillingAddressFields` | Address fields also left off a new billing address, on top of the hidden list. A field the address layout marks required is always shown |
 | Required shipping address fields | `requiredAddressFields` | Address fields required on a shipping address, and on a saved address a customer edits, beyond what the address layout asks for. A hidden field is never required |
@@ -32,7 +34,7 @@ Other keys on the General screen:
 
 | Setting | Config key | Holds |
 | --- | --- | --- |
-| Head include, Body include | `includes` | Template paths injected into every cart and checkout page. See [custom includes](../dev-guide/custom-includes.md) |
+| Head include, Body include, Summary include | `includes` | Template paths injected into the cart and checkout pages. See [custom includes](../dev-guide/custom-includes.md) |
 | Offer pickup at the store location | `enableCustomerPickup` | Whether the shipping address choices include the store location. See [customer pickup](../user-guide/customer-pickup.md) |
 | Pickup label | `customerPickupLabel` | Text of the pickup choice. Blank shows “Customer pickup” |
 | Zero value gateways | `zeroValueGatewayHandles` | Gateways available when an order totals zero |
@@ -47,6 +49,7 @@ Every setting and its default, as the plugin ships.
 | --- | --- | --- |
 | Brand color | `branding.color` | `#1F2937` |
 | Header background | `branding.headerBgColor` | `#F3F3F3` |
+| Header text color | `branding.headerTextColor` | `#1F2937` |
 | Google font family | `branding.font` | `Rubik` |
 | Logo path | `branding.logo` | empty |
 | Component style | `branding.style` | `rounded` |
@@ -58,6 +61,7 @@ Every setting and its default, as the plugin ships.
 | Placeholder images | `options.enablePlaceholderImages` | `false` |
 | Page transitions | `options.enablePageTransitions` | `false` |
 | Verify shipping addresses | `options.enableAddressVerification` | `false` |
+| Klaviyo tracking | `options.enableKlaviyoTracking` | `false` |
 | Shipping estimator | `options.enableEstimatedShipping` | `false` |
 | Klaviyo list ID | `options.klaviyoListId` | none |
 | Payment due date field | `options.paymentDueDateFieldHandle` | none |
@@ -77,11 +81,14 @@ Every setting and its default, as the plugin ships.
 | Account path | `paths.account` | `/` |
 | Head include | `includes.head` | empty |
 | Body include | `includes.body` | empty |
+| Summary include | `includes.summary` | empty |
 | Newsletter checkbox label | `options.subscribe` | none |
 | Delivery date label, message, estimate, display | `options.deliveryDate.label`, `.message`, `.estimate`, `.display` | none |
 | Content translation method | `contentTranslationMethod` | `site` |
 | Customer order notes field | `customerOrderNotesFieldHandle` | none |
 | Priority countries | `priorityCountries` | empty |
+| Saved address limit | `savedAddressLimit` | `10` |
+| Phone field | `addressPhoneFieldHandle` | none |
 | Hidden address fields | `hiddenAddressFields` | empty |
 | Hidden billing address fields | `hiddenBillingAddressFields` | empty |
 | Required shipping address fields | `requiredAddressFields` | empty |

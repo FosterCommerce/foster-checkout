@@ -22,20 +22,33 @@
 		<span class="font-semibold" x-text="totals.totalAsCurrency">{{ live.totals.totalAsCurrency ?? '' }}</span>
 	</button>
 
+	{% set summaryInclude = craft.fostercheckout.settings.includes.summary %}
+	{% if summaryInclude|default %}
+		{% set summaryIncludeContent %}
+			{% include summaryInclude with {
+				context: 'checkout',
+				location: 'summary',
+				step: 'single-page',
+				cart: cart
+			} %}
+		{% endset %}
+
+		{# A store's message often applies to some carts only, so an empty render leaves no box behind #}
+		{% if summaryIncludeContent|trim %}
+			<div class="p-4 mt-4 lg:mt-0 lg:mb-4 bg-white border border-gray-250 {{ isFlat ? '' : 'rounded-lg' }}">
+				{{ summaryIncludeContent|raw }}
+			</div>
+		{% endif %}
+	{% endif %}
+
 	<div class="grid grid-cols-1 gap-10 mt-4 lg:mt-0 lg:sticky lg:top-4 lg:p-4 lg:bg-white {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:rounded-lg lg:border lg:border-gray-250' }}">
 		{# The fields below take input, so only what a customer reads collapses #}
 		<div
 			class="grid-cols-1 gap-6"
 			:class="summaryOpen ? 'grid' : 'hidden lg:grid'"
 		>
-			<div class="flex justify-between items-center gap-4">
-				<h2 class="text-xl font-bold text-gray-800 leading-snug">
-					{{ 'summary.itemsTitle'|t('foster-checkout') }}
-				</h2>
-				<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}" class="inline-block text-[var(--brandColor)] underline">
-					{{ 'misc.edit'|t('foster-checkout') }}
-				</a>
-			</div>
+			{# Kept for screen readers, since the cart link in the header replaced the visible heading #}
+			<h2 class="sr-only">{{ 'summary.itemsTitle'|t('foster-checkout') }}</h2>
 
 			{% include 'foster-checkout/_components/app/summary-items' with { liveTotals: true } %}
 

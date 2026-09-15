@@ -70,7 +70,18 @@
 			</svg>
 			<span>{{ 'shipping.gettingMethods'|t('foster-checkout') }}.</span>
 		</p>
-		<div x-show="!hasShippingMethods && !loadingShippingMethods" class="[&_a]:underline [&_a:hover]:decoration-current">{{ craft.fostercheckout.noShippingMethodsText(cart)|raw }}</div>
+		{# Nothing is quotable before an address, so the panel says what is missing rather than that nothing ships #}
+		<p
+			class="p-4 text-sm text-gray-500 bg-gray-100 {{ isFlat ? '' : 'rounded-lg' }}"
+			x-show="!hasShippingMethods && !loadingShippingMethods && !cartHasShippingAddress"
+			x-cloak
+		>{{ 'shipping.addressNeeded'|t('foster-checkout') }}</p>
+
+		<div
+			class="[&_a]:underline [&_a:hover]:decoration-current"
+			x-show="!hasShippingMethods && !loadingShippingMethods && cartHasShippingAddress"
+			x-cloak
+		>{{ craft.fostercheckout.noShippingMethodsText(cart)|raw }}</div>
 
 		{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'shippingMethod', panel: 'shipping', showRequired: true } %}
 

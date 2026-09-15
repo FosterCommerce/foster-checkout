@@ -121,6 +121,7 @@
 			name: 'postalCode',
 			type: 'text',
 			autocomplete: 'postal-code',
+			inputmodeExpression: 'postalCodeInputMode()',
 			placeholder: 'addressFields.postcodePlaceholder'|t('foster-checkout'),
 			value: address ? address.postalCode|e('js') : '',
 			errors: errors.postalCode ?? []

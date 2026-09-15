@@ -3,6 +3,7 @@
 {% endif %}
 
 {% extends 'foster-checkout/_layouts/default' %}
+{% set showCartLink = true %}
 
 {% block head %}
 	<title>
@@ -25,7 +26,7 @@
 
 {% block body %}
 	{% set gateways = cart.getAvailableGateways() %}
-	{% set addresses = craft.fostercheckout.canViewAddresses(cart) ? cart.customer.addresses.all() : [] %}
+	{% set addresses = craft.fostercheckout.customerAddresses(cart) %}
 
 	{# Gateway seeded from the cart #}
 	{% set _cartGatewayId = cart.gatewayId ?? (gateways|length ? (gateways|first).id : null) %}

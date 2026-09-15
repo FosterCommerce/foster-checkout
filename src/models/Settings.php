@@ -72,6 +72,18 @@ class Settings extends Model
 	public array $priorityCountries = [];
 
 	/**
+	 * How many of the customer's saved addresses the checkout offers, most recently updated first.
+	 * Their primary address is always among them. Zero offers every address a customer has saved.
+	 */
+	public int $savedAddressLimit = 10;
+
+	/**
+	 * Handle of the address field holding a phone number, so its input asks for a phone keypad.
+	 * Named here, since Craft has no phone field type to recognise.
+	 */
+	public ?string $addressPhoneFieldHandle = null;
+
+	/**
 	 * Address fields to leave off the checkout, named by attribute or custom field handle. A field
 	 * the address layout marks required is always shown, so Craft can still validate the address.
 	 *

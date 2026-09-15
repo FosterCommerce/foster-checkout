@@ -115,6 +115,7 @@ return [
 	// Shipping Method page
 	'shipping.stepTitle' => 'Mode de livraison',
 	'shipping.noMethodAvailable' => 'Aucune option de livraison disponible',
+	'shipping.addressNeeded' => 'Saisissez votre adresse de livraison pour voir les modes de livraison disponibles.',
 	'shipping.gettingMethods' => 'Récupération des méthodes de livraison',
 	'shipping.nextStep' => 'Étape suivante',
 
@@ -280,6 +281,8 @@ return [
 	'settings.appearance.colorHelp' => 'Couleur principale des boutons et des liens dans tout le tunnel de paiement.',
 	'settings.appearance.headerBgColor' => 'Couleur de fond de l’en-tête',
 	'settings.appearance.headerBgColorHelp' => 'Couleur de fond de l’en-tête du tunnel de paiement.',
+	'settings.appearance.headerTextColor' => 'Couleur du texte de l’en-tête',
+	'settings.appearance.headerTextColorHelp' => 'Couleur de ce qui est dessiné sur la barre d’en-tête, comme le lien vers le panier.',
 	'settings.appearance.font' => 'Police',
 	'settings.appearance.fontHelp' => 'Nom d’une famille Google Fonts, par exemple « Roboto Slab ».',
 	'settings.appearance.logo' => 'Logo',
@@ -374,6 +377,8 @@ return [
 	'settings.addresses.addCountry' => 'Ajouter un pays',
 	'settings.general.zeroValueGateways' => 'Passerelles pour montant nul',
 	'settings.general.zeroValueGatewaysHelp' => 'Passerelles disponibles lorsque le total d’une commande est nul.',
+	'settings.addresses.savedAddressLimit' => 'Limite d’adresses enregistrées',
+	'settings.addresses.savedAddressLimitHelp' => 'Combien des adresses enregistrées d’un client la page de paiement propose, les plus récemment mises à jour en premier. Leur adresse principale en fait toujours partie. Zéro propose toutes les adresses enregistrées.',
 	'settings.addresses.hiddenAddressFields' => 'Champs d’adresse masqués',
 	'settings.addresses.hiddenAddressFieldsHelp' => 'Champs d’adresse retirés du checkout. Un champ que la mise en page d’adresse rend obligatoire reste affiché.',
 	'settings.addresses.hiddenBillingAddressFields' => 'Champs d’adresse de facturation masqués',
@@ -444,4 +449,10 @@ return [
 	'settings.lineItemOptions.showLineItemStock' => 'Afficher le stock',
 	'settings.lineItemOptions.showLineItemStockHelp' => 'Indique si chaque ligne du panier précise combien d’unités restent en stock.',
 	'settings.lineItemOptions.anyValue' => 'N’importe quel {subject}',
+	'settings.features.enableKlaviyoTracking' => 'Suivi Klaviyo',
+	'settings.features.enableKlaviyoTrackingHelp' => 'Si la page de paiement transmet à Klaviyo et propose la case du bulletin. Nécessite le plugin Klaviyo Connect Plus.',
+	'settings.addresses.addressPhoneFieldHandle' => 'Champ téléphone',
+	'settings.addresses.addressPhoneFieldHandleHelp' => 'Handle du champ d’adresse contenant le numéro de téléphone, pour que sa saisie demande un clavier téléphonique.',
+	'settings.general.includesSummary' => 'Include du récapitulatif',
+	'settings.general.includesSummaryHelp' => 'Chemin du gabarit rendu dans son propre conteneur au-dessus du récapitulatif de paiement. Reçoit le panier.',
 ];

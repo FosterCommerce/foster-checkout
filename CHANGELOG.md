@@ -1,5 +1,30 @@
 # Release Notes for Foster Checkout
 
+## Unreleased
+
+### Added
+
+- Added **Saved address limit** at **Checkout -> Addresses**, capping how many of a customer's saved addresses the checkout offers, most recently updated first and always including their primary address.
+- Added **Klaviyo tracking** at **Checkout -> Features**, which decides whether the checkout reports to Klaviyo and offers the newsletter checkbox.
+- Added **Phone field** at **Checkout -> Addresses**, naming the address field that holds a phone number so its input asks for a phone keypad.
+- Added **Summary include** at **Checkout -> General**, a template given the cart and rendered in its own container above the checkout summary.
+- Added **Header text color** at **Checkout -> Appearance**, used for the cart link and for the store name a header without a logo falls back to.
+- Added a cart link to the checkout header on the checkout steps.
+- Added `craft.fostercheckout.customerAddresses()`, the saved addresses the checkout offers a customer.
+- Added `craft.fostercheckout.addressPostalCodeInputModes()`, the `inputmode` each country's postal code field takes.
+
+### Changed
+
+- **Klaviyo tracking** is off on update, so a store already running Klaviyo turns it on for the checkout deliberately.
+- Replaced the **Edit** link above the summary items with the cart link in the checkout header.
+
+### Fixed
+
+- Fixed a bug where saving an address the store cannot ship to reported “Unable to update cart.” with no reason.
+- Fixed a bug where the checkout listed a customer's saved addresses oldest first.
+- Fixed a bug where the postal code field opened a letter keyboard on a phone in countries whose postal codes are digits.
+- Fixed a bug where the shipping method panel reported no shipping options before an address was entered.
+
 ## 1.6.0 - 2026-09-14
 
 ### Added

@@ -28,6 +28,12 @@ since the array key will be the same #}
 	'fc-address-used-fields'
 ) %}
 
+{% do view.registerJs(
+	'window.fcAddressPostalCodeInputModes = ' ~ craft.fostercheckout.addressPostalCodeInputModes()|json_encode ~ ';',
+	constant('craft\\web\\View::POS_HEAD'),
+	'fc-address-postal-code-input-modes'
+) %}
+
 {% if pinnedCountries|length > 0 %}
 	{% set countries = countries|filter((value, key) => key not in pinnedCountries|keys) %}
 {% endif %}
@@ -106,6 +112,10 @@ since the array key will be the same #}
 			const usedFields = window.fcAddressUsedFields[this.countryCode];
 			// Before a country is picked there is no format to go on, so nothing is hidden yet
 			return !usedFields || usedFields.includes(attribute);
+		},
+		postalCodeInputMode() {
+			// Use the full keyboard until a country is picked, since any postal code is still possible
+			return window.fcAddressPostalCodeInputModes[this.countryCode] ?? 'text';
 		},
 	}"
 	class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12"

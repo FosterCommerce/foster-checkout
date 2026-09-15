@@ -3,6 +3,7 @@
 {% endif %}
 
 {% extends 'foster-checkout/_layouts/default' %}
+{% set showCartLink = true %}
 
 {% block head %}
 	<title>
@@ -24,7 +25,7 @@
 {% endblock %}
 
 {% block body %}
-	{% set addresses = craft.fostercheckout.canViewAddresses(cart) ? cart.customer.addresses.all() : [] %}
+	{% set addresses = craft.fostercheckout.customerAddresses(cart) %}
 	{% set canSaveAddresses = craft.fostercheckout.canSaveAddresses(cart) %}
 
 	{# Billing state derived from the cart #}

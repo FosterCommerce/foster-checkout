@@ -8,8 +8,22 @@
 					alt="{{ siteName }} Logo"
 				/>
 			{% else %}
-				<span class="text-xl font-semibold text-[var(--brandColor)]">{{ siteName }}</span>
+				<span class="text-xl font-semibold text-[var(--headerTextColor)]">{{ siteName }}</span>
 			{% endif %}
 		</a>
+
+		{% if showCartLink|default %}
+			<a
+				href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
+				class="inline-flex items-center ml-auto text-[var(--headerTextColor)]"
+			>
+				<span class="sr-only">{{ 'misc.returnToCart'|t('foster-checkout') }}</span>
+				<svg class="w-[30px] h-[30px]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+					<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 3h1.386a.75.75 0 0 1 .728.568L4.9 6m0 0 1.7 6.8a.75.75 0 0 0 .727.568h8.685a.75.75 0 0 0 .728-.568L18.75 6H4.9Z"></path>
+					<circle cx="8.25" cy="18.75" r="1.25" stroke="currentColor" stroke-width="1.5"></circle>
+					<circle cx="15.75" cy="18.75" r="1.25" stroke="currentColor" stroke-width="1.5"></circle>
+				</svg>
+			</a>
+		{% endif %}
 	</div>
 </header>

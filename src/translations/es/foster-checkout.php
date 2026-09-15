@@ -116,6 +116,7 @@ return [
 	// Shipping Method page
 	'shipping.stepTitle' => 'Método de envío',
 	'shipping.noMethodAvailable' => 'No hay opciones de envío disponibles',
+	'shipping.addressNeeded' => 'Introduzca su dirección de envío para ver los métodos de envío disponibles.',
 	'shipping.gettingMethods' => 'Obteniendo métodos de envío',
 	'shipping.nextStep' => 'Siguiente paso',
 
@@ -281,6 +282,8 @@ return [
 	'settings.appearance.colorHelp' => 'Color principal de los botones y enlaces en todo el proceso de pago.',
 	'settings.appearance.headerBgColor' => 'Color de fondo de la cabecera',
 	'settings.appearance.headerBgColorHelp' => 'Color de fondo de la cabecera del proceso de pago.',
+	'settings.appearance.headerTextColor' => 'Color del texto de la cabecera',
+	'settings.appearance.headerTextColorHelp' => 'Color de lo que se dibuja en la barra de cabecera, como el enlace al carrito.',
 	'settings.appearance.font' => 'Fuente',
 	'settings.appearance.fontHelp' => 'Nombre de una familia de Google Fonts, por ejemplo “Roboto Slab”.',
 	'settings.appearance.logo' => 'Logotipo',
@@ -375,6 +378,8 @@ return [
 	'settings.addresses.addCountry' => 'Añadir un país',
 	'settings.general.zeroValueGateways' => 'Pasarelas para importe cero',
 	'settings.general.zeroValueGatewaysHelp' => 'Pasarelas disponibles cuando el total de un pedido es cero.',
+	'settings.addresses.savedAddressLimit' => 'Límite de direcciones guardadas',
+	'settings.addresses.savedAddressLimitHelp' => 'Cuántas de las direcciones guardadas de un cliente ofrece la página de pago, las actualizadas más recientemente primero. Su dirección principal siempre está incluida. Cero ofrece todas las direcciones guardadas.',
 	'settings.addresses.hiddenAddressFields' => 'Campos de dirección ocultos',
 	'settings.addresses.hiddenAddressFieldsHelp' => 'Campos de dirección omitidos en el checkout. Un campo que el diseño de dirección marca como obligatorio siempre se muestra.',
 	'settings.addresses.hiddenBillingAddressFields' => 'Campos de dirección de facturación ocultos',
@@ -445,4 +450,10 @@ return [
 	'settings.lineItemOptions.showLineItemStock' => 'Mostrar las existencias',
 	'settings.lineItemOptions.showLineItemStockHelp' => 'Si cada línea de pedido del carrito indica cuántas quedan en existencias.',
 	'settings.lineItemOptions.anyValue' => 'Cualquier {subject}',
+	'settings.features.enableKlaviyoTracking' => 'Seguimiento de Klaviyo',
+	'settings.features.enableKlaviyoTrackingHelp' => 'Si la página de pago informa a Klaviyo y ofrece la casilla del boletín. Requiere el plugin Klaviyo Connect Plus.',
+	'settings.addresses.addressPhoneFieldHandle' => 'Campo de teléfono',
+	'settings.addresses.addressPhoneFieldHandleHelp' => 'Handle del campo de dirección con el número de teléfono, para que su entrada pida un teclado telefónico.',
+	'settings.general.includesSummary' => 'Include del resumen',
+	'settings.general.includesSummaryHelp' => 'Ruta de plantilla que se renderiza en su propio contenedor sobre el resumen de pago. Recibe el carrito.',
 ];

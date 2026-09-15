@@ -147,11 +147,11 @@
 	{% endblock %}
 </head>
 
-<body style="--brandColor: {{ craft.fostercheckout.settings.branding.color }}; --headerBgColor: {{ craft.fostercheckout.settings.branding.headerBgColor }};">
+<body style="--brandColor: {{ craft.fostercheckout.settings.branding.color }}; --headerBgColor: {{ craft.fostercheckout.settings.branding.headerBgColor }}; --headerTextColor: {{ craft.fostercheckout.settings.branding.headerTextColor }};">
 
 <div>
 
-	{% include 'foster-checkout/_components/app/header' %}
+	{% include 'foster-checkout/_components/app/header' with { showCartLink: showCartLink|default(false) } %}
 
 	<div class="max-w-[1200px] mx-auto px-4 text-gray-800 bg-white sm:px-6">
 		{% block body %}

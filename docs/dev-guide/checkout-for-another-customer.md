@@ -82,7 +82,7 @@ It is false when nobody is signed in.
 
 ## Whether Klaviyo is tracking
 
-`craft.fostercheckout.klaviyoTrackingEnabled(cart)` is false when Klaviyo Connect Plus is not installed, and when the signed-in user's email is not the order's. Guests are tracked, since there is no second person to confuse the events with.
+`craft.fostercheckout.klaviyoTrackingEnabled(cart)` is false when **Klaviyo tracking** is off at **Checkout -> Features**, when Klaviyo Connect Plus is not installed, and when the signed-in user's email is not the order's. Guests are tracked, since there is no second person to confuse the events with.
 
 Call it in place of an `isPluginEnabled('klaviyo-connect-plus')` check in your own templates, so a purchasing agent's activity is not attributed to the account holder. See [plugin integrations](../reference/integrations.md#klaviyo-connect-plus).
 

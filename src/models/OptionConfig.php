@@ -48,6 +48,12 @@ class OptionConfig extends Model
 	public bool $enablePageTransitions = false;
 
 	/**
+	 * Whether the checkout reports to Klaviyo. Off until a store turns it on, since a store running
+	 * the Klaviyo plugin elsewhere may still want the checkout left out.
+	 */
+	public bool $enableKlaviyoTracking = false;
+
+	/**
 	 * The Klaviyo list ID to subscribe the customer to
 	 */
 	public ?string $klaviyoListId = null;

@@ -7,6 +7,7 @@
 {% endif %}
 
 {% set autocomplete = autocomplete ?? false %}
+{% set inputmodeExpression = inputmodeExpression ?? false %}
 {% set minLength = minLength ?? false %}
 {% set maxLength = maxLength ?? false %}
 {% set max = max ?? null %}
@@ -50,6 +51,7 @@
 			name="{{ fieldName }}"
 			type="{{ type ?? 'text' }}"
 			{{ autocomplete ? "autocomplete=#{autocomplete|default('')}" }}
+			{% if inputmodeExpression %}:inputmode="{{ inputmodeExpression }}"{% endif %}
 			{{ minLength ? "minlength=#{minLength}" }}
 			{{ maxLength ? "maxlength=#{maxLength}" }}
 			{{ min is not null ? "min=#{min}" }}

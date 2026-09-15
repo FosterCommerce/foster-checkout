@@ -11,6 +11,12 @@ class BrandingConfig extends Model
 	public string $headerBgColor = '#F3F3F3';
 
 	/**
+	 * Color of anything drawn on the header bar, which the brand color cannot serve since a store
+	 * may set both to the same value.
+	 */
+	public string $headerTextColor = '#1F2937';
+
+	/**
 	 * The Google web font (https://fonts.google.com/) family name you want to use
 	 * (ex. 'Roboto Slab')
 	 */

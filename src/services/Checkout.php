@@ -6,6 +6,7 @@ use Craft;
 use craft\base\FieldLayoutElement;
 use craft\commerce\base\Gateway;
 use craft\commerce\base\GatewayInterface;
+use craft\commerce\behaviors\CustomerBehavior;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
@@ -163,6 +164,16 @@ class Checkout extends Component
 	private ?array $addressUsedFields = null;
 
 	/**
+	 * @var ?array<string, string>
+	 */
+	private ?array $addressPostalCodeInputModes = null;
+
+	/**
+	 * @var array<int, array<int, Address>>
+	 */
+	private array $customerAddresses = [];
+
+	/**
 	 * @var array<string, bool>
 	 */
 	private array $addressAccess = [];
@@ -253,6 +264,60 @@ class Checkout extends Component
 	}
 
 	/**
+	 * The saved addresses the checkout offers the customer, most recently updated first.
+	 *
+	 * Cut to `savedAddressLimit`, since a customer who has ordered for years can hold hundreds.
+	 * The primary address is listed first whatever its age, since ordering by recency alone drops it.
+	 *
+	 * @return array<int, Address>
+	 * @since 1.7.0
+	 */
+	public function customerAddresses(Order $order): array
+	{
+		$customer = $order->getCustomer();
+
+		if (! $customer instanceof User || ! $this->canViewAddresses($order)) {
+			return [];
+		}
+
+		// The billing and payment steps ask for the same list
+		$customerId = (int) $customer->id;
+
+		if (isset($this->customerAddresses[$customerId])) {
+			return $this->customerAddresses[$customerId];
+		}
+
+		$limit = $this->settings()->savedAddressLimit;
+
+		/** @var array<int, Address> $addresses */
+		$addresses = Address::find()
+			->owner($customer)
+			->fieldId(null)
+			->orderBy([
+				'dateUpdated' => SORT_DESC,
+			])
+			->limit($limit > 0 ? $limit : null)
+			->all();
+
+		$primaryAddress = $this->primaryAddress($customer);
+
+		if ($primaryAddress instanceof Address) {
+			$addresses = array_values(array_filter(
+				$addresses,
+				static fn (Address $address): bool => $address->id !== $primaryAddress->id
+			));
+
+			if ($limit > 0) {
+				$addresses = array_slice($addresses, 0, $limit - 1);
+			}
+
+			$addresses = [$primaryAddress, ...$addresses];
+		}
+
+		return $this->customerAddresses[$customerId] = $addresses;
+	}
+
+	/**
 	 * Whether Klaviyo should receive events for this order.
 	 *
 	 * Someone buying on another account's behalf would file the events under a customer who is not
@@ -260,6 +325,10 @@ class Checkout extends Component
 	 */
 	public function klaviyoTrackingEnabled(Order $order): bool
 	{
+		if (! $this->settings()->options->enableKlaviyoTracking) {
+			return false;
+		}
+
 		if (! Craft::$app->getPlugins()->isPluginEnabled('klaviyo-connect-plus')) {
 			return false;
 		}
@@ -324,6 +393,32 @@ class Checkout extends Component
 		}
 
 		return $this->addressUsedFields = $usedFields;
+	}
+
+	/**
+	 * The `inputmode` a country's postal code field takes, keyed by country code.
+	 *
+	 * Use `text` where a country's postal codes include letters, since a number pad has none.
+	 * A number pad has no hyphen either, so a US ZIP+4 needs autofill, address lookup or verification.
+	 *
+	 * @return array<string, string>
+	 * @since 1.7.0
+	 */
+	public function addressPostalCodeInputModes(): array
+	{
+		if ($this->addressPostalCodeInputModes !== null) {
+			return $this->addressPostalCodeInputModes;
+		}
+
+		$addressFormatRepository = Craft::$app->getAddresses()->getAddressFormatRepository();
+		$inputModes = [];
+
+		foreach (array_keys($this->storeCountries()) as $countryCode) {
+			$postalCodePattern = $addressFormatRepository->get($countryCode)->getPostalCodePattern();
+			$inputModes[$countryCode] = $this->postalCodePatternHasLetters($postalCodePattern) ? 'text' : 'numeric';
+		}
+
+		return $this->addressPostalCodeInputModes = $inputModes;
 	}
 
 	/**
@@ -757,6 +852,11 @@ class Checkout extends Component
 				continue;
 			}
 
+			// Set tel from the named handle, since Craft has no phone field type
+			if ($field !== null && $field['handle'] === $settings->addressPhoneFieldHandle) {
+				$field['type'] = 'tel';
+			}
+
 			$elements[] = [
 				'type' => $type,
 				'required' => $layoutElement->required
@@ -1009,6 +1109,48 @@ class Checkout extends Component
 		$order->setBillingAddress(
 			$shippingAddress instanceof Address ? $this->duplicateOntoOrder($shippingAddress, $order) : null
 		);
+	}
+
+	/**
+	 * Whether a postal code pattern accepts a letter, with regex escapes removed first so the `d`
+	 * of `\d` does not count as one.
+	 */
+	private function postalCodePatternHasLetters(?string $postalCodePattern): bool
+	{
+		if ($postalCodePattern === null || $postalCodePattern === '') {
+			return true;
+		}
+
+		return preg_match('/[a-z]/i', (string) preg_replace('/\\\\./', '', $postalCodePattern)) === 1;
+	}
+
+	/**
+	 * The customer's primary shipping address, or their billing one where the store only asked for
+	 * that.
+	 *
+	 * Read by id rather than through `getPrimaryShippingAddress()`, which loads every saved address
+	 * to pick one out.
+	 */
+	private function primaryAddress(User $customer): ?Address
+	{
+		/** @var CustomerBehavior $customerBehavior */
+		$customerBehavior = $customer;
+
+		$primaryAddressId = $customerBehavior->getPrimaryShippingAddressId()
+			?? $customerBehavior->getPrimaryBillingAddressId();
+
+		if ($primaryAddressId === null) {
+			return null;
+		}
+
+		/** @var ?Address $address */
+		$address = Address::find()
+			->owner($customer)
+			->fieldId(null)
+			->id($primaryAddressId)
+			->one();
+
+		return $address;
 	}
 
 	/**

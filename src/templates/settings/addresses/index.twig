@@ -45,6 +45,34 @@
 		warning: countriesOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'priorityCountries' }),
 	}) }}
 
+	{% set savedAddressLimitOverridden = 'savedAddressLimit' in overriddenSettings %}
+
+	{{ forms.textField({
+		label: 'settings.addresses.savedAddressLimit'|t('foster-checkout'),
+		instructions: 'settings.addresses.savedAddressLimitHelp'|t('foster-checkout'),
+		id: 'saved-address-limit',
+		name: 'settings[savedAddressLimit]',
+		type: 'number',
+		min: 0,
+		step: 1,
+		size: 5,
+		value: settings.savedAddressLimit,
+		disabled: savedAddressLimitOverridden or not adminChangesAllowed,
+		warning: savedAddressLimitOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'savedAddressLimit' }),
+	}) }}
+
+	{% set phoneHandleOverridden = 'addressPhoneFieldHandle' in overriddenSettings %}
+
+	{{ forms.textField({
+		label: 'settings.addresses.addressPhoneFieldHandle'|t('foster-checkout'),
+		instructions: 'settings.addresses.addressPhoneFieldHandleHelp'|t('foster-checkout'),
+		id: 'address-phone-field-handle',
+		name: 'settings[addressPhoneFieldHandle]',
+		value: settings.addressPhoneFieldHandle,
+		disabled: phoneHandleOverridden or not adminChangesAllowed,
+		warning: phoneHandleOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'addressPhoneFieldHandle' }),
+	}) }}
+
 	{% set hiddenAddressFieldsOverridden = 'hiddenAddressFields' in overriddenSettings %}
 
 	{{ forms.checkboxGroupField({

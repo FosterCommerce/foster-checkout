@@ -41,6 +41,16 @@
 		warning: 'branding.headerBgColor' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.headerBgColor' }),
 	}) }}
 
+	{{ forms.colorField({
+		label: 'settings.appearance.headerTextColor'|t('foster-checkout'),
+		instructions: 'settings.appearance.headerTextColorHelp'|t('foster-checkout'),
+		id: 'branding-header-text-color',
+		name: 'settings[branding][headerTextColor]',
+		value: settings.branding.headerTextColor,
+		disabled: readOnly or 'branding.headerTextColor' in overriddenSettings,
+		warning: 'branding.headerTextColor' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.headerTextColor' }),
+	}) }}
+
 	{{ forms.textField({
 		label: 'settings.appearance.font'|t('foster-checkout'),
 		instructions: 'settings.appearance.fontHelp'|t('foster-checkout'),
