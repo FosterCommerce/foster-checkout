@@ -90,6 +90,7 @@ return [
 	'address.stepTitle' => 'Dirección de envío',
 	'address.stepName' => 'Dirección de envío',
 	'address.newAddress' => 'Nueva dirección de envío',
+	'address.customerPickup' => 'Recogida en tienda',
 	'address.saveToAddressBook' => 'Guardar en la libreta de direcciones',
 	'address.nextStep' => 'Siguiente paso',
 
@@ -257,6 +258,8 @@ return [
 	'content.confirmationHelp' => 'Se muestra en la página de confirmación del pedido.',
 	'content.globalCheckout' => 'Nota global del pago',
 	'content.globalCheckoutHelp' => 'Se muestra en todos los pasos del pago.',
+	'content.noShippingMethods' => 'Mensaje cuando no hay métodos de envío',
+	'content.noShippingMethodsHelp' => 'Se muestra en el panel del método de envío cuando no se puede calcular nada para la dirección. En blanco muestra “No hay opciones de envío disponibles”.',
 	'content.subscribe' => 'Etiqueta de la casilla de newsletter',
 	'content.subscribeHelp' => 'Texto junto a la casilla de suscripción en el paso de correo electrónico. Déjalo en blanco para ocultar la casilla.',
 	'content.deliveryDateLabel' => 'Etiqueta de la fecha de entrega',
@@ -326,6 +329,8 @@ return [
 	'settings.products.productImage' => 'Campo de imagen del producto',
 	'settings.products.variantImage' => 'Campo de imagen de la variante',
 	'settings.products.addRow' => 'Añadir un tipo de producto',
+	'settings.products.notShippable' => 'Productos que nunca se envían',
+	'settings.products.notShippableHelp' => 'Las variantes de un producto coincidente no necesitan dirección ni método de envío, y Commerce y los plugins de envío las tratan como no enviables. Déjalo vacío para enviar todo.',
 
 	'settings.gateways.intro' => 'Campos y opciones adicionales que se muestran cuando un cliente elige un método de pago. Se listan todas las pasarelas configuradas en Commerce.',
 	'settings.gateways.none' => 'Todavía no hay ninguna pasarela de pago configurada en Commerce.',
@@ -383,6 +388,12 @@ return [
 	'settings.addresses.showAddressLine3Help' => 'Si los formularios de dirección del checkout ofrecen una tercera línea de dirección, para los países cuyo formato de dirección usa una.',
 	'settings.addresses.showAddressLabelField' => 'Permitir a los clientes nombrar una dirección guardada',
 	'settings.addresses.showAddressLabelFieldHelp' => 'Si un cliente que edita una de sus direcciones guardadas en el checkout puede cambiar su etiqueta. Commerce etiqueta las direcciones nuevas.',
+	'settings.addresses.showAddressLabelInPreview' => 'Mostrar la etiqueta de la dirección',
+	'settings.addresses.showAddressLabelInPreviewHelp' => 'Si una dirección que el cliente nombró aparece con ese nombre donde el checkout la muestra en una línea. Los títulos que Commerce da a las direcciones de un pedido se omiten.',
+	'settings.general.enableCustomerPickup' => 'Ofrecer recogida en la ubicación de la tienda',
+	'settings.general.enableCustomerPickupHelp' => 'Si las opciones de dirección de envío incluyen la ubicación de la tienda definida en Commerce -> Store Management -> General. Un pedido de recogida se envía a esa dirección, de modo que un método de envío pueda coincidir por zona.',
+	'settings.general.customerPickupLabel' => 'Etiqueta de recogida',
+	'settings.general.customerPickupLabelHelp' => 'Texto de la opción de recogida.',
 
 	'settings.general.cart' => 'Ruta del carrito',
 	'settings.general.cartHelp' => 'Ruta relativa al sitio donde el carrito está accesible.',

@@ -121,6 +121,18 @@
 		warning: showAddressLabelFieldOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'showAddressLabelField' }),
 	}) }}
 
+	{% set showAddressLabelInPreviewOverridden = 'showAddressLabelInPreview' in overriddenSettings %}
+
+	{{ forms.lightswitchField({
+		label: 'settings.addresses.showAddressLabelInPreview'|t('foster-checkout'),
+		instructions: 'settings.addresses.showAddressLabelInPreviewHelp'|t('foster-checkout'),
+		id: 'show-address-label-in-preview',
+		name: 'settings[showAddressLabelInPreview]',
+		on: settings.showAddressLabelInPreview,
+		disabled: showAddressLabelInPreviewOverridden or not adminChangesAllowed,
+		warning: showAddressLabelInPreviewOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'showAddressLabelInPreview' }),
+	}) }}
+
 	{% include 'foster-checkout/_includes/plugin-footer' %}
 
 {% endblock %}

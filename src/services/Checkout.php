@@ -1240,17 +1240,30 @@ class Checkout extends Component
 		}
 
 		$formatted = $this->addressFormatter()->format($address);
-		$name = trim((string) $address->fullName);
+		$parts = array_filter([
+			$this->previewLabel($address),
+			trim((string) $address->fullName),
+			$formatted,
+		], static fn (string $part): bool => $part !== '');
 
-		if ($name === '') {
-			return $formatted;
+		return implode(', ', $parts);
+	}
+
+	/**
+	 * The name a customer gave an address.
+	 */
+	private function previewLabel(Address $address): string
+	{
+		if (! $this->settings()->showAddressLabelInPreview) {
+			return '';
 		}
 
-		if ($formatted === '') {
-			return $name;
+		// Only a customer's own address has a name they chose, not an order address or the store location
+		if (! $address->getPrimaryOwner() instanceof User) {
+			return '';
 		}
 
-		return $name . ', ' . $formatted;
+		return trim((string) $address->title);
 	}
 
 	/**

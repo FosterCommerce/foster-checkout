@@ -121,6 +121,11 @@ class Settings extends Model
 	public bool $showAddressLabelField = false;
 
 	/**
+	 * Whether a saved address the customer named is shown by that name in the address choices.
+	 */
+	public bool $showAddressLabelInPreview = false;
+
+	/**
 	 * Whether the store location is offered among the shipping addresses, for orders collected there.
 	 */
 	public bool $enableCustomerPickup = false;

@@ -13,6 +13,7 @@ Two screens decide this together. Craft's address field layout, at **Settings ->
 | **Required billing address fields** | The same for a new billing address |
 | **Show a third address line** | Whether the form offers a third address line. Off by default |
 | **Let customers name a saved address** | Whether the label of a saved address is editable at the checkout. Off by default |
+| **Show the address label** | Whether a saved address the customer named is shown by that name in the address choices. Off by default |
 
 ## What can be hidden
 
