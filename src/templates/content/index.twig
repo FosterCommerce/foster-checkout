@@ -30,57 +30,65 @@
 	{% if showSiteMenu %}{{ hiddenInput('site', contentSite.handle) }}{% endif %}
 	{{ csrfInput() }}
 
-	<p>{{ 'content.intro'|t('foster-checkout') }}</p>
+	<div class="readable mb-xl">
+		<blockquote class="note tip">
+			<p>{{ 'content.intro'|t('foster-checkout') }}</p>
+		</blockquote>
+	</div>
 
-	{% for noteKey in noteKeys %}
-		{{ forms.textareaField({
-			label: "content.#{noteKey}"|t('foster-checkout'),
-			instructions: "content.#{noteKey}Help"|t('foster-checkout'),
-			id: "note-#{noteKey}",
-			name: "notes[#{noteKey}]",
-			value: notes[noteKey] ?? '',
-			rows: 4,
-			disabled: readOnly,
-		}) }}
-	{% endfor %}
+	{% for groupKey, groupNoteKeys in noteGroups %}
+		{% if not loop.first %}
+			<hr>
+		{% endif %}
 
-	{% if gateways is not empty %}
-		<hr>
+		<h2>{{ "content.group.#{groupKey}"|t('foster-checkout') }}</h2>
 
-		<h2>{{ 'content.gatewayNotes'|t('foster-checkout') }}</h2>
-		<p>{{ 'content.gatewayNotesHelp'|t('foster-checkout') }}</p>
-
-		{% for gateway in gateways %}
+		{% for noteKey in groupNoteKeys %}
 			{{ forms.textareaField({
-				label: gateway.name,
-				instructions: gateway.handle,
-				id: "gateway-note-#{gateway.handle}",
-				name: "notes[gateways][#{gateway.handle}]",
-				value: gatewayNotes[gateway.handle] ?? '',
-				rows: 3,
+				label: "content.#{noteKey}"|t('foster-checkout'),
+				instructions: "content.#{noteKey}Help"|t('foster-checkout'),
+				id: "note-#{noteKey}",
+				name: "notes[#{noteKey}]",
+				value: notes[noteKey] ?? '',
+				rows: 4,
 				disabled: readOnly,
 			}) }}
 		{% endfor %}
-	{% endif %}
 
-	<hr>
+		{% if groupKey == 'global' %}
+			{{ forms.editableTableField({
+				label: 'content.footerLinks'|t('foster-checkout'),
+				instructions: 'content.footerLinksHelp'|t('foster-checkout'),
+				id: 'footer-links',
+				name: 'links[footerLinks]',
+				cols: {
+					text: { heading: 'content.footerLinkText'|t('foster-checkout'), type: 'singleline' },
+					url: { heading: 'content.footerLinkUrl'|t('foster-checkout'), type: 'singleline' },
+				},
+				rows: footerLinks,
+				addRowLabel: 'content.addFooterLink'|t('foster-checkout'),
+				allowAdd: true,
+				allowDelete: true,
+				allowReorder: true,
+				static: readOnly,
+			}) }}
+		{% elseif groupKey == 'payment' and gateways is not empty %}
+			<h3>{{ 'content.gatewayNotes'|t('foster-checkout') }}</h3>
+			<p>{{ 'content.gatewayNotesHelp'|t('foster-checkout') }}</p>
 
-	{{ forms.editableTableField({
-		label: 'content.footerLinks'|t('foster-checkout'),
-		instructions: 'content.footerLinksHelp'|t('foster-checkout'),
-		id: 'footer-links',
-		name: 'links[footerLinks]',
-		cols: {
-			text: { heading: 'content.footerLinkText'|t('foster-checkout'), type: 'singleline' },
-			url: { heading: 'content.footerLinkUrl'|t('foster-checkout'), type: 'singleline' },
-		},
-		rows: footerLinks,
-		addRowLabel: 'content.addFooterLink'|t('foster-checkout'),
-		allowAdd: true,
-		allowDelete: true,
-		allowReorder: true,
-		static: readOnly,
-	}) }}
+			{% for gateway in gateways %}
+				{{ forms.textareaField({
+					label: gateway.name,
+					instructions: gateway.handle,
+					id: "gateway-note-#{gateway.handle}",
+					name: "notes[gateways][#{gateway.handle}]",
+					value: gatewayNotes[gateway.handle] ?? '',
+					rows: 3,
+					disabled: readOnly,
+				}) }}
+			{% endfor %}
+		{% endif %}
+	{% endfor %}
 
 	{% include 'foster-checkout/_includes/plugin-footer' %}
 

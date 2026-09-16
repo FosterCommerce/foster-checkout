@@ -20,19 +20,9 @@ class OptionConfig extends Model
 	public bool $enableSinglePageCheckout = false;
 
 	/**
-	 * Whether to show the "save for later" button
-	 */
-	public bool $enableSaveForLater = false;
-
-	/**
 	 * Unfinished: `estimated-shipping.twig` has its own condition commented out, so this only gates the include.
 	 */
 	public bool $enableEstimatedShipping = false;
-
-	/**
-	 * Whether to show the "No Image" placeholder images
-	 */
-	public bool $enablePlaceholderImages = false;
 
 	/**
 	 * Whether to offer Avalara's corrected shipping address. Needs the AvaTax plugin and its own
@@ -74,11 +64,6 @@ class OptionConfig extends Model
 	public ?string $paymentDueDateFieldHandle = null;
 
 	/**
-	 * @var ?array<non-empty-string, mixed>
-	 */
-	public ?array $imagerXConfig = null;
-
-	/**
 	 * @param array<array-key, mixed> $config
 	 */
 	public function __construct(array $config = [])
@@ -95,10 +80,6 @@ class OptionConfig extends Model
 		$config['deliveryDate'] = $deliveryDate;
 
 		$config['subscribe'] = ValueConfig::fromConfig('subscribe', $config);
-
-		if (! isset($config['imagerXConfig'])) {
-			$config['imagerXConfig'] = [];
-		}
 
 		parent::__construct($config);
 	}

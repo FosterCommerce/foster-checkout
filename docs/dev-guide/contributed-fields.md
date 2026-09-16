@@ -1,6 +1,6 @@
 # Contributed fields
 
-A checkout field usually comes from a field layout in **Checkout -> Fields**, and Commerce stores its value on the order. A module or plugin can add a field of its own to the same positions, compute its options per order, and store the value wherever it keeps that data.
+A checkout field usually comes from a field layout in **Checkout -> Custom Fields**, and Commerce stores its value on the order. A module or plugin can add a field of its own to the same positions, compute its options per order, and store the value wherever it keeps that data.
 
 Use this where the value is not an order field: a record in your own table, a row keyed by order id, a relationship Craft has no field type for.
 

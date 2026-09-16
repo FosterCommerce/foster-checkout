@@ -3,6 +3,9 @@
 {% set hasDiscount = lineItem.getDiscount() ? true : false %}
 {% set discountNames = lineItem.getAdjustments()|filter(adjustment => adjustment.type == 'discount')|map(adjustment => adjustment.name) %}
 
+{% set lineItemSettings = craft.fostercheckout.settings.lineItems %}
+{% set cropsImage = lineItemSettings.imageFit == 'cover' %}
+
 {% set hasImage = true %}
 {% set imageUrl = null %}
 
@@ -10,24 +13,21 @@
 	{% if craft.app.plugins.isPluginEnabled('imager-x') %}
 		{% set images = craft.imagerx.transformImage(
 			previewImage,
-			[
-				{width:70, height:70},
-			],
-			craft.fostercheckout.settings.options.imagerXConfig
+			cropsImage ? [{width: 70, height: 70}] : [{width: 70}],
+			lineItemSettings.imagerXConfig
 		) %}
 
 		{% set imageUrl = images[0].url %}
 	{% else %}
-		{% set preview = {
-			mode: 'crop',
+		{% set imageUrl = previewImage.getUrl({
+			mode: cropsImage ? 'crop' : 'fit',
+			position: 'center-center',
 			width: 70,
 			height: 70,
 			quality: 90,
-			position: 'center-center'
-		} %}
-		{% set imageUrl = previewImage.getUrl(preview) %}
+		}) %}
 	{% endif %}
-{% elseif craft.fostercheckout.settings.options.enablePlaceholderImages %}
+{% elseif lineItemSettings.enablePlaceholderImages %}
 	{% set imageUrl = 'https://placehold.co/70x70?text=' ~ 'misc.noImage'|t('foster-checkout')|split(' ')|join('+') %}
 {% else %}
 	{% set hasImage = false %}
@@ -36,12 +36,12 @@
 <article class="flex justify-between items-center gap-4 p-4 bg-gray-200 rounded-lg">
 	{% if hasImage %}
 		<div class="relative w-[70px] min-w-[70px]">
-			<figure class="rounded-lg overflow-hidden">
+			<figure class="aspect-square rounded-lg overflow-hidden {{ cropsImage ? '' : 'bg-white' }}">
 				<img
-					srcset="{{ imageUrl }}"
-					sizes="(min-width: 768px) 200px, 80px"
+					src="{{ imageUrl }}"
 					width="70"
 					height="70"
+					class="w-full h-full {{ cropsImage ? 'object-cover' : 'object-contain' }}"
 					alt="{{ 'misc.imageOf'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
 				/>
 			</figure>

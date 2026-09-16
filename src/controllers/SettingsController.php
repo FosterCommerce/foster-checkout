@@ -43,11 +43,6 @@ class SettingsController extends Controller
 		return $this->renderSection('features');
 	}
 
-	public function actionProducts(): Response
-	{
-		return $this->renderSection('products');
-	}
-
 	public function actionGateways(): Response
 	{
 		return $this->renderSection('gateways');
@@ -238,7 +233,7 @@ class SettingsController extends Controller
 	public function actionTestAddressLookup(): Response
 	{
 		$this->requirePostRequest();
-		$this->requirePermission(FosterCheckout::PERMISSION_MANAGE_FEATURES);
+		$this->requirePermission(FosterCheckout::settingsPermission('addresses'));
 
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
@@ -250,21 +245,21 @@ class SettingsController extends Controller
 		$provider = $plugin->getAddressLookup()->providerFor($config);
 
 		if (! $provider instanceof AddressLookupInterface) {
-			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.features.addressLookupTestOff'));
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.addresses.addressLookupTestOff'));
 
-			return $this->redirect('foster-checkout/settings/features');
+			return $this->redirect('foster-checkout/settings/addresses');
 		}
 
 		try {
 			$provider->suggest('1 High Street', 'GB', null, StringHelper::UUID());
-			$this->setSuccessFlash(Craft::t(FosterCheckout::HANDLE, 'settings.features.addressLookupTestPassed'));
+			$this->setSuccessFlash(Craft::t(FosterCheckout::HANDLE, 'settings.addresses.addressLookupTestPassed'));
 		} catch (Throwable $throwable) {
-			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.features.addressLookupTestFailed', [
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.addresses.addressLookupTestFailed', [
 				'message' => $throwable->getMessage(),
 			]));
 		}
 
-		return $this->redirect('foster-checkout/settings/features');
+		return $this->redirect('foster-checkout/settings/addresses');
 	}
 
 	public function actionLineItems(): Response

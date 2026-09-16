@@ -26,14 +26,8 @@ return [
 	// Whether to serve the single-page checkout. Existing sites stay on multi-page until this is turned on.
 	// 'enableSinglePageCheckout' => false, // true|false
 
-	// Whether or not to show the "save for later" button
-	// 'enableSaveForLater' => false, // true|false
-
 	// Whether or not to show the shipping estimator
 	// 'enableEstimatedShipping' => false, // true|false
-
-	// Whether or not to show the "No Image" placeholder images
-	// 'enablePlaceholderImages' => false, // true|false
 
 	// Whether or not to enable CSS page transitions
 	//(see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#browser_compatibility for browser compatibility)
@@ -65,8 +59,6 @@ return [
 	// The field handle on the Order element that will contain the payment due date.
 	// When the due date is set, and the order is not fully paid, the order confirmation page will show the payment due date.
 	// 'paymentDueDateFieldHandle' => null,
-
-	// 'imagerXConfig' => null,
 	// ],
 
 	// Address suggestions as customers type
@@ -83,6 +75,21 @@ return [
 
 	// How line items are shown in the cart and at checkout
 	// 'lineItems' => [
+	// Width of a cart line item's image in pixels, at desktop widths. Narrower screens use half of it.
+	// 'imageSize' => 150,
+
+	// How an image fills its square box. 'contain' shows the whole image, 'cover' crops it to fill.
+	// 'imageFit' => 'contain', // contain|cover
+
+	// Whether a line item with no image shows a "No Image" placeholder
+	// 'enablePlaceholderImages' => false, // true|false
+
+	// Whether each line item offers a "save for later" button
+	// 'enableSaveForLater' => false, // true|false
+
+	// Transform config passed to Imager X, when that plugin renders the line item images
+	// 'imagerXConfig' => null,
+
 	// Whether each line item shows its SKU
 	// 'showLineItemSku' => true, // true|false
 
@@ -127,6 +134,9 @@ return [
 	// The relative path from the web root of the logo file
 	// (ex. '/assets/images/logo.svg')
 	// 'logo' => '',
+
+	// Height of the logo in the header, in pixels
+	// 'logoHeight' => 40,
 
 	// The general component styles. Either 'rounded' (default) or 'flat'
 	// 'style' => 'rounded',
@@ -232,6 +242,9 @@ return [
 	// 'zeroValueGatewayHandles' => [],
 
 	// An array of country codes that will be shown first in the country select dropdowns
+	// Country a new address starts on, as a two-letter code. Empty asks with nothing chosen.
+	// 'defaultCountryCode' => '',
+
 	// 'priorityCountries' => [],
 
 	// How many of the customer's saved addresses the checkout offers, most recently updated first.

@@ -13,7 +13,7 @@ Six plugins change the checkout when installed. None is required, and none is bu
 
 ## AvaTax
 
-Needed for **Verify shipping addresses** on **Checkout -> Features**. AvaTax's own **Enable address validation** setting must also be on. Covers the United States and Canada. See [settings](./settings.md#address-suggestions) for how it interacts with address suggestions.
+Needed for **Verify shipping addresses** on **Checkout -> Addresses**. AvaTax's own **Enable address validation** setting must also be on. Covers the United States and Canada. See [settings](./settings.md#address-suggestions) for how it interacts with address suggestions.
 
 ## Gift Voucher
 
@@ -21,7 +21,7 @@ Adds a code field to the payment step and lists applied vouchers in the order su
 
 ## Klaviyo Connect Plus
 
-The newsletter checkbox needs this plugin, **Klaviyo tracking** turned on at **Checkout -> Features**, and a list ID at **Checkout -> Features -> Klaviyo list ID**. Without all three, the checkbox is not shown. Klaviyo tracking is off on a new install and on update, so a store already running this plugin turns it on for the checkout deliberately. Its label is edited at **Checkout -> Content**.
+The newsletter checkbox needs this plugin, **Klaviyo tracking** turned on at **Checkout -> Features**, and a list ID at **Checkout -> Features -> Klaviyo list ID**. Without all three, the checkbox is not shown. Klaviyo tracking is off on a new install and on update, so a store already running this plugin turns it on for the checkout deliberately. Its label is edited at **Checkout -> Notes & Links**.
 
 Events are not sent when the signed-in user's email is not the order's, since they would be filed under someone who is not the shopper. See [checkout for another customer](../dev-guide/checkout-for-another-customer.md#whether-klaviyo-is-tracking).
 
@@ -29,11 +29,11 @@ Events are not sent when the signed-in user's email is not the order's, since th
 
 Postie's rates appear as shipping methods. The plugin registers the checkout path with Postie at runtime, the one page or the multi-page shipping step, so rates are fetched where the customer picks a method.
 
-Variants matched by [Products that never ship](../user-guide/products-that-never-ship.md) are left out of Postie's parcel. Postie still quotes carriers for a [customer pickup](../user-guide/customer-pickup.md) order, since the store location is an address like any other; a module can leave them off; see [detecting a pickup order](../dev-guide/customer-pickup.md).
+Variants matched by [Products that don’t require shipping](../user-guide/products-that-dont-require-shipping.md) are left out of Postie's parcel. Postie still quotes carriers for a [customer pickup](../user-guide/customer-pickup.md) order, since the store location is an address like any other; a module can leave them off; see [detecting a pickup order](../dev-guide/customer-pickup.md).
 
 ## Imager X
 
-Line item images in the cart and checkout are transformed through Imager X when it is installed. Configure the transform with the `options.imagerXConfig` setting in `config/foster-checkout.php`. Without the plugin, images are used as they are.
+Line item images in the cart and checkout are transformed through Imager X when it is installed. Configure the transform with the `lineItems.imagerXConfig` setting in `config/foster-checkout.php`. Without the plugin, images are used as they are.
 
 ## Advanced Discounts
 

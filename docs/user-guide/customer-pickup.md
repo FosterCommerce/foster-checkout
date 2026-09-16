@@ -2,7 +2,7 @@
 
 Let a customer collect an order instead of having it shipped. The store location becomes one of the shipping address choices, so a pickup order is a normal order shipped to your own address.
 
-Turn it on at **Checkout -> General -> Offer pickup at the store location**. The choice is named by **Pickup label**, which shows “Customer pickup” when blank.
+Turn it on at **Checkout -> Features -> Offer pickup at the store location**. The choice is named by **Pickup label**, which shows “Customer pickup” when blank.
 
 ## What the customer sees
 

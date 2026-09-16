@@ -22,6 +22,53 @@
 	{{ hiddenInput('section', 'addresses') }}
 	{{ csrfInput() }}
 
+	<h2>{{ 'settings.addresses.shippingTitle'|t('foster-checkout') }}</h2>
+
+	{% if 'notShippableProducts' in overriddenSettings %}
+		<p class="warning with-icon">{{ 'settings.overridden'|t('foster-checkout', { setting: 'notShippableProducts' }) }}</p>
+	{% else %}
+		{% set notShippableInput %}
+			{% if readOnly %}
+				{# The builder posts through this form, so a read-only environment gets the rule count instead #}
+				<p class="light">
+					{{ '{num, plural, =0{No rules} =1{1 rule} other{# rules}}'|t('app', {
+						num: settings.getNotShippableProductsCondition().getConditionRules()|length,
+					}) }}
+				</p>
+			{% else %}
+				{{ settings.getNotShippableProductsCondition().getBuilderHtml()|raw }}
+			{% endif %}
+		{% endset %}
+
+		{{ forms.field({
+			label: 'settings.addresses.notShippable'|t('foster-checkout'),
+			instructions: 'settings.addresses.notShippableHelp'|t('foster-checkout'),
+			id: 'notShippableProducts',
+		}, notShippableInput) }}
+	{% endif %}
+
+	<hr>
+
+	<h2>{{ 'settings.addresses.countriesTitle'|t('foster-checkout') }}</h2>
+
+	{% set defaultCountryOverridden = 'defaultCountryCode' in overriddenSettings %}
+	{% set countryOptions = [{ label: 'settings.addresses.defaultCountryNone'|t('foster-checkout'), value: '' }] %}
+	{% for countryCode, countryName in craft.fostercheckout.storeCountries() %}
+		{% set countryOptions = countryOptions|merge([{ label: countryName, value: countryCode }]) %}
+	{% endfor %}
+
+	{{ forms.selectField({
+		label: 'settings.addresses.defaultCountry'|t('foster-checkout'),
+		instructions: 'settings.addresses.defaultCountryHelp'|t('foster-checkout'),
+		id: 'default-country-code',
+		name: 'settings[defaultCountryCode]',
+		options: countryOptions,
+		value: settings.defaultCountryCode,
+		errors: settings.getErrors('defaultCountryCode'),
+		disabled: defaultCountryOverridden or not adminChangesAllowed,
+		warning: defaultCountryOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'defaultCountryCode' }),
+	}) }}
+
 	{% set countriesOverridden = 'priorityCountries' in overriddenSettings %}
 	{% set countryRows = [] %}
 	{% for countryCode in settings.priorityCountries %}
@@ -45,23 +92,11 @@
 		warning: countriesOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'priorityCountries' }),
 	}) }}
 
-	{% set savedAddressLimitOverridden = 'savedAddressLimit' in overriddenSettings %}
-
-	{{ forms.textField({
-		label: 'settings.addresses.savedAddressLimit'|t('foster-checkout'),
-		instructions: 'settings.addresses.savedAddressLimitHelp'|t('foster-checkout'),
-		id: 'saved-address-limit',
-		name: 'settings[savedAddressLimit]',
-		type: 'number',
-		min: 0,
-		step: 1,
-		size: 5,
-		value: settings.savedAddressLimit,
-		disabled: savedAddressLimitOverridden or not adminChangesAllowed,
-		warning: savedAddressLimitOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'savedAddressLimit' }),
-	}) }}
-
 	{% set phoneHandleOverridden = 'addressPhoneFieldHandle' in overriddenSettings %}
+
+	<hr>
+
+	<h2>{{ 'settings.addresses.fieldsTitle'|t('foster-checkout') }}</h2>
 
 	{{ forms.textField({
 		label: 'settings.addresses.addressPhoneFieldHandle'|t('foster-checkout'),
@@ -139,6 +174,26 @@
 
 	{% set showAddressLabelFieldOverridden = 'showAddressLabelField' in overriddenSettings %}
 
+	<hr>
+
+	<h2>{{ 'settings.addresses.savedTitle'|t('foster-checkout') }}</h2>
+
+	{% set savedAddressLimitOverridden = 'savedAddressLimit' in overriddenSettings %}
+
+	{{ forms.textField({
+		label: 'settings.addresses.savedAddressLimit'|t('foster-checkout'),
+		instructions: 'settings.addresses.savedAddressLimitHelp'|t('foster-checkout'),
+		id: 'saved-address-limit',
+		name: 'settings[savedAddressLimit]',
+		type: 'number',
+		min: 0,
+		step: 1,
+		size: 5,
+		value: settings.savedAddressLimit,
+		disabled: savedAddressLimitOverridden or not adminChangesAllowed,
+		warning: savedAddressLimitOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'savedAddressLimit' }),
+	}) }}
+
 	{{ forms.lightswitchField({
 		label: 'settings.addresses.showAddressLabelField'|t('foster-checkout'),
 		instructions: 'settings.addresses.showAddressLabelFieldHelp'|t('foster-checkout'),
@@ -160,6 +215,71 @@
 		disabled: showAddressLabelInPreviewOverridden or not adminChangesAllowed,
 		warning: showAddressLabelInPreviewOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'showAddressLabelInPreview' }),
 	}) }}
+
+	<hr>
+
+	<h2>{{ 'settings.addresses.verificationTitle'|t('foster-checkout') }}</h2>
+
+	{% set verificationPinned = 'options.enableAddressVerification' in overriddenSettings %}
+	{{ forms.lightswitchField({
+		label: 'settings.addresses.enableAddressVerification'|t('foster-checkout'),
+		instructions: 'settings.addresses.enableAddressVerificationHelp'|t('foster-checkout'),
+		id: 'options-enableAddressVerification',
+		name: 'settings[options][enableAddressVerification]',
+		on: settings.options.enableAddressVerification,
+		disabled: readOnly or verificationPinned,
+		warning: verificationPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'options.enableAddressVerification' }),
+	}) }}
+
+	{% set lookupPinned = 'addressLookup.enabled' in overriddenSettings %}
+	{{ forms.lightswitchField({
+		label: 'settings.addresses.addressLookupEnabled'|t('foster-checkout'),
+		instructions: 'settings.addresses.addressLookupEnabledHelp'|t('foster-checkout'),
+		id: 'address-lookup-enabled',
+		name: 'settings[addressLookup][enabled]',
+		on: settings.addressLookup.enabled,
+		disabled: readOnly or lookupPinned,
+		warning: lookupPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'addressLookup.enabled' }),
+	}) }}
+
+	{% set providerPinned = 'addressLookup.provider' in overriddenSettings %}
+	{{ forms.selectField({
+		label: 'settings.addresses.addressLookupProvider'|t('foster-checkout'),
+		instructions: 'settings.addresses.addressLookupProviderHelp'|t('foster-checkout'),
+		id: 'address-lookup-provider',
+		name: 'settings[addressLookup][provider]',
+		value: settings.addressLookup.provider,
+		options: [
+			{ label: 'Google Places', value: 'google' },
+			{ label: 'Loqate', value: 'loqate' },
+		],
+		disabled: readOnly or providerPinned,
+		warning: providerPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'addressLookup.provider' }),
+	}) }}
+
+	{% set apiKeyPinned = 'addressLookup.apiKey' in overriddenSettings %}
+	{{ forms.autosuggestField({
+		label: 'settings.addresses.addressLookupApiKey'|t('foster-checkout'),
+		instructions: 'settings.addresses.addressLookupApiKeyHelp'|t('foster-checkout'),
+		id: 'address-lookup-api-key',
+		name: 'settings[addressLookup][apiKey]',
+		value: settings.addressLookup.apiKey,
+		suggestEnvVars: true,
+		disabled: readOnly or apiKeyPinned,
+		warning: apiKeyPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'addressLookup.apiKey' }),
+	}) }}
+
+	{% if settings.addressLookup.enabled %}
+		<div class="field">
+			{# Submits the settings form so the key on screen is the one tested #}
+			<button type="button" class="btn formsubmit" data-action="foster-checkout/settings/test-address-lookup">
+				{{ 'settings.addresses.addressLookupTest'|t('foster-checkout') }}
+			</button>
+			<div class="instructions">
+				<p>{{ 'settings.addresses.addressLookupTestHelp'|t('foster-checkout') }}</p>
+			</div>
+		</div>
+	{% endif %}
 
 	{% include 'foster-checkout/_includes/plugin-footer' %}
 

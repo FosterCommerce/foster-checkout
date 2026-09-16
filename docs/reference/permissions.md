@@ -10,7 +10,7 @@ Every user needs Craft's own `accessPlugin-foster-checkout` to open any of these
 
 | Permission | Grants |
 | --- | --- |
-| `foster-checkout-viewContent` | Read-only access to **Checkout -> Content** |
+| `foster-checkout-viewContent` | Read-only access to **Checkout -> Notes & Links** |
 | `foster-checkout-editContent` | Saving changes on that screen |
 
 `editContent` is nested under `viewContent` in the permissions screen, so it cannot be checked on its own there. Craft does not imply the parent at runtime, so a permission granted outside the control panel is checked on its own.
@@ -23,7 +23,7 @@ Every user needs Craft's own `accessPlugin-foster-checkout` to open any of these
 | --- | --- |
 | `foster-checkout-manageAppearance` | **Checkout -> Appearance** |
 | `foster-checkout-manageFeatures` | **Checkout -> Features** |
-| `foster-checkout-manageSettings` | **Checkout -> Products**, **Gateways** and **General** |
+| `foster-checkout-manageSettings` | **Checkout -> Line Items**, **Gateways**, **Custom Fields**, **Addresses** and **General** |
 
 Settings persist to project config, so they are editable only where `allowAdminChanges` is on. On production these screens are read-only regardless of permission.
 

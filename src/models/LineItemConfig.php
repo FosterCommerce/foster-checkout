@@ -32,11 +32,56 @@ class LineItemConfig extends Model
 	public ?int $lineItemOptionValueMaxLength = null;
 
 	/**
+	 * Width of a cart line item's image in pixels, at desktop widths. Narrower screens use half of it.
+	 */
+	public int $imageSize = 150;
+
+	/**
+	 * How an image fills its square box: `contain` letterboxes the whole image, `cover` crops it to fill.
+	 */
+	public string $imageFit = 'contain';
+
+	/**
+	 * Whether a line item with no image shows a "No Image" placeholder.
+	 */
+	public bool $enablePlaceholderImages = false;
+
+	/**
+	 * Whether each line item offers a "save for later" button.
+	 */
+	public bool $enableSaveForLater = false;
+
+	/**
+	 * Transform config passed to Imager X, when that plugin renders the line item images.
+	 *
+	 * @var ?array<non-empty-string, mixed>
+	 */
+	public ?array $imagerXConfig = null;
+
+	/**
 	 * @param array<array-key, mixed> $config
 	 */
 	public function __construct($config = [])
 	{
 		parent::__construct($this->upgradeLineItemOptions($config));
+	}
+
+	/**
+	 * @return array<array-key, mixed>
+	 */
+	#[\Override]
+	protected function defineRules(): array
+	{
+		return [
+			...parent::defineRules(),
+			// A width of zero is dropped from a transform, and a large one pushes the rest of the line item off screen
+			[
+				'imageSize',
+				'integer',
+				'min' => 40,
+				'max' => 200,
+			],
+		];
 	}
 
 	/**

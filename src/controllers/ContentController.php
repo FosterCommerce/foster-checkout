@@ -23,23 +23,20 @@ class ContentController extends Controller
 {
 	// `customersOrderNotes` is absent: it names an order field handle, so it is developer config.
 	/**
-	 * @var list<string>
+	 * Note keys by the panel they are shown in, which is also the order the screen lists them.
+	 *
+	 * @var array<string, list<string>>
 	 */
-	private const array NOTE_KEYS = [
-		'cart',
-		'emptyCart',
-		'login',
-		'email',
-		'shippingAddress',
-		'shippingMethod',
-		'billing',
-		'payment',
-		'confirmation',
-		'globalCheckout',
-		'noShippingMethods',
-		'subscribe',
-		'deliveryDateLabel',
-		'deliveryDateMessage',
+	private const array NOTE_GROUPS = [
+		'global' => ['globalCheckout'],
+		'cart' => ['cart', 'emptyCart'],
+		'account' => ['login'],
+		'email' => ['email', 'subscribe'],
+		'shippingAddress' => ['shippingAddress'],
+		'shippingMethod' => ['shippingMethod', 'noShippingMethods'],
+		'billing' => ['billing'],
+		'payment' => ['payment'],
+		'confirmation' => ['confirmation'],
 	];
 
 	/**
@@ -56,7 +53,7 @@ class ContentController extends Controller
 			// _layouts/base.twig sets `requestedSite` itself, so one passed here is overwritten
 			'contentSite' => $this->resolveSite(),
 			'showSiteMenu' => $this->showSiteMenu(),
-			'noteKeys' => self::NOTE_KEYS,
+			'noteGroups' => self::NOTE_GROUPS,
 			'notes' => $plugin->getContent()->get('notes') ?? [],
 			'footerLinks' => $plugin->getContent()->get('links.footerLinks') ?? [],
 			'gateways' => $this->commerce()->getGateways()->getAllGateways(),
@@ -88,7 +85,7 @@ class ContentController extends Controller
 		$content = $plugin->getContent()->all();
 		$storedNotes = is_array($content['notes'] ?? null) ? $content['notes'] : [];
 
-		foreach (self::NOTE_KEYS as $noteKey) {
+		foreach (array_merge(...array_values(self::NOTE_GROUPS)) as $noteKey) {
 			$storedNotes[$noteKey] = (string) ($postedNotes[$noteKey] ?? '');
 		}
 

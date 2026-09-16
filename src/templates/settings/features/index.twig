@@ -15,46 +15,24 @@
 	{% set contentNotice = readOnlyNotice() %}
 {% endif %}
 
-{% set switches = [
-	{
-		handle: 'enableSinglePageCheckout',
-		on: settings.options.enableSinglePageCheckout,
-		offLabel: 'settings.features.enableSinglePageCheckoutOff'|t('foster-checkout'),
-		onLabel: 'settings.features.enableSinglePageCheckoutOn'|t('foster-checkout'),
-	},
-	{ handle: 'enableSaveForLater', on: settings.options.enableSaveForLater },
-	{ handle: 'enablePlaceholderImages', on: settings.options.enablePlaceholderImages },
-	{ handle: 'enablePageTransitions', on: settings.options.enablePageTransitions },
-	{ handle: 'enableAddressVerification', on: settings.options.enableAddressVerification },
-	{ handle: 'enableKlaviyoTracking', on: settings.options.enableKlaviyoTracking },
-] %}
-
 {% block content %}
 	{{ actionInput('foster-checkout/settings/save-settings') }}
 	{{ redirectInput('foster-checkout/settings/features') }}
 	{{ hiddenInput('section', 'features') }}
 	{{ csrfInput() }}
 
-	{% for switch in switches %}
-		{% set setting = "options.#{switch.handle}" %}
-		{% set pinned = setting in overriddenSettings %}
-		{% set lightswitch = {
-			label: "settings.features.#{switch.handle}"|t('foster-checkout'),
-			instructions: "settings.features.#{switch.handle}Help"|t('foster-checkout'),
-			id: "options-#{switch.handle}",
-			name: "settings[options][#{switch.handle}]",
-			on: switch.on,
-			disabled: readOnly or pinned,
-			warning: pinned ? 'settings.overridden'|t('foster-checkout', { setting: setting }),
-		} %}
-		{% if switch.onLabel is defined %}
-			{% set lightswitch = lightswitch|merge({
-				offLabel: switch.offLabel,
-				onLabel: switch.onLabel,
-			}) %}
-		{% endif %}
-		{{ forms.lightswitchField(lightswitch) }}
-	{% endfor %}
+	<h2>{{ 'settings.features.klaviyoTitle'|t('foster-checkout') }}</h2>
+
+	{% set trackingPinned = 'options.enableKlaviyoTracking' in overriddenSettings %}
+	{{ forms.lightswitchField({
+		label: 'settings.features.enableKlaviyoTracking'|t('foster-checkout'),
+		instructions: 'settings.features.enableKlaviyoTrackingHelp'|t('foster-checkout'),
+		id: 'options-enableKlaviyoTracking',
+		name: 'settings[options][enableKlaviyoTracking]',
+		on: settings.options.enableKlaviyoTracking,
+		disabled: readOnly or trackingPinned,
+		warning: trackingPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'options.enableKlaviyoTracking' }),
+	}) }}
 
 	{% set klaviyoPinned = 'options.klaviyoListId' in overriddenSettings %}
 	{{ forms.textField({
@@ -69,55 +47,55 @@
 
 	<hr>
 
-	{% set lookupPinned = 'addressLookup.enabled' in overriddenSettings %}
+	<h2>{{ 'settings.features.customerPickupTitle'|t('foster-checkout') }}</h2>
+
+	{% set enableCustomerPickupOverridden = 'enableCustomerPickup' in overriddenSettings %}
 	{{ forms.lightswitchField({
-		label: 'settings.features.addressLookupEnabled'|t('foster-checkout'),
-		instructions: 'settings.features.addressLookupEnabledHelp'|t('foster-checkout'),
-		id: 'address-lookup-enabled',
-		name: 'settings[addressLookup][enabled]',
-		on: settings.addressLookup.enabled,
-		disabled: readOnly or lookupPinned,
-		warning: lookupPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'addressLookup.enabled' }),
+		label: 'settings.features.enableCustomerPickup'|t('foster-checkout'),
+		instructions: 'settings.features.enableCustomerPickupHelp'|t('foster-checkout'),
+		id: 'enable-customer-pickup',
+		name: 'settings[enableCustomerPickup]',
+		on: settings.enableCustomerPickup,
+		disabled: enableCustomerPickupOverridden or readOnly,
+		warning: enableCustomerPickupOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'enableCustomerPickup' }),
 	}) }}
 
-	{% set providerPinned = 'addressLookup.provider' in overriddenSettings %}
-	{{ forms.selectField({
-		label: 'settings.features.addressLookupProvider'|t('foster-checkout'),
-		instructions: 'settings.features.addressLookupProviderHelp'|t('foster-checkout'),
-		id: 'address-lookup-provider',
-		name: 'settings[addressLookup][provider]',
-		value: settings.addressLookup.provider,
-		options: [
-			{ label: 'Google Places', value: 'google' },
-			{ label: 'Loqate', value: 'loqate' },
-		],
-		disabled: readOnly or providerPinned,
-		warning: providerPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'addressLookup.provider' }),
+	{% set customerPickupLabelOverridden = 'customerPickupLabel' in overriddenSettings %}
+	{{ forms.textField({
+		label: 'settings.features.customerPickupLabel'|t('foster-checkout'),
+		instructions: 'settings.features.customerPickupLabelHelp'|t('foster-checkout'),
+		id: 'customer-pickup-label',
+		name: 'settings[customerPickupLabel]',
+		value: settings.customerPickupLabel,
+		placeholder: 'address.customerPickup'|t('foster-checkout'),
+		disabled: customerPickupLabelOverridden or readOnly,
+		warning: customerPickupLabelOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'customerPickupLabel' }),
 	}) }}
 
-	{% set apiKeyPinned = 'addressLookup.apiKey' in overriddenSettings %}
-	{{ forms.autosuggestField({
-		label: 'settings.features.addressLookupApiKey'|t('foster-checkout'),
-		instructions: 'settings.features.addressLookupApiKeyHelp'|t('foster-checkout'),
-		id: 'address-lookup-api-key',
-		name: 'settings[addressLookup][apiKey]',
-		value: settings.addressLookup.apiKey,
-		suggestEnvVars: true,
-		disabled: readOnly or apiKeyPinned,
-		warning: apiKeyPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'addressLookup.apiKey' }),
+	<hr>
+
+	<h2>{{ 'settings.features.deliveryDateTitle'|t('foster-checkout') }}</h2>
+
+	{# Read-only until a site template renders the delivery date, so the copy is shown rather than edited #}
+	{% set deliveryDateNotes = plugin.getContent().get('notes') ?? {} %}
+
+	{{ forms.textField({
+		label: 'content.deliveryDateLabel'|t('foster-checkout'),
+		instructions: 'content.deliveryDateLabelHelp'|t('foster-checkout'),
+		id: 'delivery-date-label',
+		value: deliveryDateNotes.deliveryDateLabel ?? '',
+		disabled: true,
+		warning: 'settings.features.deliveryDateUnused'|t('foster-checkout'),
 	}) }}
 
-	{% if settings.addressLookup.enabled %}
-		<div class="field">
-			{# Submits the settings form so the key on screen is the one tested #}
-			<button type="button" class="btn formsubmit" data-action="foster-checkout/settings/test-address-lookup">
-				{{ 'settings.features.addressLookupTest'|t('foster-checkout') }}
-			</button>
-			<div class="instructions">
-				<p>{{ 'settings.features.addressLookupTestHelp'|t('foster-checkout') }}</p>
-			</div>
-		</div>
-	{% endif %}
+	{{ forms.textareaField({
+		label: 'content.deliveryDateMessage'|t('foster-checkout'),
+		instructions: 'content.deliveryDateMessageHelp'|t('foster-checkout'),
+		id: 'delivery-date-message',
+		value: deliveryDateNotes.deliveryDateMessage ?? '',
+		rows: 3,
+		disabled: true,
+	}) }}
 
 	{% include 'foster-checkout/_includes/plugin-footer' %}
 

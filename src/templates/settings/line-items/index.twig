@@ -12,6 +12,20 @@
 {% set readOnly = not craft.app.config.general.allowAdminChanges %}
 {% set fullPageForm = not readOnly %}
 
+{% set productRows = [] %}
+{% for productTypeHandle, productConfig in settings.products %}
+	{% set productRows = productRows|merge([{
+		productTypeHandle: productTypeHandle,
+		productImageHandle: productConfig.productImageHandle,
+		variantImageHandle: productConfig.variantImageHandle,
+	}]) %}
+{% endfor %}
+
+{% set productTypeOptions = [] %}
+{% for productTypeHandle in productTypeHandles %}
+	{% set productTypeOptions = productTypeOptions|merge([{ label: productTypeHandle, value: productTypeHandle }]) %}
+{% endfor %}
+
 {% set rulesOverridden = 'lineItemOptionRules' in overriddenSettings %}
 {% set rulesReadOnly = rulesOverridden or not craft.app.config.general.allowAdminChanges %}
 
@@ -25,7 +39,74 @@
 	{{ hiddenInput('section', 'line-items') }}
 	{{ csrfInput() }}
 
-	<p>{{ 'settings.lineItemOptions.intro'|t('foster-checkout') }}</p>
+	<h2>{{ 'settings.lineItemOptions.imagesTitle'|t('foster-checkout') }}</h2>
+
+	{{ forms.editableTableField({
+		label: 'settings.products.label'|t('foster-checkout'),
+		instructions: 'settings.products.help'|t('foster-checkout'),
+		id: 'products',
+		name: 'settings[products]',
+		cols: {
+			productTypeHandle: {
+				heading: 'settings.products.productType'|t('foster-checkout'),
+				type: 'select',
+				options: productTypeOptions,
+			},
+			productImageHandle: { heading: 'settings.products.productImage'|t('foster-checkout'), type: 'singleline' },
+			variantImageHandle: { heading: 'settings.products.variantImage'|t('foster-checkout'), type: 'singleline' },
+		},
+		rows: productRows,
+		addRowLabel: 'settings.products.addRow'|t('foster-checkout'),
+		allowAdd: true,
+		allowDelete: true,
+		allowReorder: true,
+		static: readOnly or 'products' in overriddenSettings,
+		warning: 'products' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'products' }),
+	}) }}
+
+	{{ forms.textField({
+		label: 'settings.lineItemOptions.imageSize'|t('foster-checkout'),
+		instructions: 'settings.lineItemOptions.imageSizeHelp'|t('foster-checkout'),
+		id: 'options-imageSize',
+		name: 'settings[lineItems][imageSize]',
+		type: 'number',
+		min: 40,
+		max: 200,
+		step: 1,
+		size: 5,
+		value: settings.lineItems.imageSize,
+		errors: settings.getErrors('lineItems.imageSize'),
+		disabled: readOnly or 'lineItems.imageSize' in overriddenSettings,
+		warning: 'lineItems.imageSize' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.imageSize' }),
+	}) }}
+
+	{{ forms.selectField({
+		label: 'settings.lineItemOptions.imageFit'|t('foster-checkout'),
+		instructions: 'settings.lineItemOptions.imageFitHelp'|t('foster-checkout'),
+		id: 'options-imageFit',
+		name: 'settings[lineItems][imageFit]',
+		value: settings.lineItems.imageFit,
+		options: [
+			{ label: 'settings.lineItemOptions.imageFitContain'|t('foster-checkout'), value: 'contain' },
+			{ label: 'settings.lineItemOptions.imageFitCover'|t('foster-checkout'), value: 'cover' },
+		],
+		disabled: readOnly or 'lineItems.imageFit' in overriddenSettings,
+		warning: 'lineItems.imageFit' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.imageFit' }),
+	}) }}
+
+	{{ forms.lightswitchField({
+		label: 'settings.lineItemOptions.enablePlaceholderImages'|t('foster-checkout'),
+		instructions: 'settings.lineItemOptions.enablePlaceholderImagesHelp'|t('foster-checkout'),
+		id: 'options-enablePlaceholderImages',
+		name: 'settings[lineItems][enablePlaceholderImages]',
+		on: settings.lineItems.enablePlaceholderImages,
+		disabled: readOnly or 'lineItems.enablePlaceholderImages' in overriddenSettings,
+		warning: 'lineItems.enablePlaceholderImages' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.enablePlaceholderImages' }),
+	}) }}
+
+	<hr>
+
+	<h2>{{ 'settings.lineItemOptions.detailsTitle'|t('foster-checkout') }}</h2>
 
 	{{ forms.lightswitchField({
 		label: 'settings.lineItemOptions.showLineItemSku'|t('foster-checkout'),
@@ -46,6 +127,20 @@
 		disabled: readOnly or 'lineItems.showLineItemStock' in overriddenSettings,
 		warning: 'lineItems.showLineItemStock' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.showLineItemStock' }),
 	}) }}
+
+	{{ forms.lightswitchField({
+		label: 'settings.lineItemOptions.enableSaveForLater'|t('foster-checkout'),
+		instructions: 'settings.lineItemOptions.enableSaveForLaterHelp'|t('foster-checkout'),
+		id: 'options-enableSaveForLater',
+		name: 'settings[lineItems][enableSaveForLater]',
+		on: settings.lineItems.enableSaveForLater,
+		disabled: readOnly or 'lineItems.enableSaveForLater' in overriddenSettings,
+		warning: 'lineItems.enableSaveForLater' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.enableSaveForLater' }),
+	}) }}
+
+	<hr>
+
+	<h2>{{ 'settings.lineItemOptions.optionsTitle'|t('foster-checkout') }}</h2>
 
 	{{ forms.lightswitchField({
 		label: 'settings.lineItemOptions.enableLineItemOptions'|t('foster-checkout'),
@@ -83,8 +178,6 @@
 			warning: 'lineItems.lineItemOptionValueMaxLength' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.lineItemOptionValueMaxLength' }),
 		}) }}
 	</div>
-
-
 
 	{% if settings.lineItems.enableLineItemOptions %}
 	<hr>

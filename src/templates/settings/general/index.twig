@@ -8,12 +8,8 @@
 {% set title = 'nav.general'|t('foster-checkout') %}
 {% set docTitle = title %}
 
-{% set adminChangesAllowed = craft.app.config.general.allowAdminChanges %}
-{% set readOnly = not adminChangesAllowed %}
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
 {% set fullPageForm = not readOnly %}
-
-{# Each top-level key is overridden on its own, so one pinned key must not lock the rest #}
-{% set pathsOverridden = 'paths' in overriddenSettings %}
 
 {% if readOnly %}
 	{% set contentNotice = readOnlyNotice() %}
@@ -25,6 +21,8 @@
 	{{ hiddenInput('section', 'general') }}
 	{{ csrfInput() }}
 
+	<h2>{{ 'settings.general.pathsTitle'|t('foster-checkout') }}</h2>
+
 	{{ forms.textField({
 		label: 'settings.general.cart'|t('foster-checkout'),
 		instructions: 'settings.general.cartHelp'|t('foster-checkout'),
@@ -32,7 +30,7 @@
 		name: 'settings[paths][cart]',
 		value: settings.paths.cart,
 		placeholder: 'cart',
-		disabled: pathsOverridden or readOnly,
+		disabled: 'paths.cart' in overriddenSettings or readOnly,
 		warning: 'paths.cart' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'paths.cart' }),
 	}) }}
 
@@ -42,7 +40,7 @@
 		id: 'paths-use-cart-template',
 		name: 'settings[paths][useCartTemplate]',
 		on: settings.paths.useCartTemplate,
-		disabled: pathsOverridden or readOnly,
+		disabled: 'paths.useCartTemplate' in overriddenSettings or readOnly,
 		warning: 'paths.useCartTemplate' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'paths.useCartTemplate' }),
 	}) }}
 
@@ -53,7 +51,7 @@
 		name: 'settings[paths][checkout]',
 		value: settings.paths.checkout,
 		placeholder: 'checkout',
-		disabled: pathsOverridden or readOnly,
+		disabled: 'paths.checkout' in overriddenSettings or readOnly,
 		warning: 'paths.checkout' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'paths.checkout' }),
 	}) }}
 
@@ -64,7 +62,7 @@
 		name: 'settings[paths][account]',
 		value: settings.paths.account,
 		placeholder: 'account',
-		disabled: pathsOverridden or readOnly,
+		disabled: 'paths.account' in overriddenSettings or readOnly,
 		warning: 'paths.account' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'paths.account' }),
 	}) }}
 
@@ -75,14 +73,13 @@
 		name: 'settings[paths][cancel]',
 		value: settings.paths.cancel,
 		placeholder: '/',
-		disabled: pathsOverridden or readOnly,
+		disabled: 'paths.cancel' in overriddenSettings or readOnly,
 		warning: 'paths.cancel' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'paths.cancel' }),
 	}) }}
 
 	<hr>
 
-	{# Each of these is its own top-level config key, so each is overridden independently of the paths above. #}
-	{% set includesOverridden = 'includes' in overriddenSettings %}
+	<h2>{{ 'settings.general.includesTitle'|t('foster-checkout') }}</h2>
 
 	{{ forms.textField({
 		label: 'settings.general.includesHead'|t('foster-checkout'),
@@ -90,7 +87,7 @@
 		id: 'includes-head',
 		name: 'settings[includes][head]',
 		value: settings.includes.head,
-		disabled: includesOverridden or not adminChangesAllowed,
+		disabled: 'includes.head' in overriddenSettings or readOnly,
 		errors: settings.getErrors('includes.head'),
 		warning: 'includes.head' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'includes.head' }),
 	}) }}
@@ -101,7 +98,7 @@
 		id: 'includes-body',
 		name: 'settings[includes][body]',
 		value: settings.includes.body,
-		disabled: includesOverridden or not adminChangesAllowed,
+		disabled: 'includes.body' in overriddenSettings or readOnly,
 		errors: settings.getErrors('includes.body'),
 		warning: 'includes.body' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'includes.body' }),
 	}) }}
@@ -112,71 +109,14 @@
 		id: 'includes-summary',
 		name: 'settings[includes][summary]',
 		value: settings.includes.summary,
-		disabled: includesOverridden or not adminChangesAllowed,
+		disabled: 'includes.summary' in overriddenSettings or readOnly,
 		errors: settings.getErrors('includes.summary'),
 		warning: 'includes.summary' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'includes.summary' }),
 	}) }}
 
 	<hr>
 
-	{% set gatewaysOverridden = 'zeroValueGatewayHandles' in overriddenSettings %}
-	{% set gatewayOptions = [] %}
-	{% for gateway in gateways %}
-		{% set gatewayOptions = gatewayOptions|merge([{ label: gateway.name, value: gateway.handle }]) %}
-	{% endfor %}
-
-	{{ forms.checkboxGroupField({
-		label: 'settings.general.zeroValueGateways'|t('foster-checkout'),
-		instructions: 'settings.general.zeroValueGatewaysHelp'|t('foster-checkout'),
-		id: 'zero-value-gateways',
-		name: 'settings[zeroValueGatewayHandles]',
-		options: gatewayOptions,
-		values: settings.zeroValueGatewayHandles,
-		disabled: gatewaysOverridden or not adminChangesAllowed,
-		warning: gatewaysOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'zeroValueGatewayHandles' }),
-	}) }}
-
-	<hr>
-
-	{% set enableCustomerPickupOverridden = 'enableCustomerPickup' in overriddenSettings %}
-
-	{{ forms.lightswitchField({
-		label: 'settings.general.enableCustomerPickup'|t('foster-checkout'),
-		instructions: 'settings.general.enableCustomerPickupHelp'|t('foster-checkout'),
-		id: 'enable-customer-pickup',
-		name: 'settings[enableCustomerPickup]',
-		on: settings.enableCustomerPickup,
-		disabled: enableCustomerPickupOverridden or not adminChangesAllowed,
-		warning: enableCustomerPickupOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'enableCustomerPickup' }),
-	}) }}
-
-	{% set customerPickupLabelOverridden = 'customerPickupLabel' in overriddenSettings %}
-
-	{{ forms.textField({
-		label: 'settings.general.customerPickupLabel'|t('foster-checkout'),
-		instructions: 'settings.general.customerPickupLabelHelp'|t('foster-checkout'),
-		id: 'customer-pickup-label',
-		name: 'settings[customerPickupLabel]',
-		value: settings.customerPickupLabel,
-		placeholder: 'address.customerPickup'|t('foster-checkout'),
-		disabled: customerPickupLabelOverridden or not adminChangesAllowed,
-		warning: customerPickupLabelOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'customerPickupLabel' }),
-	}) }}
-
-	<hr>
-
-	{# Its own top-level config key, so it is overridden independently of the paths above. #}
-	{% set orderNotesOverridden = 'customerOrderNotesFieldHandle' in overriddenSettings %}
-
-	{{ forms.textField({
-		label: 'settings.general.customerOrderNotesFieldHandle'|t('foster-checkout'),
-		instructions: 'settings.general.customerOrderNotesFieldHandleHelp'|t('foster-checkout'),
-		id: 'customer-order-notes-field-handle',
-		name: 'settings[customerOrderNotesFieldHandle]',
-		value: settings.customerOrderNotesFieldHandle,
-		disabled: orderNotesOverridden or not craft.app.config.general.allowAdminChanges,
-		warning: orderNotesOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'customerOrderNotesFieldHandle' }),
-	}) }}
+	<h2>{{ 'settings.general.contentTitle'|t('foster-checkout') }}</h2>
 
 	{% set translationOverridden = 'contentTranslationMethod' in overriddenSettings %}
 
@@ -191,7 +131,7 @@
 			{ label: 'settings.general.translationSite'|t('foster-checkout'), value: 'site' },
 			{ label: 'settings.general.translationLanguage'|t('foster-checkout'), value: 'language' },
 		],
-		disabled: translationOverridden or not craft.app.config.general.allowAdminChanges,
+		disabled: translationOverridden or readOnly,
 		warning: translationOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'contentTranslationMethod' }),
 	}) }}
 

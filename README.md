@@ -30,7 +30,7 @@ See [`docs/installation.md`](./docs/installation.md) for the full guide.
 
 ## Content
 
-The plugin stores checkout copy in its own database table rather than project config, so it stays editable on production where admin changes are disabled. Admins edit it at **Checkout -> Content**: notes for each step, payment method notes, and the footer links shown across the cart and checkout.
+The plugin stores checkout copy in its own database table rather than project config, so it stays editable on production where admin changes are disabled. Admins edit it at **Checkout -> Notes & Links**: notes for each step, payment method notes, and the footer links shown across the cart and checkout.
 
 Each note is rendered as a Twig template, so copy can reference the cart or the order. On a multi-site install, copy varies per site or per language depending on the content translation method.
 
@@ -78,11 +78,11 @@ Which fields the address form asks for, and which of them are required, follow C
 
 See [`docs/user-guide/address-fields.md`](./docs/user-guide/address-fields.md) and [`docs/reference/settings.md`](./docs/reference/settings.md).
 
-## Products that never ship
+## Products that don’t require shipping
 
 Mark services, training seats and other unshippable products with a product condition, and a cart holding only those skips the shipping address and method on both layouts. Commerce and shipping plugins treat their variants as not shippable, so a mixed cart is rated on what actually ships.
 
-See [`docs/user-guide/products-that-never-ship.md`](./docs/user-guide/products-that-never-ship.md).
+See [`docs/user-guide/products-that-dont-require-shipping.md`](./docs/user-guide/products-that-dont-require-shipping.md).
 
 ## Customer pickup
 

@@ -2,7 +2,7 @@
 
 The checkout runs either as separate steps or as one page. Multi-page is the default.
 
-Turn it on at **Checkout -> Features -> Checkout layout**.
+Turn it on at **Checkout -> Appearance -> Checkout layout**.
 
 ## What changes
 

@@ -21,19 +21,19 @@ Visit the checkout path. You should see the contact step, or a redirect to the c
 
 ## 3. Choose the layout
 
-Open **Checkout -> Features**. **Checkout layout** switches between separate steps and one page. Multi-page is the default.
+Open **Checkout -> Appearance**. **Checkout layout** switches between separate steps and one page. Multi-page is the default.
 
 Reload the checkout. On single-page you see contact, delivery, shipping and payment together, with the summary beside them. See [single-page checkout](./user-guide/single-page-checkout.md).
 
 ## 4. Brand it
 
-Open **Checkout -> Appearance**. Set the brand color, header background, logo path and Google font. Corner style switches every component between rounded and square.
+Open **Checkout -> Appearance**. Set the brand color, header background, logo path, logo height and Google font. Corner style switches every component between rounded and square.
 
 Reload the checkout. The buttons and links now use your brand color.
 
 ## 5. Write your copy
 
-Open **Checkout -> Content**. Every piece of text in the checkout is here: the note on each step, the newsletter label, payment method notes and the footer links.
+Open **Checkout -> Notes & Links**. Every piece of text in the checkout is here: the note on each step, the newsletter label, payment method notes and the footer links.
 
 This is stored in the database rather than in project config, so it stays editable on production. See [checkout content](./user-guide/content.md).
 
@@ -43,7 +43,7 @@ Open **Checkout -> Line Items**. Turn the SKU on or off, hide options by prefix,
 
 ## 7. Ask for anything extra
 
-If you need something the checkout does not collect, open **Checkout -> Fields** and add it to one of the five positions. The field has to exist on the order first, under **Commerce -> Settings -> Order Fields**. See [checkout fields](./user-guide/checkout-fields.md).
+If you need something the checkout does not collect, open **Checkout -> Custom Fields** and add it to one of the five positions. The field has to exist on the order first, under **Commerce -> Settings -> Order Fields**. See [checkout fields](./user-guide/checkout-fields.md).
 
 ## 8. Set up your gateways
 
@@ -58,6 +58,6 @@ Place a test order to confirm payment works end to end.
 - [Plugin integrations](./reference/integrations.md), what changes when AvaTax, Gift Voucher, Postie and others are installed
 - [Address fields](./user-guide/address-fields.md), what the checkout asks for on an address
 - [Customer pickup](./user-guide/customer-pickup.md), letting a customer collect an order from the store location
-- [Products that never ship](./user-guide/products-that-never-ship.md), skipping shipping for services and other unshippable products
+- [Products that don’t require shipping](./user-guide/products-that-dont-require-shipping.md), skipping shipping for services and other unshippable products
 - [Custom includes](./dev-guide/custom-includes.md), injecting your own templates into every cart and checkout page
 - [Contributed fields](./dev-guide/contributed-fields.md), adding a checkout field your own code stores

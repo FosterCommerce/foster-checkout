@@ -2,7 +2,7 @@
 
 How to ask a customer for something the checkout does not collect by default.
 
-**Checkout -> Fields** lists five points in the checkout. Each one holds a field layout, and every field you add there is shown to the customer at that point.
+**Checkout -> Custom Fields** lists five points in the checkout. Each one holds a field layout, and every field you add there is shown to the customer at that point.
 
 | Position | Where it shows |
 | --- | --- |

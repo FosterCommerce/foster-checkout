@@ -14,7 +14,7 @@ A drop-in checkout for Craft Commerce, with its copy and settings managed from t
 - [Address fields](./user-guide/address-fields.md), what the checkout asks for on an address, and address labels
 - [Single-page checkout](./user-guide/single-page-checkout.md), running the checkout as one page
 - [Customer pickup](./user-guide/customer-pickup.md), offering the store location as a shipping address
-- [Products that never ship](./user-guide/products-that-never-ship.md), skipping shipping for services and other unshippable products
+- [Products that don’t require shipping](./user-guide/products-that-dont-require-shipping.md), skipping shipping for services and other unshippable products
 
 **Setting the plugin up?** See:
 

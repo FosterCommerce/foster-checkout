@@ -1,11 +1,42 @@
 {% extends "foster-checkout/_layouts/settings" %}
+{% import "_includes/forms" as forms %}
 {% do view.registerAssetBundle('fostercommerce\\fostercheckout\\web\\assets\\cp\\CpAsset') %}
+
+{# @var settings \fostercommerce\fostercheckout\models\Settings #}
 
 {% set selectedSubnavItem = 'fields' %}
 {% set title = 'nav.fields'|t('foster-checkout') %}
 {% set docTitle = title %}
 
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
+{% set fullPageForm = not readOnly %}
+
+{% if readOnly %}
+	{% set contentNotice = readOnlyNotice() %}
+{% endif %}
+
 {% block content %}
+	{{ actionInput('foster-checkout/settings/save-settings') }}
+	{{ redirectInput('foster-checkout/settings/fields') }}
+	{{ hiddenInput('section', 'fields') }}
+	{{ csrfInput() }}
+
+	<h2>{{ 'settings.fields.orderNotesTitle'|t('foster-checkout') }}</h2>
+
+	{% set orderNotesOverridden = 'customerOrderNotesFieldHandle' in overriddenSettings %}
+	{{ forms.textField({
+		label: 'settings.fields.customerOrderNotesFieldHandle'|t('foster-checkout'),
+		instructions: 'settings.fields.customerOrderNotesFieldHandleHelp'|t('foster-checkout'),
+		id: 'customer-order-notes-field-handle',
+		name: 'settings[customerOrderNotesFieldHandle]',
+		value: settings.customerOrderNotesFieldHandle,
+		disabled: orderNotesOverridden or readOnly,
+		warning: orderNotesOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'customerOrderNotesFieldHandle' }),
+	}) }}
+
+	<hr>
+
+	<h2>{{ 'settings.fields.positionsTitle'|t('foster-checkout') }}</h2>
 
 	<p>{{ 'settings.fields.intro'|t('foster-checkout') }}</p>
 

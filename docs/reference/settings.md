@@ -6,19 +6,19 @@ Every setting is editable in the control panel under **Checkout**. A site may al
 
 | Screen | Config key | Holds |
 | --- | --- | --- |
-| **Appearance** | `branding` | Brand color, header background, header text color, Google font family, logo path, component style, field label placement, title prefix |
-| **Features** | `options` and `addressLookup` | Checkout page layout format, the other `enable*` switches, and the Klaviyo list ID. The newsletter checkbox needs Klaviyo tracking on and a list ID. Multi-page is the default |
-| **Line Items** | `lineItems` and `lineItemOptionRules` | Whether a line item shows its SKU and its stock count, whether its options are shown, which option names are hidden, how far option values are cut, and the rules that rewrite an option's name and value |
-| **Products** | `products` | Per product type, the field holding the cart preview image. Blank falls back to the product's own image |
-| **Products** | `notShippableProducts` | A product condition. Variants of a matching product are not shippable: their orders skip the shipping address and method, and Commerce and shipping plugins leave them out. Empty ships everything |
-| **Gateways** | `paymentGateways` | Per gateway: the name customers see, a field layout, and extra payment form parameters |
-| **Addresses** | the keys in the next table | What the checkout asks for on an address. See [address fields](../user-guide/address-fields.md) |
+| **Appearance** | `branding`, `options.enableSinglePageCheckout` and `options.enablePageTransitions` | Whether the checkout runs as one page or separate steps, whether steps animate, and the brand color, header background, header text color, Google font family, logo path, logo height, component style, field label placement and title prefix |
+| **Features** | `options`, `enableCustomerPickup` and `customerPickupLabel` | Klaviyo tracking and the Klaviyo list ID, and whether the shipping address choices include the store location. The newsletter checkbox needs tracking on and a list ID. See [customer pickup](../user-guide/customer-pickup.md) |
+| **Line Items** | `lineItems`, `products` and `lineItemOptionRules` | Which field each product type's preview image comes from, how big a line item image is and how it fills its box, whether a placeholder stands in for a missing one, whether save for later is offered, whether a line item shows its SKU and its stock count, whether its options are shown, which option names are hidden, how far option values are cut, and the rules that rewrite an option's name and value |
+| **Gateways** | `paymentGateways` and `zeroValueGatewayHandles` | Per gateway: the name customers see, a field layout, and extra payment form parameters. Also which gateways an order totalling zero may be paid with |
+| **Custom Fields** | `customerOrderNotesFieldHandle` and the checkout field layouts | The extra fields shown at each checkout position, and the field on Orders holding a customer's note. Blank hides the order notes form |
+| **Addresses** | the keys in the next table, `notShippableProducts`, `addressLookup` and `options.enableAddressVerification` | Which products need no address at all, what the checkout asks for on an address, whether Avalara verifies it, and where address suggestions come from. A not-shippable product's order skips the shipping address and method, and Commerce and shipping plugins leave it out. See [address fields](../user-guide/address-fields.md) |
 | **General** | `paths` and the keys below | Cart, checkout, account and cancel paths, plus the built-in cart template switch |
 
 Keys on the Addresses screen:
 
 | Setting | Config key | Holds |
 | --- | --- | --- |
+| Default country | `defaultCountryCode` | Country a new address starts on. Blank asks with nothing chosen |
 | Priority countries | `priorityCountries` | Country codes shown at the top of country dropdowns, in the order listed |
 | Saved address limit | `savedAddressLimit` | How many of a customer's saved addresses the checkout offers, most recently updated first. Their primary address is always among them. Zero offers every address they have saved |
 | Phone field | `addressPhoneFieldHandle` | Handle of the address field holding a phone number, so its input asks for a phone keypad |
@@ -35,10 +35,6 @@ Other keys on the General screen:
 | Setting | Config key | Holds |
 | --- | --- | --- |
 | Head include, Body include, Summary include | `includes` | Template paths injected into the cart and checkout pages. See [custom includes](../dev-guide/custom-includes.md) |
-| Offer pickup at the store location | `enableCustomerPickup` | Whether the shipping address choices include the store location. See [customer pickup](../user-guide/customer-pickup.md) |
-| Pickup label | `customerPickupLabel` | Text of the pickup choice. Blank shows “Customer pickup” |
-| Zero value gateways | `zeroValueGatewayHandles` | Gateways available when an order totals zero |
-| Customer order notes field | `customerOrderNotesFieldHandle` | Field on Orders holding the customer's note. Blank hides the order notes form |
 | Content translation method | `contentTranslationMethod` | See below |
 
 ## Defaults
@@ -52,23 +48,26 @@ Every setting and its default, as the plugin ships.
 | Header text color | `branding.headerTextColor` | `#1F2937` |
 | Google font family | `branding.font` | `Rubik` |
 | Logo path | `branding.logo` | empty |
+| Logo height | `branding.logoHeight` | `40`. Accepts 40 to 200 |
 | Component style | `branding.style` | `rounded` |
 | Field label placement | `branding.labelStyle` | `floating` |
 | Title prefix | `branding.title` | empty |
 | Favicon set | `branding.faviconConfig` | empty |
 | Checkout layout | `options.enableSinglePageCheckout` | `false` |
-| Save for later | `options.enableSaveForLater` | `false` |
-| Placeholder images | `options.enablePlaceholderImages` | `false` |
 | Page transitions | `options.enablePageTransitions` | `false` |
 | Verify shipping addresses | `options.enableAddressVerification` | `false` |
 | Klaviyo tracking | `options.enableKlaviyoTracking` | `false` |
 | Shipping estimator | `options.enableEstimatedShipping` | `false` |
 | Klaviyo list ID | `options.klaviyoListId` | none |
 | Payment due date field | `options.paymentDueDateFieldHandle` | none |
-| Imager X transform | `options.imagerXConfig` | none |
 | Address suggestions | `addressLookup.enabled` | `false` |
 | Suggestion provider | `addressLookup.provider` | `google` |
 | Suggestion API key | `addressLookup.apiKey` | none |
+| Image size | `lineItems.imageSize` | `150`, so narrow screens use 75. Accepts 40 to 200 |
+| Image fit | `lineItems.imageFit` | `contain` |
+| Placeholder images | `lineItems.enablePlaceholderImages` | `false` |
+| Save for later | `lineItems.enableSaveForLater` | `false` |
+| Imager X transform | `lineItems.imagerXConfig` | none |
 | Show line item SKU | `lineItems.showLineItemSku` | `true` |
 | Show line item stock count | `lineItems.showLineItemStock` | `true` |
 | Show line item options | `lineItems.enableLineItemOptions` | `true` |
@@ -86,6 +85,7 @@ Every setting and its default, as the plugin ships.
 | Delivery date label, message, estimate, display | `options.deliveryDate.label`, `.message`, `.estimate`, `.display` | none |
 | Content translation method | `contentTranslationMethod` | `site` |
 | Customer order notes field | `customerOrderNotesFieldHandle` | none |
+| Default country | `defaultCountryCode` | empty |
 | Priority countries | `priorityCountries` | empty |
 | Saved address limit | `savedAddressLimit` | `10` |
 | Phone field | `addressPhoneFieldHandle` | none |
@@ -100,18 +100,18 @@ Every setting and its default, as the plugin ships.
 | Pickup label | `customerPickupLabel` | none |
 | Zero value gateways | `zeroValueGatewayHandles` | empty |
 | Line item option rules | `lineItemOptionRules` | empty |
-| Product image fields | `products` | empty |
-| Product image field | `products.<handle>.productImageHandle` | none, so the product's own image is used |
-| Variant image field | `products.<handle>.variantImageHandle` | none |
-| Products that never ship | `notShippableProducts` | empty |
+| Preview image fields | `products` | empty. The variant field is used when that variant has an image, the product field otherwise; a product type with neither handle set shows no image |
+| Product image field | `products.<handle>.productImageHandle` | none, so nothing stands in for a variant with no image |
+| Variant image field | `products.<handle>.variantImageHandle` | none. Tried first; a variant with no image of its own uses the product image field |
+| Products that don’t require shipping | `notShippableProducts` | empty |
 | Payment gateways | `paymentGateways` | empty |
 | Gateway name customers see | `paymentGateways.<handle>.label` | empty, so the gateway's own name is used |
 | Gateway note | `paymentGateways.<handle>.note` | empty |
 | Gateway payment form params | `paymentGateways.<handle>.params` | empty |
 
-Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig`, `options.paymentDueDateFieldHandle`, `options.imagerXConfig`, `options.enableEstimatedShipping`, `options.deliveryDate.estimate` and `options.deliveryDate.display`.
+Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig`, `options.paymentDueDateFieldHandle`, `lineItems.imagerXConfig`, `options.enableEstimatedShipping`, `options.deliveryDate.estimate` and `options.deliveryDate.display`.
 
-`options.subscribe`, `paymentGateways.<handle>.note` and the delivery date label and message are edited at **Checkout -> Content**. A config file may still set any of them, and a note or estimate written as a PHP closure can only live there. See [content](../user-guide/content.md).
+`options.subscribe` and `paymentGateways.<handle>.note` are edited at **Checkout -> Notes & Links**. The delivery date label and message are shown read-only under **Checkout -> Features**, since nothing renders a delivery date until a site template calls `craft.fostercheckout.getDeliveryDate(order)`; a config file is the only way to set them. A config file may still set any of them, and a note or estimate written as a PHP closure can only live there. See [content](../user-guide/content.md).
 
 `options.enableEstimatedShipping` is unfinished.
 
@@ -129,7 +129,7 @@ A gateway's field layout is stored outside plugin settings, so it stays editable
 
 ## Address suggestions
 
-Suggestions come from Google Places or Loqate, chosen on the Features screen. Neither is included; the site supplies its own account and key.
+Suggestions come from Google Places or Loqate, chosen on the Addresses screen. Neither is included; the site supplies its own account and key.
 
 Set the key to an environment variable name so it stays out of project config:
 
@@ -145,7 +145,7 @@ Only one address tool runs at a time. Avalara address verification wins: while i
 
 Avalara covers the United States and Canada. It answers `Country not supported` for anywhere else, which the checkout treats as no suggestion, so a store shipping elsewhere gets nothing from verification and nothing to say why. Both suggestion providers work internationally, Loqate the more widely.
 
-**Test the connection** on the Features screen runs one lookup and names the error, which is the only place a wrong key shows.
+**Test the connection** on the Addresses screen runs one lookup and names the error, which is the only place a wrong key shows.
 
 Both providers bill per lookup, and the endpoint that calls them is public. **Cap the spend at the provider.** In Google Cloud, set a daily and a per-minute quota on the Places API. Loqate sells prepaid credit, which caps itself. The plugin sets no rate limit of its own.
 

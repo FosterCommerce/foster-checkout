@@ -28,6 +28,11 @@ class BrandingConfig extends Model
 	 */
 	public string $logo = '';
 
+	/**
+	 * Height of the logo in the header, in pixels.
+	 */
+	public int $logoHeight = 40;
+
 	public string $style = 'rounded';
 
 	public string $labelStyle = 'floating';
@@ -43,4 +48,22 @@ class BrandingConfig extends Model
 	 * @var array<non-empty-string, string>
 	 */
 	public array $faviconConfig = [];
+
+	/**
+	 * @return array<array-key, mixed>
+	 */
+	#[\Override]
+	protected function defineRules(): array
+	{
+		return [
+			...parent::defineRules(),
+			// A height of zero renders the logo at no height, and a large one grows the header past the rest of the bar
+			[
+				'logoHeight',
+				'integer',
+				'min' => 40,
+				'max' => 200,
+			],
+		];
+	}
 }

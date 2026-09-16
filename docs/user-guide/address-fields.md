@@ -6,6 +6,7 @@ Two screens decide this together. Craft's address field layout, at **Settings ->
 
 | Setting | Controls |
 | --- | --- |
+| **Default country** | Country a new address starts on. The customer can still change it. Unset asks for a country with nothing chosen |
 | **Priority countries** | Country codes shown at the top of every country dropdown, in the order listed. They are removed from the alphabetical list below |
 | **Saved address limit** | How many of a customer’s saved addresses the checkout offers them to ship to. 10 by default |
 | **Phone field** | Handle of the address field holding a phone number. Its input asks for a phone keypad instead of a text one |
@@ -34,6 +35,8 @@ Custom fields you add to the address layout are listed alongside the native ones
 ## The country decides the rest of the form
 
 Each country has an address format naming which fields it uses. Pick France and the second address line stays, the postal code stays, and the state field goes away. The form changes as the customer picks a country.
+
+A default country is answered before the customer arrives, so the form opens on that country's format rather than on the shared fields alone. An address they are editing keeps its own country.
 
 The state field is the exception. It shows wherever the country has a list of states, provinces or regions, and its label reads State / Province everywhere.
 

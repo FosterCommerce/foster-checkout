@@ -622,30 +622,32 @@ class Checkout extends Component
 	}
 
 	/**
-	 * Gets the line items image field based on the products settings
+	 * Gets the line items image fields based on the products settings, variant first
 	 *
-	 * @return ?array{handle: string, level: string}
+	 * @return list<array{handle: string, level: string}>
 	 */
-	public function lineItemImageField(string $productType): ?array
+	public function lineItemImageFields(string $productType): array
 	{
 		$products = $this->settings()->products;
 		$productConfig = $products[$productType] ?? null;
 
+		$fields = [];
+
 		if ($productConfig?->variantImageHandle !== null) {
-			return [
+			$fields[] = [
 				'handle' => $productConfig->variantImageHandle,
 				'level' => 'variant',
 			];
 		}
 
 		if ($productConfig?->productImageHandle !== null) {
-			return [
+			$fields[] = [
 				'handle' => $productConfig->productImageHandle,
 				'level' => 'product',
 			];
 		}
 
-		return null;
+		return $fields;
 	}
 
 	/**
@@ -671,16 +673,17 @@ class Checkout extends Component
 		/** @var string $productTypeHandle */
 		$productTypeHandle = $product->type->handle;
 
-		$fieldInfo = $this->lineItemImageField($productTypeHandle);
-
-		if ($fieldInfo !== null) {
+		// The product image stands in when a store fills only some variants in
+		foreach ($this->lineItemImageFields($productTypeHandle) as $fieldInfo) {
 			/** @var AssetQuery<array-key, Asset> $query */
 			$query = $fieldInfo['level'] === 'variant' ? $variant->{$fieldInfo['handle']} : $product->{$fieldInfo['handle']};
 
 			/** @var ?Asset $image */
 			$image = $query->one();
 
-			return $image;
+			if ($image !== null) {
+				return $image;
+			}
 		}
 
 		return null;

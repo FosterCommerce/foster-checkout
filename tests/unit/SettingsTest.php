@@ -49,7 +49,12 @@ final class SettingsTest extends CheckoutTestCase
 				'enableLineItemOptions' => '_',
 				'hiddenLineItemOptionPrefix' => 'x',
 				'lineItemOptionValueMaxLength' => 20,
+				'enablePlaceholderImages' => true,
 				'enableSaveForLater' => true,
+				'imagerXConfig' => [
+					'transformer' => 'craft',
+				],
+				'enablePageTransitions' => true,
 			],
 		]);
 
@@ -58,9 +63,14 @@ final class SettingsTest extends CheckoutTestCase
 			'enableLineItemOptions' => '_',
 			'hiddenLineItemOptionPrefix' => 'x',
 			'lineItemOptionValueMaxLength' => 20,
+			'enablePlaceholderImages' => true,
+			'enableSaveForLater' => true,
+			'imagerXConfig' => [
+				'transformer' => 'craft',
+			],
 		], $moved['lineItems']);
 		self::assertSame([
-			'enableSaveForLater' => true,
+			'enablePageTransitions' => true,
 		], $moved['options']);
 	}
 
@@ -94,6 +104,18 @@ final class SettingsTest extends CheckoutTestCase
 		self::assertSame($values, Settings::moveLineItemSettings($values));
 	}
 
+	/**
+	 * The store's country list is only worth reading once a code has been chosen.
+	 */
+	public function testABlankDefaultCountrySkipsTheStoreLookup(): void
+	{
+		$settings = new Settings();
+
+		$settings->validateDefaultCountryCode('defaultCountryCode');
+
+		self::assertFalse($settings->hasErrors('defaultCountryCode'));
+	}
+
 	public function testAnEmptyProductConditionMatchesNothing(): void
 	{
 		$settings = new Settings();
@@ -109,10 +131,10 @@ final class SettingsTest extends CheckoutTestCase
 		$options = new OptionConfig([
 			'enableFreeShippingMessage' => true,
 			'enableMadeAMistake' => true,
-			'enableSaveForLater' => true,
+			'enableSinglePageCheckout' => true,
 		]);
 
-		self::assertTrue($options->enableSaveForLater);
+		self::assertTrue($options->enableSinglePageCheckout);
 		self::assertFalse($options->hasProperty('enableFreeShippingMessage'));
 	}
 }

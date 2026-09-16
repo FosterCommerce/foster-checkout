@@ -5,6 +5,12 @@
 {% set countries = craft.fostercheckout.storeCountries() %}
 {% set priorityCountries = craft.fostercheckout.settings.priorityCountries %}
 
+{# An address being edited keeps its own country, so the default only fills a blank form #}
+{% set countryCode = address ? address.countryCode : craft.fostercheckout.settings.defaultCountryCode %}
+{% if countries[countryCode] is not defined %}
+	{% set countryCode = '' %}
+{% endif %}
+
 {# Put priority countries first then list all the countries in alphabetical order
 Note that any countries that are in the priority countries array won't show in the rest of the list
 since the array key will be the same #}
@@ -102,7 +108,7 @@ since the array key will be the same #}
 
 <div
 	x-data="{
-		countryCode: '{{ address ? address.countryCode : '' }}',
+		countryCode: '{{ countryCode }}',
 		administrativeArea: '{{ address ? address.administrativeArea : '' }}',
 		countries: {{ countries|json_encode }},
 		pinnedCountries: {{ pinnedCountries|json_encode }},
@@ -146,7 +152,7 @@ since the array key will be the same #}
 					label: 'addressFields.countryLabel'|t('foster-checkout'),
 					placeholder: 'addressFields.select'|t('foster-checkout'),
 					required: true,
-					value: address ? address.countryCode : '',
+					value: countryCode,
 					errors: errors.countryCode ?? [],
 					autocomplete: 'country-name'
 				} %}

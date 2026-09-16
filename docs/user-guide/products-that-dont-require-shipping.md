@@ -1,8 +1,8 @@
-# Products that never ship
+# Products that don’t require shipping
 
 Services, training seats, downloads: anything a customer buys that nobody boxes up. Commerce treats every variant as shippable unless a plugin says otherwise, so without this rule a service-only cart still asks for a shipping address and a shipping method.
 
-Set the rule at **Checkout -> Products -> Products that never ship**. It is a product condition, the same builder Commerce uses elsewhere, so it can match on product type, a product field, a variant SKU or a price. Leave it empty to ship everything.
+Set the rule at **Checkout -> Addresses -> Products that don’t require shipping**. It is a product condition, the same builder Commerce uses elsewhere, so it can match on product type, a product field, a variant SKU or a price. Leave it empty to ship everything.
 
 ## What changes for a matching product
 

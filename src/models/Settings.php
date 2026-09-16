@@ -7,6 +7,8 @@ use craft\base\Field;
 use craft\base\Model;
 use craft\commerce\elements\conditions\products\ProductCondition;
 use craft\web\View;
+use fostercommerce\fostercheckout\FosterCheckout;
+use yii\base\InvalidConfigException;
 
 class Settings extends Model
 {
@@ -63,6 +65,11 @@ class Settings extends Model
 	 * @var array<string>
 	 */
 	public array $zeroValueGatewayHandles = [];
+
+	/**
+	 * Country a new address starts on, as a two-letter code. Empty leaves the select unanswered.
+	 */
+	public string $defaultCountryCode = '';
 
 	/**
 	 * Array of country codes that will be shown first in the country select dropdowns
@@ -187,13 +194,15 @@ class Settings extends Model
 	}
 
 	/**
-	 * @return array<int, array<int, string>>
+	 * @return list<array<int, list<string>|string>>
 	 */
 	#[\Override]
 	public function rules(): array
 	{
 		return [
 			['includes', 'validateIncludes'],
+			['defaultCountryCode', 'validateDefaultCountryCode'],
+			[['branding', 'lineItems'], 'validateConfigNode'],
 		];
 	}
 
@@ -220,6 +229,52 @@ class Settings extends Model
 				'path' => $templatePath,
 			]));
 		}
+	}
+
+	/**
+	 * Yii validates the attributes of this model only, so each nested config model is validated here.
+	 */
+	public function validateConfigNode(string $attribute): void
+	{
+		/** @var Model $config */
+		$config = $this->{$attribute};
+
+		if ($config->validate()) {
+			return;
+		}
+
+		foreach ($config->getFirstErrors() as $name => $error) {
+			// Keyed per setting so the error renders under the field that holds the bad value
+			$this->addError("{$attribute}.{$name}", $error);
+		}
+	}
+
+	/**
+	 * A code the store does not sell to would render a country select with no matching option.
+	 */
+	public function validateDefaultCountryCode(string $attribute): void
+	{
+		if ($this->defaultCountryCode === '') {
+			return;
+		}
+
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		try {
+			$countries = $plugin->getCheckout()->storeCountries();
+		} catch (InvalidConfigException) {
+			// Craft validates plugin settings on every save, and a store with no countries has no list to check against
+			return;
+		}
+
+		if (array_key_exists($this->defaultCountryCode, $countries)) {
+			return;
+		}
+
+		$this->addError($attribute, Craft::t(FosterCheckout::HANDLE, 'settings.addresses.defaultCountryUnavailable', [
+			'code' => $this->defaultCountryCode,
+		]));
 	}
 
 	/**
@@ -321,7 +376,7 @@ class Settings extends Model
 
 		$lineItems = is_array($values['lineItems'] ?? null) ? $values['lineItems'] : [];
 
-		foreach (['showLineItemSku', 'enableLineItemOptions', 'hiddenLineItemOptionPrefix', 'lineItemOptionValueMaxLength'] as $setting) {
+		foreach (['showLineItemSku', 'enableLineItemOptions', 'hiddenLineItemOptionPrefix', 'lineItemOptionValueMaxLength', 'enablePlaceholderImages', 'enableSaveForLater', 'imagerXConfig'] as $setting) {
 			if (! array_key_exists($setting, $options)) {
 				continue;
 			}

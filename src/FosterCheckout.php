@@ -66,7 +66,7 @@ class FosterCheckout extends Plugin
 	/**
 	 * @var array<int, string>
 	 */
-	private const array SETTINGS_SECTIONS = ['appearance', 'features', 'products', 'gateways', 'fields', 'line-items', 'addresses', 'general'];
+	private const array SETTINGS_SECTIONS = ['appearance', 'line-items', 'gateways', 'fields', 'addresses', 'features', 'general'];
 
 	/**
 	 * @var array<string, string>

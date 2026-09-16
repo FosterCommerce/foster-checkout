@@ -21,6 +21,36 @@
 	{{ hiddenInput('section', 'appearance') }}
 	{{ csrfInput() }}
 
+	<h2>{{ 'settings.appearance.layoutTitle'|t('foster-checkout') }}</h2>
+
+	{% set layoutPinned = 'options.enableSinglePageCheckout' in overriddenSettings %}
+	{{ forms.lightswitchField({
+		label: 'settings.appearance.enableSinglePageCheckout'|t('foster-checkout'),
+		instructions: 'settings.appearance.enableSinglePageCheckoutHelp'|t('foster-checkout'),
+		id: 'options-enableSinglePageCheckout',
+		name: 'settings[options][enableSinglePageCheckout]',
+		on: settings.options.enableSinglePageCheckout,
+		offLabel: 'settings.appearance.enableSinglePageCheckoutOff'|t('foster-checkout'),
+		onLabel: 'settings.appearance.enableSinglePageCheckoutOn'|t('foster-checkout'),
+		disabled: readOnly or layoutPinned,
+		warning: layoutPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'options.enableSinglePageCheckout' }),
+	}) }}
+
+	{% set transitionsPinned = 'options.enablePageTransitions' in overriddenSettings %}
+	{{ forms.lightswitchField({
+		label: 'settings.appearance.enablePageTransitions'|t('foster-checkout'),
+		instructions: 'settings.appearance.enablePageTransitionsHelp'|t('foster-checkout'),
+		id: 'options-enablePageTransitions',
+		name: 'settings[options][enablePageTransitions]',
+		on: settings.options.enablePageTransitions,
+		disabled: readOnly or transitionsPinned,
+		warning: transitionsPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'options.enablePageTransitions' }),
+	}) }}
+
+	<hr>
+
+	<h2>{{ 'settings.appearance.brandingTitle'|t('foster-checkout') }}</h2>
+
 	{{ forms.colorField({
 		label: 'settings.appearance.color'|t('foster-checkout'),
 		instructions: 'settings.appearance.colorHelp'|t('foster-checkout'),
@@ -72,6 +102,36 @@
 		warning: 'branding.logo' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.logo' }),
 	}) }}
 
+	{{ forms.textField({
+		label: 'settings.appearance.logoHeight'|t('foster-checkout'),
+		instructions: 'settings.appearance.logoHeightHelp'|t('foster-checkout'),
+		id: 'branding-logo-height',
+		name: 'settings[branding][logoHeight]',
+		type: 'number',
+		min: 40,
+		max: 200,
+		step: 1,
+		size: 5,
+		value: settings.branding.logoHeight,
+		errors: settings.getErrors('branding.logoHeight'),
+		disabled: readOnly or 'branding.logoHeight' in overriddenSettings,
+		warning: 'branding.logoHeight' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.logoHeight' }),
+	}) }}
+
+	{{ forms.textField({
+		label: 'settings.appearance.title'|t('foster-checkout'),
+		instructions: 'settings.appearance.titleHelp'|t('foster-checkout'),
+		id: 'branding-title',
+		name: 'settings[branding][title]',
+		value: settings.branding.title,
+		disabled: readOnly or 'branding.title' in overriddenSettings,
+		warning: 'branding.title' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.title' }),
+	}) }}
+
+	<hr>
+
+	<h2>{{ 'settings.appearance.styleTitle'|t('foster-checkout') }}</h2>
+
 	{{ forms.selectField({
 		label: 'settings.appearance.style'|t('foster-checkout'),
 		instructions: 'settings.appearance.styleHelp'|t('foster-checkout'),
@@ -100,15 +160,6 @@
 		warning: 'branding.labelStyle' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.labelStyle' }),
 	}) }}
 
-	{{ forms.textField({
-		label: 'settings.appearance.title'|t('foster-checkout'),
-		instructions: 'settings.appearance.titleHelp'|t('foster-checkout'),
-		id: 'branding-title',
-		name: 'settings[branding][title]',
-		value: settings.branding.title,
-		disabled: readOnly or 'branding.title' in overriddenSettings,
-		warning: 'branding.title' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'branding.title' }),
-	}) }}
 
 	{% include 'foster-checkout/_includes/plugin-footer' %}
 

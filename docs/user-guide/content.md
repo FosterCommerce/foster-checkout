@@ -1,14 +1,22 @@
 # Content
 
-All checkout copy is edited at **Checkout -> Content**. It is stored in the plugin's own database table, not project config, so it stays editable on production.
+All checkout copy is edited at **Checkout -> Notes & Links**. It is stored in the plugin's own database table, not project config, so it stays editable on production.
 
 ## What you can edit
 
-- **Notes** for each step: cart, empty cart, login, email, shipping address, shipping method, billing, payment, order confirmation, and a global note shown on every checkout step.
-- **Newsletter checkbox label**, and the **delivery date** label and message.
-- **No shipping methods message**, shown in the shipping method panel when nothing can be quoted for the address.
-- **Payment method notes**, one per gateway configured in Commerce, shown when a customer picks that method. The name a customer reads for that gateway is set at **Checkout -> Gateways**, not here.
-- **Footer links**, shown at the bottom of the cart and checkout pages.
+The screen is grouped by the panel each piece of copy appears in.
+
+| Group | Holds |
+| --- | --- |
+| **Global** | The note shown on every checkout step, and the **footer links** shown at the bottom of the cart and checkout pages |
+| **Cart** | The cart note, and the one shown when the cart is empty |
+| **Account** | The note on the login and register pages |
+| **Email step** | The step's note and the **newsletter checkbox label** |
+| **Shipping address step** | The step's note |
+| **Shipping method step** | The step's note, and the **no shipping methods note** shown when nothing can be quoted for the address |
+| **Billing step** | The step's note |
+| **Payment step** | The step's note, and **payment method notes**, one per gateway configured in Commerce, shown when a customer picks that method. The name a customer reads for a gateway is set at **Checkout -> Gateways**, not here |
+| **Order confirmation** | The confirmation note |
 
 ## HTML and Twig
 
