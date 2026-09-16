@@ -76,7 +76,6 @@
 
 	<h2>{{ 'settings.features.deliveryDateTitle'|t('foster-checkout') }}</h2>
 
-	{# Read-only until a site template renders the delivery date, so the copy is shown rather than edited #}
 	{% set deliveryDateNotes = plugin.getContent().get('notes') ?? {} %}
 
 	{{ forms.textField({

@@ -5,8 +5,9 @@
 {% set countries = craft.fostercheckout.storeCountries() %}
 {% set priorityCountries = craft.fostercheckout.settings.priorityCountries %}
 
-{# An address being edited keeps its own country, so the default only fills a blank form #}
 {% set countryCode = address ? address.countryCode : craft.fostercheckout.settings.defaultCountryCode %}
+
+{# The store's country list is checked when the setting is saved, and it is per-environment database data #}
 {% if countries[countryCode] is not defined %}
 	{% set countryCode = '' %}
 {% endif %}

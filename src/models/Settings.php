@@ -361,7 +361,7 @@ class Settings extends Model
 	}
 
 	/**
-	 * These four moved out of `options`, which is one node a config file replaces whole.
+	 * These moved out of `options`, which is one node a config file replaces whole.
 	 *
 	 * @param array<mixed, mixed> $values
 	 * @return array<mixed, mixed>

@@ -7,7 +7,7 @@ Every setting is editable in the control panel under **Checkout**. A site may al
 | Screen | Config key | Holds |
 | --- | --- | --- |
 | **Appearance** | `branding`, `options.enableSinglePageCheckout` and `options.enablePageTransitions` | Whether the checkout runs as one page or separate steps, whether steps animate, and the brand color, header background, header text color, Google font family, logo path, logo height, component style, field label placement and title prefix |
-| **Features** | `options`, `enableCustomerPickup` and `customerPickupLabel` | Klaviyo tracking and the Klaviyo list ID, and whether the shipping address choices include the store location. The newsletter checkbox needs tracking on and a list ID. See [customer pickup](../user-guide/customer-pickup.md) |
+| **Features** | `options.enableKlaviyoTracking`, `options.klaviyoListId`, `enableCustomerPickup` and `customerPickupLabel` | Klaviyo tracking and the Klaviyo list ID, whether the shipping address choices include the store location, and the delivery date copy, shown read-only. The newsletter checkbox needs tracking on, a list ID and the Klaviyo Connect Plus plugin. See [customer pickup](../user-guide/customer-pickup.md) and [integrations](./integrations.md) |
 | **Line Items** | `lineItems`, `products` and `lineItemOptionRules` | Which field each product type's preview image comes from, how big a line item image is and how it fills its box, whether a placeholder stands in for a missing one, whether save for later is offered, whether a line item shows its SKU and its stock count, whether its options are shown, which option names are hidden, how far option values are cut, and the rules that rewrite an option's name and value |
 | **Gateways** | `paymentGateways` and `zeroValueGatewayHandles` | Per gateway: the name customers see, a field layout, and extra payment form parameters. Also which gateways an order totalling zero may be paid with |
 | **Custom Fields** | `customerOrderNotesFieldHandle` and the checkout field layouts | The extra fields shown at each checkout position, and the field on Orders holding a customer's note. Blank hides the order notes form |
@@ -100,9 +100,9 @@ Every setting and its default, as the plugin ships.
 | Pickup label | `customerPickupLabel` | none |
 | Zero value gateways | `zeroValueGatewayHandles` | empty |
 | Line item option rules | `lineItemOptionRules` | empty |
-| Preview image fields | `products` | empty. The variant field is used when that variant has an image, the product field otherwise; a product type with neither handle set shows no image |
-| Product image field | `products.<handle>.productImageHandle` | none, so nothing stands in for a variant with no image |
-| Variant image field | `products.<handle>.variantImageHandle` | none. Tried first; a variant with no image of its own uses the product image field |
+| Preview image fields | `products` | empty |
+| Product image field | `products.<handle>.productImageHandle` | none |
+| Variant image field | `products.<handle>.variantImageHandle` | none |
 | Products that don’t require shipping | `notShippableProducts` | empty |
 | Payment gateways | `paymentGateways` | empty |
 | Gateway name customers see | `paymentGateways.<handle>.label` | empty, so the gateway's own name is used |
@@ -111,7 +111,9 @@ Every setting and its default, as the plugin ships.
 
 Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig`, `options.paymentDueDateFieldHandle`, `lineItems.imagerXConfig`, `options.enableEstimatedShipping`, `options.deliveryDate.estimate` and `options.deliveryDate.display`.
 
-`options.subscribe` and `paymentGateways.<handle>.note` are edited at **Checkout -> Notes & Links**. The delivery date label and message are shown read-only under **Checkout -> Features**, since nothing renders a delivery date until a site template calls `craft.fostercheckout.getDeliveryDate(order)`; a config file is the only way to set them. A config file may still set any of them, and a note or estimate written as a PHP closure can only live there. See [content](../user-guide/content.md).
+`options.subscribe` and `paymentGateways.<handle>.note` are edited at **Checkout -> Notes & Links**. A config file may still set either, and a note or estimate written as a PHP closure can only live there. See [content](../user-guide/content.md).
+
+The delivery date label and message are shown read-only under **Checkout -> Features**, since nothing renders a delivery date until a site template calls `craft.fostercheckout.getDeliveryDate(order)`. A stored value wins over the config file, and a site upgraded from a `deliveryDate` config key already has one stored, so no config change will take effect on it and no screen can clear it.
 
 `options.enableEstimatedShipping` is unfinished.
 

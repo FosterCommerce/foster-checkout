@@ -673,7 +673,7 @@ class Checkout extends Component
 		/** @var string $productTypeHandle */
 		$productTypeHandle = $product->type->handle;
 
-		// The product image stands in when a store fills only some variants in
+		// Use the product image when the variant field holds no asset
 		foreach ($this->lineItemImageFields($productTypeHandle) as $fieldInfo) {
 			/** @var AssetQuery<array-key, Asset> $query */
 			$query = $fieldInfo['level'] === 'variant' ? $variant->{$fieldInfo['handle']} : $product->{$fieldInfo['handle']};

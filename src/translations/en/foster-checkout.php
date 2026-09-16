@@ -12,7 +12,6 @@ return [
 	'cart.checkout' => 'Checkout',
 
 	// Cart lineitems
-	'cart.lineItem.update' => 'Update',
 	'cart.lineItem.updating' => 'Updating',
 	'cart.lineItem.remove' => 'Remove',
 	'cart.lineItem.removing' => 'Removing',
@@ -25,8 +24,6 @@ return [
 	'cart.lineItem.limitedStock' => 'Only {qty} in stock',
 	'cart.lineItem.saveForLater' => 'Save for later',
 	'cart.lineItem.saleTag' => 'Sale',
-	'cart.lineItem.noImage' => 'No Image',
-	'cart.lineItem.imageOf' => 'Image of',
 	'cart.seePreviousItemsMessage' => 'to see items you might have added previously',
 	'cart.continueShopping' => 'Continue shopping',
 
@@ -46,7 +43,6 @@ return [
 	'summary.couponCodeLabel' => 'Discount code',
 	'summary.couponCodeAdded' => 'Coupon code added',
 	'summary.couponCode' => 'Coupon code',
-	'summary.couponCodeRemoved' => 'Coupon code removed',
 	'summary.couponCodeMessage' => 'Submit a coupon code to get a discount on your order.',
 	'summary.couponCodePrompt' => 'Enter coupon code',
 	'summary.submitCouponCode' => 'Submit',
@@ -61,11 +57,10 @@ return [
 	'email.stepTitle' => 'Contact',
 	'email.stepName' => 'Contact information',
 	'email.signIn' => 'Sign in',
-	'email.signInDivider' => '— OR —',
+	'email.signInDivider' => 'OR',
 	'email.emailLabel' => 'Email',
 	'email.emailPlaceholder' => 'Enter your email',
 	'email.invalid' => 'Enter a valid email address.',
-	'email.previousStep' => 'Return to cart',
 	'email.nextStep' => 'Next step',
 	'email.createAccount' => 'Create an account?',
 
@@ -116,7 +111,6 @@ return [
 	'addressFields.cityLabel' => 'City',
 	'addressFields.cityPlaceholder' => 'Your City',
 	'addressFields.stateLabel' => 'State / Province',
-	'addressFields.statePlaceholder' => 'Your state or province',
 	'addressFields.postcodeLabel' => 'Postal code',
 	'addressFields.postcodePlaceholder' => '00000',
 
@@ -132,9 +126,7 @@ return [
 	'billing.stepName' => 'Billing address',
 	'billing.sameAsShippingAddress' => 'Same as shipping address',
 	'billing.useDifferentBillingAddress' => 'Use a different billing address',
-	'billing.newAddress' => 'New billing address',
 	'billing.saveToAddressBook' => 'Save to address book',
-	'billing.nextStep' => 'Next step',
 
 	// Payment page
 	'payment.stepTitle' => 'Payment',
@@ -173,7 +165,6 @@ return [
 	'order.gateway' => 'Method:',
 	'order.card' => 'Card:',
 	'order.giftCard' => 'Gift card',
-	'order.dateChargedLabel' => 'Date charged',
 	'order.totalPaidLabel' => 'Total paid:',
 	'order.balanceLabel' => 'Balance:',
 	'order.balanceDueLabel' => 'Balance due:',
@@ -193,6 +184,15 @@ return [
 	'misc.cartTitle' => 'Cart',
 	'misc.noImage' => 'No Image',
 	'misc.imageOf' => 'Image of',
+
+	'estimatedShipping.heading' => 'Delivery postal code',
+	'estimatedShipping.estimateTo' => 'Estimated shipping to',
+	'estimatedShipping.getEstimate' => 'Get estimated shipping',
+	'estimatedShipping.close' => 'Close',
+	'estimatedShipping.postalCode' => 'Postal code',
+	'estimatedShipping.postalCodePlaceholder' => '',
+	'estimatedShipping.update' => 'Update',
+	'estimatedShipping.help' => 'Your postal code helps us provide the most accurate delivery information.',
 	'misc.signIn' => 'Sign in',
 	'misc.createAccount' => 'Sign up',
 	'misc.edit' => 'Edit',
@@ -203,7 +203,6 @@ return [
 	'misc.saveFailed' => 'Could not save your details. Try again.',
 	'misc.clearField' => 'Clear this field',
 	'misc.required' => 'This field is required.',
-	'misc.update' => 'Update',
 	'misc.returnToCart' => 'Return to cart',
 	'misc.returnToCheckout' => 'Back to checkout',
 	'misc.change' => 'Change',

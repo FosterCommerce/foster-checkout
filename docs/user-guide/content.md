@@ -1,4 +1,4 @@
-# Content
+# Notes and links
 
 All checkout copy is edited at **Checkout -> Notes & Links**. It is stored in the plugin's own database table, not project config, so it stays editable on production.
 

@@ -8,8 +8,7 @@
 {% set title = 'nav.addresses'|t('foster-checkout') %}
 {% set docTitle = title %}
 
-{% set adminChangesAllowed = craft.app.config.general.allowAdminChanges %}
-{% set readOnly = not adminChangesAllowed %}
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
 {% set fullPageForm = not readOnly %}
 
 {% if readOnly %}
@@ -65,7 +64,7 @@
 		options: countryOptions,
 		value: settings.defaultCountryCode,
 		errors: settings.getErrors('defaultCountryCode'),
-		disabled: defaultCountryOverridden or not adminChangesAllowed,
+		disabled: defaultCountryOverridden or readOnly,
 		warning: defaultCountryOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'defaultCountryCode' }),
 	}) }}
 
@@ -88,15 +87,15 @@
 		allowAdd: true,
 		allowDelete: true,
 		allowReorder: true,
-		static: countriesOverridden or not adminChangesAllowed,
+		static: countriesOverridden or readOnly,
 		warning: countriesOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'priorityCountries' }),
 	}) }}
-
-	{% set phoneHandleOverridden = 'addressPhoneFieldHandle' in overriddenSettings %}
 
 	<hr>
 
 	<h2>{{ 'settings.addresses.fieldsTitle'|t('foster-checkout') }}</h2>
+
+	{% set phoneHandleOverridden = 'addressPhoneFieldHandle' in overriddenSettings %}
 
 	{{ forms.textField({
 		label: 'settings.addresses.addressPhoneFieldHandle'|t('foster-checkout'),
@@ -104,7 +103,7 @@
 		id: 'address-phone-field-handle',
 		name: 'settings[addressPhoneFieldHandle]',
 		value: settings.addressPhoneFieldHandle,
-		disabled: phoneHandleOverridden or not adminChangesAllowed,
+		disabled: phoneHandleOverridden or readOnly,
 		warning: phoneHandleOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'addressPhoneFieldHandle' }),
 	}) }}
 
@@ -117,7 +116,7 @@
 		name: 'settings[hiddenAddressFields]',
 		options: configurableAddressFields,
 		values: settings.hiddenAddressFields,
-		disabled: hiddenAddressFieldsOverridden or not adminChangesAllowed,
+		disabled: hiddenAddressFieldsOverridden or readOnly,
 		warning: hiddenAddressFieldsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'hiddenAddressFields' }),
 	}) }}
 
@@ -130,7 +129,7 @@
 		name: 'settings[hiddenBillingAddressFields]',
 		options: configurableAddressFields,
 		values: settings.hiddenBillingAddressFields,
-		disabled: hiddenBillingAddressFieldsOverridden or not adminChangesAllowed,
+		disabled: hiddenBillingAddressFieldsOverridden or readOnly,
 		warning: hiddenBillingAddressFieldsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'hiddenBillingAddressFields' }),
 	}) }}
 
@@ -143,7 +142,7 @@
 		name: 'settings[requiredAddressFields]',
 		options: configurableAddressFields,
 		values: settings.requiredAddressFields,
-		disabled: requiredAddressFieldsOverridden or not adminChangesAllowed,
+		disabled: requiredAddressFieldsOverridden or readOnly,
 		warning: requiredAddressFieldsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'requiredAddressFields' }),
 	}) }}
 
@@ -156,7 +155,7 @@
 		name: 'settings[requiredBillingAddressFields]',
 		options: configurableAddressFields,
 		values: settings.requiredBillingAddressFields,
-		disabled: requiredBillingAddressFieldsOverridden or not adminChangesAllowed,
+		disabled: requiredBillingAddressFieldsOverridden or readOnly,
 		warning: requiredBillingAddressFieldsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'requiredBillingAddressFields' }),
 	}) }}
 
@@ -168,15 +167,15 @@
 		id: 'show-address-line-3',
 		name: 'settings[showAddressLine3]',
 		on: settings.showAddressLine3,
-		disabled: showAddressLine3Overridden or not adminChangesAllowed,
+		disabled: showAddressLine3Overridden or readOnly,
 		warning: showAddressLine3Overridden ? 'settings.overridden'|t('foster-checkout', { setting: 'showAddressLine3' }),
 	}) }}
-
-	{% set showAddressLabelFieldOverridden = 'showAddressLabelField' in overriddenSettings %}
 
 	<hr>
 
 	<h2>{{ 'settings.addresses.savedTitle'|t('foster-checkout') }}</h2>
+
+	{% set showAddressLabelFieldOverridden = 'showAddressLabelField' in overriddenSettings %}
 
 	{% set savedAddressLimitOverridden = 'savedAddressLimit' in overriddenSettings %}
 
@@ -190,7 +189,7 @@
 		step: 1,
 		size: 5,
 		value: settings.savedAddressLimit,
-		disabled: savedAddressLimitOverridden or not adminChangesAllowed,
+		disabled: savedAddressLimitOverridden or readOnly,
 		warning: savedAddressLimitOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'savedAddressLimit' }),
 	}) }}
 
@@ -200,7 +199,7 @@
 		id: 'show-address-label-field',
 		name: 'settings[showAddressLabelField]',
 		on: settings.showAddressLabelField,
-		disabled: showAddressLabelFieldOverridden or not adminChangesAllowed,
+		disabled: showAddressLabelFieldOverridden or readOnly,
 		warning: showAddressLabelFieldOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'showAddressLabelField' }),
 	}) }}
 
@@ -212,7 +211,7 @@
 		id: 'show-address-label-in-preview',
 		name: 'settings[showAddressLabelInPreview]',
 		on: settings.showAddressLabelInPreview,
-		disabled: showAddressLabelInPreviewOverridden or not adminChangesAllowed,
+		disabled: showAddressLabelInPreviewOverridden or readOnly,
 		warning: showAddressLabelInPreviewOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'showAddressLabelInPreview' }),
 	}) }}
 

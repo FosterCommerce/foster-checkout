@@ -8,10 +8,7 @@
 {% set title = 'nav.gateways'|t('foster-checkout') %}
 {% set docTitle = title %}
 
-{% set overridden = 'paymentGateways' in overriddenSettings %}
-
-{% set adminChangesAllowed = craft.app.config.general.allowAdminChanges %}
-{% set readOnly = not adminChangesAllowed %}
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
 {% set fullPageForm = not readOnly %}
 
 {% if readOnly %}

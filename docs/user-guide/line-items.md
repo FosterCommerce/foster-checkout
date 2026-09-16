@@ -1,8 +1,22 @@
 # Line items
 
-What each line in the cart shows, and how to change the wording of its options.
+The image each line in the cart shows, what else it shows, and how to change the wording of its options.
 
 Everything here is under **Checkout -> Line Items**.
+
+## Images
+
+| Setting | Controls |
+| --- | --- |
+| **Preview image fields** | Per product type, the field the cart image comes from. The variant field is used when that variant has an image, the product field otherwise |
+| **Image size** | How wide the image is on desktop, in pixels. Narrow screens use half of it. 150 by default, and 40 to 200 is accepted |
+| **Image fit** | Whether the whole image is shown inside a square box, or cropped to fill it. Contain by default |
+| **Placeholder images** | Whether a line item with no image shows a "no image" placeholder. Off by default |
+
+A product type with neither image field set shows no image, and the line item's text fills the row.
+
+Cropping happens when the image is generated, so a cropped image is square before it reaches the
+browser. Contain leaves the image at its own shape and centers it on white.
 
 ## What a line shows
 
@@ -13,6 +27,7 @@ Everything here is under **Checkout -> Line Items**.
 | **Show line item options** | Whether options appear at all. Off hides every option and stops the rules below from running. On by default |
 | **Hidden option prefix** | Options whose name starts with this are never shown. Default `_`. Leave empty to show every option |
 | **Truncate values to** | How many characters of an option value to show. Empty shows the whole value |
+| **Save for later** | Whether each line offers a "save for later" button. Off by default |
 
 Truncation cuts on a word boundary and ends with an ellipsis. It matters where a customer types
 free text: a "special instructions" option can run to thousands of characters and fill the cart.

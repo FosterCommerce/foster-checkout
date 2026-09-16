@@ -35,7 +35,7 @@ Reload the checkout. The buttons and links now use your brand color.
 
 Open **Checkout -> Notes & Links**. Every piece of text in the checkout is here: the note on each step, the newsletter label, payment method notes and the footer links.
 
-This is stored in the database rather than in project config, so it stays editable on production. See [checkout content](./user-guide/content.md).
+This is stored in the database rather than in project config, so it stays editable on production. See [notes and links](./user-guide/content.md).
 
 ## 6. Decide what a line item shows
 

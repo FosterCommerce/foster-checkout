@@ -12,7 +12,6 @@ return [
 	'cart.checkout' => 'Finalizar compra',
 
 	// Cart lineitems
-	'cart.lineItem.update' => 'Actualizar',
 	'cart.lineItem.updating' => 'Actualizando',
 	'cart.lineItem.remove' => 'Eliminar',
 	'cart.lineItem.removing' => 'Eliminando',
@@ -25,8 +24,6 @@ return [
 	'cart.lineItem.limitedStock' => 'Solo quedan {qty} en stock',
 	'cart.lineItem.saveForLater' => 'Guardar para después',
 	'cart.lineItem.saleTag' => 'Oferta',
-	'cart.lineItem.noImage' => 'Sin imagen',
-	'cart.lineItem.imageOf' => 'Imagen de',
 	'cart.seePreviousItemsMessage' => 'para ver artículos que quizás añadiste antes',
 	'cart.continueShopping' => 'Seguir comprando',
 
@@ -46,7 +43,6 @@ return [
 	'summary.couponCodeLabel' => 'Código de cupón',
 	'summary.couponCodeAdded' => 'Cupón añadido',
 	'summary.couponCode' => 'Código de cupón',
-	'summary.couponCodeRemoved' => 'Cupón eliminado',
 	'summary.couponCodeMessage' => 'Introduce un cupón para obtener un descuento en tu pedido.',
 	'summary.couponCodePrompt' => 'Introduce el código de cupón',
 	'summary.submitCouponCode' => 'Aplicar',
@@ -61,10 +57,10 @@ return [
 	'email.stepTitle' => 'Contacto',
 	'email.stepName' => 'Información de contacto',
 	'email.signIn' => 'Iniciar sesión',
+	'email.signInDivider' => 'O',
 	'email.emailLabel' => 'Correo electrónico',
 	'email.emailPlaceholder' => 'Introduce tu correo',
 	'email.invalid' => 'Introduce un correo electrónico válido.',
-	'email.previousStep' => 'Volver al carrito',
 	'email.nextStep' => 'Siguiente paso',
 	'email.createAccount' => '¿Crear una cuenta?',
 
@@ -109,7 +105,6 @@ return [
 	'addressFields.cityLabel' => 'Ciudad',
 	'addressFields.cityPlaceholder' => 'Tu ciudad',
 	'addressFields.stateLabel' => 'Estado / Provincia',
-	'addressFields.statePlaceholder' => 'Tu estado o provincia',
 	'addressFields.postcodeLabel' => 'Código postal',
 	'addressFields.postcodePlaceholder' => '00000',
 
@@ -125,9 +120,7 @@ return [
 	'billing.stepName' => 'Dirección de facturación',
 	'billing.sameAsShippingAddress' => 'Igual que la dirección de envío',
 	'billing.useDifferentBillingAddress' => 'Usar una dirección de facturación diferente',
-	'billing.newAddress' => 'Nueva dirección de facturación',
 	'billing.saveToAddressBook' => 'Guardar en la libreta de direcciones',
-	'billing.nextStep' => 'Siguiente paso',
 
 	// Payment page
 	'payment.stepTitle' => 'Pago',
@@ -171,7 +164,6 @@ return [
 	'order.gateway' => 'Método:',
 	'order.card' => 'Tarjeta:',
 	'order.giftCard' => 'Cupón',
-	'order.dateChargedLabel' => 'Fecha de cargo',
 	'order.totalPaidLabel' => 'Total pagado:',
 	'order.balanceLabel' => 'Saldo:',
 	'order.balanceDueLabel' => 'Saldo pendiente:',
@@ -191,6 +183,15 @@ return [
 	'misc.cartTitle' => 'Carrito',
 	'misc.noImage' => 'Sin imagen',
 	'misc.imageOf' => 'Imagen de',
+
+	'estimatedShipping.heading' => 'Código postal de entrega',
+	'estimatedShipping.estimateTo' => 'Envío estimado a',
+	'estimatedShipping.getEstimate' => 'Calcular el envío',
+	'estimatedShipping.close' => 'Cerrar',
+	'estimatedShipping.postalCode' => 'Código postal',
+	'estimatedShipping.postalCodePlaceholder' => '',
+	'estimatedShipping.update' => 'Actualizar',
+	'estimatedShipping.help' => 'Tu código postal nos permite dar la estimación de envío más precisa.',
 	'misc.signIn' => 'Iniciar sesión',
 	'misc.createAccount' => 'Registrarse',
 	'misc.edit' => 'Editar',
@@ -201,7 +202,6 @@ return [
 	'misc.saveFailed' => 'No se pudieron guardar tus datos. Inténtalo de nuevo.',
 	'misc.clearField' => 'Borrar este campo',
 	'misc.required' => 'Este campo es obligatorio.',
-	'misc.update' => 'Actualizar',
 	'misc.returnToCart' => 'Volver al carrito',
 	'misc.returnToCheckout' => 'Volver al pago',
 	'misc.change' => 'Cambiar',

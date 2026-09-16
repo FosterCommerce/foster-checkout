@@ -12,12 +12,23 @@
 - Added a cart link to the checkout header on the checkout steps.
 - Added `craft.fostercheckout.customerAddresses()`, the saved addresses the checkout offers a customer.
 - Added `craft.fostercheckout.addressPostalCodeInputModes()`, the `inputmode` each country's postal code field takes.
+- Added **Default country** at **Checkout -> Addresses**, the country a new address starts on.
+- Added **Image size** and **Image fit** at **Checkout -> Line Items**, sizing the cart image and choosing whether it is shown whole or cropped to a square. Narrow screens use half the size.
+- Added **Logo height** at **Checkout -> Appearance**.
 
 ### Changed
 
 - **Klaviyo tracking** is off on update, so a store already running Klaviyo turns it on for the checkout deliberately.
 - Replaced the **Edit** link above the summary items with the cart link in the checkout header.
 - Moved the contact step's sign-in link out of the panel heading and onto the email row, where it reads as the alternative to entering an email rather than as part of the heading.
+- Renamed the **Content** screen to **Notes & Links**, and the **Fields** screen to **Custom Fields**.
+- Removed the **Products** screen. **Preview image fields** moved to **Checkout -> Line Items**, and **Products that never ship**, now **Products that don't require shipping**, moved to **Checkout -> Addresses**.
+- Moved **Save for later**, **Placeholder images** and `options.imagerXConfig` from `options` to `lineItems`. A config file using the old keys still works.
+- Moved **Checkout layout** and **Page transitions** to **Checkout -> Appearance**, **Verify shipping addresses** and the address suggestion settings to **Checkout -> Addresses**, **Offer pickup at the store location** and **Pickup label** to **Checkout -> Features**, **Zero value gateways** to **Checkout -> Gateways**, and **Customer order notes field** to **Checkout -> Custom Fields**.
+- Editing address verification and address suggestions now needs **Manage settings** rather than **Manage features**, since they moved to the Addresses screen.
+- Renamed `Checkout::lineItemImageField()` to `lineItemImageFields()`, which returns every configured image field for a product type, variant first, rather than only the first one.
+- A line item with no variant image now falls back to the product image field, instead of showing no image.
+- The delivery date label and message are read-only at **Checkout -> Features**, since no template in the plugin renders a delivery date.
 
 ### Fixed
 
@@ -25,6 +36,9 @@
 - Fixed a bug where the checkout listed a customer's saved addresses oldest first.
 - Fixed a bug where the postal code field opened a letter keyboard on a phone in countries whose postal codes are digits.
 - Fixed a bug where the shipping method panel reported no shipping options before an address was entered.
+- Fixed a bug where a line item image set to fill its box was scaled up from an image that kept its own shape.
+- Fixed a bug where one setting pinned in a config file disabled the other settings in its group at **Checkout -> General**.
+- Fixed a bug where **Test the connection** for address suggestions returned to the wrong screen and discarded the API key on screen.
 
 ## 1.6.0 - 2026-09-14
 
