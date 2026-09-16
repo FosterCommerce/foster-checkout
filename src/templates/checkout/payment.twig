@@ -193,8 +193,11 @@
 
 													{# Gateway form panel #}
 													{# Using a template and x-if to remove form elements if not visible. This avoids issues with required fields #}
-													<template x-if="parseInt(gatewayId) === {{ gateway.id }}">
+													{% set isPaypal = gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
+													{# PayPal's script reads its wrapper as the page loads, so that one panel renders outside the template #}
+													{% if not isPaypal %}<template x-if="parseInt(gatewayId) === {{ gateway.id }}">{% endif %}
 														<div
+															{% if isPaypal %}x-show="parseInt(gatewayId) === {{ gateway.id }}" x-cloak{% endif %}
 															class="pt-8
 															[&_form]:grid [&_form]:gap-2
 
@@ -244,10 +247,8 @@
 															hover:[&_button#paymentForm-authorizeNet-authorizeSubmit]:opacity-90
 															"
 
-															{# The gateway's payment form defines these; a missing one throws and nothing in the panel renders #}
-															{% if gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
-																x-init="typeof initPaypalCheckout === 'function' && initPaypalCheckout()"
-															{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+															{# Stripe's form defines this; a missing one throws and nothing in the panel renders. PayPal initializes itself once its wrapper is in the page #}
+															{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
 																x-init="typeof initStripe === 'function' && initStripe()"
 															{% endif %}
 														>
@@ -316,7 +317,7 @@
 																{% endnamespace %}
 															{% endif %}
 														</div>
-													</template>
+													{% if not isPaypal %}</template>{% endif %}
 												</div>
 											{% endif %}
 										{% endfor %}

@@ -26,7 +26,7 @@
 - Moved **Save for later**, **Placeholder images** and `options.imagerXConfig` from `options` to `lineItems`. A config file using the old keys still works.
 - Moved **Checkout layout** and **Page transitions** to **Checkout -> Appearance**, **Verify shipping addresses** and the address suggestion settings to **Checkout -> Addresses**, **Offer pickup at the store location** and **Pickup label** to **Checkout -> Features**, **Zero value gateways** to **Checkout -> Gateways**, and **Customer order notes field** to **Checkout -> Custom Fields**.
 - Editing address verification and address suggestions now needs **Manage settings** rather than **Manage features**, since they moved to the Addresses screen.
-- Renamed `Checkout::lineItemImageField()` to `lineItemImageFields()`, which returns every configured image field for a product type, variant first, rather than only the first one.
+- Renamed `Checkout::lineItemImageField()` to `lineItemImageFields()`, which returns every configured image field for a product type, variant first, rather than only the first one. The old name still works, is deprecated, and is removed in the next major release.
 - A line item with no variant image now falls back to the product image field, instead of showing no image.
 - The delivery date label and message are read-only at **Checkout -> Features**, since no template in the plugin renders a delivery date.
 
@@ -39,6 +39,8 @@
 - Fixed a bug where a line item image set to fill its box was scaled up from an image that kept its own shape.
 - Fixed a bug where one setting pinned in a config file disabled the other settings in its group at **Checkout -> General**.
 - Fixed a bug where **Test the connection** for address suggestions returned to the wrong screen and discarded the API key on screen.
+- Fixed a JavaScript error on the payment step of the stepped checkout, where PayPal's script read its wrapper before the panel was rendered. The panel now renders the way the single page checkout already rendered it.
+- Fixed the postal code keyboard never changing with the country, and asking for a numeric keypad in countries whose postal code holds a space or a hyphen, such as the United States.
 
 ## 1.6.0 - 2026-09-14
 

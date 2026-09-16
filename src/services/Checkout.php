@@ -415,7 +415,7 @@ class Checkout extends Component
 
 		foreach (array_keys($this->storeCountries()) as $countryCode) {
 			$postalCodePattern = $addressFormatRepository->get($countryCode)->getPostalCodePattern();
-			$inputModes[$countryCode] = $this->postalCodePatternHasLetters($postalCodePattern) ? 'text' : 'numeric';
+			$inputModes[$countryCode] = $this->postalCodeAcceptsDigitsOnly($postalCodePattern) ? 'numeric' : 'text';
 		}
 
 		return $this->addressPostalCodeInputModes = $inputModes;
@@ -619,6 +619,18 @@ class Checkout extends Component
 		}
 
 		return Craft::$app->getView()->renderString($note, $context);
+	}
+
+	/**
+	 * @deprecated in 1.7.0. Use [[lineItemImageFields()]] instead.
+	 * @return ?array{handle: string, level: string}
+	 */
+	public function lineItemImageField(string $productType): ?array
+	{
+		// The deprecator throws whenever a site sets throwExceptions, which craft-config ties to devMode
+		Craft::warning('`lineItemImageField()` has been renamed to `lineItemImageFields()`.', 'deprecation-error');
+
+		return $this->lineItemImageFields($productType)[0] ?? null;
 	}
 
 	/**
@@ -1115,16 +1127,16 @@ class Checkout extends Component
 	}
 
 	/**
-	 * Whether a postal code pattern accepts a letter, with regex escapes removed first so the `d`
-	 * of `\d` does not count as one.
+	 * Whether a postal code pattern accepts digits alone, with regex escapes removed first so the `d`
+	 * of `\d` does not count as a letter. A numeric keypad offers no letter, space or hyphen.
 	 */
-	private function postalCodePatternHasLetters(?string $postalCodePattern): bool
+	private function postalCodeAcceptsDigitsOnly(?string $postalCodePattern): bool
 	{
 		if ($postalCodePattern === null || $postalCodePattern === '') {
-			return true;
+			return false;
 		}
 
-		return preg_match('/[a-z]/i', (string) preg_replace('/\\\\./', '', $postalCodePattern)) === 1;
+		return preg_match('/[a-z \-]/i', (string) preg_replace('/\\\\./', '', $postalCodePattern)) === 0;
 	}
 
 	/**
