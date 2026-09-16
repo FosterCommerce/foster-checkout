@@ -303,6 +303,9 @@ export const gatewayHandling = () => ({
 			)
 			.forEach((button) => {
 				button.disabled = !allowed;
+				// A gateway renders its own button, so the disabled look is applied here rather than in the markup
+				button.classList.toggle('opacity-50', !allowed);
+				button.classList.toggle('cursor-not-allowed', !allowed);
 				if (label && !button.closest('.paypal-rest-form')) {
 					button.textContent = label;
 				}

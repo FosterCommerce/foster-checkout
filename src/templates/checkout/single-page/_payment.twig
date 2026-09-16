@@ -88,7 +88,7 @@
 				{{ 'payment.paymentMethod'|t('foster-checkout') }}
 			</h3>
 
-			<p x-show="!canPay && !paying" x-cloak class="mb-4 text-sm text-gray-500">
+			<p x-show="!canEnterPayment && !paying" x-cloak class="mb-4 text-sm text-gray-500">
 				{{ 'checkout.payIncomplete'|t('foster-checkout') }}
 				<span x-show="missingRequiredLabels.length" x-text="missingRequiredLabels.join(', ')"></span>
 			</p>
@@ -115,14 +115,14 @@
 
 			<div class="relative" x-show="!paying">
 				<div
-					x-show="!canPay"
+					x-show="!canEnterPayment"
 					class="absolute inset-0 z-20 cursor-not-allowed"
 					@click.prevent.stop
 					@mousedown.prevent.stop
 					@pointerdown.prevent.stop
 					aria-hidden="true"
 				></div>
-				<div :class="{ 'opacity-60 pointer-events-none': !canPay }">
+				<div :class="{ 'opacity-60 pointer-events-none': !canEnterPayment }">
 				<form
 					method="POST"
 					class="grid gap-y-4 gap-x-4"
@@ -154,7 +154,7 @@
 									x-show="gatewayFits($el)"
 									:class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }"
 								>
-									<div class="relative flex justify-between items-center gap-4 radio" :class="{ 'radio-muted': !canPay }">
+									<div class="relative flex justify-between items-center gap-4 radio" :class="{ 'radio-muted': !canEnterPayment }">
 										<input
 											id="sp_gateway_{{ gateway.id }}"
 											name="gatewayId"
@@ -281,6 +281,8 @@
 													type="submit"
 													class="justify-between items-center gap-4 w-full px-4 py-3 mt-6 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
 													:disabled="!canPay"
+													:aria-disabled="!canPay"
+													:class="!canPay ? 'opacity-50 cursor-not-allowed' : ''"
 													x-text="payButtonLabel"
 												></button>
 											{% else %}

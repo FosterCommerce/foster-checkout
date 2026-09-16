@@ -5851,16 +5851,18 @@ const cartPersistence = () => ({
   setInputErrors(name, messages) {
     const input = this.findNamedInput(name);
     if (!input) {
-      return;
+      return false;
     }
     const root = input.closest("[x-data]");
     if (!root || root === this.$root) {
-      return;
+      return false;
     }
     const data2 = window.Alpine.$data(root);
-    if (data2 && Array.isArray(data2.errors)) {
-      data2.errors = messages;
+    if (!data2 || !Array.isArray(data2.errors)) {
+      return false;
     }
+    data2.errors = messages;
+    return true;
   },
   clearInputErrors() {
     this.couponError = "";
@@ -5874,20 +5876,30 @@ const cartPersistence = () => ({
       }
     });
   },
+  /**
+   * @returns {string[]} messages for errors with no input to show them against
+   */
   applyFieldErrors(errors) {
     this.clearInputErrors();
     const flattened = this.flattenErrors(errors);
     const noteName = this.$refs.orderNote?.name;
+    const unplaced = [];
     Object.entries(flattened).forEach(([key, messages]) => {
       const name = this.errorKeyToName(key);
-      this.setInputErrors(name, messages);
+      const placed = this.setInputErrors(name, messages);
       if (name === "couponCode") {
         this.couponError = messages.join(" ");
+        return;
       }
       if (noteName && name === noteName) {
         this.notesError = messages.join(" ");
+        return;
+      }
+      if (!placed) {
+        unplaced.push(...messages);
       }
     });
+    return unplaced;
   },
   collectResponseErrors(data2) {
     return {
@@ -5896,9 +5908,9 @@ const cartPersistence = () => ({
     };
   },
   applyErrors(data2) {
-    this.status = data2.message || data2.error || this.failedLabel;
+    const unplaced = this.applyFieldErrors(this.collectResponseErrors(data2));
+    this.status = unplaced.length ? unplaced.join(" ") : data2.message || data2.error || this.failedLabel;
     this.statusTone = "error";
-    this.applyFieldErrors(this.collectResponseErrors(data2));
   },
   applyCoupon() {
     const code = String(this.couponInput || "").trim();
@@ -6182,6 +6194,8 @@ const gatewayHandling = () => ({
       'button[type="submit"], [id$="authorizeSubmit"], .stripe-payment-elements-submit-button'
     ).forEach((button) => {
       button.disabled = !allowed;
+      button.classList.toggle("opacity-50", !allowed);
+      button.classList.toggle("cursor-not-allowed", !allowed);
       if (label && !button.closest(".paypal-rest-form")) {
         button.textContent = label;
       }
@@ -6632,8 +6646,17 @@ const SinglePageCheckout = (props) => {
         (section) => this.fieldsReadyIn(section)
       );
     },
+    // The gateway's own fields sit in the payment form, so they are read separately from the ones that open it
+    get paymentFieldsReady() {
+      return this.fieldsReadyIn(this.$refs.paymentForm);
+    },
+    get canEnterPayment() {
+      return [...this.$root.querySelectorAll("[data-fc-panel]")].every(
+        (section) => this.fieldsReadyIn(section, false, null, this.$refs.paymentForm)
+      ) && this.pending === 0 && !this.saveTimer && this.statusTone !== "error" && this.hasEmail && this.hasShippingSelection && (this.cartHasShippingAddress || !this.collectShipping) && this.hasShippingMethod && this.hasBilling && this.deliveryReadyForPay && !this.loadingShippingMethods;
+    },
     get canPay() {
-      return this.checkoutFieldsReady && this.pending === 0 && !this.saveTimer && this.statusTone !== "error" && this.hasEmail && this.hasShippingSelection && (this.cartHasShippingAddress || !this.collectShipping) && this.hasShippingMethod && this.hasBilling && this.deliveryReadyForPay && !this.loadingShippingMethods;
+      return this.canEnterPayment && this.paymentFieldsReady;
     },
     get payButtonLabel() {
       return `${this.payButtonText} ${this.totals.totalAsCurrency || ""}`.trim();
@@ -6775,13 +6798,16 @@ const SinglePageCheckout = (props) => {
         showRequired
       );
     },
-    fieldsReadyIn(scope2, showRequired = false, handles = null) {
+    fieldsReadyIn(scope2, showRequired = false, handles = null, skipWithin = null) {
       if (!scope2) {
         return true;
       }
       let ready = true;
       scope2.querySelectorAll("[data-fc-field]").forEach((element) => {
         if (element === this.$root) {
+          return;
+        }
+        if (skipWithin && skipWithin.contains(element)) {
           return;
         }
         const data2 = window.Alpine.$data(element);

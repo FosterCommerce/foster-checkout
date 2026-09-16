@@ -10,8 +10,7 @@
 					</span>
 					{% if currentUser %}
 						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}"
-						   class="inline-block underline text-[var(--brandColor)] sm:hidden"
-							target="_blank">
+						   class="inline-block underline text-[var(--brandColor)] sm:hidden">
 							{{ 'misc.viewAccount'|t('foster-checkout') }}
 						</a>
 					{% else %}
@@ -22,7 +21,7 @@
 					{% endif %}
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
-					<span class="text-black">
+					<span class="min-w-0 text-black [overflow-wrap:anywhere]">
 						{{ craft.fostercheckout.contact(cart) }}
 						{# Name the person checking out where the order is filed under someone else #}
 						{% if currentUser and currentUser.email != cart.email %}
@@ -31,8 +30,7 @@
 					</span>
 					{% if currentUser %}
 						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}"
-						   class="hidden sm:inline-block  underline text-[var(--brandColor)]"
-						   target="_blank">
+						   class="hidden sm:inline-block shrink-0 whitespace-nowrap underline text-[var(--brandColor)]">
 							{{ 'misc.viewAccount'|t('foster-checkout') }}
 						</a>
 					{% else %}

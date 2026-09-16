@@ -324,9 +324,16 @@ export const SinglePageCheckout = (props) => {
 			);
 		},
 
-		get canPay() {
+		// The gateway's own fields sit in the payment form, so they are read separately from the ones that open it
+		get paymentFieldsReady() {
+			return this.fieldsReadyIn(this.$refs.paymentForm);
+		},
+
+		get canEnterPayment() {
 			return (
-				this.checkoutFieldsReady &&
+				[...this.$root.querySelectorAll('[data-fc-panel]')].every((section) =>
+					this.fieldsReadyIn(section, false, null, this.$refs.paymentForm)
+				) &&
 				this.pending === 0 &&
 				!this.saveTimer &&
 				this.statusTone !== 'error' &&
@@ -338,6 +345,10 @@ export const SinglePageCheckout = (props) => {
 				this.deliveryReadyForPay &&
 				!this.loadingShippingMethods
 			);
+		},
+
+		get canPay() {
+			return this.canEnterPayment && this.paymentFieldsReady;
 		},
 
 		get payButtonLabel() {
@@ -523,7 +534,12 @@ export const SinglePageCheckout = (props) => {
 			);
 		},
 
-		fieldsReadyIn(scope, showRequired = false, handles = null) {
+		fieldsReadyIn(
+			scope,
+			showRequired = false,
+			handles = null,
+			skipWithin = null
+		) {
 			if (!scope) {
 				return true;
 			}
@@ -531,6 +547,10 @@ export const SinglePageCheckout = (props) => {
 			let ready = true;
 			scope.querySelectorAll('[data-fc-field]').forEach((element) => {
 				if (element === this.$root) {
+					return;
+				}
+
+				if (skipWithin && skipWithin.contains(element)) {
 					return;
 				}
 

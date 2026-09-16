@@ -7,26 +7,24 @@
 	class="border border-gray-250 overflow-hidden {{ isFlat ? 'lg:border lg:border-gray-300' : 'rounded-lg lg:border lg:border-gray-250' }}"
 	data-fc-panel="contact"
 >
-	<div class="flex justify-between items-center p-4 gap-4 bg-gray-200">
+	<div class="flex items-center p-4 bg-gray-200">
 		<div class="flex items-center gap-2 min-w-0">
 			<h2 class="font-semibold">
 				{{ 'email.stepName'|t('foster-checkout') }}
 			</h2>
 			{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'contact' } %}
 		</div>
-		{% if currentUser %}
-			<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}" target="_blank"
-			   class="text-sm text-[var(--brandColor)] underline">
-				{{ 'misc.viewAccount'|t('foster-checkout') }}
-			</a>
-		{% endif %}
 	</div>
 
 	{% include 'foster-checkout/checkout/single-page/_panel-error' with { panel: 'contact' } %}
 
 	{% if currentUser %}
 		<div class="p-4">
-			<p class="text-black">{{ craft.fostercheckout.contact(cart) }}</p>
+			<p class="text-black [overflow-wrap:anywhere]">{{ craft.fostercheckout.contact(cart) }}</p>
+			<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}"
+			   class="inline-block mt-1 text-sm text-[var(--brandColor)] underline">
+				{{ 'misc.viewAccount'|t('foster-checkout') }}
+			</a>
 			{# Name the person checking out where the order is filed under someone else #}
 			{% if currentUser.email != cart.email %}
 				<p class="text-sm">{{ 'contact.signedInAs'|t('foster-checkout', { name: currentUser.name, email: currentUser.email }) }}</p>
