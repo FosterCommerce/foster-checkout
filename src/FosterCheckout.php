@@ -59,7 +59,7 @@ class FosterCheckout extends Plugin
 
 	public const PERMISSION_MANAGE_SETTINGS = 'foster-checkout-manageSettings';
 
-	private const string VOUCHER_ACTION = 'gift-voucher/cart/add-code';
+	private const string VOUCHER_ACTION = 'foster-checkout/voucher/add-code';
 
 	private const string LINE_ITEM_REMOVED_NOTICE = 'lineItemRemoved';
 

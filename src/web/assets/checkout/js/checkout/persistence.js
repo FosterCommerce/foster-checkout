@@ -15,7 +15,8 @@ export const cartPersistence = () => ({
 			payload.email = this.email;
 		}
 
-		const hasShippingFields = this.addressGroupHasValues(
+		// A store selling to one country has that country already chosen, which is not an address to save
+		const hasShippingFields = this.addressGroupHasContent(
 			payload,
 			'shippingAddress['
 		);
@@ -124,11 +125,10 @@ export const cartPersistence = () => ({
 		this.voucherError = '';
 
 		const vouchersBefore = this.totals.vouchers.length;
-		const discountsBefore = this.totals.discounts.length;
 
 		try {
 			const { response, data, isJson } = await this.postForm(this.postUrl(), {
-				action: 'gift-voucher/cart/add-code',
+				action: 'foster-checkout/voucher/add-code',
 				voucherCode: code,
 			});
 
@@ -140,11 +140,8 @@ export const cartPersistence = () => ({
 			const cart = data.cart || data.model;
 			this.applyCart(cart);
 
-			// Gift Voucher accepts a Commerce discount code here too, which adjusts discounts
-			// rather than vouchers. A site rule can also strip the code after it reported success.
-			const applied =
-				this.totals.vouchers.length > vouchersBefore ||
-				this.totals.discounts.length > discountsBefore;
+			// A site rule can strip the code after the request reported success
+			const applied = this.totals.vouchers.length > vouchersBefore;
 
 			if (!applied) {
 				this.voucherError =
@@ -189,15 +186,21 @@ export const cartPersistence = () => ({
 			return this.voucherFailedLabel;
 		}
 
-		// Gift Voucher reports an unknown code under couponCode after its discount-code fallback.
-		const fieldErrors = data.errors?.voucherCode || data.errors?.couponCode;
+		const fieldErrors = data.errors?.voucherCode;
 
 		return fieldErrors?.[0] || data.error || this.voucherFailedLabel;
 	},
 
 	async saveCart(extra = {}) {
+		// Commerce holds a guest's cart against their email, so the panel says why it is not saving
 		if (!this.loggedIn && !this.hasEmail && !this.cartHasShippingAddress) {
-			this.clearSavingPanel(extra.panel || this.queuedSavePanel);
+			this.status = this.emailNeededLabel;
+			this.statusTone = 'error';
+			this.setPanelStatus(
+				extra.panel || this.queuedSavePanel || 'delivery',
+				'error'
+			);
+
 			return;
 		}
 
@@ -722,6 +725,12 @@ export const cartPersistence = () => ({
 	applyCoupon() {
 		const code = String(this.couponInput || '').trim();
 		if (!code) {
+			return;
+		}
+
+		// saveCart drops an anonymous cart's changes, so the code would be lost without a word
+		if (!this.loggedIn && !this.hasEmail) {
+			this.couponError = this.couponNeedsEmailLabel;
 			return;
 		}
 

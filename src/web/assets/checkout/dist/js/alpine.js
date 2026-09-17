@@ -5375,7 +5375,7 @@ const cartPersistence = () => ({
       this.email = this.guestEmail();
       payload.email = this.email;
     }
-    const hasShippingFields = this.addressGroupHasValues(
+    const hasShippingFields = this.addressGroupHasContent(
       payload,
       "shippingAddress["
     );
@@ -5466,10 +5466,9 @@ const cartPersistence = () => ({
     this.applyingVoucher = true;
     this.voucherError = "";
     const vouchersBefore = this.totals.vouchers.length;
-    const discountsBefore = this.totals.discounts.length;
     try {
       const { response, data: data2, isJson } = await this.postForm(this.postUrl(), {
-        action: "gift-voucher/cart/add-code",
+        action: "foster-checkout/voucher/add-code",
         voucherCode: code
       });
       if (!isJson || !response.ok || data2.success === false) {
@@ -5478,7 +5477,7 @@ const cartPersistence = () => ({
       }
       const cart = data2.cart || data2.model;
       this.applyCart(cart);
-      const applied = this.totals.vouchers.length > vouchersBefore || this.totals.discounts.length > discountsBefore;
+      const applied = this.totals.vouchers.length > vouchersBefore;
       if (!applied) {
         this.voucherError = String((cart?.fosterCheckout || {}).voucherCodeError || "") || this.voucherFailedLabel;
         return;
@@ -5512,12 +5511,17 @@ const cartPersistence = () => ({
     if (!isJson) {
       return this.voucherFailedLabel;
     }
-    const fieldErrors = data2.errors?.voucherCode || data2.errors?.couponCode;
+    const fieldErrors = data2.errors?.voucherCode;
     return fieldErrors?.[0] || data2.error || this.voucherFailedLabel;
   },
   async saveCart(extra = {}) {
     if (!this.loggedIn && !this.hasEmail && !this.cartHasShippingAddress) {
-      this.clearSavingPanel(extra.panel || this.queuedSavePanel);
+      this.status = this.emailNeededLabel;
+      this.statusTone = "error";
+      this.setPanelStatus(
+        extra.panel || this.queuedSavePanel || "delivery",
+        "error"
+      );
       return;
     }
     if (this.saving) {
@@ -5915,6 +5919,10 @@ const cartPersistence = () => ({
   applyCoupon() {
     const code = String(this.couponInput || "").trim();
     if (!code) {
+      return;
+    }
+    if (!this.loggedIn && !this.hasEmail) {
+      this.couponError = this.couponNeedsEmailLabel;
       return;
     }
     this.couponError = "";
@@ -6395,6 +6403,7 @@ const SinglePageCheckout = (props) => {
     couponOpen: Boolean(props.couponCode),
     couponName: props.couponName ?? "",
     couponMessages: asList(props.couponMessages),
+    couponNeedsEmailLabel: props.couponNeedsEmailLabel ?? "",
     paymentBlock: props.paymentBlock ?? "",
     couponError: "",
     notesError: "",
@@ -6444,6 +6453,7 @@ const SinglePageCheckout = (props) => {
     editExistingAddress: 0,
     editBillingAddressId: 0,
     gatewayId: props.gatewayId,
+    emailNeededLabel: props.emailNeededLabel ?? "",
     savingLabel: props.savingLabel,
     savedLabel: props.savedLabel,
     failedLabel: props.failedLabel,
@@ -6747,6 +6757,12 @@ const SinglePageCheckout = (props) => {
         return;
       }
       this.panelErrors = {};
+      this.panelStatus = Object.fromEntries(
+        Object.entries(this.panelStatus).map(([name, panelTone]) => [
+          name,
+          panelTone === "error" ? "idle" : panelTone
+        ])
+      );
       const timer = setTimeout(() => {
         if (this.panelStatus[panel] === "saved") {
           this.panelStatus = {
@@ -6835,19 +6851,6 @@ const SinglePageCheckout = (props) => {
       }
       if (panel === "shipping") {
         return Boolean(this.shippingMethodHandle);
-      }
-      if (panel === "delivery") {
-        return this.panelFieldsReady(
-          panel,
-          /* @__PURE__ */ new Set([
-            "countryCode",
-            "fullName",
-            "addressLine1",
-            "locality",
-            "administrativeArea",
-            "postalCode"
-          ])
-        );
       }
       return this.panelFieldsReady(panel);
     },

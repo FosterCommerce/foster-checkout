@@ -51,6 +51,7 @@
 		"phpstan/phpstan": "^1.11",
 		"craftcms/rector": "dev-main",
 		"fostercommerce/advanced-discounts": "^1.1",
+		"verbb/gift-voucher": "^4.0",
 		"phpunit/phpunit": "^12.5"
 	},
 	"scripts": {

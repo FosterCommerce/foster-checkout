@@ -31,7 +31,7 @@ class ContentController extends Controller
 		'global' => ['globalCheckout'],
 		'cart' => ['cart', 'emptyCart'],
 		'account' => ['login'],
-		'email' => ['email', 'subscribe'],
+		'email' => ['email', 'subscribe', 'createAccount'],
 		'shippingAddress' => ['shippingAddress'],
 		'shippingMethod' => ['shippingMethod', 'noShippingMethods'],
 		'billing' => ['billing'],

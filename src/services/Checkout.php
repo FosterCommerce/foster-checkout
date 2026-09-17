@@ -913,6 +913,16 @@ class Checkout extends Component
 	}
 
 	/**
+	 * Copy shown under the create account checkbox, such as what an account gets the customer.
+	 *
+	 * @since 1.7.0
+	 */
+	public function createAccountText(): ?string
+	{
+		return $this->contentOrConfig('createAccount', null);
+	}
+
+	/**
 	 * Copy for a shipping method panel with nothing to offer.
 	 *
 	 * @since 1.4.2

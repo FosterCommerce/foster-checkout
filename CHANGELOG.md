@@ -15,6 +15,7 @@
 - Added **Default country** at **Checkout -> Addresses**, the country a new address starts on.
 - Added **Image size** and **Image fit** at **Checkout -> Line Items**, sizing the cart image and choosing whether it is shown whole or cropped to a square. Narrow screens use half the size.
 - Added **Logo height** at **Checkout -> Appearance**.
+- Added **Create account description** at **Checkout -> Content**, shown under the create account checkbox. Blank shows nothing.
 
 ### Changed
 
@@ -29,6 +30,11 @@
 - Renamed `Checkout::lineItemImageField()` to `lineItemImageFields()`, which returns every configured image field for a product type, variant first, rather than only the first one. The old name still works, is deprecated, and is removed in the next major release.
 - A line item with no variant image now falls back to the product image field, instead of showing no image.
 - The delivery date label and message are read-only at **Checkout -> Features**, since no template in the plugin renders a delivery date.
+- The voucher form accepts gift voucher codes only, and posts to `foster-checkout/voucher/add-code`. Gift Voucher's own action applies a Commerce coupon code entered there, replacing the order's coupon and still reporting the voucher as failed. A template overriding the payment step needs the new action.
+- A panel now says an email address is needed before the checkout can save a guest's cart, instead of leaving the panel unchanged.
+- The newsletter checkbox sits above the create account checkbox.
+- The discount code heading no longer repeats the applied code, which the row beneath it already names.
+- A coupon's name is left out where it matches the code itself.
 
 ### Fixed
 
@@ -41,6 +47,10 @@
 - Fixed a bug where **Test the connection** for address suggestions returned to the wrong screen and discarded the API key on screen.
 - Fixed a JavaScript error on the payment step of the stepped checkout, where PayPal's script read its wrapper before the panel was rendered. The panel now renders the way the single page checkout already rendered it.
 - Fixed the postal code keyboard never changing with the country, and asking for a numeric keypad in countries whose postal code holds a space or a hyphen, such as the United States.
+- Fixed a bug where a store selling to one country reported an incomplete shipping address as soon as a guest entered their email, since the country a lone option preselects counted as an address worth saving.
+- Fixed a bug where the shipping address saved without a required custom address field, such as a phone number, leaving Commerce to reject the cart.
+- Fixed a bug where a coupon code a guest submitted before entering an email was discarded without a message.
+- Fixed a bug where a panel kept its error mark after a later save had cleared the message.
 
 ## 1.6.0 - 2026-09-14
 

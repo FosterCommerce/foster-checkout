@@ -35,6 +35,7 @@ export const SinglePageCheckout = (props) => {
 		couponOpen: Boolean(props.couponCode),
 		couponName: props.couponName ?? '',
 		couponMessages: asList(props.couponMessages),
+		couponNeedsEmailLabel: props.couponNeedsEmailLabel ?? '',
 		paymentBlock: props.paymentBlock ?? '',
 		couponError: '',
 		notesError: '',
@@ -84,6 +85,7 @@ export const SinglePageCheckout = (props) => {
 		editExistingAddress: 0,
 		editBillingAddressId: 0,
 		gatewayId: props.gatewayId,
+		emailNeededLabel: props.emailNeededLabel ?? '',
 		savingLabel: props.savingLabel,
 		savedLabel: props.savedLabel,
 		failedLabel: props.failedLabel,
@@ -467,6 +469,14 @@ export const SinglePageCheckout = (props) => {
 
 			this.panelErrors = {};
 
+			// The message is gone, so the mark another panel's failed save left goes with it
+			this.panelStatus = Object.fromEntries(
+				Object.entries(this.panelStatus).map(([name, panelTone]) => [
+					name,
+					panelTone === 'error' ? 'idle' : panelTone,
+				])
+			);
+
 			const timer = setTimeout(() => {
 				if (this.panelStatus[panel] === 'saved') {
 					this.panelStatus = {
@@ -594,20 +604,6 @@ export const SinglePageCheckout = (props) => {
 
 			if (panel === 'shipping') {
 				return Boolean(this.shippingMethodHandle);
-			}
-
-			if (panel === 'delivery') {
-				return this.panelFieldsReady(
-					panel,
-					new Set([
-						'countryCode',
-						'fullName',
-						'addressLine1',
-						'locality',
-						'administrativeArea',
-						'postalCode',
-					])
-				);
 			}
 
 			return this.panelFieldsReady(panel);

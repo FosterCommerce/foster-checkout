@@ -1,4 +1,5 @@
 {% set subscribeText = craft.fostercheckout.subscribeText()|striptags|trim %}
+{% set createAccountText = craft.fostercheckout.createAccountText()|striptags|trim %}
 {% set klaviyoListId = craft.fostercheckout.settings.options.klaviyoListId %}
 {% set klaviyoEnabled = craft.fostercheckout.klaviyoTrackingEnabled(cart) %}
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
@@ -60,45 +61,50 @@
 				</div>
 			</div>
 
-			<div class="checkbox" x-data="{ createAccount: {{ cart.registerUserOnOrderComplete ? 'true' : 'false' }} }">
-				<input type="hidden" name="registerUserOnOrderComplete" :value="createAccount ? 1 : 0">
-				<input
-					type="checkbox"
-					id="registerUserOnOrderComplete"
-					class="sr-only"
-					x-model="createAccount"
-					:checked="createAccount"
-					:aria-checked="createAccount ? 'true' : 'false'"
-				/>
-				<label
-					class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
-					for="registerUserOnOrderComplete"
-				>
-					{{ 'email.createAccount'|t('foster-checkout') }}
-				</label>
+			<div class="grid grid-cols-1 gap-4">
+				{% if klaviyoEnabled and klaviyoListId and subscribeText %}
+					<div
+						x-data="{
+							subscribe: JSON.parse(localStorage.getItem(window.FC_SUBSCRIBE_KEY) ?? 'false'),
+							init() {
+								this.$watch('subscribe', v => localStorage.setItem(window.FC_SUBSCRIBE_KEY, JSON.stringify(v)))
+							}
+						}"
+						class="checkbox"
+					>
+						<input type="hidden" name="subscribe" :value="subscribe ? 1 : 0">
+						<template x-if="subscribe">
+							<input type="hidden" name="list" value="{{ klaviyoListId }}">
+						</template>
+						<input type="checkbox" id="subscribe" class="sr-only" x-model="subscribe" :aria-checked="subscribe ? 'true' : 'false'">
+						<label for="subscribe" class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500">
+							{{ subscribeText|raw }}
+						</label>
+					</div>
+				{% endif %}
+
+				<div class="checkbox" x-data="{ createAccount: {{ cart.registerUserOnOrderComplete ? 'true' : 'false' }} }">
+					<input type="hidden" name="registerUserOnOrderComplete" :value="createAccount ? 1 : 0">
+					<input
+						type="checkbox"
+						id="registerUserOnOrderComplete"
+						class="sr-only"
+						x-model="createAccount"
+						:checked="createAccount"
+						:aria-checked="createAccount ? 'true' : 'false'"
+					/>
+					<label
+						class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
+						for="registerUserOnOrderComplete"
+					>
+						{{ 'email.createAccount'|t('foster-checkout') }}
+					</label>
+					{% if createAccountText %}
+						<p class="text-sm text-gray-500">{{ createAccountText|raw }}</p>
+					{% endif %}
+				</div>
 			</div>
 		</div>
-
-		{% if klaviyoEnabled and klaviyoListId and subscribeText %}
-			<div
-				x-data="{
-					subscribe: JSON.parse(localStorage.getItem(window.FC_SUBSCRIBE_KEY) ?? 'false'),
-					init() {
-						this.$watch('subscribe', v => localStorage.setItem(window.FC_SUBSCRIBE_KEY, JSON.stringify(v)))
-					}
-				}"
-				class="mt-4 checkbox"
-			>
-				<input type="hidden" name="subscribe" :value="subscribe ? 1 : 0">
-				<template x-if="subscribe">
-					<input type="hidden" name="list" value="{{ klaviyoListId }}">
-				</template>
-				<input type="checkbox" id="subscribe" class="sr-only" x-model="subscribe" :aria-checked="subscribe ? 'true' : 'false'">
-				<label for="subscribe" class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500">
-					{{ subscribeText|raw }}
-				</label>
-			</div>
-		{% endif %}
 
 		{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'email', showRequired: true } %}
 
