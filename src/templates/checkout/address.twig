@@ -213,7 +213,7 @@
 																class="sr-only"
 																x-model="saveToBook"
 																:checked="saveToBook"
-																aria-checked="saveToBook ? 'true' : 'false'"
+																:aria-checked="saveToBook ? 'true' : 'false'"
 															/>
 															<label
 																class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
@@ -279,7 +279,7 @@
 
 			</main>
 
-			{% include 'foster-checkout/_components/app/checkout-aside' %}
+			{% include 'foster-checkout/_components/app/checkout-aside' with { step: 'shipping-address' } %}
 		</div>
 
 		{% include 'foster-checkout/_components/app/checkout-footer-links' %}

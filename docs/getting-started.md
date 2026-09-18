@@ -47,7 +47,7 @@ If you need something the checkout does not collect, open **Checkout -> Custom F
 
 ## 8. Set up your gateways
 
-Open **Checkout -> Gateways**. Every gateway configured in Commerce is listed. Open one to set the name customers see, add fields the customer fills in when they pick it, and any extra parameters the gateway needs.
+Open **Checkout -> Gateways**. Every gateway configured in Commerce is listed. Open one to set the name customers see and add fields the customer fills in when they pick it. A Stripe gateway also sets how its payment element lists the payment methods, their order, and whether Link is included. A PayPal gateway also sets which funding sources its buttons offer, which card brands its card fields take, plus the locale and SDK components.
 
 Place a test order to confirm payment works end to end.
 

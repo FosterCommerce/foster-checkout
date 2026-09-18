@@ -134,7 +134,17 @@ class SettingsController extends Controller
 			return null;
 		}
 
-		$this->saveGatewayOptions($gatewayHandle);
+		// A config file naming a value outside a setting's range fails validation for every gateway
+		if (! $this->saveGatewayOptions($gatewayHandle)) {
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
+
+			Craft::$app->getUrlManager()->setRouteParams([
+				'fieldLayout' => $layout,
+			]);
+
+			return null;
+		}
+
 		$this->setSuccessFlash(Craft::t('app', 'Settings saved.'));
 
 		return $this->redirectToPostedUrl();
@@ -533,14 +543,14 @@ class SettingsController extends Controller
 	}
 
 	/**
-	 * Payment form params sit alongside the field layout rather than in it.
+	 * A gateway's own settings sit alongside its field layout rather than in it.
 	 */
-	private function saveGatewayOptions(string $gatewayHandle): void
+	private function saveGatewayOptions(string $gatewayHandle): bool
 	{
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		// The field layout is stored outside plugin settings, so it stays editable. Columns and params do not.
+		// The field layout is stored outside plugin settings, so it stays editable
 
 		$storedSettings = ProjectConfigHelper::unpackAssociativeArrays(
 			(array) (Craft::$app->getProjectConfig()->get(ProjectConfig::PATH_PLUGINS . '.' . FosterCheckout::HANDLE . '.settings') ?? [])
@@ -557,17 +567,48 @@ class SettingsController extends Controller
 			$gateway['label'] = trim($postedLabel);
 		}
 
-		$postedParams = $this->request->getBodyParam('params');
+		$postedLayout = $this->request->getBodyParam('layout');
 
-		// Only a static field posts nothing, since an emptied table posts a hidden fallback
-		if ($postedParams !== null && ! in_array("paymentGateways.{$gatewayHandle}.params", $overridden, true)) {
-			$gateway['params'] = $this->normalizeGatewayParams((array) $postedParams);
+		// Only the Stripe screen renders this, so another gateway posts nothing and keeps its default
+		if (is_string($postedLayout) && ! in_array("paymentGateways.{$gatewayHandle}.layout", $overridden, true)) {
+			$gateway['layout'] = $postedLayout;
+		}
+
+		$postedOrder = $this->request->getBodyParam('paymentMethodOrder');
+
+		if ($postedOrder !== null && ! in_array("paymentGateways.{$gatewayHandle}.paymentMethodOrder", $overridden, true)) {
+			$gateway['paymentMethodOrder'] = $this->normalizeMethodOrder((array) $postedOrder);
+		}
+
+		// A lightswitch always posts, so an absent value means another gateway's screen
+		$postedLink = $this->request->getBodyParam('enableLink');
+
+		if ($postedLink !== null && ! in_array("paymentGateways.{$gatewayHandle}.enableLink", $overridden, true)) {
+			$gateway['enableLink'] = (bool) $postedLink;
+		}
+
+		// Only the PayPal screen renders these, so another gateway posts nothing and keeps its defaults
+		foreach (['disableFunding', 'enableFunding', 'disableCard'] as $checkboxSetting) {
+			$postedValues = $this->request->getBodyParam($checkboxSetting);
+
+			// A pinned setting is kept by the overridden check, since an emptied group still posts a fallback
+			if ($postedValues !== null && ! in_array("paymentGateways.{$gatewayHandle}.{$checkboxSetting}", $overridden, true)) {
+				$gateway[$checkboxSetting] = $this->normalizeCheckboxValues((array) $postedValues);
+			}
+		}
+
+		foreach (['locale', 'components'] as $textSetting) {
+			$postedValue = $this->request->getBodyParam($textSetting);
+
+			if (is_string($postedValue) && ! in_array("paymentGateways.{$gatewayHandle}.{$textSetting}", $overridden, true)) {
+				$gateway[$textSetting] = trim($postedValue);
+			}
 		}
 
 		$storedGateways[$gatewayHandle] = $gateway;
 		$storedSettings['paymentGateways'] = $storedGateways;
 
-		Craft::$app->getPlugins()->savePluginSettings($plugin, $storedSettings);
+		return Craft::$app->getPlugins()->savePluginSettings($plugin, $storedSettings);
 	}
 
 	/**
@@ -587,26 +628,49 @@ class SettingsController extends Controller
 	}
 
 	/**
-	 * @param array<array-key, mixed> $postedParams
-	 * @return array<string, string>
+	 * @param array<array-key, mixed> $postedOrder
+	 * @return list<string>
 	 */
-	private function normalizeGatewayParams(array $postedParams): array
+	private function normalizeMethodOrder(array $postedOrder): array
 	{
-		$params = [];
+		$types = [];
 
-		foreach ($postedParams as $postedParam) {
-			if (! is_array($postedParam)) {
+		foreach ($postedOrder as $postedType) {
+			if (! is_array($postedType)) {
 				continue;
 			}
 
-			$key = $this->trimmedString($postedParam, 'key');
+			$type = $this->trimmedString($postedType, 'type');
 
-			if ($key !== '') {
-				$params[$key] = $this->trimmedString($postedParam, 'value');
+			if ($type !== '') {
+				$types[] = $type;
 			}
 		}
 
-		return $params;
+		return $types;
+	}
+
+	/**
+	 * @param array<array-key, mixed> $postedValues
+	 * @return list<string>
+	 */
+	private function normalizeCheckboxValues(array $postedValues): array
+	{
+		$values = [];
+
+		foreach ($postedValues as $postedValue) {
+			if (! is_string($postedValue)) {
+				continue;
+			}
+
+			$value = trim($postedValue);
+
+			if ($value !== '') {
+				$values[] = $value;
+			}
+		}
+
+		return $values;
 	}
 
 	/**

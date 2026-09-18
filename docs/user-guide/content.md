@@ -11,7 +11,7 @@ The screen is grouped by the panel each piece of copy appears in.
 | **Global** | The note shown on every checkout step, and the **footer links** shown at the bottom of the cart and checkout pages |
 | **Cart** | The cart note, and the one shown when the cart is empty |
 | **Account** | The note on the login and register pages |
-| **Email step** | The step's note and the **newsletter checkbox label** |
+| **Email step** | The step's note, the **newsletter checkbox label**, and the **create account description** shown under the create account checkbox |
 | **Shipping address step** | The step's note |
 | **Shipping method step** | The step's note, and the **no shipping methods note** shown when nothing can be quoted for the address |
 | **Billing step** | The step's note |

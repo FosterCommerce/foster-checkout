@@ -1,6 +1,6 @@
 {% set subscribeText = craft.fostercheckout.subscribeText()|striptags|trim %}
 {% set createAccountText = craft.fostercheckout.createAccountText()|striptags|trim %}
-{% set klaviyoListId = craft.fostercheckout.settings.options.klaviyoListId %}
+{% set klaviyoListId = craft.fostercheckout.klaviyoListId() %}
 {% set klaviyoEnabled = craft.fostercheckout.klaviyoTrackingEnabled(cart) %}
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 

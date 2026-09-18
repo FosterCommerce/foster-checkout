@@ -1,0 +1,19 @@
+{% set summaryInclude = craft.fostercheckout.settings.includes.summary %}
+
+{% if summaryInclude|default %}
+	{% set summaryIncludeContent %}
+		{% include summaryInclude with {
+			context: 'checkout',
+			location: 'summary',
+			step: step,
+			cart: cart
+		} %}
+	{% endset %}
+
+	{# A store's message often applies to some carts only, so an empty render leaves no box behind #}
+	{% if summaryIncludeContent|trim %}
+		<div class="p-4 mt-4 lg:mt-0 lg:mb-4 bg-white border border-gray-250 {{ isFlat ? '' : 'rounded-lg' }}">
+			{{ summaryIncludeContent|raw }}
+		</div>
+	{% endif %}
+{% endif %}

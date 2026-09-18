@@ -5157,7 +5157,7 @@ const addressBook = () => ({
       }
       return;
     }
-    const scope2 = this.$root.querySelector("[data-fc-new-shipping]");
+    const scope2 = this.rootEl.querySelector("[data-fc-new-shipping]");
     if (!scope2) {
       return;
     }
@@ -5235,7 +5235,7 @@ const addressBook = () => ({
       return;
     }
     this.$nextTick(() => {
-      const scope2 = this.$root.querySelector(
+      const scope2 = this.rootEl.querySelector(
         `[data-fc-address-edit="${addressId}"]`
       );
       this.writeAddressToScope(scope2, stored);
@@ -5249,7 +5249,7 @@ const addressBook = () => ({
     const prefix2 = kind === "billing" ? "billingAddress" : "shippingAddress";
     const selector = kind === "billing" ? "[data-fc-new-billing]" : "[data-fc-new-shipping]";
     this.$nextTick(() => {
-      const scope2 = this.$root.querySelector(selector);
+      const scope2 = this.rootEl.querySelector(selector);
       this.writeAddressToScope(scope2, this.addressToFields(address), prefix2);
       if (kind === "billing") {
         this.refreshNewBillingContent();
@@ -5267,7 +5267,7 @@ const addressBook = () => ({
       clearTimeout(this.saveTimer);
       this.saveTimer = null;
     }
-    const scope2 = this.$root.querySelector(
+    const scope2 = this.rootEl.querySelector(
       `[data-fc-address-edit="${addressId}"]`
     );
     if (!this.fieldsReadyIn(scope2, true)) {
@@ -5345,7 +5345,7 @@ const addressBook = () => ({
     );
   },
   newBillingHasContent() {
-    const scope2 = this.$root ? this.$root.querySelector("[data-fc-new-billing]") : null;
+    const scope2 = this.rootEl ? this.rootEl.querySelector("[data-fc-new-billing]") : null;
     return this.addressGroupHasContent(
       this.collectNamedFields(scope2),
       "billingAddress["
@@ -5766,11 +5766,6 @@ const cartPersistence = () => ({
         this.restoreStripeIfSkipped();
         return;
       }
-      if (panel === "delivery" && !this.deliveryNeedsSave(payload)) {
-        this.restorePaypalIfSkipped();
-        this.restoreStripeIfSkipped();
-        return;
-      }
       this.queueSave(0, event, panel);
     });
   },
@@ -5810,7 +5805,7 @@ const cartPersistence = () => ({
   },
   collectDetails() {
     const payload = {};
-    this.$root.querySelectorAll("[data-fc-collect]").forEach((scope2) => {
+    this.rootEl.querySelectorAll("[data-fc-collect]").forEach((scope2) => {
       Object.assign(payload, this.collectNamedFields(scope2));
     });
     return payload;
@@ -5850,7 +5845,7 @@ const cartPersistence = () => ({
     return `${parts[0]}[${parts.slice(1).join("][")}]`;
   },
   findNamedInput(name) {
-    return this.$root.querySelector(`[name="${this.escapeName(name)}"]`);
+    return this.rootEl.querySelector(`[name="${this.escapeName(name)}"]`);
   },
   setInputErrors(name, messages) {
     const input = this.findNamedInput(name);
@@ -5858,7 +5853,7 @@ const cartPersistence = () => ({
       return false;
     }
     const root = input.closest("[x-data]");
-    if (!root || root === this.$root) {
+    if (!root || root === this.rootEl) {
       return false;
     }
     const data2 = window.Alpine.$data(root);
@@ -5871,7 +5866,7 @@ const cartPersistence = () => ({
   clearInputErrors() {
     this.couponError = "";
     this.notesError = "";
-    this.$root.querySelectorAll(
+    this.rootEl.querySelectorAll(
       "[data-fc-collect] [x-data], [data-fc-address-edit] [x-data]"
     ).forEach((root) => {
       const data2 = window.Alpine.$data(root);
@@ -6019,10 +6014,10 @@ const gatewayHandling = () => ({
       }
     }
     this.lastSaved = JSON.stringify(this.buildPayload());
-    this.$refs.paymentForm?.submit();
+    this.paymentFormEl?.submit();
   },
   bindPayOverlay() {
-    const form = this.$refs.paymentForm;
+    const form = this.paymentFormEl;
     form.addEventListener(
       "click",
       (event) => {
@@ -6085,7 +6080,7 @@ const gatewayHandling = () => ({
     };
   },
   cardInput(name) {
-    const form = this.$refs.paymentForm;
+    const form = this.paymentFormEl;
     if (!form) {
       return null;
     }
@@ -6192,7 +6187,7 @@ const gatewayHandling = () => ({
     this.showCardErrors(errors);
   },
   syncPayButtons() {
-    const form = this.$refs.paymentForm;
+    const form = this.paymentFormEl;
     if (!form) {
       return;
     }
@@ -6210,7 +6205,7 @@ const gatewayHandling = () => ({
     });
   },
   invalidatePaypalCheckout() {
-    const wrapper = this.$root.querySelector(".paypal-rest-form");
+    const wrapper = this.rootEl.querySelector(".paypal-rest-form");
     const renderDiv = wrapper?.firstElementChild;
     if (!wrapper || !renderDiv) {
       return;
@@ -6227,7 +6222,7 @@ const gatewayHandling = () => ({
       return;
     }
     this.paypalInvalidated = false;
-    if (!this.$root.querySelector(".paypal-rest-form")) {
+    if (!this.rootEl.querySelector(".paypal-rest-form")) {
       return;
     }
     this.initPaypal();
@@ -6239,7 +6234,7 @@ const gatewayHandling = () => ({
   },
   // Rewrite the billing details the payment element pre-fills, since it mounts from the address the page was rendered with
   applyStripeBillingDefaults(billingAddress) {
-    const form = this.$root.querySelector(".stripe-payment-elements-form");
+    const form = this.rootEl.querySelector(".stripe-payment-elements-form");
     if (!form) {
       return;
     }
@@ -6249,6 +6244,8 @@ const gatewayHandling = () => ({
       billingDetails: {
         name: billingAddress.fullName ?? "",
         email: this.email ?? "",
+        // Passed so Link stops asking for a number the address form already collected
+        phone: billingAddress[this.addressPhoneFieldHandle] ?? "",
         address: {
           country: billingAddress.countryCode ?? "",
           line1: billingAddress.addressLine1 ?? "",
@@ -6267,7 +6264,7 @@ const gatewayHandling = () => ({
     this.stripeOptionsChanged = true;
   },
   invalidateStripeCheckout() {
-    const form = this.$root.querySelector(".stripe-payment-elements-form");
+    const form = this.rootEl.querySelector(".stripe-payment-elements-form");
     if (!form) {
       return;
     }
@@ -6293,7 +6290,7 @@ const gatewayHandling = () => ({
     if (!this.canPay || this.paying || this.stripeReinitQueued) {
       return;
     }
-    const form = this.$root.querySelector(".stripe-payment-elements-form");
+    const form = this.rootEl.querySelector(".stripe-payment-elements-form");
     if (!form) {
       return;
     }
@@ -6318,7 +6315,7 @@ const gatewayHandling = () => ({
       return;
     }
     this.stripeInvalidated = false;
-    if (!this.$root.querySelector(".stripe-payment-elements-form")) {
+    if (!this.rootEl.querySelector(".stripe-payment-elements-form")) {
       return;
     }
     if (typeof initStripe !== "function") {
@@ -6333,9 +6330,7 @@ const gatewayHandling = () => ({
     }
   },
   retryStripeIfNeeded() {
-    const error2 = this.$refs.paymentForm?.querySelector(
-      ".stripe-error-message"
-    );
+    const error2 = this.paymentFormEl?.querySelector(".stripe-error-message");
     if (!error2?.textContent?.trim() || typeof initStripe !== "function") {
       return;
     }
@@ -6347,7 +6342,7 @@ const gatewayHandling = () => ({
       clearTimeout(this.paypalInitTimer);
       this.paypalInitTimer = null;
     }
-    const wrapper = this.$root.querySelector(".paypal-rest-form");
+    const wrapper = this.rootEl.querySelector(".paypal-rest-form");
     if (!wrapper) {
       if (attempt >= 5) {
         return;
@@ -6454,6 +6449,7 @@ const SinglePageCheckout = (props) => {
     editBillingAddressId: 0,
     gatewayId: props.gatewayId,
     emailNeededLabel: props.emailNeededLabel ?? "",
+    addressPhoneFieldHandle: props.addressPhoneFieldHandle ?? "",
     savingLabel: props.savingLabel,
     savedLabel: props.savedLabel,
     failedLabel: props.failedLabel,
@@ -6481,12 +6477,16 @@ const SinglePageCheckout = (props) => {
     stripeInvalidated: false,
     paying: false,
     onPageShow: null,
+    rootEl: null,
+    paymentFormEl: null,
     originalAuthorizeHandler: null,
     originalSendPayment: null,
     ...addressBook(),
     ...cartPersistence(),
     ...gatewayHandling(),
     init() {
+      this.rootEl = this.$root;
+      this.paymentFormEl = this.$refs.paymentForm;
       this.$watch("email", () => {
         if (!this.syncingFromCart) {
           this.syncPayButtons();
@@ -6512,6 +6512,7 @@ const SinglePageCheckout = (props) => {
       this.$watch("billingAddressId", () => this.onSelectionChange("payment"));
       this.$watch("useNewBillingAddress", () => {
         this.onSelectionChange("payment");
+        this.$nextTick(() => this.ensureAvailableGateway());
         this.$nextTick(() => this.refreshNewBillingContent());
       });
       this.$watch("gatewayId", () => {
@@ -6582,7 +6583,7 @@ const SinglePageCheckout = (props) => {
       this.panelStatusTimers = {};
     },
     guestEmail() {
-      const input = this.$root.querySelector("#email");
+      const input = this.rootEl.querySelector("#email");
       if (input) {
         return String(input.value || "").trim();
       }
@@ -6639,7 +6640,7 @@ const SinglePageCheckout = (props) => {
     // The pay button is disabled, so nothing submits to raise these the usual way
     get missingRequiredLabels() {
       const labels = [];
-      this.$root.querySelectorAll("[data-fc-field]").forEach((element) => {
+      this.rootEl.querySelectorAll("[data-fc-field]").forEach((element) => {
         const data2 = window.Alpine.$data(element);
         if (!data2?.label || !data2.isRequired?.()) {
           return;
@@ -6652,17 +6653,17 @@ const SinglePageCheckout = (props) => {
     },
     // Required fields can be configured in any panel, so payment checks them all
     get checkoutFieldsReady() {
-      return [...this.$root.querySelectorAll("[data-fc-panel]")].every(
+      return [...this.rootEl.querySelectorAll("[data-fc-panel]")].every(
         (section) => this.fieldsReadyIn(section)
       );
     },
     // The gateway's own fields sit in the payment form, so they are read separately from the ones that open it
     get paymentFieldsReady() {
-      return this.fieldsReadyIn(this.$refs.paymentForm);
+      return this.fieldsReadyIn(this.paymentFormEl);
     },
     get canEnterPayment() {
-      return [...this.$root.querySelectorAll("[data-fc-panel]")].every(
-        (section) => this.fieldsReadyIn(section, false, null, this.$refs.paymentForm)
+      return [...this.rootEl.querySelectorAll("[data-fc-panel]")].every(
+        (section) => this.fieldsReadyIn(section, false, null, this.paymentFormEl)
       ) && this.pending === 0 && !this.saveTimer && this.statusTone !== "error" && this.hasEmail && this.hasShippingSelection && (this.cartHasShippingAddress || !this.collectShipping) && this.hasShippingMethod && this.hasBilling && this.deliveryReadyForPay && !this.loadingShippingMethods;
     },
     get canPay() {
@@ -6679,8 +6680,15 @@ const SinglePageCheckout = (props) => {
       }
       return !zeroOnly;
     },
+    // A cart reaching zero changes which gateways fit, so the count is read rather than rendered
+    get visibleGatewayCount() {
+      const rows = Array.from(
+        this.paymentFormEl?.querySelectorAll("[data-fc-gateway]") ?? []
+      );
+      return rows.filter((row) => this.gatewayFits(row)).length;
+    },
     ensureAvailableGateway() {
-      const form = this.$refs.paymentForm;
+      const form = this.paymentFormEl;
       if (!form) {
         return;
       }
@@ -6796,12 +6804,12 @@ const SinglePageCheckout = (props) => {
     },
     panelScope(panel) {
       if (panel === "delivery" && this.useNewAddress) {
-        return this.$root.querySelector("[data-fc-new-shipping]");
+        return this.rootEl.querySelector("[data-fc-new-shipping]");
       }
       if (panel === "payment" && this.useNewBillingAddress) {
-        return this.$root.querySelector("[data-fc-new-billing]");
+        return this.rootEl.querySelector("[data-fc-new-billing]");
       }
-      const section = this.$root.querySelector(`[data-fc-panel="${panel}"]`);
+      const section = this.rootEl.querySelector(`[data-fc-panel="${panel}"]`);
       return section ? section.querySelector("[data-fc-collect]") || section : null;
     },
     panelFieldsReady(panel, handles = null, showRequired = false) {
@@ -6810,7 +6818,7 @@ const SinglePageCheckout = (props) => {
     // panelScope narrows to the address being edited, which leaves a position's own fields unread
     panelSectionReady(panel, showRequired = false) {
       return this.fieldsReadyIn(
-        this.$root.querySelector(`[data-fc-panel="${panel}"]`),
+        this.rootEl.querySelector(`[data-fc-panel="${panel}"]`),
         showRequired
       );
     },
@@ -6820,7 +6828,7 @@ const SinglePageCheckout = (props) => {
       }
       let ready = true;
       scope2.querySelectorAll("[data-fc-field]").forEach((element) => {
-        if (element === this.$root) {
+        if (element === this.rootEl) {
           return;
         }
         if (skipWithin && skipWithin.contains(element)) {
@@ -6868,16 +6876,6 @@ const SinglePageCheckout = (props) => {
         payload["shippingAddress[postalCode]"] ?? "",
         ...customFields
       ].join("|");
-    },
-    deliveryNeedsSave(payload) {
-      if (!this.lastSaved) {
-        return true;
-      }
-      try {
-        return this.shippingRateKey(payload) !== this.shippingRateKey(JSON.parse(this.lastSaved));
-      } catch {
-        return true;
-      }
     },
     shouldTrackCheckout(saved) {
       return this.klaviyoEnabled && !this.loggedIn && !this.trackedCheckout && isValidEmail(saved.email || this.email);

@@ -521,12 +521,6 @@ export const cartPersistence = () => ({
 				return;
 			}
 
-			if (panel === 'delivery' && !this.deliveryNeedsSave(payload)) {
-				this.restorePaypalIfSkipped();
-				this.restoreStripeIfSkipped();
-				return;
-			}
-
 			this.queueSave(0, event, panel);
 		});
 	},
@@ -581,7 +575,7 @@ export const cartPersistence = () => ({
 	collectDetails() {
 		const payload = {};
 
-		this.$root.querySelectorAll('[data-fc-collect]').forEach((scope) => {
+		this.rootEl.querySelectorAll('[data-fc-collect]').forEach((scope) => {
 			Object.assign(payload, this.collectNamedFields(scope));
 		});
 
@@ -635,7 +629,7 @@ export const cartPersistence = () => ({
 	},
 
 	findNamedInput(name) {
-		return this.$root.querySelector(`[name="${this.escapeName(name)}"]`);
+		return this.rootEl.querySelector(`[name="${this.escapeName(name)}"]`);
 	},
 
 	setInputErrors(name, messages) {
@@ -645,7 +639,7 @@ export const cartPersistence = () => ({
 		}
 
 		const root = input.closest('[x-data]');
-		if (!root || root === this.$root) {
+		if (!root || root === this.rootEl) {
 			return false;
 		}
 
@@ -662,7 +656,7 @@ export const cartPersistence = () => ({
 	clearInputErrors() {
 		this.couponError = '';
 		this.notesError = '';
-		this.$root
+		this.rootEl
 			.querySelectorAll(
 				'[data-fc-collect] [x-data], [data-fc-address-edit] [x-data]'
 			)

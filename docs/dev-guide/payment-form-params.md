@@ -2,7 +2,7 @@
 
 Change what a gateway's payment form is rendered with, per order. The checkout builds the parameters it passes to the gateway's `getPaymentFormHtml()`, then hands them to this event before rendering.
 
-**Extra parameters** at **Checkout -> Gateways** does the same for every order. Use the event when the change depends on who is buying or what is in the cart.
+The settings on each gateway at **Checkout -> Gateways** cover the keys merchants change for every order. Use the event when the change depends on who is buying or what is in the cart, or for a key those settings do not reach.
 
 ## Answering the event
 
@@ -31,8 +31,10 @@ Event::on(
 );
 ```
 
-`params` holds whatever the checkout built for that gateway. For Stripe that includes `elementOptions`, which the Payment Element is created with; for PayPal the SDK options. Anything a gateway's own payment form template reads can be set here.
+`params` holds whatever the checkout built for that gateway. For Stripe that includes `elementOptions`, which the Payment Element is created with; for PayPal the SDK URL options. Anything a gateway's own payment form template reads can be set here.
 
 ## Stripe and Link
 
-Link is a Stripe wallet, not a payment method type. It is shown whenever the intent allows cards and Link is on in the Stripe Dashboard, and it carries Instant Bank Payments and Klarna with it. Restricting the intent's payment method types does not remove it; `elementOptions.wallets.link = 'never'` does, for that form only.
+Link is a Stripe wallet, not a payment method type. It is shown whenever the intent allows cards and Link is on in the Stripe Dashboard, and it carries Instant Bank Payments and Klarna with it. Restricting the intent's payment method types does not remove it.
+
+Turn it off for the whole store with **Include Link** on the gateway at **Checkout -> Gateways**. That setting writes `elementOptions.wallets.link`. Use the event to decide per order, since it runs after the setting.

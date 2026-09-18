@@ -78,7 +78,7 @@ export const addressBook = () => ({
 			return;
 		}
 
-		const scope = this.$root.querySelector('[data-fc-new-shipping]');
+		const scope = this.rootEl.querySelector('[data-fc-new-shipping]');
 		if (!scope) {
 			return;
 		}
@@ -172,7 +172,7 @@ export const addressBook = () => ({
 		}
 
 		this.$nextTick(() => {
-			const scope = this.$root.querySelector(
+			const scope = this.rootEl.querySelector(
 				`[data-fc-address-edit="${addressId}"]`
 			);
 			this.writeAddressToScope(scope, stored);
@@ -193,7 +193,7 @@ export const addressBook = () => ({
 			kind === 'billing' ? '[data-fc-new-billing]' : '[data-fc-new-shipping]';
 
 		this.$nextTick(() => {
-			const scope = this.$root.querySelector(selector);
+			const scope = this.rootEl.querySelector(selector);
 			this.writeAddressToScope(scope, this.addressToFields(address), prefix);
 			if (kind === 'billing') {
 				this.refreshNewBillingContent();
@@ -215,7 +215,7 @@ export const addressBook = () => ({
 			this.saveTimer = null;
 		}
 
-		const scope = this.$root.querySelector(
+		const scope = this.rootEl.querySelector(
 			`[data-fc-address-edit="${addressId}"]`
 		);
 
@@ -315,8 +315,8 @@ export const addressBook = () => ({
 	},
 
 	newBillingHasContent() {
-		const scope = this.$root
-			? this.$root.querySelector('[data-fc-new-billing]')
+		const scope = this.rootEl
+			? this.rootEl.querySelector('[data-fc-new-billing]')
 			: null;
 
 		return this.addressGroupHasContent(

@@ -17,6 +17,8 @@
 		<span class="font-semibold">{{ cart.totalPriceAsCurrency }}</span>
 	</button>
 
+	{% include 'foster-checkout/_components/app/summary-include' %}
+
 	<div class="grid grid-cols-1 gap-10 mt-4 lg:mt-0 lg:sticky lg:top-4 lg:p-4 lg:bg-white lg:rounded-lg {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 		{# The forms below take input, so only what a customer reads collapses #}
 		<div class="grid-cols-1 gap-10" :class="summaryOpen ? 'grid' : 'hidden lg:grid'">

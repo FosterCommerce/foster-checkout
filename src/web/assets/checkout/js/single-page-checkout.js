@@ -86,6 +86,7 @@ export const SinglePageCheckout = (props) => {
 		editBillingAddressId: 0,
 		gatewayId: props.gatewayId,
 		emailNeededLabel: props.emailNeededLabel ?? '',
+		addressPhoneFieldHandle: props.addressPhoneFieldHandle ?? '',
 		savingLabel: props.savingLabel,
 		savedLabel: props.savedLabel,
 		failedLabel: props.failedLabel,
@@ -113,6 +114,8 @@ export const SinglePageCheckout = (props) => {
 		stripeInvalidated: false,
 		paying: false,
 		onPageShow: null,
+		rootEl: null,
+		paymentFormEl: null,
 		originalAuthorizeHandler: null,
 		originalSendPayment: null,
 
@@ -121,6 +124,10 @@ export const SinglePageCheckout = (props) => {
 		...gatewayHandling(),
 
 		init() {
+			// $root is relative to the element evaluating it, so it is pinned here to the component root
+			this.rootEl = this.$root;
+			this.paymentFormEl = this.$refs.paymentForm;
+
 			this.$watch('email', () => {
 				if (!this.syncingFromCart) {
 					this.syncPayButtons();
@@ -144,6 +151,8 @@ export const SinglePageCheckout = (props) => {
 			this.$watch('billingAddressId', () => this.onSelectionChange('payment'));
 			this.$watch('useNewBillingAddress', () => {
 				this.onSelectionChange('payment');
+				// A cart already at zero renders with a gatewayId its total may exclude
+				this.$nextTick(() => this.ensureAvailableGateway());
 				this.$nextTick(() => this.refreshNewBillingContent());
 			});
 			this.$watch('gatewayId', () => {
@@ -225,7 +234,7 @@ export const SinglePageCheckout = (props) => {
 		},
 
 		guestEmail() {
-			const input = this.$root.querySelector('#email');
+			const input = this.rootEl.querySelector('#email');
 			if (input) {
 				return String(input.value || '').trim();
 			}
@@ -302,7 +311,7 @@ export const SinglePageCheckout = (props) => {
 		get missingRequiredLabels() {
 			const labels = [];
 
-			this.$root.querySelectorAll('[data-fc-field]').forEach((element) => {
+			this.rootEl.querySelectorAll('[data-fc-field]').forEach((element) => {
 				const data = window.Alpine.$data(element);
 
 				// validate() writes the field's errors, so the state is read rather than re-run
@@ -321,20 +330,20 @@ export const SinglePageCheckout = (props) => {
 		// Required fields can be configured in any panel, so payment checks them all
 
 		get checkoutFieldsReady() {
-			return [...this.$root.querySelectorAll('[data-fc-panel]')].every(
+			return [...this.rootEl.querySelectorAll('[data-fc-panel]')].every(
 				(section) => this.fieldsReadyIn(section)
 			);
 		},
 
 		// The gateway's own fields sit in the payment form, so they are read separately from the ones that open it
 		get paymentFieldsReady() {
-			return this.fieldsReadyIn(this.$refs.paymentForm);
+			return this.fieldsReadyIn(this.paymentFormEl);
 		},
 
 		get canEnterPayment() {
 			return (
-				[...this.$root.querySelectorAll('[data-fc-panel]')].every((section) =>
-					this.fieldsReadyIn(section, false, null, this.$refs.paymentForm)
+				[...this.rootEl.querySelectorAll('[data-fc-panel]')].every((section) =>
+					this.fieldsReadyIn(section, false, null, this.paymentFormEl)
 				) &&
 				this.pending === 0 &&
 				!this.saveTimer &&
@@ -368,8 +377,17 @@ export const SinglePageCheckout = (props) => {
 			return !zeroOnly;
 		},
 
+		// A cart reaching zero changes which gateways fit, so the count is read rather than rendered
+		get visibleGatewayCount() {
+			const rows = Array.from(
+				this.paymentFormEl?.querySelectorAll('[data-fc-gateway]') ?? []
+			);
+
+			return rows.filter((row) => this.gatewayFits(row)).length;
+		},
+
 		ensureAvailableGateway() {
-			const form = this.$refs.paymentForm;
+			const form = this.paymentFormEl;
 			if (!form) {
 				return;
 			}
@@ -518,14 +536,14 @@ export const SinglePageCheckout = (props) => {
 
 		panelScope(panel) {
 			if (panel === 'delivery' && this.useNewAddress) {
-				return this.$root.querySelector('[data-fc-new-shipping]');
+				return this.rootEl.querySelector('[data-fc-new-shipping]');
 			}
 
 			if (panel === 'payment' && this.useNewBillingAddress) {
-				return this.$root.querySelector('[data-fc-new-billing]');
+				return this.rootEl.querySelector('[data-fc-new-billing]');
 			}
 
-			const section = this.$root.querySelector(`[data-fc-panel="${panel}"]`);
+			const section = this.rootEl.querySelector(`[data-fc-panel="${panel}"]`);
 			return section
 				? section.querySelector('[data-fc-collect]') || section
 				: null;
@@ -539,7 +557,7 @@ export const SinglePageCheckout = (props) => {
 
 		panelSectionReady(panel, showRequired = false) {
 			return this.fieldsReadyIn(
-				this.$root.querySelector(`[data-fc-panel="${panel}"]`),
+				this.rootEl.querySelector(`[data-fc-panel="${panel}"]`),
 				showRequired
 			);
 		},
@@ -556,7 +574,7 @@ export const SinglePageCheckout = (props) => {
 
 			let ready = true;
 			scope.querySelectorAll('[data-fc-field]').forEach((element) => {
-				if (element === this.$root) {
+				if (element === this.rootEl) {
 					return;
 				}
 
@@ -629,21 +647,6 @@ export const SinglePageCheckout = (props) => {
 				payload['shippingAddress[postalCode]'] ?? '',
 				...customFields,
 			].join('|');
-		},
-
-		deliveryNeedsSave(payload) {
-			if (!this.lastSaved) {
-				return true;
-			}
-
-			try {
-				return (
-					this.shippingRateKey(payload) !==
-					this.shippingRateKey(JSON.parse(this.lastSaved))
-				);
-			} catch {
-				return true;
-			}
 		},
 
 		shouldTrackCheckout(saved) {

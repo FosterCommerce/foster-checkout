@@ -65,11 +65,11 @@ export const gatewayHandling = () => ({
 		}
 
 		this.lastSaved = JSON.stringify(this.buildPayload());
-		this.$refs.paymentForm?.submit();
+		this.paymentFormEl?.submit();
 	},
 
 	bindPayOverlay() {
-		const form = this.$refs.paymentForm;
+		const form = this.paymentFormEl;
 		form.addEventListener(
 			'click',
 			(event) => {
@@ -157,7 +157,7 @@ export const gatewayHandling = () => ({
 	},
 
 	cardInput(name) {
-		const form = this.$refs.paymentForm;
+		const form = this.paymentFormEl;
 		if (!form) {
 			return null;
 		}
@@ -290,7 +290,7 @@ export const gatewayHandling = () => ({
 	},
 
 	syncPayButtons() {
-		const form = this.$refs.paymentForm;
+		const form = this.paymentFormEl;
 		if (!form) {
 			return;
 		}
@@ -313,7 +313,7 @@ export const gatewayHandling = () => ({
 	},
 
 	invalidatePaypalCheckout() {
-		const wrapper = this.$root.querySelector('.paypal-rest-form');
+		const wrapper = this.rootEl.querySelector('.paypal-rest-form');
 		const renderDiv = wrapper?.firstElementChild;
 		if (!wrapper || !renderDiv) {
 			return;
@@ -338,7 +338,7 @@ export const gatewayHandling = () => ({
 
 		this.paypalInvalidated = false;
 
-		if (!this.$root.querySelector('.paypal-rest-form')) {
+		if (!this.rootEl.querySelector('.paypal-rest-form')) {
 			return;
 		}
 
@@ -353,7 +353,7 @@ export const gatewayHandling = () => ({
 
 	// Rewrite the billing details the payment element pre-fills, since it mounts from the address the page was rendered with
 	applyStripeBillingDefaults(billingAddress) {
-		const form = this.$root.querySelector('.stripe-payment-elements-form');
+		const form = this.rootEl.querySelector('.stripe-payment-elements-form');
 		if (!form) {
 			return;
 		}
@@ -365,6 +365,8 @@ export const gatewayHandling = () => ({
 			billingDetails: {
 				name: billingAddress.fullName ?? '',
 				email: this.email ?? '',
+				// Passed so Link stops asking for a number the address form already collected
+				phone: billingAddress[this.addressPhoneFieldHandle] ?? '',
 				address: {
 					country: billingAddress.countryCode ?? '',
 					line1: billingAddress.addressLine1 ?? '',
@@ -387,7 +389,7 @@ export const gatewayHandling = () => ({
 	},
 
 	invalidateStripeCheckout() {
-		const form = this.$root.querySelector('.stripe-payment-elements-form');
+		const form = this.rootEl.querySelector('.stripe-payment-elements-form');
 		if (!form) {
 			return;
 		}
@@ -423,7 +425,7 @@ export const gatewayHandling = () => ({
 			return;
 		}
 
-		const form = this.$root.querySelector('.stripe-payment-elements-form');
+		const form = this.rootEl.querySelector('.stripe-payment-elements-form');
 
 		if (!form) {
 			return;
@@ -463,7 +465,7 @@ export const gatewayHandling = () => ({
 
 		this.stripeInvalidated = false;
 
-		if (!this.$root.querySelector('.stripe-payment-elements-form')) {
+		if (!this.rootEl.querySelector('.stripe-payment-elements-form')) {
 			return;
 		}
 
@@ -482,9 +484,7 @@ export const gatewayHandling = () => ({
 	},
 
 	retryStripeIfNeeded() {
-		const error = this.$refs.paymentForm?.querySelector(
-			'.stripe-error-message'
-		);
+		const error = this.paymentFormEl?.querySelector('.stripe-error-message');
 		if (!error?.textContent?.trim() || typeof initStripe !== 'function') {
 			return;
 		}
@@ -500,7 +500,7 @@ export const gatewayHandling = () => ({
 		}
 
 		// Commerce renders this wrapper with the gateway form
-		const wrapper = this.$root.querySelector('.paypal-rest-form');
+		const wrapper = this.rootEl.querySelector('.paypal-rest-form');
 		if (!wrapper) {
 			// A missing wrapper means this gateway is not selected, so stop early
 			if (attempt >= 5) {

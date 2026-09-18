@@ -27,6 +27,7 @@ use craft\fieldlayoutelements\addresses\OrganizationTaxIdField;
 use craft\fieldlayoutelements\BaseField;
 use craft\fieldlayoutelements\CustomField;
 use craft\fieldlayoutelements\FullNameField;
+use craft\helpers\App;
 use craft\helpers\StringHelper;
 use craft\web\Request as WebRequest;
 use DateTime;
@@ -340,6 +341,17 @@ class Checkout extends Component
 		}
 
 		return $user->email === $order->email;
+	}
+
+	/**
+	 * The Klaviyo list the subscribe checkbox adds customers to, which is set as an env var name
+	 * more often than as the ID itself.
+	 */
+	public function klaviyoListId(): ?string
+	{
+		$listId = trim((string) App::parseEnv($this->settings()->options->klaviyoListId));
+
+		return $listId === '' ? null : $listId;
 	}
 
 	public function addressFormatter(): CheckoutAddressFormatter

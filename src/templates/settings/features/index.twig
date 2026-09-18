@@ -35,12 +35,13 @@
 	}) }}
 
 	{% set klaviyoPinned = 'options.klaviyoListId' in overriddenSettings %}
-	{{ forms.textField({
+	{{ forms.autosuggestField({
 		label: 'settings.features.klaviyoListId'|t('foster-checkout'),
 		instructions: 'settings.features.klaviyoListIdHelp'|t('foster-checkout'),
 		id: 'options-klaviyo-list-id',
 		name: 'settings[options][klaviyoListId]',
 		value: settings.options.klaviyoListId,
+		suggestEnvVars: true,
 		disabled: readOnly or klaviyoPinned,
 		warning: klaviyoPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'options.klaviyoListId' }),
 	}) }}

@@ -7,15 +7,22 @@
 - Added **Saved address limit** at **Checkout -> Addresses**, capping how many of a customer's saved addresses the checkout offers, most recently updated first and always including their primary address.
 - Added **Klaviyo tracking** at **Checkout -> Features**, which decides whether the checkout reports to Klaviyo and offers the newsletter checkbox.
 - Added **Phone field** at **Checkout -> Addresses**, naming the address field that holds a phone number so its input asks for a phone keypad.
-- Added **Summary include** at **Checkout -> General**, a template given the cart and rendered in its own container above the checkout summary.
+- Added **Summary include** at **Checkout -> General**, a template given the cart and rendered in its own container above the checkout summary, on both checkout layouts. It is given the step it is rendering on, so a message can be shown on one step only.
 - Added **Header text color** at **Checkout -> Appearance**, used for the cart link and for the store name a header without a logo falls back to.
 - Added a cart link to the checkout header on the checkout steps.
+- Added `craft.fostercheckout.klaviyoListId()`, the Klaviyo list ID with any environment variable resolved.
 - Added `craft.fostercheckout.customerAddresses()`, the saved addresses the checkout offers a customer.
 - Added `craft.fostercheckout.addressPostalCodeInputModes()`, the `inputmode` each country's postal code field takes.
 - Added **Default country** at **Checkout -> Addresses**, the country a new address starts on.
 - Added **Image size** and **Image fit** at **Checkout -> Line Items**, sizing the cart image and choosing whether it is shown whole or cropped to a square. Narrow screens use half the size.
 - Added **Logo height** at **Checkout -> Appearance**.
-- Added **Create account description** at **Checkout -> Content**, shown under the create account checkbox. Blank shows nothing.
+- Added **Create account description** at **Checkout -> Notes & Links**, shown under the create account checkbox. Blank shows nothing.
+- Added **Payment method layout** on a Stripe gateway at **Checkout -> Gateways**, choosing whether its payment element lists the payment methods as tabs, as an accordion, or however Stripe decides.
+- Added **Include Link** on a Stripe gateway at **Checkout -> Gateways**, which decides whether Stripe's payment element offers Link.
+- Added **Payment method order** on a Stripe gateway at **Checkout -> Gateways**, ranking the payment method types its payment element lists. A type Stripe is not offering is skipped, and one left out follows the ranked ones.
+- Added **Hidden funding sources** and **Extra funding sources** on a PayPal gateway at **Checkout -> Gateways**, choosing which funding sources its buttons offer.
+- Added **Turned away card brands** on a PayPal gateway at **Checkout -> Gateways**. PayPal has deprecated the option it writes, so it may stop working.
+- Added **Locale** and **SDK components** on a PayPal gateway at **Checkout -> Gateways**.
 
 ### Changed
 
@@ -33,8 +40,12 @@
 - The voucher form accepts gift voucher codes only, and posts to `foster-checkout/voucher/add-code`. Gift Voucher's own action applies a Commerce coupon code entered there, replacing the order's coupon and still reporting the voucher as failed. A template overriding the payment step needs the new action.
 - A panel now says an email address is needed before the checkout can save a guest's cart, instead of leaving the panel unchanged.
 - The newsletter checkbox sits above the create account checkbox.
+- **Klaviyo list ID** at **Checkout -> Features** suggests environment variables and resolves one before rendering, the way Craft's own settings do. A config file no longer has to read the variable itself.
 - The discount code heading no longer repeats the applied code, which the row beneath it already names.
 - A coupon's name is left out where it matches the code itself.
+- The Stripe payment element takes `layout.type` from **Payment method layout** and `wallets.link` from **Include Link**.
+- Removed **Extra parameters** and the `paymentGateways.<handle>.params` setting behind it. The keys merchants set there have their own settings on the Stripe and PayPal gateways, and `Checkout::EVENT_DEFINE_PAYMENT_FORM_PARAMS` sets any other key with PHP types. A `params` key is now logged and ignored, whether it was stored from the removed table or named in a config file. **Breaking**: a store relying on it, such as one hiding a PayPal funding source, sets the matching gateway setting instead.
+- The single page checkout no longer names a lone payment method, since there is no second one to choose between, and its form starts at the top of the panel.
 
 ### Fixed
 
@@ -51,6 +62,13 @@
 - Fixed a bug where the shipping address saved without a required custom address field, such as a phone number, leaving Commerce to reject the cart.
 - Fixed a bug where a coupon code a guest submitted before entering an email was discarded without a message.
 - Fixed a bug where a panel kept its error mark after a later save had cleared the message.
+- Fixed the shipping address not saving when only a field that does not change the shipping rate was edited, such as the street or the name.
+- Fixed a bug where the address lookup's own settings were never validated, so a config file naming an unknown provider saved without complaint and left address suggestions unavailable.
+- Fixed **Klaviyo list ID** rendering an environment variable name into the newsletter form rather than the list it names, so the signup reached Klaviyo with a list ID of `$KLAVIYO_LIST_ID`.
+- Fixed the single page checkout offering one payment method rendering no payment form when the cart already totaled zero on load.
+- Fixed the create account checkbox never switching on at the email step of the stepped checkout.
+- Fixed a JavaScript error while a coupon was applied, where the checkout read the page it is mounted on from a watched value, which Alpine re-runs without it.
+- Fixed the single page checkout letting Stripe ask for a phone number the address form had already collected, by passing the billing address phone to the payment element.
 
 ## 1.6.0 - 2026-09-14
 

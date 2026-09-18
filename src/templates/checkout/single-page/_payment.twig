@@ -154,7 +154,11 @@
 									x-show="gatewayFits($el)"
 									:class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }"
 								>
-									<div class="relative flex justify-between items-center gap-4 radio" :class="{ 'radio-muted': !canEnterPayment }">
+									<div
+										class="relative flex justify-between items-center gap-4 radio"
+										x-show="visibleGatewayCount > 1"
+										:class="{ 'radio-muted': !canEnterPayment }"
+									>
 										<input
 											id="sp_gateway_{{ gateway.id }}"
 											name="gatewayId"
@@ -173,6 +177,7 @@
 									{% if not isPaypal %}<template x-if="parseInt(gatewayId) === {{ gateway.id }}">{% endif %}
 										<div
 											{% if isPaypal %}x-show="parseInt(gatewayId) === {{ gateway.id }}" x-cloak{% endif %}
+											:class="visibleGatewayCount === 1 ? '!pt-0' : ''"
 											class="pt-8
 											[&_form]:grid [&_form]:gap-2
 											[&_fieldset]:border [&_fieldset]:border-gray-250 [&_fieldset]:rounded-lg [&_fieldset]:p-4
@@ -228,6 +233,7 @@
 											{% set params = {} %}
 
 											{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+												{% set stripeConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
 												{% set params = {
 													order: cart,
 													paymentFormType: 'elements',
@@ -243,11 +249,34 @@
 														}
 													},
 													submitButtonText: buttonText,
-													submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block'
-												}|merge(craft.fostercheckout.getManualGatewayConfig(gateway.handle).params ?? {}) %}
+													submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block',
+													elementOptions: {
+														layout: {
+															type: stripeConfig.layout|default('tabs'),
+														},
+														wallets: {
+															link: (stripeConfig.enableLink ?? true) ? 'auto' : 'never',
+														},
+													},
+												} %}
+												{# The key is left out when the list is empty, since an empty array ranks no type #}
+												{% if stripeConfig.paymentMethodOrder ?? [] %}
+													{% set params = params|merge({
+														elementOptions: params.elementOptions|merge({ paymentMethodOrder: stripeConfig.paymentMethodOrder }),
+													}) %}
+												{% endif %}
 											{% elseif gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
-												{% set gatewayConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
-												{% set params = { currency: cart.paymentCurrency }|merge(gatewayConfig.params ?? {}) %}
+												{% set paypalConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
+												{# Each list is comma joined for the SDK URL's query string #}
+												{% set paypalOptions = {
+													'disable-funding': (paypalConfig.disableFunding ?? [])|join(','),
+													'enable-funding': (paypalConfig.enableFunding ?? [])|join(','),
+													'disable-card': (paypalConfig.disableCard ?? [])|join(','),
+													locale: paypalConfig.locale ?? '',
+													components: paypalConfig.components ?? '',
+												} %}
+												{# Empty options are dropped, since the gateway sends any key it finds #}
+												{% set params = { currency: cart.paymentCurrency }|merge(paypalOptions|filter(paypalOption => paypalOption is not empty)) %}
 											{% elseif gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
 												{% set isManualGateway = true %}
 												{% set manualFields = craft.fostercheckout.gatewayFields(gateway.handle, cart) %}

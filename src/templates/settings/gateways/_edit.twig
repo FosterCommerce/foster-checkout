@@ -6,9 +6,6 @@
 {% set title = gateway.name %}
 {% set docTitle = title %}
 
-{# The field layout is stored outside plugin settings, so a config file cannot override it #}
-{% set paramsSetting = 'paymentGateways.' ~ gateway.handle ~ '.params' %}
-{% set optionsOverridden = paramsSetting in overriddenSettings %}
 {% set readOnly = not craft.app.config.general.allowAdminChanges %}
 {% set fullPageForm = not readOnly %}
 
@@ -23,9 +20,19 @@
 	{ label: 'nav.gateways'|t('foster-checkout'), url: url('foster-checkout/settings/gateways') },
 ] %}
 
-{% set paramRows = [] %}
-{% for paramKey, paramValue in (gatewayConfig ? gatewayConfig.params : {}) %}
-	{% set paramRows = paramRows|merge([{ key: paramKey, value: paramValue }]) %}
+{% set methodRows = [] %}
+{% for methodType in (gatewayConfig ? gatewayConfig.paymentMethodOrder : []) %}
+	{% set methodRows = methodRows|merge([{ type: methodType }]) %}
+{% endfor %}
+
+{% set fundingOptions = [] %}
+{% for fundingSource in constant('fostercommerce\\fostercheckout\\models\\PaymentGatewayConfig::FUNDING_SOURCES') %}
+	{% set fundingOptions = fundingOptions|merge([{ label: fundingSource, value: fundingSource }]) %}
+{% endfor %}
+
+{% set cardOptions = [] %}
+{% for cardBrand in constant('fostercommerce\\fostercheckout\\models\\PaymentGatewayConfig::CARD_BRANDS') %}
+	{% set cardOptions = cardOptions|merge([{ label: cardBrand, value: cardBrand }]) %}
 {% endfor %}
 
 {% block content %}
@@ -60,25 +67,138 @@
 		disabled: readOnly,
 	}) }}
 
-	<hr>
+	{% if className(gateway) == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+		<hr>
 
-	{{ forms.editableTableField({
-		label: 'settings.gateways.params'|t('foster-checkout'),
-		instructions: 'settings.gateways.paramsHelp'|t('foster-checkout'),
-		id: 'params',
-		name: 'params',
-		cols: {
-			key: { heading: 'settings.gateways.paramKey'|t('foster-checkout'), type: 'singleline' },
-			value: { heading: 'settings.gateways.paramValue'|t('foster-checkout'), type: 'singleline' },
-		},
-		rows: paramRows,
-		addRowLabel: 'settings.gateways.addParam'|t('foster-checkout'),
-		allowAdd: true,
-		allowDelete: true,
-		allowReorder: true,
-		static: readOnly or optionsOverridden,
-		warning: optionsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: paramsSetting }),
-	}) }}
+		<h2>{{ 'settings.gateways.stripeTitle'|t('foster-checkout') }}</h2>
+
+		{% set layoutSetting = 'paymentGateways.' ~ gateway.handle ~ '.layout' %}
+		{% set layoutOverridden = layoutSetting in overriddenSettings %}
+
+		{{ forms.selectField({
+			label: 'settings.gateways.stripeLayout'|t('foster-checkout'),
+			id: 'layout',
+			name: 'layout',
+			value: gatewayConfig ? gatewayConfig.layout : 'tabs',
+			options: [
+				{ label: 'settings.gateways.stripeLayoutTabs'|t('foster-checkout'), value: 'tabs' },
+				{ label: 'settings.gateways.stripeLayoutAccordion'|t('foster-checkout'), value: 'accordion' },
+				{ label: 'settings.gateways.stripeLayoutAuto'|t('foster-checkout'), value: 'auto' },
+			],
+			disabled: readOnly or layoutOverridden,
+			warning: layoutOverridden ? 'settings.overridden'|t('foster-checkout', { setting: layoutSetting }),
+		}) }}
+
+		{% set linkSetting = 'paymentGateways.' ~ gateway.handle ~ '.enableLink' %}
+		{% set linkOverridden = linkSetting in overriddenSettings %}
+
+		{% set orderSetting = 'paymentGateways.' ~ gateway.handle ~ '.paymentMethodOrder' %}
+		{% set orderOverridden = orderSetting in overriddenSettings %}
+
+		{{ forms.editableTableField({
+			label: 'settings.gateways.stripeMethodOrder'|t('foster-checkout'),
+			instructions: 'settings.gateways.stripeMethodOrderHelp'|t('foster-checkout'),
+			id: 'paymentMethodOrder',
+			name: 'paymentMethodOrder',
+			cols: {
+				type: { heading: 'settings.gateways.stripeMethodType'|t('foster-checkout'), type: 'singleline' },
+			},
+			rows: methodRows,
+			addRowLabel: 'settings.gateways.stripeAddMethod'|t('foster-checkout'),
+			allowAdd: true,
+			allowDelete: true,
+			allowReorder: true,
+			static: readOnly or orderOverridden,
+			warning: orderOverridden ? 'settings.overridden'|t('foster-checkout', { setting: orderSetting }),
+		}) }}
+
+		{{ forms.lightswitchField({
+			label: 'settings.gateways.stripeLink'|t('foster-checkout'),
+			instructions: 'settings.gateways.stripeLinkHelp'|t('foster-checkout'),
+			id: 'enableLink',
+			name: 'enableLink',
+			on: gatewayConfig ? gatewayConfig.enableLink : true,
+			disabled: readOnly or linkOverridden,
+			warning: linkOverridden ? 'settings.overridden'|t('foster-checkout', { setting: linkSetting }),
+		}) }}
+	{% endif %}
+
+	{% if className(gateway) == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
+		<hr>
+
+		<h2>{{ 'settings.gateways.paypalTitle'|t('foster-checkout') }}</h2>
+
+		{% set disableFundingSetting = 'paymentGateways.' ~ gateway.handle ~ '.disableFunding' %}
+		{% set disableFundingOverridden = disableFundingSetting in overriddenSettings %}
+
+		{{ forms.checkboxSelectField({
+			label: 'settings.gateways.paypalDisableFunding'|t('foster-checkout'),
+			instructions: 'settings.gateways.paypalDisableFundingHelp'|t('foster-checkout'),
+			id: 'disableFunding',
+			name: 'disableFunding',
+			options: fundingOptions,
+			values: gatewayConfig ? gatewayConfig.disableFunding : [],
+			disabled: readOnly or disableFundingOverridden,
+			warning: disableFundingOverridden ? 'settings.overridden'|t('foster-checkout', { setting: disableFundingSetting }),
+		}) }}
+
+		{% set enableFundingSetting = 'paymentGateways.' ~ gateway.handle ~ '.enableFunding' %}
+		{% set enableFundingOverridden = enableFundingSetting in overriddenSettings %}
+
+		{{ forms.checkboxSelectField({
+			label: 'settings.gateways.paypalEnableFunding'|t('foster-checkout'),
+			instructions: 'settings.gateways.paypalEnableFundingHelp'|t('foster-checkout'),
+			id: 'enableFunding',
+			name: 'enableFunding',
+			options: fundingOptions,
+			values: gatewayConfig ? gatewayConfig.enableFunding : [],
+			disabled: readOnly or enableFundingOverridden,
+			warning: enableFundingOverridden ? 'settings.overridden'|t('foster-checkout', { setting: enableFundingSetting }),
+		}) }}
+
+		{% set disableCardSetting = 'paymentGateways.' ~ gateway.handle ~ '.disableCard' %}
+		{% set disableCardOverridden = disableCardSetting in overriddenSettings %}
+
+		{{ forms.checkboxSelectField({
+			label: 'settings.gateways.paypalDisableCard'|t('foster-checkout'),
+			instructions: 'settings.gateways.paypalDisableCardHelp'|t('foster-checkout'),
+			id: 'disableCard',
+			name: 'disableCard',
+			options: cardOptions,
+			values: gatewayConfig ? gatewayConfig.disableCard : [],
+			disabled: readOnly or disableCardOverridden,
+			warning: disableCardOverridden ? 'settings.overridden'|t('foster-checkout', { setting: disableCardSetting }),
+		}) }}
+
+		{% set localeSetting = 'paymentGateways.' ~ gateway.handle ~ '.locale' %}
+		{% set localeOverridden = localeSetting in overriddenSettings %}
+
+		{{ forms.textField({
+			label: 'settings.gateways.paypalLocale'|t('foster-checkout'),
+			instructions: 'settings.gateways.paypalLocaleHelp'|t('foster-checkout'),
+			id: 'locale',
+			name: 'locale',
+			value: gatewayConfig ? gatewayConfig.locale : '',
+			placeholder: 'en_US',
+			disabled: readOnly or localeOverridden,
+			warning: localeOverridden ? 'settings.overridden'|t('foster-checkout', { setting: localeSetting }),
+		}) }}
+
+		{% set componentsSetting = 'paymentGateways.' ~ gateway.handle ~ '.components' %}
+		{% set componentsOverridden = componentsSetting in overriddenSettings %}
+
+		{{ forms.textField({
+			label: 'settings.gateways.paypalComponents'|t('foster-checkout'),
+			instructions: 'settings.gateways.paypalComponentsHelp'|t('foster-checkout'),
+			id: 'components',
+			name: 'components',
+			value: gatewayConfig ? gatewayConfig.components : '',
+			placeholder: 'buttons',
+			disabled: readOnly or componentsOverridden,
+			warning: componentsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: componentsSetting }),
+		}) }}
+	{% endif %}
+
 	{% include 'foster-checkout/_includes/plugin-footer' %}
 
 {% endblock %}

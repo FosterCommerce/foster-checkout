@@ -37,11 +37,12 @@ return [
 	// (needs the AvaTax plugin with its own address validation turned on)
 	// 'enableAddressVerification' => false, // true|false
 
-	// The Klaviyo list ID to subscribe the customer to
 	// Whether the checkout reports to Klaviyo. Needs the Klaviyo Connect Plus plugin.
 	// 'enableKlaviyoTracking' => false,
 
-	// 'klaviyoListId' => null,
+	// The Klaviyo list the subscribe checkbox adds customers to. Name an env var to keep each
+	// environment on its own list. Edited at Checkout -> Features unless it is set here.
+	// 'klaviyoListId' => '$KLAVIYO_LIST_ID',
 
 	// The text to display for the subscribe checkbox. Can also be a plain string, or a callable which returns a string
 	// 'subscribe' => [
@@ -217,23 +218,33 @@ return [
 	// ],
 	// Products whose variants never ship, as a Commerce product condition. Their orders skip the
 	// shipping address and method at checkout and count as not shippable for Commerce and Postie.
-	// Build it at Checkout -> Products and copy the project config value, or leave it to the CP.
+	// Build it at Checkout -> Addresses and copy the project config value, or leave it to the CP.
 	// 'notShippableProducts' => [],
 
 	// Payment Gateways: keyed by the payment gateway handle configured in Craft Commerce.
 	// Which fields a gateway asks for is a field layout, edited at Checkout -> Gateways, not config.
-	// A note may be a closure when it needs to be computed; otherwise it is edited at Checkout -> Content.
+	// A note may be a closure when it needs to be computed; otherwise it is edited at Checkout -> Notes & Links.
 	// Example:
 	// /*
 	// 'myGatewayHandle' => [
 	// What the checkout calls the gateway. Leave it out to use the gateway's own name.
 	// 'label' => 'Secure payment',
+	// How Stripe's payment element lists the payment methods. Stripe gateways only.
+	// 'layout' => 'tabs', // tabs|accordion|auto
+	// Whether Stripe offers Link, which saves a customer's details against their phone number. Stripe gateways only.
+	// 'enableLink' => true, // true|false
+	// Stripe payment method types in the order the payment element lists them. Stripe gateways only.
+	// 'paymentMethodOrder' => ['card', 'apple_pay', 'google_pay', 'affirm'],
+	// Funding sources PayPal leaves off its buttons, and ones it adds. PayPal gateways only.
+	// 'disableFunding' => ['paylater', 'credit'],
+	// 'enableFunding' => ['venmo'],
+	// Card brands PayPal's own card fields turn away. PayPal gateways only, and PayPal has deprecated it.
+	// 'disableCard' => ['amex'],
+	// The language PayPal's buttons use. Empty lets PayPal pick from the buyer's country. PayPal gateways only.
+	// 'locale' => 'en_US',
+	// PayPal SDK components to load. Empty loads PayPal's own default. PayPal gateways only.
+	// 'components' => 'buttons,messages',
 	// 'note' => static fn (array $context): string => 'Computed note',
-	// 'params' => [
-	// Extra params merged into the gateway's payment form params.
-	// For PayPal Checkout, these become PayPal SDK URL options (e.g. disable-funding, enable-funding, intent).
-	// 'disable-funding' => 'paylater,credit',
-	// ],
 	// ]
 	// */
 	// 'paymentGateways' => [],

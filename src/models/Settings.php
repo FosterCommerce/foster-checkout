@@ -202,7 +202,8 @@ class Settings extends Model
 		return [
 			['includes', 'validateIncludes'],
 			['defaultCountryCode', 'validateDefaultCountryCode'],
-			[['branding', 'lineItems'], 'validateConfigNode'],
+			[['branding', 'lineItems', 'addressLookup'], 'validateConfigNode'],
+			['paymentGateways', 'validateGatewayNodes'],
 		];
 	}
 
@@ -246,6 +247,26 @@ class Settings extends Model
 		foreach ($config->getFirstErrors() as $name => $error) {
 			// Keyed per setting so the error renders under the field that holds the bad value
 			$this->addError("{$attribute}.{$name}", $error);
+		}
+	}
+
+	/**
+	 * Each gateway holds its own config model, so the node validator cannot take the attribute whole.
+	 */
+	public function validateGatewayNodes(string $attribute): void
+	{
+		/** @var array<string, PaymentGatewayConfig> $gatewayConfigs */
+		$gatewayConfigs = $this->{$attribute};
+
+		foreach ($gatewayConfigs as $gatewayHandle => $gatewayConfig) {
+			if ($gatewayConfig->validate()) {
+				continue;
+			}
+
+			foreach ($gatewayConfig->getFirstErrors() as $name => $error) {
+				// Keyed per setting so the error renders under the field that holds the bad value
+				$this->addError("{$attribute}.{$gatewayHandle}.{$name}", $error);
+			}
 		}
 	}
 

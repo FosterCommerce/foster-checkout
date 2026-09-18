@@ -9,7 +9,7 @@ Every setting is editable in the control panel under **Checkout**. A site may al
 | **Appearance** | `branding`, `options.enableSinglePageCheckout` and `options.enablePageTransitions` | Whether the checkout runs as one page or separate steps, whether steps animate, and the brand color, header background, header text color, Google font family, logo path, logo height, component style, field label placement and title prefix |
 | **Features** | `options.enableKlaviyoTracking`, `options.klaviyoListId`, `enableCustomerPickup` and `customerPickupLabel` | Klaviyo tracking and the Klaviyo list ID, whether the shipping address choices include the store location, and the delivery date copy, shown read-only. The newsletter checkbox needs tracking on, a list ID and the Klaviyo Connect Plus plugin. See [customer pickup](../user-guide/customer-pickup.md) and [integrations](./integrations.md) |
 | **Line Items** | `lineItems`, `products` and `lineItemOptionRules` | Which field each product type's preview image comes from, how big a line item image is and how it fills its box, whether a placeholder stands in for a missing one, whether save for later is offered, whether a line item shows its SKU and its stock count, whether its options are shown, which option names are hidden, how far option values are cut, and the rules that rewrite an option's name and value |
-| **Gateways** | `paymentGateways` and `zeroValueGatewayHandles` | Per gateway: the name customers see, a field layout, and extra payment form parameters. Also which gateways an order totalling zero may be paid with |
+| **Gateways** | `paymentGateways` and `zeroValueGatewayHandles` | Per gateway: the name customers see and a field layout. A Stripe gateway also sets how its payment element lists the payment methods, their order, and whether Link is included. A PayPal gateway also sets which funding sources its buttons offer, which card brands its card fields take, plus the locale and SDK components. Also which gateways an order totaling zero may be paid with |
 | **Custom Fields** | `customerOrderNotesFieldHandle` and the checkout field layouts | The extra fields shown at each checkout position, and the field on Orders holding a customer's note. Blank hides the order notes form |
 | **Addresses** | the keys in the next table, `notShippableProducts`, `addressLookup` and `options.enableAddressVerification` | Which products need no address at all, what the checkout asks for on an address, whether Avalara verifies it, and where address suggestions come from. A not-shippable product's order skips the shipping address and method, and Commerce and shipping plugins leave it out. See [address fields](../user-guide/address-fields.md) |
 | **General** | `paths` and the keys below | Cart, checkout, account and cancel paths, plus the built-in cart template switch |
@@ -58,11 +58,11 @@ Every setting and its default, as the plugin ships.
 | Verify shipping addresses | `options.enableAddressVerification` | `false` |
 | Klaviyo tracking | `options.enableKlaviyoTracking` | `false` |
 | Shipping estimator | `options.enableEstimatedShipping` | `false` |
-| Klaviyo list ID | `options.klaviyoListId` | none |
+| Klaviyo list ID | `options.klaviyoListId` | none. Takes an env var name, such as `$KLAVIYO_LIST_ID` |
 | Payment due date field | `options.paymentDueDateFieldHandle` | none |
 | Address suggestions | `addressLookup.enabled` | `false` |
 | Suggestion provider | `addressLookup.provider` | `google` |
-| Suggestion API key | `addressLookup.apiKey` | none |
+| Suggestion API key | `addressLookup.apiKey` | none. Takes an env var name, such as `$FC_ADDRESS_LOOKUP_KEY` |
 | Image size | `lineItems.imageSize` | `150`, so narrow screens use 75. Accepts 40 to 200 |
 | Image fit | `lineItems.imageFit` | `contain` |
 | Placeholder images | `lineItems.enablePlaceholderImages` | `false` |
@@ -107,7 +107,14 @@ Every setting and its default, as the plugin ships.
 | Payment gateways | `paymentGateways` | empty |
 | Gateway name customers see | `paymentGateways.<handle>.label` | empty, so the gateway's own name is used |
 | Gateway note | `paymentGateways.<handle>.note` | empty |
-| Gateway payment form params | `paymentGateways.<handle>.params` | empty |
+| Payment method layout (Stripe) | `paymentGateways.<handle>.layout` | `tabs`. One of `tabs`, `accordion` or `auto` |
+| Payment method order (Stripe) | `paymentGateways.<handle>.paymentMethodOrder` | empty |
+| Include Link (Stripe) | `paymentGateways.<handle>.enableLink` | `true` |
+| Hidden funding sources (PayPal) | `paymentGateways.<handle>.disableFunding` | empty. Takes the [funding sources](https://developer.paypal.com/sdk/js/configuration/#disable-funding) PayPal lists |
+| Extra funding sources (PayPal) | `paymentGateways.<handle>.enableFunding` | empty. Takes the same values |
+| Turned away card brands (PayPal) | `paymentGateways.<handle>.disableCard` | empty. PayPal has deprecated this one |
+| Locale (PayPal) | `paymentGateways.<handle>.locale` | empty |
+| SDK components (PayPal) | `paymentGateways.<handle>.components` | empty |
 
 Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig`, `options.paymentDueDateFieldHandle`, `lineItems.imagerXConfig`, `options.enableEstimatedShipping`, `options.deliveryDate.estimate` and `options.deliveryDate.display`.
 
