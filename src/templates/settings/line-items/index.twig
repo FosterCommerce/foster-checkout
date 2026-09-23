@@ -64,6 +64,8 @@
 		warning: 'products' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'products' }),
 	}) }}
 
+	{# The checkout line item hardcodes its image size #}
+	{% if settings.paths.useCartTemplate %}
 	{{ forms.textField({
 		label: 'settings.lineItemOptions.imageSize'|t('foster-checkout'),
 		instructions: 'settings.lineItemOptions.imageSizeHelp'|t('foster-checkout'),
@@ -79,6 +81,7 @@
 		disabled: readOnly or 'lineItems.imageSize' in overriddenSettings,
 		warning: 'lineItems.imageSize' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.imageSize' }),
 	}) }}
+	{% endif %}
 
 	{{ forms.selectField({
 		label: 'settings.lineItemOptions.imageFit'|t('foster-checkout'),
@@ -104,6 +107,8 @@
 		warning: 'lineItems.enablePlaceholderImages' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.enablePlaceholderImages' }),
 	}) }}
 
+	{# Only the plugin's cart renders these #}
+	{% if settings.paths.useCartTemplate %}
 	<hr>
 
 	<h2>{{ 'settings.lineItemOptions.detailsTitle'|t('foster-checkout') }}</h2>
@@ -245,9 +250,9 @@
 
 		new Craft.VueAdminTable(config);
 	{% endjs %}
-
-
 	{% endif %}
+	{% endif %}
+
 	{% include 'foster-checkout/_includes/plugin-footer' %}
 
 {% endblock %}

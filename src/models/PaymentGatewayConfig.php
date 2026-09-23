@@ -41,6 +41,67 @@ class PaymentGatewayConfig extends Model
 	];
 
 	/**
+	 * @var list<string>
+	 */
+	public const array STRIPE_METHOD_TYPES = [
+		'acss_debit',
+		'affirm',
+		'afterpay_clearpay',
+		'alipay',
+		'alma',
+		'amazon_pay',
+		'apple_pay',
+		'au_becs_debit',
+		'bacs_debit',
+		'bancontact',
+		'billie',
+		'bizum',
+		'blik',
+		'boleto',
+		'card',
+		'cashapp',
+		'crypto',
+		'customer_balance',
+		'eps',
+		'fpx',
+		'giropay',
+		'google_pay',
+		'grabpay',
+		'ideal',
+		'kakao_pay',
+		'klarna',
+		'konbini',
+		'kr_card',
+		'mb_way',
+		'mobilepay',
+		'multibanco',
+		'naver_pay',
+		'nz_bank_account',
+		'oxxo',
+		'p24',
+		'pay_by_bank',
+		'payco',
+		'paynow',
+		'paypal',
+		'payto',
+		'pix',
+		'promptpay',
+		'revolut_pay',
+		'samsung_pay',
+		'satispay',
+		'scalapay',
+		'sepa_debit',
+		'sofort',
+		'sunbit',
+		'swish',
+		'twint',
+		'upi',
+		'us_bank_account',
+		'wechat_pay',
+		'zip',
+	];
+
+	/**
 	 * Settings a config file may still name, each with what replaced it.
 	 *
 	 * @var array<string, string>
@@ -72,8 +133,8 @@ class PaymentGatewayConfig extends Model
 	public array $paymentMethodOrder = [];
 
 	/**
-	 * Whether Stripe offers Link, which saves a customer's details against their phone number for
-	 * a later checkout. You can disable it in Stripe's dashboard too.
+	 * Whether Stripe offers Link, along with the methods marked “Powered by Link”, such as Klarna,
+	 * Bank and Crypto.
 	 */
 	public bool $enableLink = true;
 

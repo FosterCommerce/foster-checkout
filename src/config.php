@@ -231,7 +231,7 @@ return [
 	// 'label' => 'Secure payment',
 	// How Stripe's payment element lists the payment methods. Stripe gateways only.
 	// 'layout' => 'tabs', // tabs|accordion|auto
-	// Whether Stripe offers Link, which saves a customer's details against their phone number. Stripe gateways only.
+	// Whether Stripe offers Link and the methods marked "Powered by Link". Stripe gateways only.
 	// 'enableLink' => true, // true|false
 	// Stripe payment method types in the order the payment element lists them. Stripe gateways only.
 	// 'paymentMethodOrder' => ['card', 'apple_pay', 'google_pay', 'affirm'],

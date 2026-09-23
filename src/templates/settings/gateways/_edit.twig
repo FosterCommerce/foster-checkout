@@ -20,9 +20,21 @@
 	{ label: 'nav.gateways'|t('foster-checkout'), url: url('foster-checkout/settings/gateways') },
 ] %}
 
+{% set knownMethodTypes = constant('fostercommerce\\fostercheckout\\models\\PaymentGatewayConfig::STRIPE_METHOD_TYPES') %}
+
+{% set methodOptions = [] %}
+{% for methodType in knownMethodTypes %}
+	{% set methodOptions = methodOptions|merge([{ label: methodType, value: methodType }]) %}
+{% endfor %}
+
 {% set methodRows = [] %}
 {% for methodType in (gatewayConfig ? gatewayConfig.paymentMethodOrder : []) %}
 	{% set methodRows = methodRows|merge([{ type: methodType }]) %}
+
+	{# List a saved unknown type, or the select would show the first option in its place #}
+	{% if methodType not in methodOptions|column('value') %}
+		{% set methodOptions = methodOptions|merge([{ label: methodType, value: methodType }]) %}
+	{% endif %}
 {% endfor %}
 
 {% set fundingOptions = [] %}
@@ -101,7 +113,7 @@
 			id: 'paymentMethodOrder',
 			name: 'paymentMethodOrder',
 			cols: {
-				type: { heading: 'settings.gateways.stripeMethodType'|t('foster-checkout'), type: 'singleline' },
+				type: { heading: 'settings.gateways.stripeMethodType'|t('foster-checkout'), type: 'select', options: methodOptions },
 			},
 			rows: methodRows,
 			addRowLabel: 'settings.gateways.stripeAddMethod'|t('foster-checkout'),

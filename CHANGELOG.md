@@ -18,7 +18,7 @@
 - Added **Logo height** at **Checkout -> Appearance**.
 - Added **Create account description** at **Checkout -> Notes & Links**, shown under the create account checkbox. Blank shows nothing.
 - Added **Payment method layout** on a Stripe gateway at **Checkout -> Gateways**, choosing whether its payment element lists the payment methods as tabs, as an accordion, or however Stripe decides.
-- Added **Include Link** on a Stripe gateway at **Checkout -> Gateways**, which decides whether Stripe's payment element offers Link.
+- Added **Include Link** on a Stripe gateway at **Checkout -> Gateways**, which decides whether Stripe's payment element offers Link and the payment methods marked “Powered by Link”.
 - Added **Payment method order** on a Stripe gateway at **Checkout -> Gateways**, ranking the payment method types its payment element lists. A type Stripe is not offering is skipped, and one left out follows the ranked ones.
 - Added **Hidden funding sources** and **Extra funding sources** on a PayPal gateway at **Checkout -> Gateways**, choosing which funding sources its buttons offer.
 - Added **Turned away card brands** on a PayPal gateway at **Checkout -> Gateways**. PayPal has deprecated the option it writes, so it may stop working.
@@ -40,6 +40,7 @@
 - The voucher form accepts gift voucher codes only, and posts to `foster-checkout/voucher/add-code`. Gift Voucher's own action applies a Commerce coupon code entered there, replacing the order's coupon and still reporting the voucher as failed. A template overriding the payment step needs the new action.
 - A panel now says an email address is needed before the checkout can save a guest's cart, instead of leaving the panel unchanged.
 - The newsletter checkbox sits above the create account checkbox.
+- When **Use the built-in cart template** is off, **Checkout -> Line Items** now hides the settings only that template uses. A hidden setting keeps its stored value.
 - **Klaviyo list ID** at **Checkout -> Features** suggests environment variables and resolves one before rendering, the way Craft's own settings do. A config file no longer has to read the variable itself.
 - The discount code heading no longer repeats the applied code, which the row beneath it already names.
 - A coupon's name is left out where it matches the code itself.
