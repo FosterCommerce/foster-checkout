@@ -1,7 +1,4 @@
-{% set subscribeText = craft.fostercheckout.subscribeText()|striptags|trim %}
 {% set createAccountText = craft.fostercheckout.createAccountText()|striptags|trim %}
-{% set klaviyoListId = craft.fostercheckout.klaviyoListId() %}
-{% set klaviyoEnabled = craft.fostercheckout.klaviyoTrackingEnabled(cart) %}
 {% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 
 <section
@@ -32,6 +29,12 @@
 			{% endif %}
 			{# The signed-in branch renders no email form, so these declare their own collect block #}
 			{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'email', panel: 'contact', showRequired: true } %}
+			{% set subscribeCheckbox = include('foster-checkout/_components/app/subscribe-checkbox') %}
+			{% if subscribeCheckbox|trim %}
+				<div class="mt-4" data-fc-collect @change="saveIfValid('contact', $event)">
+					{{ subscribeCheckbox|raw }}
+				</div>
+			{% endif %}
 		</div>
 	{% else %}
 	<div
@@ -62,26 +65,7 @@
 			</div>
 
 			<div class="grid grid-cols-1 gap-4">
-				{% if klaviyoEnabled and klaviyoListId and subscribeText %}
-					<div
-						x-data="{
-							subscribe: JSON.parse(localStorage.getItem(window.FC_SUBSCRIBE_KEY) ?? 'false'),
-							init() {
-								this.$watch('subscribe', v => localStorage.setItem(window.FC_SUBSCRIBE_KEY, JSON.stringify(v)))
-							}
-						}"
-						class="checkbox"
-					>
-						<input type="hidden" name="subscribe" :value="subscribe ? 1 : 0">
-						<template x-if="subscribe">
-							<input type="hidden" name="list" value="{{ klaviyoListId }}">
-						</template>
-						<input type="checkbox" id="subscribe" class="sr-only" x-model="subscribe" :aria-checked="subscribe ? 'true' : 'false'">
-						<label for="subscribe" class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500">
-							{{ subscribeText|raw }}
-						</label>
-					</div>
-				{% endif %}
+				{% include 'foster-checkout/_components/app/subscribe-checkbox' %}
 
 				<div class="checkbox" x-data="{ createAccount: {{ cart.registerUserOnOrderComplete ? 'true' : 'false' }} }">
 					<input type="hidden" name="registerUserOnOrderComplete" :value="createAccount ? 1 : 0">

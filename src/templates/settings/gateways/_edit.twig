@@ -70,14 +70,17 @@
 		warning: labelOverridden ? 'settings.overridden'|t('foster-checkout', { setting: labelSetting }),
 	}) }}
 
-	<hr>
+	{# Only a Manual gateway renders its fields at checkout #}
+	{% if className(gateway) == 'craft\\commerce\\gateways\\Manual' %}
+		<hr>
 
-	<p>{{ 'settings.gateways.fieldsHelp'|t('foster-checkout') }}</p>
+		<p>{{ 'settings.gateways.fieldsHelp'|t('foster-checkout') }}</p>
 
-	{{ forms.fieldLayoutDesignerField({
-		fieldLayout: fieldLayout,
-		disabled: readOnly,
-	}) }}
+		{{ forms.fieldLayoutDesignerField({
+			fieldLayout: fieldLayout,
+			disabled: readOnly,
+		}) }}
+	{% endif %}
 
 	{% if className(gateway) == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
 		<hr>

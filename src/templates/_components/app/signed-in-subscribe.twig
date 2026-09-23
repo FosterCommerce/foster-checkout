@@ -1,0 +1,14 @@
+{% set subscribeCheckbox = include('foster-checkout/_components/app/subscribe-checkbox') %}
+
+{% if subscribeCheckbox|trim %}
+	{% include 'foster-checkout/_components/app/subscribe-storage-key' with { site: currentSite } %}
+
+	{# Listen on the step's form, since x-data on the form would take over the page's x-refs #}
+	<div
+		class="mt-6"
+		x-data="CheckoutTracking({ email: {{ cart.email|json_encode }}, trackStartedCheckout: false })"
+		x-init="$el.closest('form').addEventListener('submit', () => track())"
+	>
+		{{ subscribeCheckbox|raw }}
+	</div>
+{% endif %}

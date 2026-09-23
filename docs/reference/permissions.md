@@ -15,7 +15,7 @@ Every user needs Craft's own `accessPlugin-foster-checkout` to open any of these
 
 `editContent` is nested under `viewContent` in the permissions screen, so it cannot be checked on its own there. Craft does not imply the parent at runtime, so a permission granted outside the control panel is checked on its own.
 
-`editContent` grants code execution: checkout copy is rendered as Twig, so anyone who can edit it can run code on the server. Treat it as equivalent to template access. It is assignable rather than admin-only so each build can decide who gets it.
+`editContent` grants code execution: checkout copy is rendered as Twig, so anyone who can edit it can run code on the server. Treat it as equivalent to template access.
 
 ## Settings
 

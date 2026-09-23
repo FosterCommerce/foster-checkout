@@ -43,6 +43,7 @@
 	{% set hasMatch = cart.hasMatchingAddresses() %}
 	{% set hasBillingRecord = cart.billingAddressId is not empty %}
 	{% set isNewBilling = (not hasMatch) and (sourceBillId is null) and hasBillingRecord %}
+	{% set billingFormOnly = not collectShipping and not hasBookAddresses %}
 
 	{% set gateways = cart.getAvailableGateways() %}
 	{% set cartGatewayId = cart.gatewayId ?? (gateways|length ? (gateways|first).id : null) %}
@@ -73,7 +74,7 @@
 		lineItemTotals: live.lineItemTotals,
 		billingSameAsShipping: (hasMatch and collectShipping and not customerPickup) ? true : false,
 		billingAddressId: hasMatch ? null : sourceBillId,
-		useNewBillingAddress: isNewBilling ? true : false,
+		useNewBillingAddress: (isNewBilling or billingFormOnly) ? true : false,
 		gatewayId: initialGatewayId,
 		hasShippingAddress: cart.shippingAddressId ? true : false,
 		couponCode: cart.couponCode ?? '',

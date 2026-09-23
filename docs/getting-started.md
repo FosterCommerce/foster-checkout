@@ -1,8 +1,8 @@
 # Getting started
 
-This walks you from `composer require` to a checkout your customers can use, in about twenty minutes.
+This walks you from `composer require` to a checkout your customers can use.
 
-By the end you will have the cart and checkout on your own URLs, styled to your brand, with your own copy, and you will know which screen to open when you want to change something.
+By the end, the cart and checkout are on your own URLs, styled to your brand, with your own copy, and you know which screen to open to change each part.
 
 ## 1. Install
 
@@ -15,7 +15,7 @@ Craft Commerce must already be installed with at least one payment gateway confi
 
 ## 2. Set your paths
 
-Open **Checkout -> General**. Set the cart and checkout paths to where you want them, for example `shop/cart` and `shop/checkout`.
+Open **Checkout -> General**. Set **Cart path** and **Checkout path** to where you want them, for example `shop/cart` and `shop/checkout`.
 
 Visit the checkout path. You should see the contact step, or a redirect to the cart if the cart is empty. Add a product and try again.
 
@@ -23,31 +23,39 @@ Visit the checkout path. You should see the contact step, or a redirect to the c
 
 Open **Checkout -> Appearance**. **Checkout layout** switches between separate steps and one page. Multi-page is the default.
 
-Reload the checkout. On single-page you see contact, delivery, shipping and payment together, with the summary beside them. See [single-page checkout](./user-guide/single-page-checkout.md).
+Reload the checkout. On single-page you see the **Contact information**, **Shipping address**, **Shipping method** and **Payment** panels together, with the order summary beside them. See [single-page checkout](./user-guide/single-page-checkout.md).
 
 ## 4. Brand it
 
-Open **Checkout -> Appearance**. Set the brand color, header background, logo path, logo height and Google font. Corner style switches every component between rounded and square.
+Open **Checkout -> Appearance**. Set **Brand color**, **Header background color**, **Header text color**, **Font**, **Logo** and **Logo height**. **Component style** switches every component between **Rounded** and **Flat**.
 
-Reload the checkout. The buttons and links now use your brand color.
+Reload the checkout. The buttons and links use your brand color.
 
 ## 5. Write your copy
 
-Open **Checkout -> Notes & Links**. Every piece of text in the checkout is here: the note on each step, the newsletter label, payment method notes and the footer links.
+Open **Checkout -> Notes & Links**. Edit the note on each step, the newsletter label, the create account description, payment method notes and the footer links. See [notes and links](./user-guide/content.md).
 
-This is stored in the database rather than in project config, so it stays editable on production. See [notes and links](./user-guide/content.md).
+Reload the checkout. Each step shows the note you wrote for it.
+
+Buttons, field labels and messages are translations. To change one, copy its key from the plugin's `src/translations/en/foster-checkout.php` into your site's `translations/en/foster-checkout.php` with your wording.
 
 ## 6. Decide what a line item shows
 
 Open **Checkout -> Line Items**. Turn the SKU on or off, hide options by prefix, cut long option values, and add rules that rewrite an option's name or value before a customer sees it. See [line items](./user-guide/line-items.md).
 
-## 7. Ask for anything extra
+Reload the cart. Each line shows the SKU and options as you set them.
 
-If you need something the checkout does not collect, open **Checkout -> Custom Fields** and add it to one of the five positions. The field has to exist on the order first, under **Commerce -> Settings -> Order Fields**. See [checkout fields](./user-guide/checkout-fields.md).
+## 7. Add checkout fields
+
+To collect a detail the checkout does not ask for, open **Checkout -> Custom Fields** and add it to one of the five positions. The field has to exist on the order first, under **Commerce -> Settings -> Order Fields**. See [checkout fields](./user-guide/checkout-fields.md).
+
+Reload the checkout. The field shows at the position you chose.
 
 ## 8. Set up your gateways
 
-Open **Checkout -> Gateways**. Every gateway configured in Commerce is listed. Open one to set the name customers see and add fields the customer fills in when they pick it. A Stripe gateway also sets how its payment element lists the payment methods, their order, and whether Link is included. A PayPal gateway also sets which funding sources its buttons offer, which card brands its card fields take, plus the locale and SDK components.
+Open **Checkout -> Gateways**. Every gateway configured in Commerce is listed. Open one to set the name customers see. On a Manual gateway, also add fields the customer fills in when they pick it. A Stripe gateway also sets how its payment element lists the payment methods, their order, and whether Link is included. A PayPal gateway also sets which funding sources its buttons offer, which card brands its card fields take, plus the locale and SDK components.
+
+Reload the payment step. Each gateway shows under the name you set.
 
 Place a test order to confirm payment works end to end.
 

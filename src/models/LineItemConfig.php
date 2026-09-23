@@ -47,7 +47,7 @@ class LineItemConfig extends Model
 	public bool $enablePlaceholderImages = false;
 
 	/**
-	 * Whether each line item offers a "save for later" button.
+	 * TODO: Build save for later, which has no button yet. Kept so stored settings and config files still load.
 	 */
 	public bool $enableSaveForLater = false;
 

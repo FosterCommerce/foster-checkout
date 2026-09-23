@@ -1,6 +1,8 @@
 # Notes and links
 
-All checkout copy is edited at **Checkout -> Notes & Links**. It is stored in the plugin's own database table, not project config, so it stays editable on production.
+**Checkout -> Notes & Links** holds the notes on the cart and each checkout step, the newsletter checkbox label, the create account description, payment method notes and the footer links. The plugin stores this copy in its own database table, not project config, so the copy stays editable on production.
+
+Buttons, field labels and messages are translations. To change one, see [write your copy](../getting-started.md#5-write-your-copy).
 
 ## What you can edit
 
@@ -10,10 +12,9 @@ The screen is grouped by the panel each piece of copy appears in.
 | --- | --- |
 | **Global** | The note shown on every checkout step, and the **footer links** shown at the bottom of the cart and checkout pages |
 | **Cart** | The cart note, and the one shown when the cart is empty |
-| **Account** | The note on the login and register pages |
-| **Email step** | The step's note, the **newsletter checkbox label**, and the **create account description** shown under the create account checkbox |
+| **Email step** | The step's note, the **newsletter checkbox label**, and the **create account description** shown under the create account checkbox. On the stepped checkout, a signed-in customer skips this step and sees the newsletter checkbox on the address step, or on billing when no item ships |
 | **Shipping address step** | The step's note |
-| **Shipping method step** | The step's note, and the **no shipping methods note** shown when nothing can be quoted for the address |
+| **Shipping method step** | The step's note, and the **no shipping methods note** shown when no shipping method is available for the address |
 | **Billing step** | The step's note |
 | **Payment step** | The step's note, and **payment method notes**, one per gateway configured in Commerce, shown when a customer picks that method. The name a customer reads for a gateway is set at **Checkout -> Gateways**, not here |
 | **Order confirmation** | The confirmation note |
@@ -23,22 +24,31 @@ The screen is grouped by the panel each piece of copy appears in.
 Notes accept HTML. Each one is also rendered as a Twig template, so copy can reference the cart or the order:
 
 ```twig
-<p>Your cart has {{ cart.totalQty }} item(s).</p>
+<p>{{ cart.totalQty }} items in your cart.</p>
 ```
 
-A note that references something unavailable on that page throws, so keep references to what the page has: `cart` on cart and checkout steps, `order` on the confirmation page.
+Each note receives different variables:
+
+| Copy | Receives |
+| --- | --- |
+| Cart, empty cart, step, no shipping methods, and payment method notes | `cart` |
+| Order confirmation note | `order` |
+| Global note, newsletter checkbox label, create account description | Neither |
+
+With Craft's dev mode on, a reference to a variable the note does not receive throws an error.
+
+The newsletter checkbox label and the create account description show as plain text: the checkout strips their HTML tags.
 
 Because notes run as Twig, editing them is equivalent to template access. See [permissions](../reference/permissions.md).
 
 ## Multi-site
 
-On a multi-site install a site selector appears in the breadcrumb. Copy is stored per site or per language depending on the content translation method, so switching sites shows that site's own copy. Filling one site does not fill the others.
+On a multi-site install a site selector appears in the breadcrumb. Copy is stored per site or per language depending on **Content translation method** at **Checkout -> General**, so switching sites shows that site's own copy. Filling one site does not fill the others.
 
-The selector is hidden when the translation method is `none`, since every site shares one copy.
+The selector is hidden when the translation method is **Not translatable**, since every site shares one copy.
 
 ## Footer links
 
 One row per link, with a label and a URL. Rows are reorderable, and the order is the order they appear on the storefront. A row missing either the label or the URL is dropped when you save.
 
 Footer links are hidden on an empty cart.
-

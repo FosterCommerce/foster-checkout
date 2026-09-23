@@ -4,6 +4,7 @@ import {
 	SinglePageCheckout,
 	isEmptyValue,
 	isValidEmail,
+	suggestEmail,
 } from './single-page-checkout.js';
 import { AddressAutocomplete } from './checkout/address-autocomplete.js';
 import { AddressVerification } from './checkout/address-verification.js';
@@ -35,11 +36,14 @@ const ClearableInput = (props) => {
 		success: props.success,
 		requiredError: props.requiredError || '',
 		invalidEmailError: props.invalidEmailError || '',
+		emailSuggestion: '',
+		dismissedEmailSuggestion: '',
 		showButton: false,
 		touched: (props.errors || []).length > 0,
 		props: props,
 
 		input() {
+			this.emailSuggestion = '';
 			this.showButton = this.value !== '';
 			if (this.touched || String(this.value || '').trim() !== '') {
 				this.validate(false);
@@ -53,6 +57,25 @@ const ClearableInput = (props) => {
 			this.showButton =
 				this.$refs.button === document.activeElement && this.value !== '';
 			this.validate(true);
+
+			if (this.type === 'email') {
+				const suggestion = suggestEmail(this.value);
+				this.emailSuggestion =
+					suggestion === this.dismissedEmailSuggestion ? '' : suggestion;
+			}
+		},
+		dismissEmailSuggestion() {
+			this.dismissedEmailSuggestion = this.emailSuggestion;
+			this.emailSuggestion = '';
+		},
+		useEmailSuggestion() {
+			const input = this.$refs.input;
+			this.value = this.emailSuggestion;
+			this.emailSuggestion = '';
+			input.value = this.value;
+			// Fire both, since the checkout validates on input and saves on change
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+			input.dispatchEvent(new Event('change', { bubbles: true }));
 		},
 		clear() {
 			const input = this.$refs.input;
@@ -744,16 +767,34 @@ const RadioInput = (props) => {
 const CheckoutTracking = (props) => {
 	return {
 		track() {
+			const trackStartedCheckout = props.trackStartedCheckout ?? true;
+			// The list input renders only while the box is ticked
+			const list = this.$root.querySelector('[name="list"]')?.value ?? '';
+			const subscribe = list !== '';
+
+			if (!trackStartedCheckout && !subscribe) {
+				return;
+			}
+
 			const body = new FormData();
 			body.append(window.csrfTokenName, window.csrfTokenValue);
 			body.append('action', 'klaviyo-connect-plus/api/track');
 			body.append(
 				'email',
-				this.$root.querySelector('[name="email"]')?.value ?? ''
+				this.$root.querySelector('[name="email"]')?.value ?? props.email ?? ''
 			);
-			body.append('event[name]', 'Started Checkout');
-			body.append('event[trackOrder]', '1');
-			body.append('event[orderId]', String(props.orderId ?? ''));
+
+			if (trackStartedCheckout) {
+				body.append('event[name]', 'Started Checkout');
+				body.append('event[trackOrder]', '1');
+				body.append('event[orderId]', String(props.orderId ?? ''));
+			}
+
+			// Post the subscription here, since the step's form posts only to Commerce
+			if (subscribe) {
+				body.append('list', list);
+				body.append('subscribe', '1');
+			}
 
 			fetch(window.location.href, {
 				method: 'POST',

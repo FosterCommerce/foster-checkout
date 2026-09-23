@@ -1,9 +1,31 @@
+import emailSpellChecker, { POPULAR_TLDS } from '@zootools/email-spell-checker';
 import { addressBook } from './checkout/address.js';
 import { cartPersistence } from './checkout/persistence.js';
 import { gatewayHandling } from './checkout/gateways.js';
 
 export const isValidEmail = (value) =>
-	/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+	/^[^\s@]+@[^\s@]+\.[^\s@.]{2,}$/.test(String(value || '').trim());
+
+// Leave out .co, which the spell checker otherwise picks for a mistyped .com such as hotmail.con
+const SUGGESTION_TOP_LEVEL_DOMAINS = POPULAR_TLDS.filter(
+	(topLevelDomain) => topLevelDomain !== 'co'
+);
+
+// TODO: Switch to mailcheck 2.0 once it is on npm and stops suggesting aol.com for yaho.com
+export const suggestEmail = (value) => {
+	const email = String(value || '').trim();
+	const suggestion = emailSpellChecker.run({
+		email,
+		topLevelDomains: SUGGESTION_TOP_LEVEL_DOMAINS,
+	});
+
+	if (!suggestion) {
+		return '';
+	}
+
+	// Keep the name as typed, since the spell checker lowercases it
+	return `${email.slice(0, email.lastIndexOf('@'))}@${suggestion.domain}`;
+};
 
 // Checkboxes hold a list where every other field holds a string
 export const isEmptyValue = (value) =>
@@ -661,7 +683,6 @@ export const SinglePageCheckout = (props) => {
 		shouldSubscribe(saved) {
 			return (
 				this.klaviyoEnabled &&
-				!this.loggedIn &&
 				!this.subscribed &&
 				String(saved.subscribe || '') === '1' &&
 				Boolean(saved.list) &&

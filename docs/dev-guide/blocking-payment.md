@@ -28,13 +28,13 @@ Event::on(
 );
 ```
 
-Leave `reason` null to allow payment. Several handlers may run; the last to set a reason wins.
+Leave `reason` null to allow payment. Several handlers can run; the last to set a reason wins.
 
-The single-page checkout asks again after every save and swaps the reason for the payment form as soon as a handler returns null, so a reason the customer can fix on the page, such as an empty required field, clears without a reload. The multi-page checkout asks when its payment step renders.
+The single-page checkout asks again after every save and swaps the reason for the payment form once no handler sets `reason`, so a reason the customer can fix on the page, such as an empty required field, clears without a reload. The multi-page checkout asks when its payment step renders.
 
 ## What it does not do
 
-The hook is a checkout rendering decision. A payment posted another way, from a custom template or a script, still reaches Commerce, so keep refusing it there too, with `craft\commerce\services\Payments::EVENT_BEFORE_PROCESS_PAYMENT`.
+The hook is a checkout rendering decision. Commerce still accepts a payment posted another way, from a custom template or a script, so refuse it there too, with `craft\commerce\services\Payments::EVENT_BEFORE_PROCESS_PAYMENT`.
 
 ## In Twig
 

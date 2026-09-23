@@ -2,16 +2,25 @@
 
 # Foster Checkout
 
-A drop-in **checkout** for Craft Commerce, with its copy and settings managed from the control panel.
+A **checkout** for Craft Commerce, with its copy and settings managed from the control panel.
 
 ## Overview
 
-- Ships a complete cart and checkout flow (email, address, shipping, billing, payment, confirmation) at paths you choose.
-- Lets store admins edit checkout copy on production, with no custom fields to create and map, and no developer involvement.
-- Keeps copy per site or per language on multi-site installs, so each storefront reads its own wording.
-- Puts branding, line item display, payment gateway fields, checkout fields, address handling, feature switches and paths on control panel screens, so a store can run without a config file.
-- Accepts a `foster-checkout.php` config file for developer-managed sites, which overrides the control panel one setting at a time.
-- Adds extra fields to a payment method (an account number, for example) and shows a note when a customer selects it.
+- Give your store a complete checkout (email, address, shipping, billing, payment and confirmation) at paths you choose, as separate steps or one page, with an optional cart to match.
+- Edit checkout copy on production, per site or per language, without creating custom fields.
+- Set branding, line items, gateways, addresses and features on control panel screens, or pin any setting in a `foster-checkout.php` config file.
+- Ask customers for details the checkout does not collect (a purchase order number, for example) at five points in the flow.
+- Skip the shipping address and method for services and other products that do not ship.
+- Offer your store location as a pickup address.
+- Catch mistyped addresses and email domains before the order is placed.
+
+## Use Foster Checkout when
+
+- The storefront needs a checkout, and has no templates for it yet. The cart can be the plugin's or your own.
+- Checkout wording has to change on production, where admin changes are disabled.
+- The store runs more than one site or language, and each needs its own checkout copy.
+- The catalog mixes shippable products with services that need no shipping address.
+- An order needs details Commerce does not collect, such as a purchase order number.
 
 ## Requirements
 
@@ -26,96 +35,70 @@ composer require fostercommerce/craft-foster-checkout
 ./craft plugin/install foster-checkout
 ```
 
-See [`docs/installation.md`](./docs/installation.md) for the full guide.
+For the full guide, see [installation](./docs/installation.md).
 
-## Notes and links
+## Cart and checkout
 
-The plugin stores checkout copy in its own database table rather than project config, so it stays editable on production where admin changes are disabled. Admins edit it at **Checkout -> Notes & Links**: notes for each step, payment method notes, and the footer links shown across the cart and checkout.
+Once installed, the store has a checkout at the path you choose: contact, shipping address, shipping method, billing, payment and confirmation. Use the plugin's cart, or turn off **Use the built-in cart template** at **Checkout -> General** and keep your own. Set the brand color, font, logo and component style at **Checkout -> Appearance**.
 
-Each note is rendered as a Twig template, so copy can reference the cart or the order. On a multi-site install, copy varies per site or per language depending on the content translation method.
-
-See [`docs/user-guide/content.md`](./docs/user-guide/content.md).
-
-## Settings
-
-Appearance, line items, gateways, custom fields, addresses, features and general settings each get a control panel screen under **Checkout**. Each gateway can be given the name customers see, so Stripe reads as “Secure payment” at the checkout. Anything a site sets in `config/foster-checkout.php` wins over the control panel, per key, and those fields are shown as read-only so it is clear why an edit will not take.
-
-See [`docs/reference/settings.md`](./docs/reference/settings.md).
-
-## Line items
-
-Rules rewrite what a cart line shows for an option a customer chose, so a stored `blessing: true` reads as `Blessing Services: Yes`. Each rule pairs a condition on the option's name or value with a replacement name, a replacement value, or both.
-
-Values are left alone unless a rule sets one, which keeps free text as the customer typed it. Long values can be truncated, and the SKU and stock count can each be hidden.
-
-See [`docs/user-guide/line-items.md`](./docs/user-guide/line-items.md).
-
-## Checkout fields
-
-Ask a customer for anything the checkout does not collect. Five positions across the checkout each hold a field layout, and a field added to one is shown at that point. A layout field has to exist on the order first, and a required field on the summary blocks the cart rather than payment.
-
-A module or plugin can also contribute a field of its own and store the value itself.
-
-See [`docs/user-guide/checkout-fields.md`](./docs/user-guide/checkout-fields.md) and [`docs/dev-guide/contributed-fields.md`](./docs/dev-guide/contributed-fields.md).
-
-## Checkout for another customer
-
-Let a purchasing agent check out against a company's account. Your own code sets the order's customer, and the address book, the addresses a customer saves and the contact shown then follow that customer rather than the person signed in.
-
-See [`docs/dev-guide/checkout-for-another-customer.md`](./docs/dev-guide/checkout-for-another-customer.md).
+See [getting started](./docs/getting-started.md).
 
 ## Single-page checkout
 
-Run the checkout as one page instead of separate steps. The cart saves as the customer types, and every other setting applies to both layouts, so a store can switch without reconfiguring anything.
+Run the checkout as one page instead of separate steps. The cart saves as the customer types. Every other setting applies to both layouts, so a store can switch without reconfiguring anything.
 
-See [`docs/user-guide/single-page-checkout.md`](./docs/user-guide/single-page-checkout.md).
+See [single-page checkout](./docs/user-guide/single-page-checkout.md).
 
-## Address verification and suggestions
+## Notes and links
 
-Catch a bad shipping address before it reaches fulfillment. Avalara returns a corrected address the customer can accept, or Google Places and Loqate suggest addresses as they type. Both need their own account and key.
+Edit the note on each step, payment method notes, the newsletter label and the footer links at **Checkout -> Notes & Links**. The copy stays editable on production, because the plugin stores it in its own database table instead of project config. On a multi-site install, copy varies per site or per language, following the content translation method.
 
-Which fields the address form asks for, and which of them are required, follow Craft's address field layout, with hidden and required lists of the checkout's own.
+Each note is rendered as a Twig template, so copy can reference the cart or the order. For the same reason, the **Edit checkout content** permission lets a user run code on the server.
 
-See [`docs/user-guide/address-fields.md`](./docs/user-guide/address-fields.md) and [`docs/reference/settings.md`](./docs/reference/settings.md).
+See [notes and links](./docs/user-guide/content.md).
+
+## Line items
+
+Rules rewrite what a cart line shows for an option a customer chose, so a stored `giftWrap: 1` reads as `Gift wrap: Yes`. Each rule pairs a condition on the option's name or value with a replacement name, a replacement value, or both.
+
+Values stay as the customer typed them unless a rule sets one. Long values can be cut short, and the SKU and stock count can each be hidden.
+
+See [line items](./docs/user-guide/line-items.md).
+
+## Checkout fields
+
+Ask a customer for anything the checkout does not collect, such as a purchase order number, and choose where it appears. Five positions across the checkout each hold a field layout, and a field added to one is shown at that point. A layout field has to exist on the order first.
+
+See [checkout fields](./docs/user-guide/checkout-fields.md).
+
+## Address fields
+
+Add your own fields to the address form, and choose which fields are hidden or required, starting from Craft's address field layout. Set the country a new address starts on and the countries listed first.
+
+To catch a bad address before it reaches fulfillment, Avalara returns a corrected address the customer can accept, or Google Places and Loqate suggest addresses as the customer types. Each needs its own account and key.
+
+See [address fields](./docs/user-guide/address-fields.md).
 
 ## Products that don’t require shipping
 
-Mark services, training seats and other unshippable products with a product condition, and a cart holding only those skips the shipping address and method on both layouts. Commerce and shipping plugins treat their variants as not shippable, so a mixed cart is rated on what actually ships.
+Mark services, training seats and other unshippable products with a product condition. A cart holding only those skips the shipping address and method on both layouts. Commerce and shipping plugins treat their variants as not shippable, so a mixed cart is rated on what ships.
 
-See [`docs/user-guide/products-that-dont-require-shipping.md`](./docs/user-guide/products-that-dont-require-shipping.md).
+See [products that don’t require shipping](./docs/user-guide/products-that-dont-require-shipping.md).
 
 ## Customer pickup
 
 Offer the store location as a shipping address choice, so a customer can collect an order. A pickup order ships to your own address, which a free shipping method can match by zone.
 
-See [`docs/user-guide/customer-pickup.md`](./docs/user-guide/customer-pickup.md) and [`docs/dev-guide/customer-pickup.md`](./docs/dev-guide/customer-pickup.md).
+See [customer pickup](./docs/user-guide/customer-pickup.md).
 
-## Custom includes
+## Documentation
 
-Two of your own templates can be injected into every cart and checkout page, one into the head and one before the closing body tag, for analytics, tracking pixels or support widgets. Each receives the current context, step and cart, so a single template can target one step or run across all of them.
-
-See [`docs/dev-guide/custom-includes.md`](./docs/dev-guide/custom-includes.md).
-
-## Permissions
-
-- `foster-checkout-viewContent`: view the Notes & Links screen.
-- `foster-checkout-editContent`: edit checkout copy. Copy is rendered as Twig, so this grants server-side code execution.
-- `foster-checkout-manageAppearance`: edit branding.
-- `foster-checkout-manageFeatures`: edit feature switches.
-- `foster-checkout-manageSettings`: edit line items, gateways, custom fields, addresses and general settings.
-
-Craft's own `accessPlugin-foster-checkout` is required in addition to any of the above.
-
-See [`docs/reference/permissions.md`](./docs/reference/permissions.md).
+See [Foster Checkout on fostercommerce.com](https://www.fostercommerce.com/craft-cms-plugins/foster-checkout).
 
 ## License
 
 Proprietary.
 
-## Documentation
+---
 
-See [`docs/index.md`](./docs/index.md).
-
-## Credits
-
-Brought to you by [Foster Commerce](https://fostercommerce.com).
+<a href="https://www.fostercommerce.com" target="_blank"><img src="./resources/img/foster-commerce.svg" alt="Foster Commerce" width="160" height="40"></a>

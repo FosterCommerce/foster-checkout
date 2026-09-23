@@ -109,4 +109,20 @@
 	<template x-if="success.length">
 		<p class="mt-1 text-sm text-green-500" x-text="success.join(' ')"></p>
 	</template>
+
+	{% if type|default == 'email' %}
+		{# Split around the token so the address can be styled inside the translated sentence #}
+		{% set suggestionParts = 'email.suggestion'|t('foster-checkout')|split('{email}') %}
+		<template x-if="emailSuggestion">
+			<div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-gray-500" aria-live="polite">
+				<p>{{ suggestionParts[0] }}<strong class="font-semibold text-gray-800" x-text="emailSuggestion"></strong>{{ suggestionParts[1] }}</p>
+				<button type="button" class="font-medium text-[var(--brandColor)] underline" @click="useEmailSuggestion()">
+					{{ 'email.suggestionAccept'|t('foster-checkout') }}
+				</button>
+				<button type="button" class="font-medium underline" @click="dismissEmailSuggestion()">
+					{{ 'email.suggestionDismiss'|t('foster-checkout') }}
+				</button>
+			</div>
+		</template>
+	{% endif %}
 </div>

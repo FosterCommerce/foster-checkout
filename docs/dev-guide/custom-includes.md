@@ -16,9 +16,9 @@ Three of your own templates can be injected: one into the document head, one bef
 ],
 ```
 
-The config file wins over the control panel, and setting any of the keys there makes all three fields read-only. See [settings](../reference/settings.md).
+The config file wins over the control panel. A key set there pins that one field; the others stay editable. See [settings](../reference/settings.md).
 
-A path with no template behind it is rejected when saved in the control panel. Set through the config file it is not checked, and a missing template throws on every cart and checkout page.
+Saving in the control panel rejects a **Head include** or **Body include** path with no template behind it. **Summary include** is not checked, and neither is a path set through the config file. A missing template throws on every page that renders it.
 
 ## What your template receives
 
@@ -39,16 +39,8 @@ The head and body includes render on every cart and checkout page, so branch on 
 
 ## Tips
 
-**Check `step` before anything that should happen once.** The includes run on every cart and checkout page, so a purchase event without that check fires repeatedly through the flow.
-
-```twig
-{% if step == 'confirmation' and craft.app.env == 'production' %}
-```
-
 **Only the four variables above are a contract.** The includes also inherit the surrounding template's variables, which is how `order` is reachable on the confirmation page even though the plugin never passes it. Anything beyond the four can move without warning.
 
-**Keep them cheap.** The head and body includes render on every page of the checkout, including the payment step.
-
-**The summary include renders once per page, server side.** Quantities are read-only at the checkout, so a total it reads from `cart` cannot change while the customer is on the page. Anything that has to follow a shipping method or coupon change belongs in the Alpine state instead.
+**The summary include renders once, on page load.** It does not re-render when the single-page checkout changes the shipping method or coupon.
 
 **It gets its own bordered container, and only when it renders something.** A template that outputs nothing for this cart leaves no empty box, so branch inside it rather than setting the include conditionally.

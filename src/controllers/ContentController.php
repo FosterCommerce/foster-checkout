@@ -23,14 +23,13 @@ class ContentController extends Controller
 {
 	// `customersOrderNotes` is absent: it names an order field handle, so it is developer config.
 	/**
-	 * Note keys by the panel they are shown in, which is also the order the screen lists them.
+	 * Note keys by the screen's groups, in the order the screen lists them.
 	 *
 	 * @var array<string, list<string>>
 	 */
 	private const array NOTE_GROUPS = [
 		'global' => ['globalCheckout'],
 		'cart' => ['cart', 'emptyCart'],
-		'account' => ['login'],
 		'email' => ['email', 'subscribe', 'createAccount'],
 		'shippingAddress' => ['shippingAddress'],
 		'shippingMethod' => ['shippingMethod', 'noShippingMethods'],

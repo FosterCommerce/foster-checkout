@@ -14,7 +14,7 @@ Every key is required.
 | `label` | the input's label |
 | `instructions` | help text, or null |
 | `value` | the stored value, read back from your own storage. A string, or a list of strings for `checkboxes` |
-| `required` | whether the checkout refuses to move on while the value is empty |
+| `required` | whether the input is marked required. The checkout's scripts check it in every position. On the server, only the cart page checks it, for a `summary` field; payment does not |
 | `width` | a percentage, which the grid rounds to twelfths |
 | `type` | `text`, `textarea`, `number`, `select`, `radio`, `checkbox`, `checkboxes`, `date`, `datetime-local` or `time` |
 | `placeholder`, `maxLength`, `initialRows` | text and textarea inputs only, else null |
@@ -38,6 +38,7 @@ declare(strict_types=1);
 namespace modules\projects;
 
 use craft\commerce\elements\Order;
+use craft\db\Query;
 use fostercommerce\fostercheckout\events\DefineCheckoutFieldsEvent;
 use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
 use yii\base\Event;
@@ -79,6 +80,38 @@ class Module extends BaseModule
 			}
 		);
 	}
+
+	private function storedProjectId(Order $order): string
+	{
+		$projectId = (new Query())
+			->select(['projectId'])
+			->from('{{%order_projects}}')
+			->where(['orderId' => $order->id])
+			->scalar();
+
+		return $projectId === false ? '' : (string) $projectId;
+	}
+
+	/**
+	 * @return list<array{label: string, value: string}>
+	 */
+	private function projectOptions(Order $order): array
+	{
+		$projects = (new Query())
+			->select(['id', 'title'])
+			->from('{{%projects}}')
+			->where(['customerId' => $order->getCustomerId()])
+			->orderBy(['title' => SORT_ASC])
+			->all();
+
+		return array_map(
+			static fn (array $project): array => [
+				'label' => (string) $project['title'],
+				'value' => (string) $project['id'],
+			],
+			$projects,
+		);
+	}
 }
 ```
 
@@ -88,7 +121,7 @@ class Module extends BaseModule
 | `order` | the order being rendered, or null |
 | `fields` | the position's fields so far, in render order. Append to it |
 
-`order` is null on the settings screen and when the plugin collects handles, so contribute the field either way and compute the options only when there is an order. A field at `summary` renders on the cart page and in the checkout summary, and the cart's Checkout button refuses to move on while a required one is empty.
+`order` is null on the settings screen and when the plugin collects handles, so contribute the field either way and compute the options only when there is an order. A field at `summary` renders on the cart page and in the checkout summary, and the cart's Checkout button stays disabled while a required one is empty.
 
 The event fires more than once per page, since a position's fields are listed both to render them and to check the required ones. Cache anything expensive on your side. Asking this service for a position's fields from inside the handler returns the layout's fields without firing the event again, so a handler cannot trigger itself.
 
@@ -109,6 +142,9 @@ declare(strict_types=1);
 
 namespace modules\projects;
 
+use craft\commerce\elements\Order;
+use craft\db\Query;
+use craft\helpers\Db;
 use fostercommerce\fostercheckout\events\ApplyCheckoutFieldsEvent;
 use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
 use yii\base\Event;
@@ -128,12 +164,38 @@ class Module extends BaseModule
 					return;
 				}
 
-				if (! $this->store($event->order, $event->values['projectId'])) {
+				if (! $this->storeProjectId($event->order, $event->values['projectId'])) {
 					$event->order->addError('projectId', 'That project is no longer available.');
 					$event->isValid = false;
 				}
 			}
 		);
+	}
+
+	private function storeProjectId(Order $order, mixed $projectId): bool
+	{
+		if (! is_string($projectId)) {
+			return false;
+		}
+
+		$isOffered = (new Query())
+			->from('{{%projects}}')
+			->where([
+				'id' => $projectId,
+				'customerId' => $order->getCustomerId(),
+			])
+			->exists();
+
+		if (! $isOffered) {
+			return false;
+		}
+
+		Db::upsert('{{%order_projects}}', [
+			'orderId' => $order->id,
+			'projectId' => $projectId,
+		], updateTimestamp: false);
+
+		return true;
 	}
 }
 ```
@@ -158,7 +220,7 @@ Use it for anything an input cannot express: a link to the record, a hint drawn 
 
 The template is included without `only`, so it receives `field` and `cart` along with everything else in the surrounding scope. Only `field` and `cart` are a contract.
 
-The cart page and the multi-step checkout render these fields inside a form, and HTML has no nested form. Put a form of your own inside a `<template>` element, whose contents the parser keeps intact, and move it to the body so it sits outside the form.
+The cart page and the multi-step checkout render these fields inside a form, and HTML has no nested form. Put a form of your own inside a `<template>` element, whose contents the parser keeps intact, and move it to the body, outside the form.
 
 ```twig
 <template data-my-dialog>

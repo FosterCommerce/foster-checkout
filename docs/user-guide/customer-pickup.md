@@ -18,6 +18,6 @@ The order's shipping address is a copy of that location, named for the customer 
 
 ## Pricing pickup
 
-Pickup is priced like anything else: with a shipping method. Make a shipping zone matching the store location's postal code and give a free shipping method a rule for that zone, so it matches orders shipped to the store's postal code.
+The plugin does not add a shipping method for pickup. In Commerce, make a shipping zone matching the store location's postal code and give a free shipping method a rule for that zone, so it matches orders shipped to the store's postal code.
 
-A rate plugin quotes carriers for the store location like any other address. Leaving those off a pickup order takes a little code; see [detecting a pickup order](../dev-guide/customer-pickup.md).
+A rate plugin quotes carriers for the store location like any other address. To leave carrier rates off a pickup order, see [detecting a pickup order](../dev-guide/customer-pickup.md).

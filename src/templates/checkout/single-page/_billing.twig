@@ -107,7 +107,8 @@
 			{% endif %}
 		{% endfor %}
 
-		<div class="border-t border-gray-250" :class="{ 'bg-gray-100': useNewBillingAddress }">
+		<div {% if not billingFormOnly %}class="border-t border-gray-250" :class="{ 'bg-gray-100': useNewBillingAddress }"{% endif %}>
+			{% if not billingFormOnly %}
 			<div class="p-4 radio">
 				<input
 					id="sp_newBillingAddress"
@@ -125,6 +126,7 @@
 					{{ 'billing.useDifferentBillingAddress'|t('foster-checkout') }}
 				</label>
 			</div>
+			{% endif %}
 
 			<template x-if="useNewBillingAddress">
 				<div class="p-4" data-fc-new-billing x-init="applyDraftAddress('billing')">

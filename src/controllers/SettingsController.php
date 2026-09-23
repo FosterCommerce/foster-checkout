@@ -6,6 +6,7 @@ use Craft;
 use craft\commerce\base\GatewayInterface;
 use craft\commerce\elements\conditions\products\ProductCondition;
 use craft\commerce\elements\Order;
+use craft\commerce\gateways\Manual;
 use craft\commerce\Plugin as Commerce;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
@@ -86,61 +87,16 @@ class SettingsController extends Controller
 
 		$postedHandle = $this->request->getRequiredBodyParam('gatewayHandle');
 		$gatewayHandle = is_string($postedHandle) ? $postedHandle : '';
-		$this->gateway($gatewayHandle);
+		$gateway = $this->gateway($gatewayHandle);
 
-		/** @var FosterCheckout $plugin */
-		$plugin = FosterCheckout::getInstance();
-		$layout = Craft::$app->getFields()->assembleLayoutFromPost();
-		$layout->type = Order::class;
-
-		$unstorable = $this->unstorableFieldHandles($layout, $plugin->getCheckoutFieldLayouts()->orderFieldHandles());
-
-		// An order only saves values for fields in its own layout, so anything else would render,
-		// accept what the customer types, and then be discarded without an error.
-		if ($unstorable !== []) {
-			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.gateways.unstorableFields', [
-				'fields' => implode(', ', $unstorable),
-			]));
-
-			Craft::$app->getUrlManager()->setRouteParams([
-				'fieldLayout' => $layout,
-			]);
-
-			return null;
-		}
-
-		$unsupported = $this->unsupportedFields($layout, $plugin->getCheckoutFieldLayouts());
-
-		// No input exists for the type, so it's ignored in the storefront form.
-		if ($unsupported !== []) {
-			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.gateways.unsupportedFields', [
-				'fields' => implode(', ', $unsupported),
-			]));
-
-			Craft::$app->getUrlManager()->setRouteParams([
-				'fieldLayout' => $layout,
-			]);
-
-			return null;
-		}
-
-		if (! $plugin->getCheckoutFieldLayouts()->saveFieldLayout($gatewayHandle, $layout)) {
-			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
-
-			Craft::$app->getUrlManager()->setRouteParams([
-				'fieldLayout' => $layout,
-			]);
-
+		// Only a Manual gateway renders its field layout at checkout
+		if ($gateway instanceof Manual && ! $this->saveGatewayFieldLayout($gatewayHandle)) {
 			return null;
 		}
 
 		// A config file naming a value outside a setting's range fails validation for every gateway
 		if (! $this->saveGatewayOptions($gatewayHandle)) {
 			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
-
-			Craft::$app->getUrlManager()->setRouteParams([
-				'fieldLayout' => $layout,
-			]);
 
 			return null;
 		}
@@ -540,6 +496,57 @@ class SettingsController extends Controller
 		}
 
 		return $unsupported;
+	}
+
+	private function saveGatewayFieldLayout(string $gatewayHandle): bool
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+		$layout = Craft::$app->getFields()->assembleLayoutFromPost();
+		$layout->type = Order::class;
+
+		$unstorable = $this->unstorableFieldHandles($layout, $plugin->getCheckoutFieldLayouts()->orderFieldHandles());
+
+		// An order only saves values for fields in its own layout, so anything else would render,
+		// accept what the customer types, and then be discarded without an error.
+		if ($unstorable !== []) {
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.gateways.unstorableFields', [
+				'fields' => implode(', ', $unstorable),
+			]));
+
+			Craft::$app->getUrlManager()->setRouteParams([
+				'fieldLayout' => $layout,
+			]);
+
+			return false;
+		}
+
+		$unsupported = $this->unsupportedFields($layout, $plugin->getCheckoutFieldLayouts());
+
+		// No input exists for the type, so it's ignored in the storefront form.
+		if ($unsupported !== []) {
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.gateways.unsupportedFields', [
+				'fields' => implode(', ', $unsupported),
+			]));
+
+			Craft::$app->getUrlManager()->setRouteParams([
+				'fieldLayout' => $layout,
+			]);
+
+			return false;
+		}
+
+		if (! $plugin->getCheckoutFieldLayouts()->saveFieldLayout($gatewayHandle, $layout)) {
+			$this->setFailFlash(Craft::t(FosterCheckout::HANDLE, 'settings.saveFailed'));
+
+			Craft::$app->getUrlManager()->setRouteParams([
+				'fieldLayout' => $layout,
+			]);
+
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

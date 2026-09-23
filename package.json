@@ -27,6 +27,7 @@
 	"devDependencies": {
 		"@alpinejs/focus": "3.16.1",
 		"@stylistic/eslint-plugin": "^5.10.0",
+		"@zootools/email-spell-checker": "1.12.0",
 		"alpinejs": "3.16.1",
 		"eslint": "^10.0.3",
 		"prettier": "^3.8.1",

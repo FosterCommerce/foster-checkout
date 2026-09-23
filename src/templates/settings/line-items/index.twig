@@ -133,16 +133,6 @@
 		warning: 'lineItems.showLineItemStock' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.showLineItemStock' }),
 	}) }}
 
-	{{ forms.lightswitchField({
-		label: 'settings.lineItemOptions.enableSaveForLater'|t('foster-checkout'),
-		instructions: 'settings.lineItemOptions.enableSaveForLaterHelp'|t('foster-checkout'),
-		id: 'options-enableSaveForLater',
-		name: 'settings[lineItems][enableSaveForLater]',
-		on: settings.lineItems.enableSaveForLater,
-		disabled: readOnly or 'lineItems.enableSaveForLater' in overriddenSettings,
-		warning: 'lineItems.enableSaveForLater' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.enableSaveForLater' }),
-	}) }}
-
 	<hr>
 
 	<h2>{{ 'settings.lineItemOptions.optionsTitle'|t('foster-checkout') }}</h2>

@@ -2,7 +2,7 @@
 
 Running the checkout where the order's customer is not the person signed in, as a purchasing agent buying against a company account does.
 
-Nothing here is switched on in the control panel. Your own code sets the order's customer; the checkout reads it.
+No control panel setting turns this on. Your own code sets the order's customer; the checkout reads it.
 
 ## What follows the order's customer
 
@@ -12,15 +12,15 @@ Once `order.customer` is someone other than the signed-in user, these change on 
 | --- | --- |
 | The address book | Listed from the order's customer, when Craft lets the signed-in user view an address owned by that customer |
 | Picking a saved address | Resolved against the order customer's book, since Commerce looks a posted id up on the signed-in user |
-| A saved address | Owned by the order's customer, so it lands in the company's book |
+| A saved address | Owned by the order's customer, so it is saved to the company's book |
 | Editing and saving addresses | Offered only when Craft lets the signed-in user save an address owned by that customer |
-| Klaviyo events | Not sent, so they are not filed under someone who is not the shopper |
+| Klaviyo | Events are not sent and the newsletter checkbox is not shown, so neither is filed under someone who is not the shopper |
 
 The checkout also names the person signed in, below the contact, whenever their email differs from the order's.
 
 ## The contact shown
 
-`craft.fostercheckout.contact(order)` returns what the checkout prints as the contact. It is the order's email unless a handler sets something else, which is how a company name or an account reference gets there in place of a shared mailbox.
+`craft.fostercheckout.contact(order)` returns what the checkout prints as the contact. It is the order's email unless a handler sets something else, which is how a company name or an account reference is shown in place of a shared mailbox.
 
 ```php
 <?php
@@ -62,13 +62,13 @@ Leave `value` as null and the order's email is used.
 
 ## Whether the book is shown
 
-`craft.fostercheckout.canViewAddresses(cart)` answers whether the signed-in user may see the order customer's saved addresses. The checkout lists the book and ships to a picked address only when it is true.
+`craft.fostercheckout.canViewAddresses(cart)` answers whether the signed-in user can see the order customer's saved addresses. The checkout lists the book and ships to a picked address only when it is true.
 
 Grant it the way Craft grants any address view: give the signed-in user permission on the customer that owns them.
 
 ## Whether addresses can be saved
 
-`craft.fostercheckout.canSaveAddresses(cart)` answers whether the signed-in user may add to or edit the order customer's address book. It asks Craft the same question Craft's own address screens ask, so a permission granted there is honored here.
+`craft.fostercheckout.canSaveAddresses(cart)` answers whether the signed-in user can add to or edit the order customer's address book. It asks Craft the same question Craft's own address screens ask, so a permission granted there is honored here.
 
 Use it to gate anything of your own that writes to the book.
 

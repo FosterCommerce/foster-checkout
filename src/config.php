@@ -52,13 +52,13 @@ return [
 
 	// 'deliveryDate' => [
 	// 'label' => 'Expected delivery date',
-	// 'message' => 'Please note: Our support team is unable to investigate delivery issues until after the estimated delivery date has passed.',
+	// 'message' => 'Delivery dates are estimates.',
 	// 'estimate' => '{{ order.dateOrdered|date_modify("+14 days")|date("M j, Y") }}', // closure, twig, string or null
 	// 'display' => true, // closure, twig or a boolean
 	// ],
 
-	// The field handle on the Order element that will contain the payment due date.
-	// When the due date is set, and the order is not fully paid, the order confirmation page will show the payment due date.
+	// The field handle on the Order element that holds the payment due date.
+	// When the due date is set, and the order is not fully paid, the order confirmation page shows the payment due date.
 	// 'paymentDueDateFieldHandle' => null,
 	// ],
 
@@ -76,7 +76,7 @@ return [
 
 	// How line items are shown in the cart and at checkout
 	// 'lineItems' => [
-	// Width of a cart line item's image in pixels, at desktop widths. Narrower screens use half of it.
+	// Width of a cart line item's image in pixels. Half that below 768 pixels wide, hidden below 640.
 	// 'imageSize' => 150,
 
 	// How an image fills its square box. 'contain' shows the whole image, 'cover' crops it to fill.
@@ -84,9 +84,6 @@ return [
 
 	// Whether a line item with no image shows a "No Image" placeholder
 	// 'enablePlaceholderImages' => false, // true|false
-
-	// Whether each line item offers a "save for later" button
-	// 'enableSaveForLater' => false, // true|false
 
 	// Transform config passed to Imager X, when that plugin renders the line item images
 	// 'imagerXConfig' => null,
@@ -112,9 +109,9 @@ return [
 	// 'lineItemOptionRules' => [
 	// [
 	// 'condition' => ['conditionRules' => [
-	// ['class' => \fostercommerce\fostercheckout\conditions\OptionNameConditionRule::class, 'operator' => '=', 'value' => 'blessing'],
+	// ['class' => \fostercommerce\fostercheckout\conditions\OptionNameConditionRule::class, 'operator' => '=', 'value' => 'giftWrap'],
 	// ]],
-	// 'setName' => 'Blessing Services',
+	// 'setName' => 'Gift wrap',
 	// 'setValue' => 'Yes',
 	// ],
 	// ],
@@ -142,8 +139,8 @@ return [
 	// The general component styles. Either 'rounded' (default) or 'flat'
 	// 'style' => 'rounded',
 
-	// Whether a field's label sits inside the field or above it
-	// 'labelStyle' => 'floating', // floating|stacked
+	// Whether a field's label shows inside the field or above it
+	// 'labelStyle' => 'floating', // floating|above
 
 	// The first part of the text in the title meta tag.
 	// Leave blank to use the Craft's siteName
@@ -186,17 +183,17 @@ return [
 	// ],
 
 	// /*	Custom Includes
-	// Paths to twig includes/partials in your templates directory which will be injected into
-	// the cart and checkout pages. Within these includes the following variables will be available :
+	// Paths to twig includes/partials in your templates directory which are injected into
+	// the cart and checkout pages. These includes receive the following variables:
 	// context : Either "cart" or "checkout"
 	// location : Either "head" or "body"
 	// step : See docs/dev-guide/custom-includes.md for the values
 	// cart : The current Commerce cart/order
 	// */
 	// 'includes' => [
-	// Relative path to the include in your template directory that will be injected into the document <head>
+	// Relative path to the include in your template directory that is injected into the document <head>
 	// 'head' => '',
-	// Relative path to the include in your template directory that will be injected before the end </body> tag
+	// Relative path to the include in your template directory that is injected before the end </body> tag
 	// 'body' => '',
 	// Relative path to the include rendered in its own container above the checkout summary
 	// 'summary' => '',
@@ -223,7 +220,7 @@ return [
 
 	// Payment Gateways: keyed by the payment gateway handle configured in Craft Commerce.
 	// Which fields a gateway asks for is a field layout, edited at Checkout -> Gateways, not config.
-	// A note may be a closure when it needs to be computed; otherwise it is edited at Checkout -> Notes & Links.
+	// A note can be a closure when it needs to be computed; otherwise it is edited at Checkout -> Notes & Links.
 	// Example:
 	// /*
 	// 'myGatewayHandle' => [
@@ -252,10 +249,10 @@ return [
 	// An array of gateway handles that should handle zero value orders
 	// 'zeroValueGatewayHandles' => [],
 
-	// An array of country codes that will be shown first in the country select dropdowns
 	// Country a new address starts on, as a two-letter code. Empty asks with nothing chosen.
 	// 'defaultCountryCode' => '',
 
+	// An array of country codes shown first in the country select dropdowns
 	// 'priorityCountries' => [],
 
 	// How many of the customer's saved addresses the checkout offers, most recently updated first.

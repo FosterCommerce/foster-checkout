@@ -301,13 +301,6 @@ export const addressBook = () => ({
 		return match ? match[1] : name;
 	},
 
-	addressGroupHasValues(payload, prefix) {
-		return Object.keys(payload).some(
-			(key) =>
-				key.startsWith(prefix) && String(payload[key] || '').trim() !== ''
-		);
-	},
-
 	addressGroupHasContent(payload, prefix) {
 		return ['fullName', 'addressLine1', 'locality', 'postalCode'].some(
 			(field) => String(payload[`${prefix}${field}]`] || '').trim() !== ''

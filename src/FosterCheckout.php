@@ -79,8 +79,6 @@ class FosterCheckout extends Plugin
 		'/billing' => 'foster-checkout/checkout/billing',
 		'/payment' => 'foster-checkout/checkout/payment',
 		'/order' => 'foster-checkout/checkout/order',
-		'/login' => 'foster-checkout/account/login',
-		'/register' => 'foster-checkout/account/register',
 	];
 
 	/**

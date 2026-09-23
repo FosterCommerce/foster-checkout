@@ -1,6 +1,6 @@
 # Installation
 
-A drop-in checkout for Craft Commerce, with its copy and settings managed from the control panel.
+A checkout for Craft Commerce, with its copy and settings managed from the control panel.
 
 ## Requirements
 
@@ -10,10 +10,6 @@ A drop-in checkout for Craft Commerce, with its copy and settings managed from t
 
 ## Install
 
-From the Plugin Store, search for "Foster Checkout" and press Install.
-
-With Composer:
-
 ```sh
 composer require fostercommerce/craft-foster-checkout
 ./craft plugin/install foster-checkout
@@ -21,31 +17,24 @@ composer require fostercommerce/craft-foster-checkout
 
 ## Configure
 
-Everything is set under **Checkout** in the control panel. No config file is required.
+Most settings are under **Checkout** in the control panel. No config file is required.
 
 Start at **Checkout -> General** and set the paths the cart and checkout are served from:
 
 - **Cart path**: site-relative path for the cart, for example `cart` or `shop/cart`. Default `cart`.
+- **Use the built-in cart template**: serves the plugin's cart at the cart path. Turn it off to serve your own template there. On by default.
 - **Checkout path**: site-relative path for the checkout steps. Default `checkout`.
-- **Account path**: where completed checkout steps link to. Default `/`.
-- **Cancel path**: where a customer goes if they cancel. Default `/`.
+- **Account path**: where **View my account** links for a signed-in customer. Default `/`.
+- **Cancel path**: where **Continue shopping** on the cart links. Default `/`.
 
 Then work through **Appearance** for branding, **Features** for the optional behaviors, **Line Items** for how cart lines are shown, and **Notes & Links** for the copy shown on each step.
 
-Settings persist to project config, so they are editable only where `allowAdminChanges` is on. Content is stored in the plugin's own table and stays editable on production.
-
-See [settings](./reference/settings.md) for every setting, and [permissions](./reference/permissions.md) for granting access.
+For every setting, see [settings](./reference/settings.md). For who can edit them, and on which environments, see [permissions](./reference/permissions.md).
 
 ## Optional config file
 
-A site may ship `config/foster-checkout.php`. Copy the plugin's `src/config.php` as a starting point. Anything set there overrides the control panel, per key: pinning one setting leaves the rest of its screen editable.
+To set values in code, copy the plugin's `src/config.php` to `config/foster-checkout.php`. For which keys override the control panel, see [what overrides what](./reference/settings.md#what-overrides-what).
 
-## Upgrading an existing site
+## Upgrading
 
-Sites that kept checkout copy in entry or global set fields, mapped through the `notes` and `links` config keys, have it migrated into the plugin's content storage on update. Run migrations as usual:
-
-```sh
-./craft migrate/all
-```
-
-Copy already entered in the control panel is left alone, so the migration is safe to run again. After it runs, remove `notes` and `links` from the config file. Two things stay: a gateway note defined as a PHP closure, which cannot be stored as content, and `notes.customersOrderNotes.fieldHandle`, which names an order field and is still read. Its home is now **Customer order notes field** under **Checkout -> Custom Fields**.
+To upgrade from an earlier version, see [upgrading](./upgrade.md).

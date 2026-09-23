@@ -4,13 +4,14 @@ A pickup order ships to the Commerce store location. No flag is stored on the or
 
 ## In PHP
 
-`isCustomerPickup()` on the checkout service answers for any order. A module can use it to leave carrier rates off a pickup order, here with Postie:
+`isCustomerPickup()` on the checkout service answers for any order. It returns false whenever **Offer pickup at the store location** is off. A module can use it to leave carrier rates off a pickup order, here with Postie:
 
 ```php
 <?php
 
 namespace modules\site;
 
+use craft\commerce\elements\Order;
 use fostercommerce\fostercheckout\FosterCheckout;
 use verbb\postie\events\ModifyShippingMethodsEvent;
 use verbb\postie\services\Service as PostieService;
@@ -20,9 +21,9 @@ Event::on(
     PostieService::class,
     PostieService::EVENT_BEFORE_REGISTER_SHIPPING_METHODS,
     static function (ModifyShippingMethodsEvent $modifyShippingMethodsEvent): void {
-        $isCustomerPickup = FosterCheckout::getInstance()?->getCheckout()->isCustomerPickup($modifyShippingMethodsEvent->order);
+        $order = $modifyShippingMethodsEvent->order;
 
-        if ($isCustomerPickup) {
+        if ($order instanceof Order && FosterCheckout::getInstance()?->getCheckout()->isCustomerPickup($order)) {
             $modifyShippingMethodsEvent->shippingMethods = [];
         }
     }

@@ -41,7 +41,8 @@
 	{% set _initialBillingSame = (_hasMatch and _offerSameAsShipping) ? 1 : 0 %}
 	{# Leave the book id null when same as shipping, so only one radio reads as selected #}
 	{% set _initialBillingAddressId = _hasMatch ? null : _sourceBillId %}
-	{% set _initialNewBilling = _isNewBilling ? 1 : 0 %}
+	{% set _billingFormOnly = not _collectShipping and not (currentUser and addresses|length) %}
+	{% set _initialNewBilling = (_isNewBilling or _billingFormOnly) ? 1 : 0 %}
 
 
 	<div class="mt-10 pb-28 lg:pb-32">
@@ -197,7 +198,8 @@
 											{% endfor %}
 
 											{# New billing address #}
-											<div class="border-t border-gray-250" :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }">
+											<div {% if not _billingFormOnly %}class="border-t border-gray-250" :class="{ 'bg-gray-100': parseInt(newBillingAddress) === 1 }"{% endif %}>
+												{% if not _billingFormOnly %}
 												<div class="p-4 radio">
 													<input
 														id="newBillingAddress"
@@ -216,6 +218,7 @@
 														{{ 'billing.useDifferentBillingAddress'|t('foster-checkout') }}
 													</label>
 												</div>
+												{% endif %}
 
 												<template x-if="parseInt(newBillingAddress) === 1" x-cloak>
 													<div class="p-4">
@@ -251,6 +254,12 @@
 										</div>
 									{% endif %}
 								</section>
+
+								{# Show the email step's fields here when signed-in customers are also redirected past the address step #}
+								{% if currentUser and not _collectShipping %}
+									{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'email' } %}
+									{% include 'foster-checkout/_components/app/signed-in-subscribe' %}
+								{% endif %}
 
 								<div class="mt-6 grid grid-cols-1 gap-4 md:flex md:justify-end md:items-center md:gap-6">
 									<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}" class="hidden md:block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg">

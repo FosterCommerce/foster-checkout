@@ -42,7 +42,7 @@ export const cartPersistence = () => ({
 			delete payload.useNewAddress;
 		}
 
-		const hasBillingFields = this.addressGroupHasValues(
+		const hasBillingFields = this.addressGroupHasContent(
 			payload,
 			'billingAddress['
 		);

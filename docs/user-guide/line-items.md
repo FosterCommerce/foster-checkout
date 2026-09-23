@@ -2,21 +2,22 @@
 
 The image each line in the cart shows, what else it shows, and how to change the wording of its options.
 
-Everything here is under **Checkout -> Line Items**.
+Everything here is under **Checkout -> Line Items**. **Image size**, the details and options settings, and the rewrite rules appear only while **Use the built-in cart template** is on at **Checkout -> General**.
+
+The cart page shows everything on this page. The checkout summary and the order confirmation show each line's image, title, quantity and price, without the SKU, stock count or options.
 
 ## Images
 
 | Setting | Controls |
 | --- | --- |
 | **Preview image fields** | Per product type, the field the cart image comes from. The variant field is used when that variant has an image, the product field otherwise |
-| **Image size** | How wide the image is on desktop, in pixels. Narrow screens use half of it. 150 by default, and 40 to 200 is accepted |
+| **Image size** | How wide the image is in the cart, in pixels. Screens narrower than 768 pixels show it at half that width, and screens narrower than 640 pixels hide it. 150 by default, and 40 to 200 is accepted |
 | **Image fit** | Whether the whole image is shown inside a square box, or cropped to fill it. Contain by default |
-| **Placeholder images** | Whether a line item with no image shows a "no image" placeholder. Off by default |
+| **Placeholder images** | Whether a line item with no image shows a "no image" placeholder, loaded from placehold.co. Off by default |
 
 A product type with neither image field set shows no image, and the line item's text fills the row.
 
-Cropping happens when the image is generated, so a cropped image is square before it reaches the
-browser. Contain leaves the image at its own shape and centers it on white.
+Contain leaves the image at its own shape and centers it on white.
 
 ## What a line shows
 
@@ -27,64 +28,50 @@ browser. Contain leaves the image at its own shape and centers it on white.
 | **Show line item options** | Whether options appear at all. Off hides every option and stops the rules below from running. On by default |
 | **Hidden option prefix** | Options whose name starts with this are never shown. Default `_`. Leave empty to show every option |
 | **Truncate values to** | How many characters of an option value to show. Empty shows the whole value |
-| **Save for later** | Whether each line offers a "save for later" button. Off by default |
 
-Truncation cuts on a word boundary and ends with an ellipsis. It matters where a customer types
-free text: a "special instructions" option can run to thousands of characters and fill the cart.
+Truncation cuts on a word boundary and ends with an ellipsis. It matters where a customer types free text: a "special instructions" option can run to thousands of characters and fill the cart.
 
 ## Options as the customer sees them
 
-An option is a name and a value stored against the line when the item was added. Without any
-rules, both show exactly as stored, so an option named `blessing` holding `true` reads:
+An option is a name and a value stored against the line when the item was added. Without any rules, both show exactly as stored, so an option named `giftWrap` holding `1` reads:
 
 ```text
-blessing: true
+giftWrap: 1
 ```
 
-Rewrite rules change that wording. They do not change what is stored, only what the customer
-reads.
+Rewrite rules change that wording. They do not change what is stored, only what the customer reads.
 
 ## Rewrite rules
 
-Each rule has a condition and up to two changes: a new name, a new value. A rule with no new
-value leaves the customer's own text alone.
+Each rule has a condition and up to two changes: a new name, a new value. A rule with no new value leaves the customer's own text alone.
 
-To add one, click **Add a rule**, build the condition, and fill in either field. Leave a field
-empty to keep what was stored.
+To add one, click **Add a rule**, build the condition, and fill in either field. Leave a field empty to keep what was stored.
 
-The condition offers two things to test, **Option name** and **Option value**, each with the
-usual operators: is, begins with, ends with, contains, is empty, is not empty. Add a second
-condition to a rule and both must match.
+The condition offers two things to test, **Option name** and **Option value**, each with the usual operators: is, begins with, ends with, contains, is empty, is not empty. Add a second condition to a rule and both must match.
 
-Turning `blessing: true` into `Blessing Services: Yes` takes one rule:
+Turning `giftWrap: 1` into `Gift wrap: Yes` takes one rule:
 
 | | |
 | --- | --- |
-| When | Option name **is** `blessing` |
-| Set name to | `Blessing Services` |
+| When | Option name **is** `giftWrap` |
+| Set name to | `Gift wrap` |
 | Set value to | `Yes` |
 
 The rules table spells each condition out, so you can read what a rule does without opening it.
 
 ### Order
 
-Rules run top to bottom, and the last one to set a field wins. Drag a row to reorder.
+Rules run top to bottom, and the last one to set a field wins.
 
-Every rule tests the option **as it was stored**, not as an earlier rule rewrote it. So a rule
-matching `blessing` still matches after an earlier rule renamed it, and you can split the naming
-and the value across two rules:
+Every rule tests the option **as it was stored**, not as an earlier rule rewrote it. So a rule matching `giftWrap` still matches after an earlier rule renamed it, and you can split the naming and the value across two rules:
 
 | When | Set name to | Set value to |
 | --- | --- | --- |
-| Option name is `blessing` | Blessing Services | |
-| Option name is `blessing` and Option value is `true` | | Yes |
+| Option name is `giftWrap` | Gift wrap | |
+| Option name is `giftWrap` and Option value is `1` | | Yes |
 
-An option matching no rule shows as stored. Adding the first rule changes nothing else on the
-page.
+An option matching no rule shows as stored. Adding the first rule does not change how other options show.
 
 ## Setting these in config
 
-A site may pin any of these in `config/foster-checkout.php`. A pinned setting shows in the
-control panel with a warning and cannot be edited there. Pinning one leaves the others editable.
-Rules set in a config file are listed but not clickable, since there is nothing to edit.
-See [settings](../reference/settings.md).
+A site can pin any of these in `config/foster-checkout.php`. A pinned setting shows in the control panel with a warning and cannot be edited there. Pinning one leaves the others editable. Rules set in a config file are listed but not clickable. See [settings](../reference/settings.md).

@@ -1948,7 +1948,7 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
         break;
     }
   }
-  const run = (effect3) => {
+  const run2 = (effect3) => {
     if (effect3.options.onTrigger) {
       effect3.options.onTrigger({
         effect: effect3,
@@ -1966,7 +1966,7 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
       effect3();
     }
   };
-  effects.forEach(run);
+  effects.forEach(run2);
 }
 var isNonTrackableKeys = /* @__PURE__ */ makeMap(`__proto__,__v_isRef,__isVue`);
 var builtInSymbols = new Set(Object.getOwnPropertyNames(Symbol).map((key) => Symbol[key]).filter(isSymbol));
@@ -4116,7 +4116,7 @@ var internalTrapStack = [];
 var createFocusTrap = function createFocusTrap2(elements, userOptions) {
   var doc = (userOptions === null || userOptions === void 0 ? void 0 : userOptions.document) || document;
   var trapStack = (userOptions === null || userOptions === void 0 ? void 0 : userOptions.trapStack) || internalTrapStack;
-  var config = _objectSpread2({
+  var config2 = _objectSpread2({
     returnFocusOnDeactivate: true,
     escapeDeactivates: true,
     delayInitialFocus: true,
@@ -4171,7 +4171,7 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
   };
   var trap;
   var getOption = function getOption2(configOverrideOptions, optionName, configOptionName) {
-    return configOverrideOptions && configOverrideOptions[optionName] !== void 0 ? configOverrideOptions[optionName] : config[configOptionName || optionName];
+    return configOverrideOptions && configOverrideOptions[optionName] !== void 0 ? configOverrideOptions[optionName] : config2[configOptionName || optionName];
   };
   var findContainerIndex = function findContainerIndex2(element, event) {
     var composedPath = typeof (event === null || event === void 0 ? void 0 : event.composedPath) === "function" ? event.composedPath() : void 0;
@@ -4188,7 +4188,7 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
   };
   var getNodeForOption = function getNodeForOption2(optionName) {
     var _ref2 = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {}, _ref2$hasFallback = _ref2.hasFallback, hasFallback = _ref2$hasFallback === void 0 ? false : _ref2$hasFallback, _ref2$params = _ref2.params, params = _ref2$params === void 0 ? [] : _ref2$params;
-    var optionValue = config[optionName];
+    var optionValue = config2[optionName];
     if (typeof optionValue === "function") {
       optionValue = optionValue.apply(void 0, _toConsumableArray(params));
     }
@@ -4223,7 +4223,7 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
     if (node === false) {
       return false;
     }
-    if (node === void 0 || node && !isFocusable(node, config.tabbableOptions)) {
+    if (node === void 0 || node && !isFocusable(node, config2.tabbableOptions)) {
       if (findContainerIndex(doc.activeElement) >= 0) {
         node = doc.activeElement;
       } else {
@@ -4241,8 +4241,8 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
   };
   var updateTabbableNodes = function updateTabbableNodes2() {
     state.containerGroups = state.containers.map(function(container) {
-      var tabbableNodes = tabbable(container, config.tabbableOptions);
-      var focusableNodes = focusable(container, config.tabbableOptions);
+      var tabbableNodes = tabbable(container, config2.tabbableOptions);
+      var focusableNodes = focusable(container, config2.tabbableOptions);
       var firstTabbableNode = tabbableNodes.length > 0 ? tabbableNodes[0] : void 0;
       var lastTabbableNode = tabbableNodes.length > 0 ? tabbableNodes[tabbableNodes.length - 1] : void 0;
       var firstDomTabbableNode = focusableNodes.find(function(node) {
@@ -4334,7 +4334,7 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
       return;
     }
     node.focus({
-      preventScroll: !!config.preventScroll
+      preventScroll: !!config2.preventScroll
     });
     state.mostRecentlyFocusedNode = node;
     if (isSelectableInput(node)) {
@@ -4366,7 +4366,7 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
           var firstTabbableNode = _ref4.firstTabbableNode;
           return target === firstTabbableNode;
         });
-        if (startOfGroupIndex < 0 && (containerGroup.container === target || isFocusable(target, config.tabbableOptions) && !isTabbable(target, config.tabbableOptions) && !containerGroup.nextTabbableNode(target, false))) {
+        if (startOfGroupIndex < 0 && (containerGroup.container === target || isFocusable(target, config2.tabbableOptions) && !isTabbable(target, config2.tabbableOptions) && !containerGroup.nextTabbableNode(target, false))) {
           startOfGroupIndex = containerIndex;
         }
         if (startOfGroupIndex >= 0) {
@@ -4381,7 +4381,7 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
           var lastTabbableNode = _ref5.lastTabbableNode;
           return target === lastTabbableNode;
         });
-        if (lastOfGroupIndex < 0 && (containerGroup.container === target || isFocusable(target, config.tabbableOptions) && !isTabbable(target, config.tabbableOptions) && !containerGroup.nextTabbableNode(target))) {
+        if (lastOfGroupIndex < 0 && (containerGroup.container === target || isFocusable(target, config2.tabbableOptions) && !isTabbable(target, config2.tabbableOptions) && !containerGroup.nextTabbableNode(target))) {
           lastOfGroupIndex = containerIndex;
         }
         if (lastOfGroupIndex >= 0) {
@@ -4402,7 +4402,7 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
     if (findContainerIndex(target, e) >= 0) {
       return;
     }
-    if (valueOrHandler(config.clickOutsideDeactivates, e)) {
+    if (valueOrHandler(config2.clickOutsideDeactivates, e)) {
       trap.deactivate({
         // NOTE: by setting `returnFocus: false`, deactivate() will do nothing,
         //  which will result in the outside click setting focus to the node
@@ -4410,11 +4410,11 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
         //  `returnFocus: true`, we'll attempt to re-focus the node originally-focused
         //  on activation (or the configured `setReturnFocus` node), whether the
         //  outside click was on a focusable node or not
-        returnFocus: config.returnFocusOnDeactivate
+        returnFocus: config2.returnFocusOnDeactivate
       });
       return;
     }
-    if (valueOrHandler(config.allowOutsideClick, e)) {
+    if (valueOrHandler(config2.allowOutsideClick, e)) {
       return;
     }
     e.preventDefault();
@@ -4439,7 +4439,7 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
               return node === state.mostRecentlyFocusedNode;
             });
             if (mruTabIdx >= 0) {
-              if (config.isKeyForward(state.recentNavEvent)) {
+              if (config2.isKeyForward(state.recentNavEvent)) {
                 if (mruTabIdx + 1 < tabbableNodes.length) {
                   nextNode = tabbableNodes[mruTabIdx + 1];
                   navAcrossContainers = false;
@@ -4469,7 +4469,7 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
           // move FROM the MRU node, not event-related node (which will be the node that is
           //  outside the trap causing the focus escape we're trying to fix)
           target: state.mostRecentlyFocusedNode,
-          isBackward: config.isKeyBackward(state.recentNavEvent)
+          isBackward: config2.isKeyBackward(state.recentNavEvent)
         });
       }
       if (nextNode) {
@@ -4495,12 +4495,12 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
     }
   };
   var checkTabKey = function checkTabKey2(event) {
-    if (config.isKeyForward(event) || config.isKeyBackward(event)) {
-      checkKeyNav(event, config.isKeyBackward(event));
+    if (config2.isKeyForward(event) || config2.isKeyBackward(event)) {
+      checkKeyNav(event, config2.isKeyBackward(event));
     }
   };
   var checkEscapeKey = function checkEscapeKey2(event) {
-    if (isEscapeEvent(event) && valueOrHandler(config.escapeDeactivates, event) !== false) {
+    if (isEscapeEvent(event) && valueOrHandler(config2.escapeDeactivates, event) !== false) {
       event.preventDefault();
       trap.deactivate();
     }
@@ -4510,10 +4510,10 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
     if (findContainerIndex(target, e) >= 0) {
       return;
     }
-    if (valueOrHandler(config.clickOutsideDeactivates, e)) {
+    if (valueOrHandler(config2.clickOutsideDeactivates, e)) {
       return;
     }
-    if (valueOrHandler(config.allowOutsideClick, e)) {
+    if (valueOrHandler(config2.allowOutsideClick, e)) {
       return;
     }
     e.preventDefault();
@@ -4525,7 +4525,7 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
     }
     activeFocusTraps.activateTrap(trapStack, trap);
     var promise;
-    if (config.delayInitialFocus) {
+    if (config2.delayInitialFocus) {
       promise = new Promise(function(resolve) {
         state.delayInitialFocusTimer = delay(function() {
           _tryFocus(getInitialFocusNode());
@@ -4716,9 +4716,9 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
         return this;
       }
       var options = _objectSpread2({
-        onDeactivate: config.onDeactivate,
-        onPostDeactivate: config.onPostDeactivate,
-        checkCanReturnFocus: config.checkCanReturnFocus
+        onDeactivate: config2.onDeactivate,
+        onPostDeactivate: config2.onPostDeactivate,
+        checkCanReturnFocus: config2.checkCanReturnFocus
       }, deactivateOptions);
       clearTimeout(state.delayInitialFocusTimer);
       state.delayInitialFocusTimer = void 0;
@@ -4773,7 +4773,7 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
       state.containers = elementsAsArray.map(function(element) {
         return typeof element === "string" ? doc.querySelector(element) : element;
       });
-      if (config.isolateSubtrees) {
+      if (config2.isolateSubtrees) {
         collectAdjacentElements(state.containers);
       }
       if (state.active) {
@@ -4839,11 +4839,11 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
     },
     _setSubtreeIsolation: {
       value: function value(isEnabled) {
-        if (config.isolateSubtrees) {
+        if (config2.isolateSubtrees) {
           state.adjacentElements.forEach(function(el) {
             var _el$getAttribute;
             if (isEnabled) {
-              switch (config.isolateSubtrees) {
+              switch (config2.isolateSubtrees) {
                 case "aria-hidden":
                   if (el.ariaHidden === "true" || ((_el$getAttribute = el.getAttribute("aria-hidden")) === null || _el$getAttribute === void 0 ? void 0 : _el$getAttribute.toLowerCase()) === "true") {
                     state.alreadySilent.add(el);
@@ -4861,7 +4861,7 @@ var createFocusTrap = function createFocusTrap2(elements, userOptions) {
               if (state.alreadySilent.has(el))
                 ;
               else {
-                switch (config.isolateSubtrees) {
+                switch (config2.isolateSubtrees) {
                   case "aria-hidden":
                     el.removeAttribute("aria-hidden");
                     break;
@@ -5096,6 +5096,529 @@ function disableScrolling() {
   };
 }
 var module_default = src_default;
+function getDefaultExportFromCjs(x) {
+  return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
+}
+var dist = {};
+var run = {};
+var assertValidUserOptions = {};
+var assert = {};
+var hasRequiredAssert;
+function requireAssert() {
+  if (hasRequiredAssert) return assert;
+  hasRequiredAssert = 1;
+  Object.defineProperty(assert, "__esModule", { value: true });
+  function assert$1(condition, message) {
+    if (!condition) {
+      throw new Error(message);
+    }
+  }
+  assert.default = assert$1;
+  return assert;
+}
+var hasRequiredAssertValidUserOptions;
+function requireAssertValidUserOptions() {
+  if (hasRequiredAssertValidUserOptions) return assertValidUserOptions;
+  hasRequiredAssertValidUserOptions = 1;
+  var __importDefault = assertValidUserOptions && assertValidUserOptions.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : { "default": mod };
+  };
+  Object.defineProperty(assertValidUserOptions, "__esModule", { value: true });
+  const assert_1 = __importDefault(requireAssert());
+  function assertValidUserOptions$1(options) {
+    assert_1.default(Array.isArray(options.domains), "domains must be an array");
+    assert_1.default(Array.isArray(options.topLevelDomains), "topLevelDomains must be an array");
+    assert_1.default(Array.isArray(options.secondLevelDomains), "secondLevelDomains must be an array");
+    assert_1.default(typeof options.distanceFunction === "function", "distanceFunction must be a function");
+  }
+  assertValidUserOptions.default = assertValidUserOptions$1;
+  return assertValidUserOptions;
+}
+var suggestEmail$1 = {};
+var encodeEmail = {};
+var hasRequiredEncodeEmail;
+function requireEncodeEmail() {
+  if (hasRequiredEncodeEmail) return encodeEmail;
+  hasRequiredEncodeEmail = 1;
+  Object.defineProperty(encodeEmail, "__esModule", { value: true });
+  function encodeEmail$1(email) {
+    const result = encodeURI(email).replace(/%20/g, " ").replace(/%25/g, "%").replace(/%5E/g, "^").replace(/%60/g, "`").replace(/%7B/g, "{").replace(/%7C/g, "|").replace(/%7D/g, "}");
+    return result;
+  }
+  encodeEmail.default = encodeEmail$1;
+  return encodeEmail;
+}
+var findClosestDomain = {};
+var hasRequiredFindClosestDomain;
+function requireFindClosestDomain() {
+  if (hasRequiredFindClosestDomain) return findClosestDomain;
+  hasRequiredFindClosestDomain = 1;
+  Object.defineProperty(findClosestDomain, "__esModule", { value: true });
+  function findClosestDomain$1(opts) {
+    const { domain, domains, distanceFunction, threshold } = opts;
+    let dist2;
+    let minDist = Infinity;
+    let closestDomain = null;
+    if (!domain || !domains) {
+      return void 0;
+    }
+    for (let i = 0; i < domains.length; i++) {
+      if (domain === domains[i]) {
+        return domain;
+      }
+      dist2 = distanceFunction(domain, domains[i]);
+      if (dist2 < minDist) {
+        minDist = dist2;
+        closestDomain = domains[i];
+      }
+    }
+    if (minDist <= threshold && closestDomain !== null) {
+      return closestDomain;
+    } else {
+      return void 0;
+    }
+  }
+  findClosestDomain.default = findClosestDomain$1;
+  return findClosestDomain;
+}
+var parseEmail = {};
+var trim = {};
+var hasRequiredTrim;
+function requireTrim() {
+  if (hasRequiredTrim) return trim;
+  hasRequiredTrim = 1;
+  Object.defineProperty(trim, "__esModule", { value: true });
+  const WHITESPACE_PATTERN = /\s/;
+  function trim$1(str) {
+    if (str.trim) {
+      return str.trim();
+    }
+    return right(left(str));
+  }
+  function left(str) {
+    if (str.trimLeft)
+      return str.trimLeft();
+    return str.replace(/^\s\s*/, "");
+  }
+  function right(str) {
+    if (str.trimRight)
+      return str.trimRight();
+    let i = str.length;
+    while (WHITESPACE_PATTERN.test(str.charAt(--i)))
+      ;
+    return str.slice(0, i + 1);
+  }
+  trim.default = trim$1;
+  return trim;
+}
+var hasRequiredParseEmail;
+function requireParseEmail() {
+  if (hasRequiredParseEmail) return parseEmail;
+  hasRequiredParseEmail = 1;
+  var __importDefault = parseEmail && parseEmail.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : { "default": mod };
+  };
+  Object.defineProperty(parseEmail, "__esModule", { value: true });
+  const trim_1 = __importDefault(requireTrim());
+  const MINIUM_EMAIL_PARTS = 2;
+  function parseEmail$1(emailStr) {
+    const email = trim_1.default(emailStr);
+    const parts = email.split("@");
+    if (parts.length < MINIUM_EMAIL_PARTS) {
+      return false;
+    }
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i] === "") {
+        return false;
+      }
+    }
+    let sld = "";
+    let tld = "";
+    const domain = parts.pop();
+    const domainParts = domain.split(".");
+    if (domainParts.length === 0) {
+      return false;
+    } else if (domainParts.length == 1) {
+      tld = domainParts[0];
+    } else {
+      sld = domainParts[0];
+      for (let j = 1; j < domainParts.length; j++) {
+        tld += domainParts[j] + ".";
+      }
+      tld = tld.substring(0, tld.length - 1);
+    }
+    return {
+      topLevelDomain: tld,
+      secondLevelDomain: sld,
+      domain,
+      address: parts.join("@")
+    };
+  }
+  parseEmail.default = parseEmail$1;
+  return parseEmail;
+}
+var hasRequiredSuggestEmail;
+function requireSuggestEmail() {
+  if (hasRequiredSuggestEmail) return suggestEmail$1;
+  hasRequiredSuggestEmail = 1;
+  var __importDefault = suggestEmail$1 && suggestEmail$1.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : { "default": mod };
+  };
+  Object.defineProperty(suggestEmail$1, "__esModule", { value: true });
+  const encode_email_1 = __importDefault(requireEncodeEmail());
+  const find_closest_domain_1 = __importDefault(requireFindClosestDomain());
+  const parse_email_1 = __importDefault(requireParseEmail());
+  function suggestEmail2(opts) {
+    const encodedEmail = encode_email_1.default(opts.email.toLowerCase());
+    const email = parse_email_1.default(encodedEmail);
+    if (!email) {
+      return void 0;
+    }
+    const { domains, domainThreshold, distanceFunction, secondLevelDomains, topLevelDomains } = opts;
+    if (secondLevelDomains && topLevelDomains) {
+      if (secondLevelDomains.indexOf(email.secondLevelDomain) !== -1 && topLevelDomains.indexOf(email.topLevelDomain) !== -1) {
+        return void 0;
+      }
+    }
+    let closestDomain = find_closest_domain_1.default({
+      domain: email.domain,
+      domains,
+      distanceFunction,
+      threshold: domainThreshold
+    });
+    if (closestDomain) {
+      if (closestDomain == email.domain) {
+        return void 0;
+      } else {
+        return {
+          address: email.address,
+          domain: closestDomain,
+          full: email.address + "@" + closestDomain
+        };
+      }
+    }
+    const closestSecondLevelDomain = find_closest_domain_1.default({
+      domain: email.secondLevelDomain,
+      domains: secondLevelDomains,
+      distanceFunction,
+      threshold: opts.secondLevelThreshold
+    });
+    const closestTopLevelDomain = find_closest_domain_1.default({
+      domain: email.topLevelDomain,
+      domains: topLevelDomains,
+      distanceFunction,
+      threshold: opts.topLevelThreshold
+    });
+    if (email.domain) {
+      closestDomain = email.domain;
+      let rtrn = false;
+      if (closestSecondLevelDomain && closestSecondLevelDomain != email.secondLevelDomain) {
+        closestDomain = closestDomain.replace(email.secondLevelDomain, closestSecondLevelDomain);
+        rtrn = true;
+      }
+      if (closestTopLevelDomain && closestTopLevelDomain != email.topLevelDomain && email.secondLevelDomain !== "") {
+        closestDomain = closestDomain.replace(new RegExp(email.topLevelDomain + "$"), closestTopLevelDomain);
+        rtrn = true;
+      }
+      if (rtrn) {
+        return {
+          address: email.address,
+          domain: closestDomain,
+          full: email.address + "@" + closestDomain
+        };
+      }
+    }
+    return void 0;
+  }
+  suggestEmail$1.default = suggestEmail2;
+  return suggestEmail$1;
+}
+var getOptions = {};
+var config = {};
+var sift3Distance = {};
+var hasRequiredSift3Distance;
+function requireSift3Distance() {
+  if (hasRequiredSift3Distance) return sift3Distance;
+  hasRequiredSift3Distance = 1;
+  Object.defineProperty(sift3Distance, "__esModule", { value: true });
+  function sift3Distance$1(s1, s2) {
+    if (s1 == null || s1.length === 0) {
+      if (s2 == null || s2.length === 0) {
+        return 0;
+      } else {
+        return s2.length;
+      }
+    }
+    if (s2 == null || s2.length === 0) {
+      return s1.length;
+    }
+    let c = 0;
+    let offset1 = 0;
+    let offset2 = 0;
+    let lcs = 0;
+    const maxOffset = 5;
+    while (c + offset1 < s1.length && c + offset2 < s2.length) {
+      if (s1.charAt(c + offset1) == s2.charAt(c + offset2)) {
+        lcs++;
+      } else {
+        offset1 = 0;
+        offset2 = 0;
+        for (let i = 0; i < maxOffset; i++) {
+          if (c + i < s1.length && s1.charAt(c + i) == s2.charAt(c)) {
+            offset1 = i;
+            break;
+          }
+          if (c + i < s2.length && s1.charAt(c) == s2.charAt(c + i)) {
+            offset2 = i;
+            break;
+          }
+        }
+      }
+      c++;
+    }
+    return (s1.length + s2.length) / 2 - lcs;
+  }
+  sift3Distance.default = sift3Distance$1;
+  return sift3Distance;
+}
+var hasRequiredConfig;
+function requireConfig() {
+  if (hasRequiredConfig) return config;
+  hasRequiredConfig = 1;
+  var __importDefault = config && config.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : { "default": mod };
+  };
+  Object.defineProperty(config, "__esModule", { value: true });
+  config.POPULAR_TLDS = config.POPULAR_DOMAINS = config.DEFAULT_CONFIG = void 0;
+  const sift3_distance_1 = __importDefault(requireSift3Distance());
+  const POPULAR_DOMAINS = [
+    "msn.com",
+    "bellsouth.net",
+    "telus.net",
+    "comcast.net",
+    "optusnet.com.au",
+    "earthlink.net",
+    "qq.com",
+    "sky.com",
+    "icloud.com",
+    "sympatico.ca",
+    "googlemail.com",
+    "att.net",
+    "xtra.co.nz",
+    "web.de",
+    "cox.net",
+    "gmail.com",
+    "ymail.com",
+    "aim.com",
+    "rogers.com",
+    "verizon.net",
+    "rocketmail.com",
+    "optonline.net",
+    "sbcglobal.net",
+    // aol
+    "aol.com",
+    "aim.com",
+    "me.com",
+    "mailw.com",
+    "btinternet.com",
+    "charter.net",
+    "shaw.ca",
+    "hey.com",
+    // Proton
+    "proton.me",
+    "pm.com",
+    "protonmail.com",
+    "zoho.com",
+    "yandex.com",
+    "titan.email"
+  ];
+  config.POPULAR_DOMAINS = POPULAR_DOMAINS;
+  const POPULAR_TLDS = [
+    "com",
+    "com.au",
+    "com.tw",
+    "co",
+    "ca",
+    "co.nz",
+    "co.uk",
+    "de",
+    "fr",
+    "it",
+    "ru",
+    "org",
+    "edu",
+    "gov",
+    "jp",
+    "nl",
+    "kr",
+    "se",
+    "eu",
+    "ie",
+    "co.il",
+    "us",
+    "at",
+    "be",
+    "dk",
+    "hk",
+    "es",
+    "gr",
+    "ch",
+    "no",
+    "cz",
+    "net",
+    "net.au",
+    "info",
+    "biz",
+    "mil",
+    "co.jp",
+    "sg",
+    "hu",
+    "uk",
+    "sk",
+    // Country specific popular domains
+    "ar",
+    "cf",
+    "cl",
+    "cn",
+    "ga",
+    "gq",
+    "ir",
+    "ml",
+    "mx",
+    "nu",
+    "nz",
+    "ph",
+    "pl",
+    "ro",
+    "tk",
+    "tw",
+    "ua",
+    "vg",
+    "ws",
+    "xn",
+    "za",
+    // popular TLDs that startup use in 2022
+    // https://thewebsiteflip.com/domains/funded-startup-brands-2021/#:~:text=from%20the%20data.-,1.,TLDs%20for%20the%20foreseeable%20future.
+    // https://martijnoud.com/most-popular-tld-crypto/
+    "app",
+    "au",
+    "ai",
+    "biz",
+    "br",
+    "blog",
+    "cloud",
+    "club",
+    "cc",
+    "de",
+    "dev",
+    "digital",
+    "fi",
+    "finance",
+    "id",
+    "in",
+    "io",
+    "me",
+    "mobi",
+    "network",
+    "pw",
+    "so",
+    "xyz",
+    "software",
+    "to",
+    "tech"
+  ];
+  config.POPULAR_TLDS = POPULAR_TLDS;
+  const DEFAULT_CONFIG = {
+    domainThreshold: 2,
+    domains: POPULAR_DOMAINS,
+    secondLevelThreshold: 2,
+    secondLevelDomains: ["yahoo", "hotmail", "mail", "live", "outlook"],
+    topLevelThreshold: 2,
+    topLevelDomains: POPULAR_TLDS,
+    distanceFunction: sift3_distance_1.default
+  };
+  config.DEFAULT_CONFIG = DEFAULT_CONFIG;
+  return config;
+}
+var hasRequiredGetOptions;
+function requireGetOptions() {
+  if (hasRequiredGetOptions) return getOptions;
+  hasRequiredGetOptions = 1;
+  Object.defineProperty(getOptions, "__esModule", { value: true });
+  const config_1 = requireConfig();
+  function getOptions$1(userOptions) {
+    return {
+      email: userOptions.email,
+      domains: userOptions.domains || config_1.DEFAULT_CONFIG.domains,
+      topLevelDomains: userOptions.topLevelDomains || config_1.DEFAULT_CONFIG.topLevelDomains,
+      secondLevelDomains: userOptions.secondLevelDomains || config_1.DEFAULT_CONFIG.secondLevelDomains,
+      distanceFunction: userOptions.distanceFunction || config_1.DEFAULT_CONFIG.distanceFunction,
+      domainThreshold: userOptions.domainThreshold || config_1.DEFAULT_CONFIG.domainThreshold,
+      secondLevelThreshold: userOptions.secondLevelThreshold || config_1.DEFAULT_CONFIG.secondLevelThreshold,
+      topLevelThreshold: userOptions.topLevelThreshold || config_1.DEFAULT_CONFIG.topLevelThreshold,
+      suggested: userOptions.suggested || void 0,
+      empty: userOptions.suggested || void 0
+    };
+  }
+  getOptions.default = getOptions$1;
+  return getOptions;
+}
+var hasRequiredRun;
+function requireRun() {
+  if (hasRequiredRun) return run;
+  hasRequiredRun = 1;
+  var __importDefault = run && run.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : { "default": mod };
+  };
+  Object.defineProperty(run, "__esModule", { value: true });
+  const assert_valid_user_options_1 = __importDefault(requireAssertValidUserOptions());
+  const suggest_email_1 = __importDefault(requireSuggestEmail());
+  const get_options_1 = __importDefault(requireGetOptions());
+  function run$1(userOptions) {
+    const options = get_options_1.default(userOptions);
+    assert_valid_user_options_1.default(options || {});
+    const email = suggest_email_1.default(options);
+    if (!email && userOptions.empty) {
+      userOptions.empty();
+    }
+    if (email && userOptions.suggested) {
+      userOptions.suggested(email);
+    }
+    return email;
+  }
+  run.default = run$1;
+  return run;
+}
+var hasRequiredDist;
+function requireDist() {
+  if (hasRequiredDist) return dist;
+  hasRequiredDist = 1;
+  (function(exports) {
+    var __importDefault = dist && dist.__importDefault || function(mod) {
+      return mod && mod.__esModule ? mod : { "default": mod };
+    };
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.POPULAR_TLDS = exports.POPULAR_DOMAINS = exports.run = void 0;
+    const run_1 = __importDefault(requireRun());
+    exports.run = run_1.default;
+    const config_1 = requireConfig();
+    Object.defineProperty(exports, "POPULAR_DOMAINS", { enumerable: true, get: function() {
+      return config_1.POPULAR_DOMAINS;
+    } });
+    Object.defineProperty(exports, "POPULAR_TLDS", { enumerable: true, get: function() {
+      return config_1.POPULAR_TLDS;
+    } });
+    const MailSpellChecker = {
+      run: run_1.default,
+      POPULAR_DOMAINS: config_1.POPULAR_DOMAINS,
+      POPULAR_TLDS: config_1.POPULAR_TLDS
+    };
+    exports.default = MailSpellChecker;
+  })(dist);
+  return dist;
+}
+var distExports = requireDist();
+const emailSpellChecker = /* @__PURE__ */ getDefaultExportFromCjs(distExports);
 const addressBook = () => ({
   addressLabel(addressId, fallback) {
     return this.addressLabels[String(addressId)] || fallback;
@@ -5334,11 +5857,6 @@ const addressBook = () => ({
     const match = name.match(/\[([^\]]+)\]$/);
     return match ? match[1] : name;
   },
-  addressGroupHasValues(payload, prefix2) {
-    return Object.keys(payload).some(
-      (key) => key.startsWith(prefix2) && String(payload[key] || "").trim() !== ""
-    );
-  },
   addressGroupHasContent(payload, prefix2) {
     return ["fullName", "addressLine1", "locality", "postalCode"].some(
       (field) => String(payload[`${prefix2}${field}]`] || "").trim() !== ""
@@ -5398,7 +5916,7 @@ const cartPersistence = () => ({
       delete payload.shippingAddressId;
       delete payload.useNewAddress;
     }
-    const hasBillingFields = this.addressGroupHasValues(
+    const hasBillingFields = this.addressGroupHasContent(
       payload,
       "billingAddress["
     );
@@ -6372,7 +6890,21 @@ const gatewayHandling = () => ({
     window.initPaypalCheckout();
   }
 });
-const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@.]{2,}$/.test(String(value || "").trim());
+const SUGGESTION_TOP_LEVEL_DOMAINS = distExports.POPULAR_TLDS.filter(
+  (topLevelDomain) => topLevelDomain !== "co"
+);
+const suggestEmail = (value) => {
+  const email = String(value || "").trim();
+  const suggestion = emailSpellChecker.run({
+    email,
+    topLevelDomains: SUGGESTION_TOP_LEVEL_DOMAINS
+  });
+  if (!suggestion) {
+    return "";
+  }
+  return `${email.slice(0, email.lastIndexOf("@"))}@${suggestion.domain}`;
+};
 const isEmptyValue = (value) => Array.isArray(value) ? value.length === 0 : String(value ?? "").trim() === "";
 const asList = (value) => Array.isArray(value) ? value : Object.values(value ?? {});
 const SinglePageCheckout = (props) => {
@@ -6881,7 +7413,7 @@ const SinglePageCheckout = (props) => {
       return this.klaviyoEnabled && !this.loggedIn && !this.trackedCheckout && isValidEmail(saved.email || this.email);
     },
     shouldSubscribe(saved) {
-      return this.klaviyoEnabled && !this.loggedIn && !this.subscribed && String(saved.subscribe || "") === "1" && Boolean(saved.list) && isValidEmail(saved.email || this.email);
+      return this.klaviyoEnabled && !this.subscribed && String(saved.subscribe || "") === "1" && Boolean(saved.list) && isValidEmail(saved.email || this.email);
     },
     async trackCheckoutStarted(saved, signal) {
       try {
@@ -7302,10 +7834,13 @@ const ClearableInput = (props) => {
     success: props.success,
     requiredError: props.requiredError || "",
     invalidEmailError: props.invalidEmailError || "",
+    emailSuggestion: "",
+    dismissedEmailSuggestion: "",
     showButton: false,
     touched: (props.errors || []).length > 0,
     props,
     input() {
+      this.emailSuggestion = "";
       this.showButton = this.value !== "";
       if (this.touched || String(this.value || "").trim() !== "") {
         this.validate(false);
@@ -7318,6 +7853,22 @@ const ClearableInput = (props) => {
       this.touched = true;
       this.showButton = this.$refs.button === document.activeElement && this.value !== "";
       this.validate(true);
+      if (this.type === "email") {
+        const suggestion = suggestEmail(this.value);
+        this.emailSuggestion = suggestion === this.dismissedEmailSuggestion ? "" : suggestion;
+      }
+    },
+    dismissEmailSuggestion() {
+      this.dismissedEmailSuggestion = this.emailSuggestion;
+      this.emailSuggestion = "";
+    },
+    useEmailSuggestion() {
+      const input = this.$refs.input;
+      this.value = this.emailSuggestion;
+      this.emailSuggestion = "";
+      input.value = this.value;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
     },
     clear() {
       const input = this.$refs.input;
@@ -7851,16 +8402,28 @@ const RadioInput = (props) => {
 const CheckoutTracking = (props) => {
   return {
     track() {
+      const trackStartedCheckout = props.trackStartedCheckout ?? true;
+      const list = this.$root.querySelector('[name="list"]')?.value ?? "";
+      const subscribe = list !== "";
+      if (!trackStartedCheckout && !subscribe) {
+        return;
+      }
       const body = new FormData();
       body.append(window.csrfTokenName, window.csrfTokenValue);
       body.append("action", "klaviyo-connect-plus/api/track");
       body.append(
         "email",
-        this.$root.querySelector('[name="email"]')?.value ?? ""
+        this.$root.querySelector('[name="email"]')?.value ?? props.email ?? ""
       );
-      body.append("event[name]", "Started Checkout");
-      body.append("event[trackOrder]", "1");
-      body.append("event[orderId]", String(props.orderId ?? ""));
+      if (trackStartedCheckout) {
+        body.append("event[name]", "Started Checkout");
+        body.append("event[trackOrder]", "1");
+        body.append("event[orderId]", String(props.orderId ?? ""));
+      }
+      if (subscribe) {
+        body.append("list", list);
+        body.append("subscribe", "1");
+      }
       fetch(window.location.href, {
         method: "POST",
         body,
