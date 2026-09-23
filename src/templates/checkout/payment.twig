@@ -288,6 +288,14 @@
 																		elementOptions: params.elementOptions|merge({ paymentMethodOrder: stripeConfig.paymentMethodOrder }),
 																	}) %}
 																{% endif %}
+																{# Add the billing phone, which Link otherwise asks for again #}
+																{% set phoneFieldHandle = craft.fostercheckout.settings.addressPhoneFieldHandle %}
+																{% set billingPhone = phoneFieldHandle and cart.billingAddress ? cart.billingAddress.getFieldValue(phoneFieldHandle) : null %}
+																{% if billingPhone %}
+																	{% set params = params|merge({
+																		elementOptions: params.elementOptions|merge({ defaultValues: { billingDetails: { phone: billingPhone } } }),
+																	}) %}
+																{% endif %}
 															{% elseif gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
 																{% set paypalConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
 																{# Each list is comma joined for the SDK URL's query string #}

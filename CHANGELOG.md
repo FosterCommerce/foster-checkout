@@ -71,6 +71,7 @@
 - Fixed a bug where the stepped checkout's newsletter checkbox did not subscribe the customer.
 - Fixed a bug where a line item image set to fill its box was scaled up from an image that kept its own shape.
 - Fixed a bug where one setting pinned in a config file disabled the other settings in its group at **Checkout -> General**.
+- Fixed a bug where Stripe's payment element asked for a phone number for Link that the billing address already held, when the checkout was loaded with the address saved.
 - Fixed a bug where **Test the connection** for address suggestions returned to the wrong screen and discarded the API key on screen.
 - Fixed a JavaScript error on the payment step of the stepped checkout, where PayPal's script read its wrapper before the panel was rendered. The panel now renders the way the single page checkout already rendered it.
 - Fixed the postal code keyboard never changing with the country, and asking for a numeric keypad in countries whose postal code holds a space or a hyphen, such as the United States.
