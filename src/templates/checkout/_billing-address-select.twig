@@ -1,0 +1,63 @@
+{% set billingAddressOptions = [] %}
+{% if offerSameAsShipping %}
+	{% set billingAddressOptions = [{ value: 'same', label: 'billing.sameAsShippingAddress'|t('foster-checkout') }] %}
+{% endif %}
+{% for address in billingAddresses %}
+	{% set billingAddressOptions = billingAddressOptions|merge([{
+		value: address.id|string,
+		label: craft.fostercheckout.addressPreview(address),
+		isLastPinned: loop.last,
+	}]) %}
+{% endfor %}
+{% set billingAddressOptions = billingAddressOptions|merge([{ value: 'new', label: 'billing.useDifferentBillingAddress'|t('foster-checkout') }]) %}
+
+{# Leave the dropdown empty for an address it doesn't offer, since the dropdown would match another option by label #}
+<div
+	x-data="{
+		billingAddressOptions: {{ billingAddressOptions|json_encode }},
+		get offeredChoice() {
+			let choice = String(this.billingAddressId);
+			if (parseInt(this.billingSameAsShipping) === 1) {
+				choice = 'same';
+			} else if (parseInt(this.newBillingAddress) === 1) {
+				choice = 'new';
+			}
+			return this.billingAddressOptions.some((option) => option.value === choice) ? choice : '';
+		},
+		set offeredChoice(choice) {
+			this.editBillingAddressId = 0;
+			this.billingSameAsShipping = choice === 'same' ? 1 : 0;
+			this.newBillingAddress = choice === 'new' ? 1 : 0;
+			this.billingAddressId = choice === 'same' || choice === 'new' ? null : Number(choice);
+		},
+	}"
+>
+	<div class="flex items-center gap-4">
+		<div class="flex-1" x-show="!parseInt(editBillingAddressId)">
+			{% include 'foster-checkout/_components/base/input-select-searchable' with {
+				id: 'billingAddressId_display',
+				name: 'billingAddressId_display',
+				model: 'offeredChoice',
+				options: billingAddressOptions,
+				label: 'billing.addressDropdownLabel'|t('foster-checkout'),
+				required: true,
+			} %}
+		</div>
+		{% if canSaveAddresses %}
+			<template x-if="!['', 'same', 'new'].includes(offeredChoice)">
+				<button
+					type="button"
+					class="ml-auto text-[var(--brandColor)] underline"
+					@click="editBillingAddressId = parseInt(editBillingAddressId) ? 0 : parseInt(offeredChoice)"
+				>
+					<template x-if="parseInt(editBillingAddressId)"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
+					<template x-if="!parseInt(editBillingAddressId)"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
+				</button>
+			</template>
+		{% endif %}
+	</div>
+
+	{% include 'foster-checkout/checkout/_saved-address-edit' with { addresses: billingAddresses, editState: 'editBillingAddressId' } %}
+
+	{{ newBillingForm }}
+</div>

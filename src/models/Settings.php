@@ -12,6 +12,12 @@ use yii\base\InvalidConfigException;
 
 class Settings extends Model
 {
+	public const string SAVED_ADDRESS_DISPLAY_LIST = 'list';
+
+	public const string SAVED_ADDRESS_DISPLAY_DROPDOWN = 'dropdown';
+
+	public const string SAVED_ADDRESS_DISPLAY_AUTO = 'auto';
+
 	/**
 	 * How checkout content varies across sites, using Craft's field translation methods:
 	 * `none` for one shared copy, `site` for a copy per site, or `language` to share a copy
@@ -85,8 +91,20 @@ class Settings extends Model
 	public int $savedAddressLimit = 10;
 
 	/**
+	 * How the checkout offers a customer's saved addresses: `list` shows a row for each, `dropdown` a
+	 * searchable dropdown, and `auto` a list until the checkout offers more than `savedAddressDropdownThreshold`.
+	 */
+	public string $savedAddressDisplay = self::SAVED_ADDRESS_DISPLAY_LIST;
+
+	/**
+	 * The most saved addresses `auto` still shows as a list, counting the addresses the checkout offers.
+	 * Not read for `list` or `dropdown`.
+	 */
+	public int $savedAddressDropdownThreshold = 5;
+
+	/**
 	 * Handle of the address field holding a phone number, so its input asks for a phone keypad.
-	 * Named here, since Craft has no phone field type to recognise.
+	 * Named here, since Craft has no phone field type to recognize.
 	 */
 	public ?string $addressPhoneFieldHandle = null;
 
@@ -180,6 +198,21 @@ class Settings extends Model
 		}
 	}
 
+	/**
+	 * Whether this many saved addresses are offered as a dropdown rather than a list.
+	 *
+	 * @since 2.0.0
+	 */
+	public function usesAddressDropdown(int $addressCount): bool
+	{
+		return match ($this->savedAddressDisplay) {
+			self::SAVED_ADDRESS_DISPLAY_DROPDOWN => true,
+			self::SAVED_ADDRESS_DISPLAY_AUTO => $addressCount > $this->savedAddressDropdownThreshold,
+			// Show the list for a mode the config file misnames
+			default => false,
+		};
+	}
+
 	public function getNotShippableProductsCondition(): ProductCondition
 	{
 		/** @var list<array<string, mixed>> $rules */
@@ -194,7 +227,7 @@ class Settings extends Model
 	}
 
 	/**
-	 * @return list<array<int, list<string>|string>>
+	 * @return list<array<int|string, list<string>|int|string>>
 	 */
 	#[\Override]
 	public function rules(): array
@@ -202,6 +235,16 @@ class Settings extends Model
 		return [
 			['includes', 'validateIncludes'],
 			['defaultCountryCode', 'validateDefaultCountryCode'],
+			[
+				'savedAddressDisplay',
+				'in',
+				'range' => [self::SAVED_ADDRESS_DISPLAY_LIST, self::SAVED_ADDRESS_DISPLAY_DROPDOWN, self::SAVED_ADDRESS_DISPLAY_AUTO],
+			],
+			[
+				'savedAddressDropdownThreshold',
+				'integer',
+				'min' => 1,
+			],
 			[['branding', 'lineItems', 'addressLookup'], 'validateConfigNode'],
 			['paymentGateways', 'validateGatewayNodes'],
 		];

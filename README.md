@@ -1,26 +1,22 @@
-![Foster Checkout Icon](resources/img/header.png)
+![Foster Checkout](resources/img/header.png)
 
 # Foster Checkout
 
-A **checkout** for Craft Commerce, with its copy and settings managed from the control panel.
+A ready-made, best-practices **cart and checkout** for Craft Commerce.
 
 ## Overview
 
 - Give your store a complete checkout (email, address, shipping, billing, payment and confirmation) at paths you choose, as separate steps or one page, with an optional cart to match.
 - Edit checkout copy on production, per site or per language, without creating custom fields.
 - Set branding, line items, gateways, addresses and features on control panel screens, or pin any setting in a `foster-checkout.php` config file.
-- Ask customers for details the checkout does not collect (a purchase order number, for example) at five points in the flow.
+- Require extra details at checkout (a purchase order number, for example), and place each field where it fits.
 - Skip the shipping address and method for services and other products that do not ship.
 - Offer your store location as a pickup address.
 - Catch mistyped addresses and email domains before the order is placed.
 
 ## Use Foster Checkout when
 
-- The storefront needs a checkout, and has no templates for it yet. The cart can be the plugin's or your own.
-- Checkout wording has to change on production, where admin changes are disabled.
-- The store runs more than one site or language, and each needs its own checkout copy.
-- The catalog mixes shippable products with services that need no shipping address.
-- An order needs details Commerce does not collect, such as a purchase order number.
+- You run a Craft Commerce store of any type or size.
 
 ## Requirements
 
@@ -67,7 +63,7 @@ See [line items](./docs/user-guide/line-items.md).
 
 ## Checkout fields
 
-Ask a customer for anything the checkout does not collect, such as a purchase order number, and choose where it appears. Five positions across the checkout each hold a field layout, and a field added to one is shown at that point. A layout field has to exist on the order first.
+Require extra details at checkout, such as a purchase order number, and place each field on the step where it fits. Five positions across the checkout each hold a field layout, and a field added to one is shown at that point. A layout field has to exist on the order first.
 
 See [checkout fields](./docs/user-guide/checkout-fields.md).
 
@@ -90,6 +86,23 @@ See [products that don’t require shipping](./docs/user-guide/products-that-don
 Offer the store location as a shipping address choice, so a customer can collect an order. A pickup order ships to your own address, which a free shipping method can match by zone.
 
 See [customer pickup](./docs/user-guide/customer-pickup.md).
+
+## Plugin integrations
+
+The checkout works with these plugins when they are installed:
+
+- **AvaTax**: address verification on the shipping address.
+- **Gift Voucher**: a voucher and gift card field on the payment step.
+- **Klaviyo Connect Plus**: a newsletter checkbox and a Started Checkout event.
+- **Postie**: carrier shipping rates.
+- **Stripe for Craft Commerce**: Stripe's payment element, with settings for its layout, payment method order and Link.
+- **PayPal Checkout for Craft Commerce**: PayPal buttons and card fields, with settings for funding sources, card brands, locale and SDK components.
+- **Authorize.net for Craft Commerce**: card payments through Authorize.net.
+- **Small Pics**: line item images served by Small Pics.
+- **Imager X**: line item image transforms.
+- **Advanced Discounts**: coupon names and messages in the cart and at checkout.
+
+See [plugin integrations](./docs/reference/integrations.md).
 
 ## Documentation
 

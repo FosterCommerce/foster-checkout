@@ -1,0 +1,63 @@
+{% set billingAddressOptions = [] %}
+{% if collectShipping %}
+	{% set billingAddressOptions = [{ value: 'same', label: 'billing.sameAsShippingAddress'|t('foster-checkout') }] %}
+{% endif %}
+{% for address in billingAddresses %}
+	{% set billingAddressOptions = billingAddressOptions|merge([{
+		value: address.id|string,
+		label: craft.fostercheckout.addressPreview(address),
+		isLastPinned: loop.last,
+	}]) %}
+{% endfor %}
+{% set billingAddressOptions = billingAddressOptions|merge([{ value: 'new', label: 'billing.useDifferentBillingAddress'|t('foster-checkout') }]) %}
+
+{# Leave the dropdown empty for an address it doesn't offer, since the dropdown would match another option by label.
+   Drop the same-as-shipping option for a pickup order, whose shipping address is the store's. #}
+<div
+	x-data="{
+		billingAddressOptions: {{ billingAddressOptions|json_encode }},
+		get offeredOptions() {
+			return this.liveAddressOptions(this.billingAddressOptions).filter((option) => option.value !== 'same' || !this.shippingPickup);
+		},
+		get offeredChoice() {
+			return this.offeredOptions.some((option) => option.value === this.billingChoice) ? this.billingChoice : '';
+		},
+		set offeredChoice(choice) {
+			this.billingChoice = choice;
+		},
+	}"
+>
+	<div class="flex items-center gap-4">
+		<div class="flex-1" x-show="!parseInt(editBillingAddressId)">
+			{# Rebuild the dropdown when its options change, since replacing them clears the selection.
+			   Leave a lone option unpicked, since it can only be "Use a different billing address". #}
+			<template x-for="labels in [offeredOptions.map((option) => option.label).join('|')]" :key="labels">
+				{% include 'foster-checkout/_components/base/input-select-searchable' with {
+					id: 'billingAddressId_display',
+					name: 'billingAddressId_display',
+					model: 'offeredChoice',
+					optionsFrom: 'offeredOptions',
+					label: 'billing.addressDropdownLabel'|t('foster-checkout'),
+					required: true,
+					selectOnlyOption: false,
+				} %}
+			</template>
+		</div>
+		{% if canSaveAddresses %}
+			<template x-if="!['', 'same', 'new'].includes(offeredChoice)">
+				<button
+					type="button"
+					class="ml-auto text-[var(--brandColor)] underline"
+					@click="editExistingAddress = 0; editBillingAddressId = parseInt(editBillingAddressId) ? 0 : parseInt(offeredChoice)"
+				>
+					<template x-if="parseInt(editBillingAddressId)"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
+					<template x-if="!parseInt(editBillingAddressId)"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
+				</button>
+			</template>
+		{% endif %}
+	</div>
+
+	{% include 'foster-checkout/checkout/single-page/_saved-address-edit' with { addresses: billingAddresses, editState: 'editBillingAddressId' } %}
+
+	{{ newBillingForm }}
+</div>

@@ -6,6 +6,13 @@ export const addressBook = () => ({
 		return this.addressLabels[String(addressId)] || fallback;
 	},
 
+	liveAddressOptions(options) {
+		return options.map((option) => ({
+			...option,
+			label: this.addressLabel(option.value, option.label),
+		}));
+	},
+
 	escapeName(name) {
 		return typeof CSS !== 'undefined' && CSS.escape
 			? CSS.escape(name)

@@ -269,9 +269,10 @@ class Checkout extends Component
 	 *
 	 * Cut to `savedAddressLimit`, since a customer who has ordered for years can hold hundreds.
 	 * The primary address is listed first whatever its age, since ordering by recency alone drops it.
+	 * The addresses the order already uses follow, even past the limit.
 	 *
 	 * @return array<int, Address>
-	 * @since 1.7.0
+	 * @since 2.0.0
 	 */
 	public function customerAddresses(Order $order): array
 	{
@@ -285,7 +286,7 @@ class Checkout extends Component
 		$customerId = (int) $customer->id;
 
 		if (isset($this->customerAddresses[$customerId])) {
-			return $this->customerAddresses[$customerId];
+			return $this->withOrderAddresses($order, $customer, $this->customerAddresses[$customerId]);
 		}
 
 		$limit = $this->settings()->savedAddressLimit;
@@ -315,7 +316,9 @@ class Checkout extends Component
 			$addresses = [$primaryAddress, ...$addresses];
 		}
 
-		return $this->customerAddresses[$customerId] = $addresses;
+		$this->customerAddresses[$customerId] = $addresses;
+
+		return $this->withOrderAddresses($order, $customer, $addresses);
 	}
 
 	/**
@@ -352,6 +355,28 @@ class Checkout extends Component
 		$listId = trim((string) App::parseEnv($this->settings()->options->klaviyoListId));
 
 		return $listId === '' ? null : $listId;
+	}
+
+	/**
+	 * Whether the checkout shows the newsletter checkbox for this order.
+	 *
+	 * @since 2.0.0
+	 */
+	public function offersNewsletter(Order $order): bool
+	{
+		return $this->klaviyoTrackingEnabled($order)
+			&& $this->klaviyoListId() !== null
+			&& trim(strip_tags((string) $this->subscribeText())) !== '';
+	}
+
+	/**
+	 * Whether the stepped checkout skips its email step, since a signed-in customer has an email already.
+	 *
+	 * @since 2.0.0
+	 */
+	public function skipsEmailStep(Order $order): bool
+	{
+		return Craft::$app->getUser()->getIdentity() instanceof User && ! $this->offersNewsletter($order);
 	}
 
 	public function addressFormatter(): CheckoutAddressFormatter
@@ -414,7 +439,7 @@ class Checkout extends Component
 	 * A number pad has no hyphen either, so a US ZIP+4 needs autofill, address lookup or verification.
 	 *
 	 * @return array<string, string>
-	 * @since 1.7.0
+	 * @since 2.0.0
 	 */
 	public function addressPostalCodeInputModes(): array
 	{
@@ -631,18 +656,6 @@ class Checkout extends Component
 		}
 
 		return Craft::$app->getView()->renderString($note, $context);
-	}
-
-	/**
-	 * @deprecated in 1.7.0. Use [[lineItemImageFields()]] instead.
-	 * @return ?array{handle: string, level: string}
-	 */
-	public function lineItemImageField(string $productType): ?array
-	{
-		// The deprecator throws whenever a site sets throwExceptions, which craft-config ties to devMode
-		Craft::warning('`lineItemImageField()` has been renamed to `lineItemImageFields()`.', 'deprecation-error');
-
-		return $this->lineItemImageFields($productType)[0] ?? null;
 	}
 
 	/**
@@ -927,7 +940,7 @@ class Checkout extends Component
 	/**
 	 * Copy shown under the create account checkbox, such as what an account gets the customer.
 	 *
-	 * @since 1.7.0
+	 * @since 2.0.0
 	 */
 	public function createAccountText(): ?string
 	{
@@ -1159,6 +1172,35 @@ class Checkout extends Component
 		}
 
 		return preg_match('/[a-z \-]/i', (string) preg_replace('/\\\\./', '', $postalCodePattern)) === 0;
+	}
+
+	/**
+	 * Add the saved addresses the order already uses, which `savedAddressLimit` can leave out.
+	 * Without them the checkout has no option for an address the order still uses.
+	 *
+	 * @param array<int, Address> $addresses
+	 * @return array<int, Address>
+	 */
+	private function withOrderAddresses(Order $order, User $customer, array $addresses): array
+	{
+		$listedIds = array_map(static fn (Address $address): ?int => $address->id, $addresses);
+		$missingIds = array_values(array_diff(
+			array_filter([$order->sourceShippingAddressId, $order->sourceBillingAddressId]),
+			$listedIds
+		));
+
+		if ($missingIds === []) {
+			return $addresses;
+		}
+
+		/** @var array<int, Address> $orderAddresses */
+		$orderAddresses = Address::find()
+			->owner($customer)
+			->fieldId(null)
+			->id($missingIds)
+			->all();
+
+		return [...$addresses, ...$orderAddresses];
 	}
 
 	/**

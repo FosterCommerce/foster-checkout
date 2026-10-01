@@ -6,7 +6,7 @@ use craft\elements\Address;
 use fostercommerce\fostercheckout\tests\Support\CartTestCase;
 
 /**
- * @since 1.6.0
+ * @since 2.0.0
  */
 final class AddressLabelPreviewTest extends CartTestCase
 {

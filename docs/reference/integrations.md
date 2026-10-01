@@ -6,8 +6,12 @@ These plugins change the checkout when installed. Each is optional and installed
 | --- | --- | --- |
 | AvaTax | `surprisehighway/craft-avatax` | Address verification on the shipping address |
 | Gift Voucher | `verbb/gift-voucher` | A voucher and gift card field on the payment step |
-| Klaviyo Connect Plus | `fostercommerce/klaviyo-connect-plus` | The newsletter checkbox, in the contact panel or on the checkout's first step, and a Started Checkout event from the cart page's **Checkout** button |
+| Klaviyo Connect Plus | `fostercommerce/klaviyo-connect-plus` | The newsletter checkbox, in the contact panel or on the stepped checkout's email step, and a Started Checkout event from the cart page's **Checkout** button |
 | Postie | `verbb/postie` | Carrier shipping rates |
+| Stripe for Craft Commerce | `craftcms/commerce-stripe` | Stripe's payment element, with settings at **Checkout -> Gateways** for its layout, payment method order and Link |
+| PayPal Checkout for Craft Commerce | `craftcms/commerce-paypal-checkout` | PayPal buttons and card fields, with settings at **Checkout -> Gateways** for funding sources, card brands, locale and SDK components |
+| Authorize.net for Craft Commerce | `digital-pros/commerce-authorize` | Card payments through Authorize.net |
+| Small Pics | `smallpics/craft-smallpics` | Line item images served by Small Pics |
 | Imager X | `spacecatninja/imager-x` | Line item image transforms |
 | Advanced Discounts | `fostercommerce/advanced-discounts` | Coupon names and messages in the cart and at checkout |
 
@@ -31,9 +35,13 @@ Postie's rates appear as shipping methods. The plugin registers the checkout pat
 
 Variants matched by [Products that don’t require shipping](../user-guide/products-that-dont-require-shipping.md) are left out of Postie's parcel. For how Postie quotes a pickup order, see [customer pickup](../user-guide/customer-pickup.md#pricing-pickup).
 
+## Small Pics
+
+With Small Pics enabled, line item images in the cart and checkout use Craft's own image transforms, which Small Pics serves when its `transformNativeImages` setting is on. This holds even when Imager X is installed.
+
 ## Imager X
 
-Line item images in the cart and checkout are transformed through Imager X when it is installed. Configure the transform with the `lineItems.imagerXConfig` setting in `config/foster-checkout.php`. Without the plugin, Craft's image transforms size the images.
+Line item images in the cart and checkout are transformed through Imager X when it is installed and Small Pics is not. Configure the transform with the `lineItems.imagerXConfig` setting in `config/foster-checkout.php`. Without the plugin, Craft's image transforms size the images.
 
 ## Advanced Discounts
 

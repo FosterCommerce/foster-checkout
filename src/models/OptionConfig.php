@@ -54,7 +54,7 @@ class OptionConfig extends Model
 	public ValueConfig $subscribe;
 
 	/**
-	 * Delivery date configuration
+	 * Always the defaults, since delivery dates are not a supported feature.
 	 */
 	public DeliveryDateConfig $deliveryDate;
 
@@ -69,15 +69,11 @@ class OptionConfig extends Model
 	public function __construct(array $config = [])
 	{
 		if (isset($config['deliveryDate'])) {
-			/** @var array<array-key, mixed> $deliveryDateConfig */
-			$deliveryDateConfig = $config['deliveryDate'];
-			$deliveryDate = new DeliveryDateConfig($deliveryDateConfig);
-		} else {
-			$deliveryDate = new DeliveryDateConfig();
+			// The deprecator throws whenever a site sets throwExceptions, which craft-config ties to devMode
+			Craft::warning('`deliveryDate` is not supported and is ignored.', 'deprecation-error');
 		}
 
-
-		$config['deliveryDate'] = $deliveryDate;
+		$config['deliveryDate'] = new DeliveryDateConfig();
 
 		$config['subscribe'] = ValueConfig::fromConfig('subscribe', $config);
 

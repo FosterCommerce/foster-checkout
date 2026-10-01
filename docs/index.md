@@ -1,6 +1,6 @@
 # Foster Checkout documentation
 
-A checkout for Craft Commerce, with its copy and settings managed from the control panel.
+A ready-made, best-practices cart and checkout for Craft Commerce.
 
 ## Where to go
 

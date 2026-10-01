@@ -12,7 +12,7 @@ How to ask a customer for a detail the checkout does not collect by default.
 | **Billing step** | The billing step |
 | **Order summary** | The cart page and the order summary |
 
-On the stepped checkout, a signed-in customer skips the email step, so **Email step** fields also show on the first step they reach: the shipping address step, or the billing step when no item ships.
+On the stepped checkout, a signed-in customer skips the email step unless the newsletter checkbox is offered. When the step is skipped, **Email step** fields show on the first step they reach: the shipping address step, or the billing step when the checkout asks for no shipping address.
 
 Open a position to edit its field layout, and set each field's width and whether it is required.
 

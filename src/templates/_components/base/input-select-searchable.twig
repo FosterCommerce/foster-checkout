@@ -37,6 +37,9 @@
 		{% if required|default %}
 			required: {{ required ? 'true' : 'false' }},
 		{% endif %}
+		{% if selectOnlyOption is defined %}
+			selectOnlyOption: {{ selectOnlyOption ? 'true' : 'false' }},
+		{% endif %}
 		value: '{{ value|default('') }}',
 		requiredError: {{ 'misc.required'|t('foster-checkout')|json_encode }},
 		errors: {{ errors|default([])|json_encode }},
@@ -153,7 +156,7 @@
 		<!-- Dropdown -->
 		<div
 			x-show="open"
-			x-trap="open"
+			x-trap.noreturn="open"
 			class="relative"
 		>
 			<div

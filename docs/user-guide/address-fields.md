@@ -8,7 +8,9 @@ Two screens decide this together. Craft's address field layout, at **Settings ->
 | --- | --- |
 | **Default country** | Country a new address starts on. The customer can still change it. Unset starts with no country chosen |
 | **Priority countries** | Country codes shown at the top of every country dropdown, in the order listed. They are removed from the alphabetical list below |
-| **Saved address limit** | How many of a customer’s saved addresses the checkout offers them to ship to. 10 by default |
+| **Saved address limit** | How many of a customer’s saved addresses the checkout offers. 10 by default |
+| **Saved address display** | Whether the checkout shows saved addresses as a list, a searchable dropdown, or a list until there are more than **Dropdown threshold**. List by default |
+| **Dropdown threshold** | The most saved addresses Auto still shows as a list. 5 by default |
 | **Phone field** | Handle of the address field holding a phone number. Its input asks for a phone keypad instead of a text one |
 | **Hidden address fields** | Fields left off the checkout. They stay in the control panel |
 | **Hidden billing address fields** | Fields also left off a new billing address, such as a delivery switch, which has no use on the address a card is billed to |
@@ -20,7 +22,25 @@ Two screens decide this together. Craft's address field layout, at **Settings ->
 
 ## Saved addresses
 
-The checkout offers the most recently updated addresses, up to **Saved address limit**, with the primary address first. Set the limit to zero to offer every saved address.
+The checkout offers the most recently updated addresses, up to **Saved address limit**, with the primary address first. Set the limit to zero to offer every saved address. The addresses the cart already uses are offered too, even past the limit, so the checkout shows which address it bills or ships to. The billing choices leave out the saved address the cart ships to when the page loads, since **Same as shipping address** covers it.
+
+### List or dropdown
+
+A buyer who orders on behalf of their own clients can hold many saved addresses. **Saved address display** sets how the checkout shows them:
+
+| Option | Shows |
+| --- | --- |
+| **List** | A row for each saved address |
+| **Dropdown** | One searchable dropdown in each section |
+| **Auto** | A list until the checkout offers more addresses than **Dropdown threshold**, then the dropdown |
+
+With **Saved address limit** set to zero and **Saved address display** set to Dropdown, the checkout offers every saved address without lengthening the page.
+
+In the shipping section, the dropdown lists the saved addresses, then **New shipping address**, then the pickup choice when [customer pickup](./customer-pickup.md) is on.
+
+In the billing section, the dropdown lists **Same as shipping address**, the saved addresses, then **Use a different billing address**. A pickup order, or a checkout that asks for no shipping address, does not offer **Same as shipping address**. Until the customer chooses a billing address, the single-page checkout keeps payment unavailable and lists **Billing address** as a missing detail, and the stepped checkout does not continue past the billing step.
+
+**Edit**, beside either dropdown, opens the chosen saved address for editing, for a customer who can edit their saved addresses.
 
 ## What can be hidden
 

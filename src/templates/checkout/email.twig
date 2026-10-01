@@ -2,7 +2,7 @@
 	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) %}
 {% endif %}
 
-{% if currentUser %}
+{% if craft.fostercheckout.skipsEmailStep(craft.commerce.carts.cart) %}
 	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address' %}
 {% endif %}
 
@@ -62,7 +62,7 @@
 								method="post"
 								accept-charset="UTF-8"
 								{% if klaviyoEnabled %}
-									x-data="CheckoutTracking({ orderId: {{ cart.id ?? 'null' }} })"
+									x-data="CheckoutTracking({ orderId: {{ cart.id ?? 'null' }}, email: {{ cart.email|json_encode }}, trackStartedCheckout: {{ currentUser ? 'false' : 'true' }} })"
 									@submit="track()"
 								{% endif %}
 							>
@@ -73,48 +73,60 @@
 
 								<fieldset class="grid grid-cols-1 gap-6" x-data="{ createAccount: {{ cart.registerUserOnOrderComplete ? 'true' : 'false' }} }">
 
-									<div class="grid grid-cols-1 gap-4">
-										{% include 'foster-checkout/_components/app/sign-in-option' %}
-
+									{% if currentUser %}
 										<div>
-											{% include 'foster-checkout/_components/base/input-text-clearable' with {
-												label: 'email.emailLabel'|t('foster-checkout'),
-												id: 'email',
-												name: 'email',
-												type: 'email',
-												autocomplete: 'email',
-												placeholder: 'email.emailPlaceholder'|t('foster-checkout'),
-												value: cart ? cart.email : '',
-												required: true,
-												errors: cart.getErrors('email'),
-												action: '$nextTick(() => { $refs.input.focus() });'
-											} %}
+											<p class="text-black [overflow-wrap:anywhere]">{{ craft.fostercheckout.contact(cart) }}</p>
+											<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}"
+											   class="inline-block mt-1 text-sm text-[var(--brandColor)] underline">
+												{{ 'misc.viewAccount'|t('foster-checkout') }}
+											</a>
 										</div>
-									</div>
+									{% else %}
+										<div class="grid grid-cols-1 gap-4">
+											{% include 'foster-checkout/_components/app/sign-in-option' %}
+
+											<div>
+												{% include 'foster-checkout/_components/base/input-text-clearable' with {
+													label: 'email.emailLabel'|t('foster-checkout'),
+													id: 'email',
+													name: 'email',
+													type: 'email',
+													autocomplete: 'email',
+													placeholder: 'email.emailPlaceholder'|t('foster-checkout'),
+													value: cart ? cart.email : '',
+													required: true,
+													errors: cart.getErrors('email'),
+													action: '$nextTick(() => { $refs.input.focus() });'
+												} %}
+											</div>
+										</div>
+									{% endif %}
 
 									<div class="grid grid-cols-1 gap-4">
 										{% include 'foster-checkout/_components/app/subscribe-checkbox' %}
 
-										<div class="checkbox">
-											<input type="hidden" name="registerUserOnOrderComplete" :value="createAccount ? 1 : 0">
-											<input
-												type="checkbox"
-												id="registerUserOnOrderComplete"
-												class="sr-only"
-												x-model="createAccount"
-												:checked="createAccount"
-												:aria-checked="createAccount ? 'true' : 'false'"
-											/>
-											<label
-												class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
-												for="registerUserOnOrderComplete"
-											>
-												{{ 'email.createAccount'|t('foster-checkout') }}
-											</label>
-											{% if createAccountText %}
-												<p class="text-sm text-gray-500">{{ createAccountText|raw }}</p>
-											{% endif %}
-										</div>
+										{% if not currentUser %}
+											<div class="checkbox">
+												<input type="hidden" name="registerUserOnOrderComplete" :value="createAccount ? 1 : 0">
+												<input
+													type="checkbox"
+													id="registerUserOnOrderComplete"
+													class="sr-only"
+													x-model="createAccount"
+													:checked="createAccount"
+													:aria-checked="createAccount ? 'true' : 'false'"
+												/>
+												<label
+													class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500"
+													for="registerUserOnOrderComplete"
+												>
+													{{ 'email.createAccount'|t('foster-checkout') }}
+												</label>
+												{% if createAccountText %}
+													<p class="text-sm text-gray-500">{{ createAccountText|raw }}</p>
+												{% endif %}
+											</div>
+										{% endif %}
 									</div>
 
 								</fieldset>
@@ -129,12 +141,6 @@
 								{% endif %}
 
 								<div class="mt-6 grid grid-cols-1 gap-4 md:flex md:justify-end md:items-center md:gap-6">
-									<a
-										href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
-										class="hidden md:block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg"
-									>
-										{{ 'misc.returnToCart'|t('foster-checkout') }}
-									</a>
 									<button
 										type="submit"
 										class="block min-w-[200px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg"
@@ -152,6 +158,8 @@
 					{% include 'foster-checkout/_components/app/steps-uncompleted' with {
 						step: 'email'
 					} %}
+
+					{% include 'foster-checkout/_components/app/return-to-cart' %}
 				</div>
 
 			</main>

@@ -73,30 +73,6 @@
 		warning: customerPickupLabelOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'customerPickupLabel' }),
 	}) }}
 
-	<hr>
-
-	<h2>{{ 'settings.features.deliveryDateTitle'|t('foster-checkout') }}</h2>
-
-	{% set deliveryDateNotes = plugin.getContent().get('notes') ?? {} %}
-
-	{{ forms.textField({
-		label: 'content.deliveryDateLabel'|t('foster-checkout'),
-		instructions: 'content.deliveryDateLabelHelp'|t('foster-checkout'),
-		id: 'delivery-date-label',
-		value: deliveryDateNotes.deliveryDateLabel ?? '',
-		disabled: true,
-		warning: 'settings.features.deliveryDateUnused'|t('foster-checkout'),
-	}) }}
-
-	{{ forms.textareaField({
-		label: 'content.deliveryDateMessage'|t('foster-checkout'),
-		instructions: 'content.deliveryDateMessageHelp'|t('foster-checkout'),
-		id: 'delivery-date-message',
-		value: deliveryDateNotes.deliveryDateMessage ?? '',
-		rows: 3,
-		disabled: true,
-	}) }}
-
 	{% include 'foster-checkout/_includes/plugin-footer' %}
 
 {% endblock %}

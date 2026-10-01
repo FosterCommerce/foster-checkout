@@ -1,7 +1,6 @@
-{% set subscribeText = craft.fostercheckout.subscribeText()|striptags|trim %}
-{% set klaviyoListId = craft.fostercheckout.klaviyoListId() %}
-
-{% if craft.fostercheckout.klaviyoTrackingEnabled(cart) and klaviyoListId and subscribeText %}
+{% if craft.fostercheckout.offersNewsletter(cart) %}
+	{% set subscribeText = craft.fostercheckout.subscribeText()|striptags|trim %}
+	{% set klaviyoListId = craft.fostercheckout.klaviyoListId() %}
 	<div
 		x-data="{
 			subscribe: JSON.parse(localStorage.getItem(window.FC_SUBSCRIBE_KEY) ?? 'false'),

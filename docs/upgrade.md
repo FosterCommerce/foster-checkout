@@ -6,11 +6,11 @@ What to change on a site when updating Foster Checkout. Run migrations after eve
 ./craft migrate/all
 ```
 
-## Upgrading to the next release
+## Upgrading to 2.0.0
 
 ### Extra parameters removed
 
-**Breaking.** **Extra parameters** at **Checkout -> Gateways**, and the `paymentGateways.<handle>.params` setting behind it, are removed. The plugin logs and ignores a `params` key, whether it was stored from the control panel or set in a config file.
+**Extra parameters** at **Checkout -> Gateways**, and the `paymentGateways.<handle>.params` setting behind it, are removed. The plugin logs and ignores a `params` key, whether it was stored from the control panel or set in a config file.
 
 Set the matching gateway setting instead:
 
@@ -21,7 +21,7 @@ For any other key, or one that depends on the order, see [payment form parameter
 
 ### Login and register pages removed
 
-**Breaking.** The checkout no longer serves `<checkout>/login` or `<checkout>/register`, and the **Account** note at **Checkout -> Notes & Links** is removed. **Sign in** goes to Craft's `loginPath`. Link to your own sign-in and registration pages instead.
+The checkout no longer serves `<checkout>/login` or `<checkout>/register`, and the **Account** note at **Checkout -> Notes & Links** is removed. **Sign in** goes to Craft's `loginPath`. Link to your own sign-in and registration pages instead.
 
 ### Klaviyo tracking off on update
 
@@ -39,9 +39,9 @@ The voucher form posts to `foster-checkout/voucher/add-code` and accepts gift vo
 
 **Verify shipping addresses** and the address suggestion settings are on **Checkout -> Addresses**, which needs **Manage checkout settings** rather than **Manage checkout features**. Grant it to any user group that edits them.
 
-### Deprecated `lineItemImageField()`
+### `lineItemImageField()` removed
 
-`Checkout::lineItemImageField()` is deprecated. Call `lineItemImageFields()`, which returns every configured image field for a product type, variant first.
+`Checkout::lineItemImageField()` is removed. Call `lineItemImageFields()`, which returns every configured image field for a product type, variant first. Its first entry is the field `lineItemImageField()` returned. In Twig, `craft.fostercheckout.lineItemImageField(type)` becomes `craft.fostercheckout.lineItemImageFields(type)|first`.
 
 ## Upgrading to 1.0.0
 

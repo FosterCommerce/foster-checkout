@@ -4,99 +4,76 @@
 
 ### Added
 
-- Added **Saved address limit** at **Checkout -> Addresses**, capping how many of a customer's saved addresses the checkout offers, most recently updated first and always including their primary address.
-- Added **Klaviyo tracking** at **Checkout -> Features**, which decides whether the checkout reports to Klaviyo and offers the newsletter checkbox.
-- Added **Phone field** at **Checkout -> Addresses**, naming the address field that holds a phone number so its input asks for a phone keypad.
+- Added support for Small Pics. With it enabled, line item images use Craft's own transforms, which Small Pics serves, even when Imager X is installed.
+- Added **Default country**, **Phone field**, **Saved address limit**, and **Saved address display** at **Checkout -> Addresses**, setting the country a new address starts on, which address field asks for a phone keypad, how many saved addresses the checkout offers, and whether the checkout offers them as a searchable dropdown.
+- Added **Show the address label** at **Checkout -> Addresses**, which names a saved address by the label its customer gave it in the checkout's address choices and in the completed steps. An order's address borrows the name from the address it was copied from, and the store location is left out, since a customer never named it.
+- Added **Klaviyo tracking** at **Checkout -> Features**, which decides whether the checkout reports to Klaviyo and offers the newsletter checkbox. It is off on update, so a store already running Klaviyo turns it on deliberately.
 - Added **Summary include** at **Checkout -> General**, a template given the cart and rendered in its own container above the checkout summary, on both checkout layouts. It is given the step it is rendering on, so a message can be shown on one step only.
-- Added **Header text color** at **Checkout -> Appearance**, used for the cart link and for the store name a header without a logo falls back to.
-- Added a cart link to the checkout header on the checkout steps.
-- Added `craft.fostercheckout.klaviyoListId()`, the Klaviyo list ID with any environment variable resolved.
-- Added `craft.fostercheckout.customerAddresses()`, the saved addresses the checkout offers a customer.
-- Added `craft.fostercheckout.addressPostalCodeInputModes()`, the `inputmode` each country's postal code field takes.
-- Added **Default country** at **Checkout -> Addresses**, the country a new address starts on.
+- Added **Header text color** and **Logo height** at **Checkout -> Appearance**.
+- Added `craft.fostercheckout.klaviyoListId()`, `craft.fostercheckout.customerAddresses()`, `craft.fostercheckout.addressPostalCodeInputModes()`, `craft.fostercheckout.offersNewsletter()`, and `craft.fostercheckout.addressPreview()`.
 - Added **Image size** and **Image fit** at **Checkout -> Line Items**, sizing the cart image and choosing whether it is shown whole or cropped to a square. Narrow screens use half the size.
-- Added **Logo height** at **Checkout -> Appearance**.
 - Added **Create account description** at **Checkout -> Notes & Links**, shown under the create account checkbox. Blank shows nothing.
-- Added **Payment method layout** on a Stripe gateway at **Checkout -> Gateways**, choosing whether its payment element lists the payment methods as tabs, as an accordion, or however Stripe decides.
-- Added **Include Link** on a Stripe gateway at **Checkout -> Gateways**, which decides whether Stripe's payment element offers Link and the payment methods marked “Powered by Link”.
-- Added **Payment method order** on a Stripe gateway at **Checkout -> Gateways**, ranking the payment method types its payment element lists. A type Stripe is not offering is skipped, and one left out follows the ranked ones.
-- Added **Hidden funding sources** and **Extra funding sources** on a PayPal gateway at **Checkout -> Gateways**, choosing which funding sources its buttons offer.
-- Added **Turned away card brands** on a PayPal gateway at **Checkout -> Gateways**. PayPal has deprecated the option it writes, so it can stop working.
-- Added **Locale** and **SDK components** on a PayPal gateway at **Checkout -> Gateways**.
+- Added **Payment method layout**, **Payment method order**, and **Include Link** on a Stripe gateway at **Checkout -> Gateways**, choosing how its payment element lists payment methods, in what order, and whether it offers Link.
+- Added **Hidden funding sources**, **Extra funding sources**, **Turned away card brands**, **Locale**, and **SDK components** on a PayPal gateway at **Checkout -> Gateways**. PayPal has deprecated the option **Turned away card brands** writes, so that setting can stop working.
 - Added a “Did you mean …?” suggestion under the checkout email field for a mistyped domain, such as `gmial.com`.
-- Added the newsletter checkbox for signed-in customers.
+- Added the newsletter checkbox for signed-in customers, in the contact panel or on the stepped checkout's email step.
 
 ### Changed
 
-- **Klaviyo tracking** is off on update, so a store already running Klaviyo turns it on for the checkout deliberately.
-- Replaced the **Edit** link above the summary items with the cart link in the checkout header.
+- Replaced the **Edit** link above the summary items with a cart link in the checkout header.
 - Moved the contact step's sign-in link out of the panel heading and onto the email row, where it reads as the alternative to entering an email rather than as part of the heading.
-- Renamed the **Content** screen to **Notes & Links**, and the **Fields** screen to **Custom Fields**.
+- Renamed the **Content** screen to **Notes & Links** and the **Fields** screen to **Custom Fields**, and moved settings onto the screen for their area, such as address verification to **Checkout -> Addresses**.
 - Moved **Placeholder images** and `options.imagerXConfig` from `options` to `lineItems`. A config file using the old keys still works.
-- Moved **Checkout layout** and **Page transitions** to **Checkout -> Appearance**, **Verify shipping addresses** and the address suggestion settings to **Checkout -> Addresses**, **Offer pickup at the store location** and **Pickup label** to **Checkout -> Features**, **Zero value gateways** to **Checkout -> Gateways**, and **Customer order notes field** to **Checkout -> Custom Fields**.
 - Editing address verification and address suggestions now needs **Manage settings** rather than **Manage features**, since they moved to the Addresses screen.
-- Renamed `Checkout::lineItemImageField()` to `lineItemImageFields()`, which returns every configured image field for a product type, variant first, rather than only the first one. The old name still works, is deprecated, and is removed in the next major release.
+- Renamed `Checkout::lineItemImageField()` to `lineItemImageFields()`, which returns every configured image field for a product type, variant first.
 - A line item with no variant image now falls back to the product image field, instead of showing no image.
-- The delivery date label and message are read-only at **Checkout -> Features**, since no template in the plugin renders a delivery date.
-- The voucher form accepts gift voucher codes only, and posts to `foster-checkout/voucher/add-code`. Gift Voucher's own action applies a Commerce coupon code entered there, replacing the order's coupon and still reporting the voucher as failed. A template overriding the payment step needs the new action.
+- The voucher form now accepts gift voucher codes only, and posts to `foster-checkout/voucher/add-code`.
 - A panel now says an email address is needed before the checkout can save a guest's cart, instead of leaving the panel unchanged.
-- The newsletter checkbox sits above the create account checkbox.
+- The newsletter checkbox now sits above the create account checkbox.
+- **Return to cart** on the stepped checkout now sits below the steps, as on the single-page checkout, and shows on narrow screens.
 - The billing address form now opens on its own when an order needs no shipping and the customer has no saved addresses, instead of behind a **Use a different billing address** choice.
 - When **Use the built-in cart template** is off, **Checkout -> Line Items** now hides the settings only that template uses. A hidden setting keeps its stored value.
-- **Klaviyo list ID** at **Checkout -> Features** suggests environment variables and resolves one before rendering, the way Craft's own settings do. A config file no longer has to read the variable itself.
-- The discount code heading no longer repeats the applied code, which the row beneath it already names.
-- A coupon's name is left out where it matches the code itself.
-- The Stripe payment element takes `layout.type` from **Payment method layout** and `wallets.link` from **Include Link**.
-- The single page checkout no longer names a lone payment method, since there is no second one to choose between, and its form starts at the top of the panel.
+- **Klaviyo list ID** at **Checkout -> Features** suggests environment variables, the way Craft's own settings do.
+- The discount code heading no longer repeats the applied code, and a coupon's name is left out where it matches the code.
+- The single-page checkout no longer names a lone payment method, since there is no second one to choose between, and its form starts at the top of the panel.
 - Payment method notes now show for every gateway, not only Manual gateways.
 - **Checkout -> Gateways** offers a field layout on Manual gateways only, since only those render their fields at checkout.
 
 ### Removed
 
 - Removed **Save for later** from **Checkout -> Line Items** and the cart, since its button had no action.
-- Removed the checkout's login and register pages, and the **Account** note at **Checkout -> Notes & Links**. **Sign in** goes to Craft's `loginPath`. **Breaking**: a store linking to `<checkout>/login` or `<checkout>/register` links to its own pages instead.
+- Removed the checkout's login and register pages, and the **Account** note at **Checkout -> Notes & Links**. **Sign in** goes to Craft's `loginPath`.
 - Removed the **Products** screen. **Preview image fields** moved to **Checkout -> Line Items**, and **Products that never ship**, now **Products that don't require shipping**, moved to **Checkout -> Addresses**.
-- Removed **Extra parameters** and the `paymentGateways.<handle>.params` setting behind it. The keys merchants set there have their own settings on the Stripe and PayPal gateways, and `Checkout::EVENT_DEFINE_PAYMENT_FORM_PARAMS` sets any other key with PHP types. A `params` key is now logged and ignored, whether it was stored from the removed table or named in a config file. **Breaking**: a store relying on it, such as one hiding a PayPal funding source, sets the matching gateway setting instead.
+- Removed **Extra parameters** and the `paymentGateways.<handle>.params` setting behind it. The keys merchants set there have their own settings on the Stripe and PayPal gateways, and `Checkout::EVENT_DEFINE_PAYMENT_FORM_PARAMS` sets any other key with PHP types. A `params` key is now logged and ignored, whether it was stored from the removed table or named in a config file.
 
 ### Fixed
 
+- Fixed an error that occurred when a cart held a product that had since been moved to the trash.
+- Fixed a bug where **Return to cart** on the stepped checkout's billing step opened the checkout instead of the cart.
+- Fixed a bug where choosing an option in a searchable dropdown, such as the country, left its text selected.
+- Fixed a bug where the stepped checkout's payment step showed extra space above the payment methods on a store without Gift Voucher.
 - Fixed a bug where saving an address the store cannot ship to reported “Unable to update cart.” with no reason.
 - Fixed a bug where the checkout listed a customer's saved addresses oldest first.
-- Fixed a bug where the postal code field opened a letter keyboard on a phone in countries whose postal codes are digits.
-- Fixed a bug where the shipping method panel reported no shipping options before an address was entered.
-- Fixed a bug where the single page checkout hid the shipping method panel before an address was entered, on a store that doesn't require a shipping method.
-- Fixed a bug where the single page checkout reported “Unable to update cart.” when an email was entered while the new billing address form held only its preselected country.
+- Fixed a bug where the postal code field opened the wrong keyboard on a phone for the chosen country.
+- Fixed a bug where the shipping method panel reported no shipping options, or was hidden on the single-page checkout, before an address was entered.
+- Fixed a bug where a country preselected on an empty address form counted as an address to save, so entering an email reported “Unable to update cart.” or an incomplete shipping address.
 - Fixed a bug where the checkout accepted an email address ending in a one-letter domain, such as `name@example.c`.
 - Fixed a bug where a signed-in customer on the stepped checkout could not pay while an email step field was required.
 - Fixed a bug where the stepped checkout's newsletter checkbox did not subscribe the customer.
 - Fixed a bug where a line item image set to fill its box was scaled up from an image that kept its own shape.
 - Fixed a bug where one setting pinned in a config file disabled the other settings in its group at **Checkout -> General**.
-- Fixed a bug where Stripe's payment element asked for a phone number for Link that the billing address already held, when the checkout was loaded with the address saved.
+- Fixed a bug where Stripe's payment element asked for a phone number the billing address already held.
 - Fixed a bug where **Test the connection** for address suggestions returned to the wrong screen and discarded the API key on screen.
-- Fixed a JavaScript error on the payment step of the stepped checkout, where PayPal's script read its wrapper before the panel was rendered. The panel now renders the way the single page checkout already rendered it.
-- Fixed the postal code keyboard never changing with the country, and asking for a numeric keypad in countries whose postal code holds a space or a hyphen, such as the United States.
-- Fixed a bug where a store selling to one country reported an incomplete shipping address as soon as a guest entered their email, since the country a lone option preselects counted as an address worth saving.
+- Fixed a JavaScript error on the payment step of the stepped checkout, where PayPal's script read its wrapper before the panel was rendered. The panel now renders the way the single-page checkout already rendered it.
 - Fixed a bug where the shipping address saved without a required custom address field, such as a phone number, leaving Commerce to reject the cart.
 - Fixed a bug where a coupon code a guest submitted before entering an email was discarded without a message.
 - Fixed a bug where a panel kept its error mark after a later save had cleared the message.
 - Fixed the shipping address not saving when only a field that does not change the shipping rate was edited, such as the street or the name.
 - Fixed a bug where the address lookup's own settings were never validated, so a config file naming an unknown provider saved without complaint and left address suggestions unavailable.
 - Fixed **Klaviyo list ID** rendering an environment variable name into the newsletter form rather than the list it names, so the signup reached Klaviyo with a list ID of `$KLAVIYO_LIST_ID`.
-- Fixed the single page checkout offering one payment method rendering no payment form when the cart already totaled zero on load.
+- Fixed the single-page checkout offering one payment method rendering no payment form when the cart already totaled zero on load.
 - Fixed the create account checkbox never switching on at the email step of the stepped checkout.
 - Fixed a JavaScript error while a coupon was applied, where the checkout read the page it is mounted on from a watched value, which Alpine re-runs without it.
-- Fixed the single page checkout letting Stripe ask for a phone number the address form had already collected, by passing the billing address phone to the payment element.
-
-## 1.6.0 - 2026-09-14
-
-### Added
-
-- Added **Show the address label** at **Checkout -> Addresses**, which names a saved address by the label its customer gave it in the checkout's address choices and in the completed steps. An order's address borrows the name from the address it was copied from, and the store location is left out, since a customer never named it.
-- Added `craft.fostercheckout.addressPreview()`, the one-line preview of an address as the checkout renders it.
-
-### Fixed
-
-- Fixed an error that occurred when a cart held a product that had since been moved to the trash.
 
 ## 1.5.0 - 2026-09-13
 

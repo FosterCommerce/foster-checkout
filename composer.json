@@ -1,6 +1,6 @@
 {
 	"name": "fostercommerce/craft-foster-checkout",
-	"description": "A drop-in best practice checkout process for Craft Commerce",
+	"description": "A ready-made, best-practices cart and checkout for Craft Commerce.",
 	"type": "craft-plugin",
 	"license": "proprietary",
 	"support": {

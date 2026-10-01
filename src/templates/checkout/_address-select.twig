@@ -1,0 +1,68 @@
+{% set savedAddressOptions = [] %}
+{% for address in addresses %}
+	{% set savedAddressOptions = savedAddressOptions|merge([{
+		value: address.id|string,
+		label: craft.fostercheckout.addressPreview(address),
+		isLastPinned: loop.last,
+	}]) %}
+{% endfor %}
+{% set savedAddressOptions = savedAddressOptions|merge([{ value: 'new', label: 'address.newAddress'|t('foster-checkout') }]) %}
+{% if pickupAvailable %}
+	{% set savedAddressOptions = savedAddressOptions|merge([{ value: 'pickup', label: craft.fostercheckout.customerPickupLabel() }]) %}
+{% endif %}
+
+{# Leave the dropdown empty for an address it doesn't offer, since the dropdown would match another option by label #}
+<div
+	x-data="{
+		savedAddressOptions: {{ savedAddressOptions|json_encode }},
+		get offeredChoice() {
+			const choice = this.useNewAddress ? 'new' : String(this.shippingAddressId);
+			return this.savedAddressOptions.some((option) => option.value === choice) ? choice : '';
+		},
+		set offeredChoice(choice) {
+			this.editExistingAddress = 0;
+			this.useNewAddress = choice === 'new' ? 1 : 0;
+			if (choice === 'new') {
+				this.shippingAddressId = 0;
+			} else if (choice === 'pickup') {
+				this.shippingAddressId = 'pickup';
+			} else {
+				this.shippingAddressId = Number(choice);
+			}
+		},
+	}"
+>
+	<div class="flex items-center gap-4">
+		<div class="flex-1" x-show="!parseInt(editExistingAddress)">
+			{% include 'foster-checkout/_components/base/input-select-searchable' with {
+				id: 'shippingAddressId_display',
+				name: 'shippingAddressId_display',
+				model: 'offeredChoice',
+				options: savedAddressOptions,
+				label: 'address.savedAddresses'|t('foster-checkout'),
+			} %}
+		</div>
+		{% if canSaveAddresses %}
+			<template x-if="!['', 'new', 'pickup'].includes(offeredChoice)">
+				<button
+					type="button"
+					class="ml-auto text-[var(--brandColor)] underline"
+					@click="editExistingAddress = parseInt(editExistingAddress) ? 0 : parseInt(offeredChoice)"
+				>
+					<template x-if="parseInt(editExistingAddress)"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
+					<template x-if="!parseInt(editExistingAddress)"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
+				</button>
+			</template>
+		{% endif %}
+	</div>
+
+	{% include 'foster-checkout/checkout/_saved-address-edit' with { addresses: addresses, editState: 'editExistingAddress' } %}
+
+	{% if pickupAvailable %}
+		<template x-if="shippingPickup">
+			<p class="mt-4 text-gray-500">{{ craft.fostercheckout.customerPickupPreview(cart) }}</p>
+		</template>
+	{% endif %}
+
+	{{ newAddressForm }}
+</div>

@@ -5623,6 +5623,12 @@ const addressBook = () => ({
   addressLabel(addressId, fallback) {
     return this.addressLabels[String(addressId)] || fallback;
   },
+  liveAddressOptions(options) {
+    return options.map((option) => ({
+      ...option,
+      label: this.addressLabel(option.value, option.label)
+    }));
+  },
   escapeName(name) {
     return typeof CSS !== "undefined" && CSS.escape ? CSS.escape(name) : name.replaceAll('"', '\\"');
   },
@@ -7154,6 +7160,38 @@ const SinglePageCheckout = (props) => {
     get shippingPickup() {
       return this.pickupAvailable && this.shippingAddressId === "pickup";
     },
+    get shippingChoice() {
+      return this.useNewAddress ? "new" : String(this.shippingAddressId);
+    },
+    set shippingChoice(choice) {
+      this.editExistingAddress = 0;
+      this.useNewAddress = choice === "new";
+      if (choice === "new") {
+        this.shippingAddressId = 0;
+        return;
+      }
+      if (choice === "pickup") {
+        this.shippingAddressId = "pickup";
+        this.billingSameAsShipping = false;
+        return;
+      }
+      this.shippingAddressId = Number(choice);
+    },
+    get billingChoice() {
+      if (this.billingSameAsShipping) {
+        return "same";
+      }
+      if (this.useNewBillingAddress) {
+        return "new";
+      }
+      return String(this.billingAddressId);
+    },
+    set billingChoice(choice) {
+      this.editBillingAddressId = 0;
+      this.billingSameAsShipping = choice === "same";
+      this.useNewBillingAddress = choice === "new";
+      this.billingAddressId = this.billingSameAsShipping || this.useNewBillingAddress ? null : Number(choice);
+    },
     get hasShippingSelection() {
       if (!this.collectShipping) {
         return true;
@@ -7938,6 +7976,7 @@ const SearchableSelect = (props) => {
     placeholder: props.placeholder || "Select",
     options: props.options ?? [],
     required: props.required || false,
+    selectOnlyOption: props.selectOnlyOption ?? true,
     errors: props.errors || [],
     success: props.success || [],
     requiredError: props.requiredError || "",
@@ -7975,7 +8014,7 @@ const SearchableSelect = (props) => {
           if (input && input.value && !this.selectedOption) {
             this.selectByValue(input.value);
           }
-          if (!this.selectedOption && updatedOptions.length === 1) {
+          if (this.selectOnlyOption && !this.selectedOption && updatedOptions.length === 1) {
             this.selectedOption = updatedOptions[0];
           }
         });
@@ -7999,7 +8038,7 @@ const SearchableSelect = (props) => {
           });
         }
       });
-      if (!this.selectedOption && this.options.length === 1) {
+      if (this.selectOnlyOption && !this.selectedOption && this.options.length === 1) {
         this.selectedOption = this.options[0];
       }
     },
@@ -8134,7 +8173,7 @@ const SearchableSelect = (props) => {
     },
     closeAndFocusButton() {
       this.closeListbox();
-      this.$refs.button.focus();
+      this.$nextTick(() => this.$refs.button.focus());
     },
     resetActiveIndex() {
       if (!this.hasOptions) {

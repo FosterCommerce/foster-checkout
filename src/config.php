@@ -50,13 +50,6 @@ return [
 	// 'fieldHandle' => '',
 	// ],
 
-	// 'deliveryDate' => [
-	// 'label' => 'Expected delivery date',
-	// 'message' => 'Delivery dates are estimates.',
-	// 'estimate' => '{{ order.dateOrdered|date_modify("+14 days")|date("M j, Y") }}', // closure, twig, string or null
-	// 'display' => true, // closure, twig or a boolean
-	// ],
-
 	// The field handle on the Order element that holds the payment due date.
 	// When the due date is set, and the order is not fully paid, the order confirmation page shows the payment due date.
 	// 'paymentDueDateFieldHandle' => null,
@@ -258,6 +251,13 @@ return [
 	// How many of the customer's saved addresses the checkout offers, most recently updated first.
 	// Their primary address is always among them. Zero offers every address a customer has saved.
 	// 'savedAddressLimit' => 10,
+
+	// How the checkout offers saved addresses. 'list' shows a row for each, 'dropdown' a searchable dropdown,
+	// and 'auto' a list until the checkout offers more than savedAddressDropdownThreshold.
+	// 'savedAddressDisplay' => 'list', // list|dropdown|auto
+
+	// The most saved addresses 'auto' still shows as a list
+	// 'savedAddressDropdownThreshold' => 5,
 
 	// Handle of the address field holding a phone number, so its input asks for a phone keypad.
 	// 'addressPhoneFieldHandle' => null,

@@ -174,6 +174,7 @@ const SearchableSelect = (props) => {
 		placeholder: props.placeholder || 'Select',
 		options: props.options ?? [],
 		required: props.required || false,
+		selectOnlyOption: props.selectOnlyOption ?? true,
 		errors: props.errors || [],
 		success: props.success || [],
 		requiredError: props.requiredError || '',
@@ -218,7 +219,11 @@ const SearchableSelect = (props) => {
 						this.selectByValue(input.value);
 					}
 
-					if (!this.selectedOption && updatedOptions.length === 1) {
+					if (
+						this.selectOnlyOption &&
+						!this.selectedOption &&
+						updatedOptions.length === 1
+					) {
 						this.selectedOption = updatedOptions[0];
 					}
 				});
@@ -248,7 +253,11 @@ const SearchableSelect = (props) => {
 				}
 			});
 
-			if (!this.selectedOption && this.options.length === 1) {
+			if (
+				this.selectOnlyOption &&
+				!this.selectedOption &&
+				this.options.length === 1
+			) {
 				this.selectedOption = this.options[0];
 			}
 		},
@@ -428,7 +437,8 @@ const SearchableSelect = (props) => {
 
 		closeAndFocusButton() {
 			this.closeListbox();
-			this.$refs.button.focus();
+			// Focus the trigger after the trap releases, since the open trap holds focus in the dropdown
+			this.$nextTick(() => this.$refs.button.focus());
 		},
 
 		resetActiveIndex() {

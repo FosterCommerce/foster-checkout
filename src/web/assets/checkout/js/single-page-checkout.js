@@ -308,6 +308,50 @@ export const SinglePageCheckout = (props) => {
 			return this.pickupAvailable && this.shippingAddressId === 'pickup';
 		},
 
+		get shippingChoice() {
+			return this.useNewAddress ? 'new' : String(this.shippingAddressId);
+		},
+
+		set shippingChoice(choice) {
+			this.editExistingAddress = 0;
+			this.useNewAddress = choice === 'new';
+
+			if (choice === 'new') {
+				this.shippingAddressId = 0;
+				return;
+			}
+
+			if (choice === 'pickup') {
+				this.shippingAddressId = 'pickup';
+				this.billingSameAsShipping = false;
+				return;
+			}
+
+			this.shippingAddressId = Number(choice);
+		},
+
+		get billingChoice() {
+			if (this.billingSameAsShipping) {
+				return 'same';
+			}
+
+			if (this.useNewBillingAddress) {
+				return 'new';
+			}
+
+			return String(this.billingAddressId);
+		},
+
+		set billingChoice(choice) {
+			this.editBillingAddressId = 0;
+			this.billingSameAsShipping = choice === 'same';
+			this.useNewBillingAddress = choice === 'new';
+			this.billingAddressId =
+				this.billingSameAsShipping || this.useNewBillingAddress
+					? null
+					: Number(choice);
+		},
+
 		get hasShippingSelection() {
 			if (!this.collectShipping) {
 				return true;
