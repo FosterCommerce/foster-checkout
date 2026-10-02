@@ -18,7 +18,8 @@
 {% set imageSrcSet = null %}
 {% set previewImage = craft.fostercheckout.lineItemImage(lineItem) %}
 {% if previewImage|default %}
-	{% if craft.app.plugins.isPluginEnabled('imager-x') %}
+	{# Use Craft's own transforms when Small Pics is enabled, since Small Pics takes them over #}
+	{% if craft.app.plugins.isPluginEnabled('imager-x') and not craft.app.plugins.isPluginEnabled('smallpics') %}
 		{% set images = craft.imagerx.transformImage(
 			previewImage,
 			cropsImage ? [

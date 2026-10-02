@@ -137,7 +137,7 @@
 					{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout)|hash) }}
 					<input type="hidden" name="orderEmail" :value="email">
 
-					<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+					<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden" x-show="!awaitingGatewayForm">
 						{% set zeroValueGatewayHandles = craft.fostercheckout.settings.zeroValueGatewayHandles %}
 						{% for gateway in gateways %}
 							{% set gatewayClass = className(gateway) %}
@@ -151,12 +151,14 @@
 									data-fc-gateway
 									data-available-at-zero="{{ availableAtZero ? '1' : '0' }}"
 									data-zero-only="{{ zeroOnly ? '1' : '0' }}"
+									{# Mark the row, since the Stripe form inside renders after the box's x-show first runs #}
+									data-stripe="{{ gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' ? '1' : '0' }}"
 									x-show="gatewayFits($el)"
 									:class="{ 'bg-gray-100': parseInt(gatewayId) === {{ gateway.id }} }"
 								>
 									<div
 										class="relative flex justify-between items-center gap-4 radio"
-										x-show="visibleGatewayCount > 1"
+										x-show="fittingGatewayRows.length > 1"
 										:class="{ 'radio-muted': !canEnterPayment }"
 									>
 										<input
@@ -177,7 +179,7 @@
 									{% if not isPaypal %}<template x-if="parseInt(gatewayId) === {{ gateway.id }}">{% endif %}
 										<div
 											{% if isPaypal %}x-show="parseInt(gatewayId) === {{ gateway.id }}" x-cloak{% endif %}
-											:class="visibleGatewayCount === 1 ? '!pt-0' : ''"
+											:class="fittingGatewayRows.length === 1 ? '!pt-0' : ''"
 											class="pt-8
 											[&_form]:grid [&_form]:gap-2
 											[&_fieldset]:border [&_fieldset]:border-gray-250 [&_fieldset]:rounded-lg [&_fieldset]:p-4

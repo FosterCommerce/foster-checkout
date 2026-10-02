@@ -7,7 +7,7 @@ Most settings are edited under **Checkout**. The config-only ones, listed after 
 | Screen | Config key | Holds |
 | --- | --- | --- |
 | **Appearance** | `branding`, `options.enableSinglePageCheckout` and `options.enablePageTransitions` | Whether the checkout runs as one page or separate steps, whether steps animate, and **Brand color**, **Header background color**, **Header text color**, **Font**, **Logo**, **Logo height**, **Component style**, **Field labels** and **Title prefix** |
-| **Features** | `options.enableKlaviyoTracking`, `options.klaviyoListId`, `enableCustomerPickup` and `customerPickupLabel` | Klaviyo tracking and the Klaviyo list ID, whether the shipping address choices include the store location, and the delivery date copy, shown read-only. The newsletter checkbox needs tracking on, a list ID and the Klaviyo Connect Plus plugin. See [customer pickup](../user-guide/customer-pickup.md) and [integrations](./integrations.md) |
+| **Features** | `options.enableNewsletter`, `options.newsletterListId`, `enableCustomerPickup`, and `customerPickupLabel` | Whether the checkout offers the newsletter checkbox and the list it subscribes customers to, and whether the shipping address choices include the store location. See [customer pickup](../user-guide/customer-pickup.md) and [integrations](./integrations.md) |
 | **Line Items** | `lineItems`, `products` and `lineItemOptionRules` | Which field each product type's preview image comes from, how a line item image fills its box and whether a placeholder stands in for a missing one. With `paths.useCartTemplate` on, also **Image size**, **Show the SKU**, **Show the stock count**, **Show line item options**, **Hidden option prefix**, **Truncate values to**, and the rules that rewrite an option's name and value |
 | **Gateways** | `paymentGateways` and `zeroValueGatewayHandles` | Per gateway: **Name shown to customers**, and on a Manual gateway, a field layout. A Stripe gateway also sets how its payment element lists the payment methods, their order, and whether Link is included. A PayPal gateway also sets which funding sources its buttons offer, which card brands its card fields take, plus the locale and SDK components. Also which gateways an order totaling zero can be paid with |
 | **Custom Fields** | `customerOrderNotesFieldHandle` and the checkout field layouts | The extra fields shown at each checkout position, and the field on Orders holding a customer's note. Blank hides the order notes form |
@@ -20,7 +20,9 @@ Keys on the Addresses screen:
 | --- | --- | --- |
 | Default country | `defaultCountryCode` | Country a new address starts on. Blank starts with no country chosen |
 | Priority countries | `priorityCountries` | Country codes shown at the top of country dropdowns, in the order listed |
-| Saved address limit | `savedAddressLimit` | How many of a customer's saved addresses the checkout offers, most recently updated first. Their primary address is always among them. Zero offers every address they have saved |
+| Saved address limit | `savedAddressLimit` | How many of a customer's saved addresses the checkout offers, most recently updated first. Their primary address is always among them, and so are the addresses the cart already uses. Zero offers every address they have saved |
+| Saved address display | `savedAddressDisplay` | How the checkout shows saved addresses: `list`, `dropdown`, or `auto`, which shows a list up to `savedAddressDropdownThreshold` addresses and a dropdown past it. A value other than these three shows the list |
+| Dropdown threshold | `savedAddressDropdownThreshold` | The most saved addresses `auto` still shows as a list, counting the addresses the checkout offers. At least 1 |
 | Phone field | `addressPhoneFieldHandle` | Handle of the address field holding a phone number, so its input asks for a phone keypad |
 | Hidden address fields | `hiddenAddressFields` | Address fields left off the checkout. They stay in the control panel. A field the address layout marks required is always shown |
 | Hidden billing address fields | `hiddenBillingAddressFields` | Address fields also left off a new billing address, on top of the hidden list. A field the address layout marks required is always shown |
@@ -56,9 +58,8 @@ Every setting and its default, as the plugin ships.
 | Checkout layout | `options.enableSinglePageCheckout` | `false` |
 | Page transitions | `options.enablePageTransitions` | `false` |
 | Verify shipping addresses | `options.enableAddressVerification` | `false` |
-| Klaviyo tracking | `options.enableKlaviyoTracking` | `false` |
-| Shipping estimator | `options.enableEstimatedShipping` | `false` |
-| Klaviyo list ID | `options.klaviyoListId` | none. Takes a list ID or an environment variable name, such as `$KLAVIYO_LIST_ID` |
+| Newsletter checkbox | `options.enableNewsletter` | `false` |
+| Newsletter list ID | `options.newsletterListId` | none. Takes a list ID or an environment variable name, such as `$NEWSLETTER_LIST_ID` |
 | Payment due date field | `options.paymentDueDateFieldHandle` | none |
 | Address suggestions | `addressLookup.enabled` | `false` |
 | Address suggestion provider | `addressLookup.provider` | `google` |
@@ -81,12 +82,13 @@ Every setting and its default, as the plugin ships.
 | Body include | `includes.body` | empty |
 | Summary include | `includes.summary` | empty |
 | Newsletter checkbox label | `options.subscribe` | none |
-| Delivery date label, message, estimate, display | `options.deliveryDate.label`, `.message`, `.estimate`, `.display` | none |
 | Content translation method | `contentTranslationMethod` | `site` |
 | Customer order notes field | `customerOrderNotesFieldHandle` | none |
 | Default country | `defaultCountryCode` | empty |
 | Priority countries | `priorityCountries` | empty |
 | Saved address limit | `savedAddressLimit` | `10` |
+| Saved address display | `savedAddressDisplay` | `list` |
+| Dropdown threshold | `savedAddressDropdownThreshold` | `5` |
 | Phone field | `addressPhoneFieldHandle` | none |
 | Hidden address fields | `hiddenAddressFields` | empty |
 | Hidden billing address fields | `hiddenBillingAddressFields` | empty |
@@ -115,11 +117,7 @@ Every setting and its default, as the plugin ships.
 | Locale (PayPal) | `paymentGateways.<handle>.locale` | empty |
 | SDK components (PayPal) | `paymentGateways.<handle>.components` | empty |
 
-Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig`, `options.paymentDueDateFieldHandle`, `lineItems.imagerXConfig`, `options.enableEstimatedShipping`, `options.deliveryDate.estimate` and `options.deliveryDate.display`. The last two accept a closure or a Twig string, because they compute a date and a visibility flag rather than holding copy.
-
-The delivery date label and message are shown read-only under **Checkout -> Features**, because no plugin template renders a delivery date. A site template calls `craft.fostercheckout.getDeliveryDate(order)` to show one.
-
-`options.enableEstimatedShipping` is unfinished.
+Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig`, `options.paymentDueDateFieldHandle`, and `lineItems.imagerXConfig`.
 
 ## What overrides what
 
@@ -135,9 +133,8 @@ A gateway's field layout is stored outside plugin settings, so it stays editable
 
 ### Notes & Links copy
 
-Copy works the other way round. `options.subscribe` and `paymentGateways.<handle>.note` are edited at **Checkout -> Notes & Links**. For these two and the delivery date label and message, the stored copy wins, and the plugin uses a config value only while the stored copy is blank. A gateway note written as a PHP closure is set in the config file only. See [notes and links](../user-guide/content.md).
+Copy works the other way round. `options.subscribe` and `paymentGateways.<handle>.note` are edited at **Checkout -> Notes & Links**. For these two, the stored copy wins, and the plugin uses a config value only while the stored copy is blank. A gateway note written as a PHP closure is set in the config file only. See [notes and links](../user-guide/content.md).
 
-A site upgraded from a `deliveryDate` config key has its label and message stored already, so a config change to them has no effect, and no screen clears them.
 
 ## Address verification and suggestions
 

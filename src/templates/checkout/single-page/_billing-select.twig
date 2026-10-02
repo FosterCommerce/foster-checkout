@@ -1,0 +1,47 @@
+{% set billingAddressOptions = collectShipping ? [{ value: 'same', label: 'billing.sameAsShippingAddress'|t('foster-checkout') }] : [] %}
+{% set billingAddressOptions = billingAddressOptions|merge(craft.fostercheckout.savedAddressOptions(addresses))|merge([{ value: 'new', label: 'billing.useDifferentBillingAddress'|t('foster-checkout') }]) %}
+
+{# Leave the dropdown empty for an address it doesn't offer, since the dropdown would match another option by label.
+   Drop the same-as-shipping option for a pickup order, whose shipping address is the store's. #}
+<div
+	x-data="{
+		billingAddressOptions: {{ billingAddressOptions|json_encode }},
+		get offeredOptions() {
+			const options = this.liveAddressOptions(this.billingAddressOptions).filter((option) => (option.value !== 'same' || !this.shippingPickup) && this.offersAsBilling(option.value));
+			{# Re-mark the divider, since the filter can remove the last saved address #}
+			const lastSaved = options.findLast((option) => !['same', 'new'].includes(option.value));
+			return options.map((option) => ({ ...option, isLastPinned: option === lastSaved }));
+		},
+		get offeredChoice() {
+			return this.offeredOptions.some((option) => option.value === this.billingChoice) ? this.billingChoice : '';
+		},
+		set offeredChoice(choice) {
+			this.billingChoice = choice;
+		},
+	}"
+>
+	<div class="flex items-center gap-4">
+		<div class="flex-1" x-show="!parseInt(editBillingAddressId)">
+			{# Rebuild the dropdown when its options change, since replacing them clears the selection.
+			   Leave a lone option unpicked, since it can only be "Use a different billing address". #}
+			<template x-for="labels in [offeredOptions.map((option) => option.label).join('|')]" :key="labels">
+				{% include 'foster-checkout/_components/base/input-select-searchable' with {
+					id: 'billingAddressId_display',
+					name: 'billingAddressId_display',
+					model: 'offeredChoice',
+					optionsFrom: 'offeredOptions',
+					label: 'billing.addressDropdownLabel'|t('foster-checkout'),
+					required: true,
+					selectOnlyOption: false,
+				} %}
+			</template>
+		</div>
+		{% if canSaveAddresses %}
+			{% include 'foster-checkout/_components/app/saved-address-edit-toggle' with { editState: 'editBillingAddressId', otherEditState: 'editExistingAddress', fixedChoices: ['', 'same', 'new'] } %}
+		{% endif %}
+	</div>
+
+	{% include 'foster-checkout/checkout/single-page/_saved-address-edit' with { addresses: addresses, editState: 'editBillingAddressId' } %}
+
+	{{ newBillingForm }}
+</div>

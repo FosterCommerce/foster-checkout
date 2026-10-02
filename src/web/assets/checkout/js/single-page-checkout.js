@@ -3,8 +3,24 @@ import { addressBook } from './checkout/address.js';
 import { cartPersistence } from './checkout/persistence.js';
 import { gatewayHandling } from './checkout/gateways.js';
 
-export const isValidEmail = (value) =>
-	/^[^\s@]+@[^\s@]+\.[^\s@.]{2,}$/.test(String(value || '').trim());
+// Craft's user email rule, so the form accepts what Commerce saves: dot-separated local part, hyphens only inside domain labels
+const EMAIL_PATTERN =
+	/^[\p{L}\p{M}\p{N}!#$%&'*+/=?^_`{|}~-]+(?:\.[\p{L}\p{M}\p{N}!#$%&'*+/=?^_`{|}~-]+)*@(?:[\p{L}\p{N}](?:[\p{L}\p{M}\p{N}-]*[\p{L}\p{M}\p{N}])?\.)+[\p{L}\p{N}](?:[\p{L}\p{M}\p{N}-]*[\p{L}\p{M}\p{N}])?$/u;
+
+// A top-level domain of two or more characters, not all digits
+const TOP_LEVEL_DOMAIN_PATTERN = /\.(?!\d+$)[^\s@.]{2,}$/u;
+
+export const isValidEmail = (value) => {
+	const email = String(value || '').trim();
+	const localPart = email.slice(0, email.lastIndexOf('@'));
+
+	return (
+		email.length <= 254 &&
+		localPart.length <= 64 &&
+		EMAIL_PATTERN.test(email) &&
+		TOP_LEVEL_DOMAIN_PATTERN.test(email)
+	);
+};
 
 // Leave out .co, which the spell checker otherwise picks for a mistyped .com such as hotmail.con
 const SUGGESTION_TOP_LEVEL_DOMAINS = POPULAR_TLDS.filter(
@@ -38,9 +54,6 @@ export const SinglePageCheckout = (props) => {
 	return {
 		loggedIn: props.loggedIn,
 		email: props.email ?? '',
-		cartId: props.cartId ?? null,
-		klaviyoEnabled: Boolean(props.klaviyoEnabled),
-		trackedCheckout: false,
 		subscribed: false,
 		shippingAddressId: props.shippingAddressId,
 		useNewAddress: props.useNewAddress ?? false,
@@ -62,7 +75,8 @@ export const SinglePageCheckout = (props) => {
 		couponError: '',
 		notesError: '',
 		notesButtonVisible: false,
-		addressLabels: {},
+		// Seed the labels so the shipping preview names a saved address before the first save
+		addressLabels: props.addressLabels ?? {},
 		addressFields: {},
 		shippingPreview: props.shippingPreview ?? '',
 		pickupAvailable: props.pickupAvailable ?? false,
@@ -308,6 +322,50 @@ export const SinglePageCheckout = (props) => {
 			return this.pickupAvailable && this.shippingAddressId === 'pickup';
 		},
 
+		get shippingChoice() {
+			return this.useNewAddress ? 'new' : String(this.shippingAddressId);
+		},
+
+		set shippingChoice(choice) {
+			this.editExistingAddress = 0;
+			this.useNewAddress = choice === 'new';
+
+			if (choice === 'new') {
+				this.shippingAddressId = 0;
+				return;
+			}
+
+			if (choice === 'pickup') {
+				this.shippingAddressId = 'pickup';
+				this.billingSameAsShipping = false;
+				return;
+			}
+
+			this.shippingAddressId = Number(choice);
+		},
+
+		get billingChoice() {
+			if (this.billingSameAsShipping) {
+				return 'same';
+			}
+
+			if (this.useNewBillingAddress) {
+				return 'new';
+			}
+
+			return String(this.billingAddressId);
+		},
+
+		set billingChoice(choice) {
+			this.editBillingAddressId = 0;
+			this.billingSameAsShipping = choice === 'same';
+			this.useNewBillingAddress = choice === 'new';
+			this.billingAddressId =
+				this.billingSameAsShipping || this.useNewBillingAddress
+					? null
+					: Number(choice);
+		},
+
 		get hasShippingSelection() {
 			if (!this.collectShipping) {
 				return true;
@@ -399,23 +457,28 @@ export const SinglePageCheckout = (props) => {
 			return !zeroOnly;
 		},
 
-		// A cart reaching zero changes which gateways fit, so the count is read rather than rendered
-		get visibleGatewayCount() {
-			const rows = Array.from(
-				this.paymentFormEl?.querySelectorAll('[data-fc-gateway]') ?? []
-			);
+		// A zero total changes which gateways fit, so the rows are read rather than rendered
+		get fittingGatewayRows() {
+			return Array.from(
+				this.paymentFormEl.querySelectorAll('[data-fc-gateway]')
+			).filter((row) => this.gatewayFits(row));
+		},
 
-			return rows.filter((row) => this.gatewayFits(row)).length;
+		// Hide a lone Stripe gateway until its mount starts, which waits for canPay. Keep it shown
+		// once mounting, since an element mounted into a hidden box renders blank.
+		get awaitingGatewayForm() {
+			const rows = this.fittingGatewayRows;
+
+			return (
+				!this.canPay &&
+				rows.length === 1 &&
+				rows[0].dataset.stripe === '1' &&
+				!rows[0].querySelector('.stripe-payment-elements-form')?.handlerInstance
+			);
 		},
 
 		ensureAvailableGateway() {
-			const form = this.paymentFormEl;
-			if (!form) {
-				return;
-			}
-
-			const rows = Array.from(form.querySelectorAll('[data-fc-gateway]'));
-			const available = rows.filter((row) => this.gatewayFits(row));
+			const available = this.fittingGatewayRows;
 			const currentOk = available.some(
 				(row) =>
 					Number(row.querySelector('input[name="gatewayId"]')?.value) ===
@@ -671,53 +734,21 @@ export const SinglePageCheckout = (props) => {
 			].join('|');
 		},
 
-		shouldTrackCheckout(saved) {
-			return (
-				this.klaviyoEnabled &&
-				!this.loggedIn &&
-				!this.trackedCheckout &&
-				isValidEmail(saved.email || this.email)
-			);
-		},
-
 		shouldSubscribe(saved) {
 			return (
-				this.klaviyoEnabled &&
 				!this.subscribed &&
 				String(saved.subscribe || '') === '1' &&
-				Boolean(saved.list) &&
 				isValidEmail(saved.email || this.email)
 			);
 		},
 
-		async trackCheckoutStarted(saved, signal) {
-			try {
-				await this.postForm(
-					this.postUrl(),
-					{
-						action: 'klaviyo-connect-plus/api/track',
-						email: saved.email || this.email,
-						'event[name]': 'Started Checkout',
-						'event[trackOrder]': '1',
-						'event[orderId]': String(this.cartId || ''),
-					},
-					signal
-				);
-			} catch {
-				// Marketing is not worth failing a checkout over
-				void 0;
-			}
-		},
-
-		async subscribeToKlaviyo(saved, signal) {
+		async subscribeToNewsletter(saved, signal) {
 			try {
 				const { response, isJson } = await this.postForm(
 					this.postUrl(),
 					{
-						action: 'klaviyo-connect-plus/api/track',
+						action: 'foster-checkout/newsletter/subscribe',
 						email: saved.email || this.email,
-						list: saved.list,
-						subscribe: '1',
 					},
 					signal
 				);

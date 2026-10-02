@@ -66,8 +66,8 @@
 
 
 
-							<section>
-								{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
+							{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
+								<section>
 									{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 									<div class="my-6" x-data="{ sending: false }">
 
@@ -138,8 +138,8 @@
 										{% endif %}
 
 									</div>
-								{% endif %}
-							</section>
+								</section>
+							{% endif %}
 
 							{% set paymentBlock = craft.fostercheckout.paymentBlock(cart) %}
 							{% if paymentBlock %}
@@ -358,6 +358,8 @@
 							{% endif %}
 						</div>
 					</div>
+
+					{% include 'foster-checkout/_components/app/return-to-cart' %}
 				</div>
 			</main>
 

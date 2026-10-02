@@ -21,29 +21,29 @@
 	{{ hiddenInput('section', 'features') }}
 	{{ csrfInput() }}
 
-	<h2>{{ 'settings.features.klaviyoTitle'|t('foster-checkout') }}</h2>
+	<h2>{{ 'settings.features.newsletterTitle'|t('foster-checkout') }}</h2>
 
-	{% set trackingPinned = 'options.enableKlaviyoTracking' in overriddenSettings %}
+	{% set newsletterPinned = 'options.enableNewsletter' in overriddenSettings %}
 	{{ forms.lightswitchField({
-		label: 'settings.features.enableKlaviyoTracking'|t('foster-checkout'),
-		instructions: 'settings.features.enableKlaviyoTrackingHelp'|t('foster-checkout'),
-		id: 'options-enableKlaviyoTracking',
-		name: 'settings[options][enableKlaviyoTracking]',
-		on: settings.options.enableKlaviyoTracking,
-		disabled: readOnly or trackingPinned,
-		warning: trackingPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'options.enableKlaviyoTracking' }),
+		label: 'settings.features.enableNewsletter'|t('foster-checkout'),
+		instructions: 'settings.features.enableNewsletterHelp'|t('foster-checkout'),
+		id: 'options-enableNewsletter',
+		name: 'settings[options][enableNewsletter]',
+		on: settings.options.enableNewsletter,
+		disabled: readOnly or newsletterPinned,
+		warning: newsletterPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'options.enableNewsletter' }),
 	}) }}
 
-	{% set klaviyoPinned = 'options.klaviyoListId' in overriddenSettings %}
+	{% set listIdPinned = 'options.newsletterListId' in overriddenSettings %}
 	{{ forms.autosuggestField({
-		label: 'settings.features.klaviyoListId'|t('foster-checkout'),
-		instructions: 'settings.features.klaviyoListIdHelp'|t('foster-checkout'),
-		id: 'options-klaviyo-list-id',
-		name: 'settings[options][klaviyoListId]',
-		value: settings.options.klaviyoListId,
+		label: 'settings.features.newsletterListId'|t('foster-checkout'),
+		instructions: 'settings.features.newsletterListIdHelp'|t('foster-checkout'),
+		id: 'options-newsletter-list-id',
+		name: 'settings[options][newsletterListId]',
+		value: settings.options.newsletterListId,
 		suggestEnvVars: true,
-		disabled: readOnly or klaviyoPinned,
-		warning: klaviyoPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'options.klaviyoListId' }),
+		disabled: readOnly or listIdPinned,
+		warning: listIdPinned ? 'settings.overridden'|t('foster-checkout', { setting: 'options.newsletterListId' }),
 	}) }}
 
 	<hr>
@@ -71,30 +71,6 @@
 		placeholder: 'address.customerPickup'|t('foster-checkout'),
 		disabled: customerPickupLabelOverridden or readOnly,
 		warning: customerPickupLabelOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'customerPickupLabel' }),
-	}) }}
-
-	<hr>
-
-	<h2>{{ 'settings.features.deliveryDateTitle'|t('foster-checkout') }}</h2>
-
-	{% set deliveryDateNotes = plugin.getContent().get('notes') ?? {} %}
-
-	{{ forms.textField({
-		label: 'content.deliveryDateLabel'|t('foster-checkout'),
-		instructions: 'content.deliveryDateLabelHelp'|t('foster-checkout'),
-		id: 'delivery-date-label',
-		value: deliveryDateNotes.deliveryDateLabel ?? '',
-		disabled: true,
-		warning: 'settings.features.deliveryDateUnused'|t('foster-checkout'),
-	}) }}
-
-	{{ forms.textareaField({
-		label: 'content.deliveryDateMessage'|t('foster-checkout'),
-		instructions: 'content.deliveryDateMessageHelp'|t('foster-checkout'),
-		id: 'delivery-date-message',
-		value: deliveryDateNotes.deliveryDateMessage ?? '',
-		rows: 3,
-		disabled: true,
 	}) }}
 
 	{% include 'foster-checkout/_includes/plugin-footer' %}

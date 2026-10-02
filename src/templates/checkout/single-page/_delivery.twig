@@ -24,10 +24,10 @@
 		@selected="$nextTick(() => saveIfValid('delivery', $event))"
 	>
 		{% set canSaveAddresses = craft.fostercheckout.canSaveAddresses(cart) %}
-		{# Captured once, since it renders under the new-address radio or on its own when no radio does #}
+		{# Captured once, since it renders under the new-address radio, under the dropdown, or on its own #}
 		{% set newAddressForm %}
 			<template x-if="useNewAddress">
-				<div class="p-4" data-fc-new-shipping x-init="applyDraftAddress('shipping')">
+				<div class="{{ addressDropdown ? 'pt-4' : 'p-4' }}" data-fc-new-shipping x-init="applyDraftAddress('shipping')">
 					{% set address = null %}
 					{# Seed only what the customer typed, since a book or pickup address is not a draft #}
 					{% if cart.shippingAddressId is not null and cart.sourceShippingAddressId is null and not customerPickup %}
@@ -60,8 +60,10 @@
 			</template>
 		{% endset %}
 
-		<div class="xl:border xl:border-gray-250 xl:rounded-lg">
-			{% if (currentUser and addresses|length) or pickupAvailable %}
+		<div{% if not addressDropdown %} class="xl:border xl:border-gray-250 xl:rounded-lg"{% endif %}>
+			{% if addressDropdown %}
+				{% include 'foster-checkout/checkout/single-page/_delivery-select' %}
+			{% elseif (currentUser and addresses|length) or pickupAvailable %}
 				{% for address in addresses %}
 					<div class="p-4 border-b border-gray-250" :class="{ 'bg-gray-100': parseInt(shippingAddressId) === {{ address.id }} && !useNewAddress }">
 						<div class="flex justify-between items-center gap-4 radio">

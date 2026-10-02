@@ -1,13 +1,17 @@
 # Plugin integrations
 
-These plugins change the checkout when installed. Each is optional and installed separately. AvaTax and Klaviyo Connect Plus also need settings turned on.
+These plugins change the checkout when installed. Each is optional and installed separately. AvaTax and Klaviyo Connect also need settings turned on.
 
 | Plugin | Package | What it adds |
 | --- | --- | --- |
 | AvaTax | `surprisehighway/craft-avatax` | Address verification on the shipping address |
 | Gift Voucher | `verbb/gift-voucher` | A voucher and gift card field on the payment step |
-| Klaviyo Connect Plus | `fostercommerce/klaviyo-connect-plus` | The newsletter checkbox, in the contact panel or on the checkout's first step, and a Started Checkout event from the cart page's **Checkout** button |
+| Klaviyo Connect | `fostercommerce/klaviyoconnect` 7.3.0 or later | Newsletter checkbox subscriptions to a Klaviyo list |
 | Postie | `verbb/postie` | Carrier shipping rates |
+| Stripe for Craft Commerce | `craftcms/commerce-stripe` | Stripe's payment element, with settings at **Checkout -> Gateways** for its layout, payment method order and Link |
+| PayPal Checkout for Craft Commerce | `craftcms/commerce-paypal-checkout` | PayPal buttons and card fields, with settings at **Checkout -> Gateways** for funding sources, card brands, locale and SDK components |
+| Authorize.net for Craft Commerce | `digital-pros/commerce-authorize` | Card payments through Authorize.net |
+| Small Pics | `smallpics/craft-smallpics` | Line item images served by Small Pics |
 | Imager X | `spacecatninja/imager-x` | Line item image transforms |
 | Advanced Discounts | `fostercommerce/advanced-discounts` | Coupon names and messages in the cart and at checkout |
 
@@ -19,11 +23,11 @@ Needed for **Verify shipping addresses** on **Checkout -> Addresses**. AvaTax's 
 
 Adds a code field to the payment step and lists applied vouchers in the order summary.
 
-## Klaviyo Connect Plus
+## Klaviyo Connect
 
-The newsletter checkbox needs this plugin, **Klaviyo tracking** turned on at **Checkout -> Features**, and a list ID at **Checkout -> Features -> Klaviyo list ID**, which takes a list ID or an environment variable name such as `$KLAVIYO_LIST_ID`. Without all three, or with the label blank, the checkbox is not shown. Klaviyo tracking is off by default. The checkbox's label is edited at **Checkout -> Notes & Links**.
+With **Newsletter checkbox** turned on at **Checkout -> Features** and a Klaviyo list ID at **Checkout -> Features -> Newsletter list ID**, the newsletter checkbox subscribes customers to that list.
 
-Events are not sent when the signed-in user's email is not the order's, since they would be filed under someone who is not the shopper. See [checkout for another customer](../dev-guide/checkout-for-another-customer.md#whether-klaviyo-is-tracking).
+The checkout ignores an earlier version. For when the checkbox is shown, or to use another newsletter service, see [newsletter services](../dev-guide/newsletter-services.md).
 
 ## Postie
 
@@ -31,9 +35,13 @@ Postie's rates appear as shipping methods. The plugin registers the checkout pat
 
 Variants matched by [Products that don’t require shipping](../user-guide/products-that-dont-require-shipping.md) are left out of Postie's parcel. For how Postie quotes a pickup order, see [customer pickup](../user-guide/customer-pickup.md#pricing-pickup).
 
+## Small Pics
+
+With Small Pics enabled, line item images in the cart and checkout use Craft's own image transforms, which Small Pics serves when its `transformNativeImages` setting is on. This holds even when Imager X is installed.
+
 ## Imager X
 
-Line item images in the cart and checkout are transformed through Imager X when it is installed. Configure the transform with the `lineItems.imagerXConfig` setting in `config/foster-checkout.php`. Without the plugin, Craft's image transforms size the images.
+Line item images in the cart and checkout are transformed through Imager X when it is installed and Small Pics is not. Configure the transform with the `lineItems.imagerXConfig` setting in `config/foster-checkout.php`. Without the plugin, Craft's image transforms size the images.
 
 ## Advanced Discounts
 

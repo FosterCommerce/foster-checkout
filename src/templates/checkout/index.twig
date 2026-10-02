@@ -1,9 +1,6 @@
+{# Start every stepped checkout on the email step, which skips itself for a signed-in customer without the newsletter #}
 {% if not craft.fostercheckout.settings.options.isSinglePageCheckout %}
-	{% if currentUser %}
-		{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address' %}
-	{% else %}
-		{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/email' %}
-	{% endif %}
+	{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/email' %}
 {% endif %}
 
 {% extends 'foster-checkout/checkout/single-page/index' %}

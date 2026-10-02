@@ -2,7 +2,7 @@
 
 **Checkout -> Notes & Links** holds the notes on the cart and each checkout step, the newsletter checkbox label, the create account description, payment method notes and the footer links. The plugin stores this copy in its own database table, not project config, so the copy stays editable on production.
 
-Buttons, field labels and messages are translations. To change one, see [write your copy](../getting-started.md#5-write-your-copy).
+Buttons, field labels and messages are translations. To change one, see [write your copy](../getting-started.md#6-write-your-copy).
 
 ## What you can edit
 
@@ -12,7 +12,7 @@ The screen is grouped by the panel each piece of copy appears in.
 | --- | --- |
 | **Global** | The note shown on every checkout step, and the **footer links** shown at the bottom of the cart and checkout pages |
 | **Cart** | The cart note, and the one shown when the cart is empty |
-| **Email step** | The step's note, the **newsletter checkbox label**, and the **create account description** shown under the create account checkbox. On the stepped checkout, a signed-in customer skips this step and sees the newsletter checkbox on the address step, or on billing when no item ships |
+| **Email step** | The step's note, the **newsletter checkbox label**, and the **create account description** shown under the create account checkbox. On the stepped checkout, a signed-in customer sees this step only when the newsletter checkbox is offered, with their email in place of the email field and no create account checkbox |
 | **Shipping address step** | The step's note |
 | **Shipping method step** | The step's note, and the **no shipping methods note** shown when no shipping method is available for the address |
 | **Billing step** | The step's note |

@@ -25,6 +25,7 @@
 	{% include 'foster-checkout/_components/app/subscribe-storage-key' %}
 
 	{% set addresses = craft.fostercheckout.customerAddresses(cart) %}
+	{% set addressDropdown = addresses|length and craft.fostercheckout.settings.usesAddressDropdown(addresses|length) %}
 	{% set sourceId = cart.sourceShippingAddressId ?? null %}
 	{% set hasCartShip = cart.shippingAddressId is not empty %}
 	{% set hasBookAddresses = currentUser and addresses|length %}
@@ -61,8 +62,6 @@
 	{% set config = {
 		loggedIn: currentUser ? true : false,
 		email: cart.email ?? '',
-		cartId: cart.id,
-		klaviyoEnabled: craft.fostercheckout.klaviyoTrackingEnabled(cart) ? true : false,
 		shippingAddressId: collectShipping ? initialShippingAddressId : 0,
 		useNewAddress: (collectShipping and isNewAddress) ? true : false,
 		shippingMethodHandle: live.shippingMethodHandle,
@@ -82,6 +81,7 @@
 		couponMessages: live.couponMessages,
 		paymentBlock: live.paymentBlock,
 		shippingPreview: live.shippingPreview,
+		addressLabels: live.addressLabels,
 		pickupAvailable: pickupAvailable,
 		pickupPreview: pickupAvailable ? craft.fostercheckout.customerPickupPreview(cart) : '',
 		payButtonText: 'payment.payButtonText'|t('foster-checkout'),
@@ -139,14 +139,7 @@
 			<div class="grid grid-cols-1 gap-6 lg:col-start-1 lg:row-start-2">
 				{% include 'foster-checkout/checkout/single-page/_payment' %}
 
-				<div class="md:flex md:justify-start">
-					<a
-						href="{{ siteUrl(craft.fostercheckout.settings.paths.cart) }}"
-						class="block min-w-[200px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg"
-					>
-						{{ 'misc.returnToCart'|t('foster-checkout') }}
-					</a>
-				</div>
+				{% include 'foster-checkout/_components/app/return-to-cart' %}
 			</div>
 		</div>
 

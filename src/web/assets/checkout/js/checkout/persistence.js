@@ -250,7 +250,6 @@ export const cartPersistence = () => ({
 				action: 'commerce/cart/update-cart',
 				...saved,
 			};
-			const trackCheckout = this.shouldTrackCheckout(saved);
 			const subscribe = this.shouldSubscribe(saved);
 
 			const { response, data, isJson } = await this.postForm(
@@ -274,13 +273,8 @@ export const cartPersistence = () => ({
 				return;
 			}
 
-			if (trackCheckout) {
-				this.trackedCheckout = true;
-				this.trackCheckoutStarted(saved, signal);
-			}
-
 			if (subscribe) {
-				await this.subscribeToKlaviyo(saved, signal);
+				await this.subscribeToNewsletter(saved, signal);
 			}
 
 			const cart = data.cart || data.model || (data.data && data.data.cart);
@@ -325,8 +319,11 @@ export const cartPersistence = () => ({
 			this.nextSave = null;
 			if (next) {
 				await this.saveCart(next);
-			} else if (cartSynced) {
-				// Only PayPal here, since applyCart already remounts Stripe
+			}
+
+			// Redraw PayPal after the queued save, which returns early without redrawing when it has no
+			// change to send. Stripe is left out, since applyCart already remounts it.
+			if (cartSynced) {
 				this.maybeReinitPaypalCheckout();
 			}
 		}

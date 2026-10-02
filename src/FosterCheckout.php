@@ -253,7 +253,7 @@ class FosterCheckout extends Plugin
 		$fileConfig = Craft::$app->getConfig()->getConfigFromFile(self::HANDLE);
 
 		// The paths have to match where a setting lives now, not where a config file still puts it
-		return is_array($fileConfig) ? $this->settingPaths(Settings::moveLineItemSettings($fileConfig)) : [];
+		return is_array($fileConfig) ? $this->settingPaths(Settings::upgradeLegacySettings($fileConfig)) : [];
 	}
 
 	/**
@@ -271,7 +271,11 @@ class FosterCheckout extends Plugin
 
 		$fileConfig = Craft::$app->getConfig()->getConfigFromFile(self::HANDLE);
 
-		parent::setSettings($this->mergeSettings($stored, is_array($fileConfig) ? $fileConfig : []));
+		// Rewrite each side before merging, so a config file's old key still beats a stored new one
+		parent::setSettings($this->mergeSettings(
+			Settings::upgradeLegacySettings($stored),
+			Settings::upgradeLegacySettings(is_array($fileConfig) ? $fileConfig : []),
+		));
 	}
 
 	/**

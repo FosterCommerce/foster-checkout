@@ -12,6 +12,22 @@ use yii\base\InvalidConfigException;
 
 class Settings extends Model
 {
+	public const string SAVED_ADDRESS_DISPLAY_LIST = 'list';
+
+	public const string SAVED_ADDRESS_DISPLAY_DROPDOWN = 'dropdown';
+
+	public const string SAVED_ADDRESS_DISPLAY_AUTO = 'auto';
+
+	/**
+	 * Option keys renamed in 2.0.0, so a stored value or config file naming the old key keeps working.
+	 *
+	 * @var array<string, string>
+	 */
+	private const array RENAMED_OPTIONS = [
+		'enableKlaviyoTracking' => 'enableNewsletter',
+		'klaviyoListId' => 'newsletterListId',
+	];
+
 	/**
 	 * How checkout content varies across sites, using Craft's field translation methods:
 	 * `none` for one shared copy, `site` for a copy per site, or `language` to share a copy
@@ -85,8 +101,20 @@ class Settings extends Model
 	public int $savedAddressLimit = 10;
 
 	/**
+	 * How the checkout offers a customer's saved addresses: `list` shows a row for each, `dropdown` a
+	 * searchable dropdown, and `auto` a list until the checkout offers more than `savedAddressDropdownThreshold`.
+	 */
+	public string $savedAddressDisplay = self::SAVED_ADDRESS_DISPLAY_LIST;
+
+	/**
+	 * The most saved addresses `auto` still shows as a list, counting the addresses the checkout offers.
+	 * Not read for `list` or `dropdown`.
+	 */
+	public int $savedAddressDropdownThreshold = 5;
+
+	/**
 	 * Handle of the address field holding a phone number, so its input asks for a phone keypad.
-	 * Named here, since Craft has no phone field type to recognise.
+	 * Named here, since Craft has no phone field type to recognize.
 	 */
 	public ?string $addressPhoneFieldHandle = null;
 
@@ -180,6 +208,21 @@ class Settings extends Model
 		}
 	}
 
+	/**
+	 * Whether this many saved addresses are offered as a dropdown rather than a list.
+	 *
+	 * @since 2.0.0
+	 */
+	public function usesAddressDropdown(int $addressCount): bool
+	{
+		return match ($this->savedAddressDisplay) {
+			self::SAVED_ADDRESS_DISPLAY_DROPDOWN => true,
+			self::SAVED_ADDRESS_DISPLAY_AUTO => $addressCount > $this->savedAddressDropdownThreshold,
+			// Show the list for a mode the config file misnames
+			default => false,
+		};
+	}
+
 	public function getNotShippableProductsCondition(): ProductCondition
 	{
 		/** @var list<array<string, mixed>> $rules */
@@ -194,7 +237,19 @@ class Settings extends Model
 	}
 
 	/**
-	 * @return list<array<int, list<string>|string>>
+	 * @return array<string, string>
+	 */
+	#[\Override]
+	public function attributeLabels(): array
+	{
+		return [
+			'savedAddressDisplay' => Craft::t(FosterCheckout::HANDLE, 'settings.addresses.savedAddressDisplay'),
+			'savedAddressDropdownThreshold' => Craft::t(FosterCheckout::HANDLE, 'settings.addresses.savedAddressDropdownThreshold'),
+		];
+	}
+
+	/**
+	 * @return list<array<int|string, list<string>|int|string>>
 	 */
 	#[\Override]
 	public function rules(): array
@@ -202,14 +257,23 @@ class Settings extends Model
 		return [
 			['includes', 'validateIncludes'],
 			['defaultCountryCode', 'validateDefaultCountryCode'],
+			[
+				'savedAddressDisplay',
+				'in',
+				'range' => [self::SAVED_ADDRESS_DISPLAY_LIST, self::SAVED_ADDRESS_DISPLAY_DROPDOWN, self::SAVED_ADDRESS_DISPLAY_AUTO],
+			],
+			[
+				'savedAddressDropdownThreshold',
+				'integer',
+				'min' => 1,
+			],
 			[['branding', 'lineItems', 'addressLookup'], 'validateConfigNode'],
 			['paymentGateways', 'validateGatewayNodes'],
 		];
 	}
 
 	/**
-	 * An include pointing at a template that does not exist throws while rendering every cart and
-	 * checkout page, so it is rejected on save A missing include template throws on every cart and checkout render.
+	 * Reject an include whose template doesn't exist, since it throws on every cart and checkout render.
 	 */
 	public function validateIncludes(string $attribute): void
 	{
@@ -305,7 +369,7 @@ class Settings extends Model
 	#[\Override]
 	public function setAttributes($values, $safeOnly = true): void
 	{
-		$values = self::moveLineItemSettings($values);
+		$values = self::upgradeLegacySettings($values);
 
 		if (array_key_exists('options', $values)) {
 			$values['options'] = new OptionConfig($values['options']);
@@ -382,6 +446,17 @@ class Settings extends Model
 	}
 
 	/**
+	 * Rewrite settings a config file or stored value still names by an old key or place.
+	 *
+	 * @param array<mixed, mixed> $values
+	 * @return array<mixed, mixed>
+	 */
+	public static function upgradeLegacySettings(array $values): array
+	{
+		return self::renameOptions(self::moveLineItemSettings($values));
+	}
+
+	/**
 	 * These moved out of `options`, which is one node a config file replaces whole.
 	 *
 	 * @param array<mixed, mixed> $values
@@ -411,6 +486,34 @@ class Settings extends Model
 		if ($lineItems !== []) {
 			$values['lineItems'] = $lineItems;
 		}
+
+		return $values;
+	}
+
+	/**
+	 * @param array<mixed, mixed> $values
+	 * @return array<mixed, mixed>
+	 */
+	private static function renameOptions(array $values): array
+	{
+		$options = $values['options'] ?? null;
+
+		if (! is_array($options)) {
+			return $values;
+		}
+
+		foreach (self::RENAMED_OPTIONS as $oldName => $newName) {
+			if (! array_key_exists($oldName, $options)) {
+				continue;
+			}
+
+			// Log a warning instead of calling the deprecator, which throws under devMode
+			Craft::warning("`options.{$oldName}` has been renamed to `options.{$newName}`.", 'deprecation-error');
+			$options[$newName] ??= $options[$oldName];
+			unset($options[$oldName]);
+		}
+
+		$values['options'] = $options;
 
 		return $values;
 	}

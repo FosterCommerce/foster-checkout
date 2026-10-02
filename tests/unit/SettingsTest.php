@@ -2,6 +2,7 @@
 
 namespace fostercommerce\fostercheckout\tests\unit;
 
+use fostercommerce\fostercheckout\models\DeliveryDateConfig;
 use fostercommerce\fostercheckout\models\LineItemConfig;
 use fostercommerce\fostercheckout\models\OptionConfig;
 use fostercommerce\fostercheckout\models\PathConfig;
@@ -114,6 +115,102 @@ final class SettingsTest extends CheckoutTestCase
 		$settings->validateDefaultCountryCode('defaultCountryCode');
 
 		self::assertFalse($settings->hasErrors('defaultCountryCode'));
+	}
+
+	public function testSavedAddressesDisplayAsAListByDefault(): void
+	{
+		$settings = new Settings();
+
+		self::assertSame('list', $settings->savedAddressDisplay);
+		self::assertSame(5, $settings->savedAddressDropdownThreshold);
+		self::assertTrue($settings->validate(['savedAddressDisplay', 'savedAddressDropdownThreshold']));
+	}
+
+	public function testSavedAddressDisplayAcceptsOnlyItsThreeModes(): void
+	{
+		$settings = new Settings();
+
+		foreach (['list', 'dropdown', 'auto'] as $mode) {
+			$settings->savedAddressDisplay = $mode;
+			self::assertTrue($settings->validate(['savedAddressDisplay']), $mode);
+		}
+
+		$settings->savedAddressDisplay = 'radio';
+		self::assertFalse($settings->validate(['savedAddressDisplay']));
+	}
+
+	public function testTheDropdownThresholdMustBeAtLeastOne(): void
+	{
+		$settings = new Settings();
+		$settings->savedAddressDropdownThreshold = 0;
+
+		self::assertFalse($settings->validate(['savedAddressDropdownThreshold']));
+	}
+
+	public function testTheDisplayModeDecidesWhenSavedAddressesBecomeADropdown(): void
+	{
+		$settings = new Settings();
+		$settings->savedAddressDropdownThreshold = 5;
+
+		$settings->savedAddressDisplay = Settings::SAVED_ADDRESS_DISPLAY_LIST;
+		self::assertFalse($settings->usesAddressDropdown(40));
+
+		$settings->savedAddressDisplay = Settings::SAVED_ADDRESS_DISPLAY_DROPDOWN;
+		self::assertTrue($settings->usesAddressDropdown(2));
+
+		$settings->savedAddressDisplay = Settings::SAVED_ADDRESS_DISPLAY_AUTO;
+		self::assertFalse($settings->usesAddressDropdown(5), 'At the threshold is still a list');
+		self::assertTrue($settings->usesAddressDropdown(6));
+	}
+
+	public function testAnUnknownDisplayModeFallsBackToTheList(): void
+	{
+		$settings = new Settings();
+		$settings->savedAddressDisplay = 'Dropdown';
+
+		self::assertFalse($settings->usesAddressDropdown(40));
+	}
+
+	public function testAConfiguredDeliveryDateIsIgnored(): void
+	{
+		$options = new OptionConfig([
+			'deliveryDate' => [
+				'label' => 'Arrives by',
+				'display' => true,
+			],
+		]);
+
+		self::assertEquals(new DeliveryDateConfig(), $options->deliveryDate);
+	}
+
+	public function testTheOldNewsletterKeysStillSetTheRenamedSettings(): void
+	{
+		$settings = new Settings();
+		$settings->setAttributes([
+			'options' => [
+				'enableKlaviyoTracking' => true,
+				'klaviyoListId' => '$KLAVIYO_LIST_ID',
+			],
+		], false);
+
+		self::assertTrue($settings->options->enableNewsletter);
+		self::assertSame('$KLAVIYO_LIST_ID', $settings->options->newsletterListId);
+	}
+
+	/**
+	 * A control panel save posts the new key beside the stored old one, and the new key has to win.
+	 */
+	public function testANewNewsletterKeyBeatsTheOldOneBesideIt(): void
+	{
+		$settings = new Settings();
+		$settings->setAttributes([
+			'options' => [
+				'klaviyoListId' => 'OLD',
+				'newsletterListId' => 'NEW',
+			],
+		], false);
+
+		self::assertSame('NEW', $settings->options->newsletterListId);
 	}
 
 	public function testAnEmptyProductConditionMatchesNothing(): void

@@ -193,6 +193,45 @@
 		warning: savedAddressLimitOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'savedAddressLimit' }),
 	}) }}
 
+	{% set savedAddressDisplayOverridden = 'savedAddressDisplay' in overriddenSettings %}
+
+	{{ forms.selectField({
+		label: 'settings.addresses.savedAddressDisplay'|t('foster-checkout'),
+		instructions: 'settings.addresses.savedAddressDisplayHelp'|t('foster-checkout'),
+		id: 'saved-address-display',
+		name: 'settings[savedAddressDisplay]',
+		value: settings.savedAddressDisplay,
+		errors: settings.getErrors('savedAddressDisplay'),
+		options: [
+			{ label: 'settings.addresses.savedAddressDisplayList'|t('foster-checkout'), value: 'list' },
+			{ label: 'settings.addresses.savedAddressDisplayDropdown'|t('foster-checkout'), value: 'dropdown' },
+			{ label: 'settings.addresses.savedAddressDisplayAuto'|t('foster-checkout'), value: 'auto' },
+		],
+		disabled: savedAddressDisplayOverridden or readOnly,
+		warning: savedAddressDisplayOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'savedAddressDisplay' }),
+		toggle: true,
+		targetPrefix: 'saved-address-display-',
+	}) }}
+
+	{% set savedAddressDropdownThresholdOverridden = 'savedAddressDropdownThreshold' in overriddenSettings %}
+
+	<div id="saved-address-display-auto"{% if settings.savedAddressDisplay != 'auto' and not settings.hasErrors('savedAddressDropdownThreshold') %} class="hidden"{% endif %}>
+		{{ forms.textField({
+			label: 'settings.addresses.savedAddressDropdownThreshold'|t('foster-checkout'),
+			instructions: 'settings.addresses.savedAddressDropdownThresholdHelp'|t('foster-checkout'),
+			id: 'saved-address-dropdown-threshold',
+			name: 'settings[savedAddressDropdownThreshold]',
+			type: 'number',
+			min: 1,
+			step: 1,
+			size: 5,
+			value: settings.savedAddressDropdownThreshold,
+			errors: settings.getErrors('savedAddressDropdownThreshold'),
+			disabled: savedAddressDropdownThresholdOverridden or readOnly,
+			warning: savedAddressDropdownThresholdOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'savedAddressDropdownThreshold' }),
+		}) }}
+	</div>
+
 	{{ forms.lightswitchField({
 		label: 'settings.addresses.showAddressLabelField'|t('foster-checkout'),
 		instructions: 'settings.addresses.showAddressLabelFieldHelp'|t('foster-checkout'),

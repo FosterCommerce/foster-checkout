@@ -36,6 +36,7 @@ use fostercommerce\advanceddiscounts\variables\AdvancedDiscountsVariable;
 use fostercommerce\fostercheckout\events\DefineCheckoutContactEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentFormParamsEvent;
+use fostercommerce\fostercheckout\events\NewsletterSubscribeEvent;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\helpers\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\models\DeliveryDate;
@@ -43,6 +44,9 @@ use fostercommerce\fostercheckout\models\LineItemOptionRule;
 use fostercommerce\fostercheckout\models\PaymentGatewayConfig;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\models\ValueConfig;
+use fostercommerce\klaviyoconnect\Plugin as KlaviyoConnect;
+use GuzzleHttp\Exception\GuzzleException;
+use KlaviyoAPI\ApiException;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 
@@ -153,6 +157,30 @@ class Checkout extends Component
 	 * @since 1.4.2
 	 */
 	public const string EVENT_DEFINE_PAYMENT_FORM_PARAMS = 'definePaymentFormParams';
+
+	/**
+	 * @event NewsletterSubscribeEvent The event that is triggered when a customer submits their email with the newsletter checkbox ticked.
+	 *
+	 * A site that runs its newsletter on a service other than Klaviyo subscribes the customer here.
+	 *
+	 * ```php
+	 * use fostercommerce\fostercheckout\events\NewsletterSubscribeEvent;
+	 * use fostercommerce\fostercheckout\services\Checkout;
+	 * use yii\base\Event;
+	 *
+	 * Event::on(
+	 *     Checkout::class,
+	 *     Checkout::EVENT_NEWSLETTER_SUBSCRIBE,
+	 *     function (NewsletterSubscribeEvent $event) {
+	 *         MyMailchimp::subscribe($event->listId, $event->email);
+	 *         $event->handled = true;
+	 *     }
+	 * );
+	 * ```
+	 *
+	 * @since 2.0.0
+	 */
+	public const string EVENT_NEWSLETTER_SUBSCRIBE = 'newsletterSubscribe';
 
 	/**
 	 * @var array<string, array<int, string>>|null
@@ -269,9 +297,10 @@ class Checkout extends Component
 	 *
 	 * Cut to `savedAddressLimit`, since a customer who has ordered for years can hold hundreds.
 	 * The primary address is listed first whatever its age, since ordering by recency alone drops it.
+	 * The addresses the order already uses follow, even past the limit.
 	 *
 	 * @return array<int, Address>
-	 * @since 1.7.0
+	 * @since 2.0.0
 	 */
 	public function customerAddresses(Order $order): array
 	{
@@ -285,7 +314,7 @@ class Checkout extends Component
 		$customerId = (int) $customer->id;
 
 		if (isset($this->customerAddresses[$customerId])) {
-			return $this->customerAddresses[$customerId];
+			return $this->withOrderAddresses($order, $customer, $this->customerAddresses[$customerId]);
 		}
 
 		$limit = $this->settings()->savedAddressLimit;
@@ -315,43 +344,96 @@ class Checkout extends Component
 			$addresses = [$primaryAddress, ...$addresses];
 		}
 
-		return $this->customerAddresses[$customerId] = $addresses;
+		$this->customerAddresses[$customerId] = $addresses;
+
+		return $this->withOrderAddresses($order, $customer, $addresses);
 	}
 
 	/**
-	 * Whether Klaviyo should receive events for this order.
+	 * The list or audience the newsletter checkbox subscribes customers to, which is set as an env var
+	 * name more often than as the ID itself.
 	 *
-	 * Someone buying on another account's behalf would file the events under a customer who is not
-	 * the shopper, so the order goes untracked.
+	 * @since 2.0.0
 	 */
-	public function klaviyoTrackingEnabled(Order $order): bool
+	public function newsletterListId(): ?string
 	{
-		if (! $this->settings()->options->enableKlaviyoTracking) {
-			return false;
-		}
-
-		if (! Craft::$app->getPlugins()->isPluginEnabled('klaviyo-connect-plus')) {
-			return false;
-		}
-
-		$user = Craft::$app->getUser()->getIdentity();
-
-		if (! $user instanceof User) {
-			return true;
-		}
-
-		return $user->email === $order->email;
-	}
-
-	/**
-	 * The Klaviyo list the subscribe checkbox adds customers to, which is set as an env var name
-	 * more often than as the ID itself.
-	 */
-	public function klaviyoListId(): ?string
-	{
-		$listId = trim((string) App::parseEnv($this->settings()->options->klaviyoListId));
+		$listId = trim((string) App::parseEnv($this->settings()->options->newsletterListId));
 
 		return $listId === '' ? null : $listId;
+	}
+
+	/**
+	 * Whether the checkout shows the newsletter checkbox for this order.
+	 *
+	 * @since 2.0.0
+	 */
+	public function offersNewsletter(Order $order): bool
+	{
+		if (! $this->settings()->options->enableNewsletter) {
+			return false;
+		}
+
+		if (trim(strip_tags((string) $this->subscribeText())) === '') {
+			return false;
+		}
+
+		// Require a list only for Klaviyo Connect, since a site handler can choose its own
+		$hasSubscriber = $this->hasEventHandlers(self::EVENT_NEWSLETTER_SUBSCRIBE)
+			|| ($this->klaviyoConnect() instanceof KlaviyoConnect && $this->newsletterListId() !== null);
+
+		if (! $hasSubscriber) {
+			return false;
+		}
+
+		// Leave out an order placed for another customer's account
+		$user = Craft::$app->getUser()->getIdentity();
+
+		return ! $user instanceof User || $user->email === $order->email;
+	}
+
+	/**
+	 * Subscribe the customer to the newsletter, through a site's own handler or Klaviyo Connect.
+	 *
+	 * @since 2.0.0
+	 */
+	public function subscribeToNewsletter(Order $order, string $email): void
+	{
+		$newsletterSubscribeEvent = new NewsletterSubscribeEvent([
+			'order' => $order,
+			'email' => $email,
+			'listId' => $this->newsletterListId(),
+		]);
+		$this->trigger(self::EVENT_NEWSLETTER_SUBSCRIBE, $newsletterSubscribeEvent);
+
+		if ($newsletterSubscribeEvent->handled || $newsletterSubscribeEvent->listId === null) {
+			return;
+		}
+
+		$klaviyoConnect = $this->klaviyoConnect();
+
+		if (! $klaviyoConnect instanceof KlaviyoConnect) {
+			return;
+		}
+
+		try {
+			// Call the API directly, since addToLists() needs an existing Klaviyo profile
+			$klaviyoConnect->api->subscribeProfileToList($newsletterSubscribeEvent->listId, [
+				'email' => $email,
+			]);
+		} catch (ApiException|GuzzleException $klaviyoException) {
+			// Log rather than throw, since the single-page checkout retries a failed sign-up on every save
+			Craft::error("Unable to subscribe {$email} to Klaviyo list {$newsletterSubscribeEvent->listId}: {$klaviyoException->getMessage()}", __METHOD__);
+		}
+	}
+
+	/**
+	 * Whether the stepped checkout skips its email step, since a signed-in customer has an email already.
+	 *
+	 * @since 2.0.0
+	 */
+	public function skipsEmailStep(Order $order): bool
+	{
+		return Craft::$app->getUser()->getIdentity() instanceof User && ! $this->offersNewsletter($order);
 	}
 
 	public function addressFormatter(): CheckoutAddressFormatter
@@ -414,7 +496,7 @@ class Checkout extends Component
 	 * A number pad has no hyphen either, so a US ZIP+4 needs autofill, address lookup or verification.
 	 *
 	 * @return array<string, string>
-	 * @since 1.7.0
+	 * @since 2.0.0
 	 */
 	public function addressPostalCodeInputModes(): array
 	{
@@ -631,18 +713,6 @@ class Checkout extends Component
 		}
 
 		return Craft::$app->getView()->renderString($note, $context);
-	}
-
-	/**
-	 * @deprecated in 1.7.0. Use [[lineItemImageFields()]] instead.
-	 * @return ?array{handle: string, level: string}
-	 */
-	public function lineItemImageField(string $productType): ?array
-	{
-		// The deprecator throws whenever a site sets throwExceptions, which craft-config ties to devMode
-		Craft::warning('`lineItemImageField()` has been renamed to `lineItemImageFields()`.', 'deprecation-error');
-
-		return $this->lineItemImageFields($productType)[0] ?? null;
 	}
 
 	/**
@@ -927,7 +997,7 @@ class Checkout extends Component
 	/**
 	 * Copy shown under the create account checkbox, such as what an account gets the customer.
 	 *
-	 * @since 1.7.0
+	 * @since 2.0.0
 	 */
 	public function createAccountText(): ?string
 	{
@@ -1112,6 +1182,30 @@ class Checkout extends Component
 	}
 
 	/**
+	 * Saved addresses as options for the address dropdowns. The last is marked so a divider separates them
+	 * from the choices that follow.
+	 *
+	 * @param array<int, Address> $addresses
+	 * @return list<array{value: string, label: string, isLastPinned: bool}>
+	 * @since 2.0.0
+	 */
+	public function savedAddressOptions(array $addresses): array
+	{
+		$options = [];
+		$lastKey = array_key_last($addresses);
+
+		foreach ($addresses as $key => $address) {
+			$options[] = [
+				'value' => (string) $address->id,
+				'label' => $this->addressPreview($address),
+				'isLastPinned' => $key === $lastKey,
+			];
+		}
+
+		return $options;
+	}
+
+	/**
 	 * A saved address of the customer, when the order's source id does not already match.
 	 */
 	private function customerAddress(int $customerId, mixed $postedId, ?int $sourceId): ?Address
@@ -1159,6 +1253,35 @@ class Checkout extends Component
 		}
 
 		return preg_match('/[a-z \-]/i', (string) preg_replace('/\\\\./', '', $postalCodePattern)) === 0;
+	}
+
+	/**
+	 * Add the saved addresses the order already uses, which `savedAddressLimit` can leave out.
+	 * Without them the checkout has no option for an address the order still uses.
+	 *
+	 * @param array<int, Address> $addresses
+	 * @return array<int, Address>
+	 */
+	private function withOrderAddresses(Order $order, User $customer, array $addresses): array
+	{
+		$listedIds = array_map(static fn (Address $address): ?int => $address->id, $addresses);
+		$missingIds = array_values(array_diff(
+			array_filter([$order->sourceShippingAddressId, $order->sourceBillingAddressId]),
+			$listedIds
+		));
+
+		if ($missingIds === []) {
+			return $addresses;
+		}
+
+		/** @var array<int, Address> $orderAddresses */
+		$orderAddresses = Address::find()
+			->owner($customer)
+			->fieldId(null)
+			->id($missingIds)
+			->all();
+
+		return [...$addresses, ...$orderAddresses];
 	}
 
 	/**
@@ -1573,5 +1696,19 @@ class Checkout extends Component
 		}
 
 		return $configValue instanceof ValueConfig ? $configValue->toStringWithContext($context) : null;
+	}
+
+	/**
+	 * Klaviyo Connect 7.3.0 or later, since earlier versions don't send the Started Checkout event the checkout dropped.
+	 */
+	private function klaviyoConnect(): ?KlaviyoConnect
+	{
+		$klaviyoConnect = Craft::$app->getPlugins()->getPlugin('klaviyoconnect');
+
+		if (! $klaviyoConnect instanceof KlaviyoConnect || version_compare($klaviyoConnect->getVersion(), '7.3.0', '<')) {
+			return null;
+		}
+
+		return $klaviyoConnect;
 	}
 }

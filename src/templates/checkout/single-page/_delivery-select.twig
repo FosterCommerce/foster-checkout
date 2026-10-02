@@ -1,0 +1,45 @@
+{% set savedAddressOptions = craft.fostercheckout.savedAddressOptions(addresses)|merge([{ value: 'new', label: 'address.newAddress'|t('foster-checkout') }]) %}
+{% if pickupAvailable %}
+	{% set savedAddressOptions = savedAddressOptions|merge([{ value: 'pickup', label: craft.fostercheckout.customerPickupLabel() }]) %}
+{% endif %}
+
+{# Leave the dropdown empty for an address it doesn't offer, since the dropdown would match another option by label #}
+<div
+	x-data="{
+		savedAddressOptions: {{ savedAddressOptions|json_encode }},
+		get offeredChoice() {
+			return this.savedAddressOptions.some((option) => option.value === this.shippingChoice) ? this.shippingChoice : '';
+		},
+		set offeredChoice(choice) {
+			this.shippingChoice = choice;
+		},
+	}"
+>
+	<div class="flex items-center gap-4">
+		<div class="flex-1" x-show="!parseInt(editExistingAddress)">
+			{# Rebuild the dropdown when an edit changes a label, since replacing its options clears the selection #}
+			<template x-for="labels in [liveAddressOptions(savedAddressOptions).map((option) => option.label).join('|')]" :key="labels">
+				{% include 'foster-checkout/_components/base/input-select-searchable' with {
+					id: 'shippingAddressId_display',
+					name: 'shippingAddressId_display',
+					model: 'offeredChoice',
+					optionsFrom: 'liveAddressOptions(savedAddressOptions)',
+					label: 'address.savedAddresses'|t('foster-checkout'),
+				} %}
+			</template>
+		</div>
+		{% if canSaveAddresses %}
+			{% include 'foster-checkout/_components/app/saved-address-edit-toggle' with { editState: 'editExistingAddress', otherEditState: 'editBillingAddressId', fixedChoices: ['', 'new', 'pickup'] } %}
+		{% endif %}
+	</div>
+
+	{% include 'foster-checkout/checkout/single-page/_saved-address-edit' with { addresses: addresses, editState: 'editExistingAddress' } %}
+
+	{% if pickupAvailable %}
+		<template x-if="shippingPickup">
+			<p class="mt-4 text-gray-500">{{ craft.fostercheckout.customerPickupPreview(cart) }}</p>
+		</template>
+	{% endif %}
+
+	{{ newAddressForm }}
+</div>

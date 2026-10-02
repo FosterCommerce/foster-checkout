@@ -174,6 +174,7 @@ const SearchableSelect = (props) => {
 		placeholder: props.placeholder || 'Select',
 		options: props.options ?? [],
 		required: props.required || false,
+		selectOnlyOption: props.selectOnlyOption ?? true,
 		errors: props.errors || [],
 		success: props.success || [],
 		requiredError: props.requiredError || '',
@@ -218,7 +219,11 @@ const SearchableSelect = (props) => {
 						this.selectByValue(input.value);
 					}
 
-					if (!this.selectedOption && updatedOptions.length === 1) {
+					if (
+						this.selectOnlyOption &&
+						!this.selectedOption &&
+						updatedOptions.length === 1
+					) {
 						this.selectedOption = updatedOptions[0];
 					}
 				});
@@ -248,7 +253,11 @@ const SearchableSelect = (props) => {
 				}
 			});
 
-			if (!this.selectedOption && this.options.length === 1) {
+			if (
+				this.selectOnlyOption &&
+				!this.selectedOption &&
+				this.options.length === 1
+			) {
 				this.selectedOption = this.options[0];
 			}
 		},
@@ -428,7 +437,8 @@ const SearchableSelect = (props) => {
 
 		closeAndFocusButton() {
 			this.closeListbox();
-			this.$refs.button.focus();
+			// Focus the trigger after the trap releases, since the open trap holds focus in the dropdown
+			this.$nextTick(() => this.$refs.button.focus());
 		},
 
 		resetActiveIndex() {
@@ -764,37 +774,21 @@ const RadioInput = (props) => {
 	};
 };
 
-const CheckoutTracking = (props) => {
+const NewsletterSignup = () => {
 	return {
-		track() {
-			const trackStartedCheckout = props.trackStartedCheckout ?? true;
-			// The list input renders only while the box is ticked
-			const list = this.$root.querySelector('[name="list"]')?.value ?? '';
-			const subscribe = list !== '';
-
-			if (!trackStartedCheckout && !subscribe) {
+		subscribe() {
+			if (this.$root.querySelector('[name="subscribe"]').value !== '1') {
 				return;
 			}
 
+			// Post the subscription here, since the step's form posts only to Commerce
 			const body = new FormData();
 			body.append(window.csrfTokenName, window.csrfTokenValue);
-			body.append('action', 'klaviyo-connect-plus/api/track');
+			body.append('action', 'foster-checkout/newsletter/subscribe');
 			body.append(
 				'email',
-				this.$root.querySelector('[name="email"]')?.value ?? props.email ?? ''
+				this.$root.querySelector('[name="email"]')?.value ?? ''
 			);
-
-			if (trackStartedCheckout) {
-				body.append('event[name]', 'Started Checkout');
-				body.append('event[trackOrder]', '1');
-				body.append('event[orderId]', String(props.orderId ?? ''));
-			}
-
-			// Post the subscription here, since the step's form posts only to Commerce
-			if (subscribe) {
-				body.append('list', list);
-				body.append('subscribe', '1');
-			}
 
 			fetch(window.location.href, {
 				method: 'POST',
@@ -981,7 +975,7 @@ enhanceCardFields();
 Alpine.plugin(focus);
 Alpine.data('ScrollableItems', ScrollableItems);
 Alpine.data('SimpleField', SimpleField);
-Alpine.data('CheckoutTracking', CheckoutTracking);
+Alpine.data('NewsletterSignup', NewsletterSignup);
 Alpine.data('ClearableInput', ClearableInput);
 Alpine.data('RadioInput', RadioInput);
 Alpine.data('SearchableSelect', SearchableSelect);

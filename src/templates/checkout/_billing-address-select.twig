@@ -1,0 +1,44 @@
+{% set billingAddressOptions = offerSameAsShipping ? [{ value: 'same', label: 'billing.sameAsShippingAddress'|t('foster-checkout') }] : [] %}
+{% set billingAddressOptions = billingAddressOptions|merge(craft.fostercheckout.savedAddressOptions(billingAddresses))|merge([{ value: 'new', label: 'billing.useDifferentBillingAddress'|t('foster-checkout') }]) %}
+
+{# Leave the dropdown empty for an address it doesn't offer, since the dropdown would match another option by label #}
+<div
+	x-data="{
+		billingAddressOptions: {{ billingAddressOptions|json_encode }},
+		get offeredChoice() {
+			let choice = String(this.billingAddressId);
+			if (parseInt(this.billingSameAsShipping) === 1) {
+				choice = 'same';
+			} else if (parseInt(this.newBillingAddress) === 1) {
+				choice = 'new';
+			}
+			return this.billingAddressOptions.some((option) => option.value === choice) ? choice : '';
+		},
+		set offeredChoice(choice) {
+			this.editBillingAddressId = 0;
+			this.billingSameAsShipping = choice === 'same' ? 1 : 0;
+			this.newBillingAddress = choice === 'new' ? 1 : 0;
+			this.billingAddressId = choice === 'same' || choice === 'new' ? null : Number(choice);
+		},
+	}"
+>
+	<div class="flex items-center gap-4">
+		<div class="flex-1" x-show="!parseInt(editBillingAddressId)">
+			{% include 'foster-checkout/_components/base/input-select-searchable' with {
+				id: 'billingAddressId_display',
+				name: 'billingAddressId_display',
+				model: 'offeredChoice',
+				options: billingAddressOptions,
+				label: 'billing.addressDropdownLabel'|t('foster-checkout'),
+				required: true,
+			} %}
+		</div>
+		{% if canSaveAddresses %}
+			{% include 'foster-checkout/_components/app/saved-address-edit-toggle' with { editState: 'editBillingAddressId', fixedChoices: ['', 'same', 'new'] } %}
+		{% endif %}
+	</div>
+
+	{% include 'foster-checkout/checkout/_saved-address-edit' with { addresses: billingAddresses, editState: 'editBillingAddressId' } %}
+
+	{{ newBillingForm }}
+</div>

@@ -1,0 +1,16 @@
+{# Saving posts this step's form to the address book, so the edit form has a submit button #}
+{% for address in addresses %}
+	<template x-if="parseInt({{ editState }}) === {{ address.id }}">
+		<div class="pt-4">
+			{% include 'foster-checkout/_components/app/address-fields' with { address: address, showAddressLabel: true } %}
+			<div class="flex justify-start items-center gap-4 mt-4 pt-4">
+				<button type="submit" class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]">
+					{{ 'misc.save'|t('foster-checkout') }}
+				</button>
+				<button type="button" class="block min-w-[100px] px-4 py-3 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]" @click="{{ editState }} = 0">
+					{{ 'misc.cancel'|t('foster-checkout') }}
+				</button>
+			</div>
+		</div>
+	</template>
+{% endfor %}
