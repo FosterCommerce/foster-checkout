@@ -5629,6 +5629,11 @@ const addressBook = () => ({
       label: this.addressLabel(option.value, option.label)
     }));
   },
+  // Leave out the shipping address, which "Same as shipping address" covers, unless billing already uses it
+  offersAsBilling(addressId) {
+    const id = parseInt(addressId, 10);
+    return !this.collectShipping || this.useNewAddress || parseInt(this.shippingAddressId, 10) !== id || !this.billingSameAsShipping && parseInt(this.billingAddressId, 10) === id;
+  },
   escapeName(name) {
     return typeof CSS !== "undefined" && CSS.escape ? CSS.escape(name) : name.replaceAll('"', '\\"');
   },
@@ -5700,15 +5705,18 @@ const addressBook = () => ({
   },
   // Format an entered address the way the server formats a saved one
   formatEnteredAddress(fields, formScope) {
-    return [
+    const enteredParts = [
       fields.fullName,
       fields.addressLine1,
       fields.addressLine2,
       fields.locality,
       fields.administrativeArea,
-      fields.postalCode,
-      this.countryNameInForm(formScope)
-    ].map((part) => String(part || "").trim()).filter(Boolean).join(", ");
+      fields.postalCode
+    ].map((part) => String(part || "").trim()).filter(Boolean);
+    if (enteredParts.length === 0) {
+      return "";
+    }
+    return [...enteredParts, this.countryNameInForm(formScope)].filter(Boolean).join(", ");
   },
   rememberAddressFields(addressId, address, fields) {
     if (!addressId) {
@@ -6083,7 +6091,6 @@ const cartPersistence = () => ({
         action: "commerce/cart/update-cart",
         ...saved
       };
-      const trackCheckout = this.shouldTrackCheckout(saved);
       const subscribe = this.shouldSubscribe(saved);
       const { response, data: data2, isJson } = await this.postForm(
         this.postUrl(),
@@ -6103,12 +6110,8 @@ const cartPersistence = () => ({
         this.markNotesError(savingNotes);
         return;
       }
-      if (trackCheckout) {
-        this.trackedCheckout = true;
-        this.trackCheckoutStarted(saved, signal);
-      }
       if (subscribe) {
-        await this.subscribeToKlaviyo(saved, signal);
+        await this.subscribeToNewsletter(saved, signal);
       }
       const cart = data2.cart || data2.model || data2.data && data2.data.cart;
       this.applyCart(cart, this.shippingRateKey(saved));
@@ -6148,7 +6151,8 @@ const cartPersistence = () => ({
       this.nextSave = null;
       if (next) {
         await this.saveCart(next);
-      } else if (cartSynced) {
+      }
+      if (cartSynced) {
         this.maybeReinitPaypalCheckout();
       }
     }
@@ -6498,6 +6502,7 @@ const cartPersistence = () => ({
   }
 });
 const CARD_FIELDS = ["number", "month", "year", "cvv"];
+const STRIPE_MOUNT_LIMIT_MS = 15e3;
 const AUTHORIZE_ERROR_FIELDS = {
   E_WC_04: "number",
   E_WC_05: "number",
@@ -6792,6 +6797,10 @@ const gatewayHandling = () => ({
     if (!form) {
       return;
     }
+    if (this.stripeMountInFlight(form)) {
+      this.remountStripeWhenRendered(form);
+      return;
+    }
     const paymentElement = form.querySelector(".stripe-payment-element");
     const hasMounted = Boolean(paymentElement?.childElementCount) || Boolean(String(paymentElement?.innerHTML || "").trim());
     const hasHandler = Boolean(form.handlerInstance);
@@ -6818,9 +6827,13 @@ const gatewayHandling = () => ({
     if (!form) {
       return;
     }
+    if (this.stripeMountInFlight(form)) {
+      this.remountStripeWhenRendered(form);
+      return;
+    }
     const total = Number(this.totals.total);
     const isMounted = Boolean(
-      form.handlerInstance || form.querySelector(".stripe-payment-element")?.childElementCount
+      form.querySelector(".stripe-payment-element")?.childElementCount
     );
     if (isMounted && this.stripeMountedTotal === total && !this.stripeOptionsChanged) {
       return;
@@ -6834,6 +6847,35 @@ const gatewayHandling = () => ({
       this.maybeReinitStripeCheckout();
     });
   },
+  stripeMountInFlight(form) {
+    return Boolean(form.handlerInstance) && Date.now() - (form.mountStartedAt ?? 0) < STRIPE_MOUNT_LIMIT_MS && !form.querySelector(".stripe-payment-element")?.childElementCount && !form.querySelector(".stripe-error-message")?.textContent?.trim();
+  },
+  // Keep the observer and timer on the form rather than in Alpine state, since a reactive proxy breaks the observer's methods
+  remountStripeWhenRendered(form) {
+    if (form.remountObserver) {
+      return;
+    }
+    const remount = () => {
+      form.remountObserver.disconnect();
+      form.remountObserver = null;
+      clearTimeout(form.remountTimer);
+      this.scheduleStripeReinit();
+    };
+    form.remountObserver = new MutationObserver(() => {
+      if (!this.stripeMountInFlight(form)) {
+        remount();
+      }
+    });
+    form.remountTimer = setTimeout(
+      remount,
+      form.mountStartedAt + STRIPE_MOUNT_LIMIT_MS - Date.now()
+    );
+    form.remountObserver.observe(form, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+  },
   maybeReinitStripeCheckout() {
     if (!this.stripeInvalidated) {
       return;
@@ -6845,8 +6887,15 @@ const gatewayHandling = () => ({
     if (typeof initStripe !== "function") {
       return;
     }
-    initStripe();
+    this.mountStripe();
     this.$nextTick(() => this.syncPayButtons());
+  },
+  // Stamp each form, so a mount that never renders can time out
+  mountStripe() {
+    this.rootEl.querySelectorAll(".stripe-payment-elements-form").forEach((form) => {
+      form.mountStartedAt = Date.now();
+    });
+    initStripe();
   },
   restoreStripeIfSkipped() {
     if (this.stripeInvalidated && !this.saving && !this.saveTimer) {
@@ -6859,7 +6908,7 @@ const gatewayHandling = () => ({
       return;
     }
     error2.textContent = "";
-    initStripe();
+    this.mountStripe();
   },
   initPaypal(attempt = 0) {
     if (this.paypalInitTimer) {
@@ -6896,7 +6945,13 @@ const gatewayHandling = () => ({
     window.initPaypalCheckout();
   }
 });
-const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@.]{2,}$/.test(String(value || "").trim());
+const EMAIL_PATTERN = /^[\p{L}\p{M}\p{N}!#$%&'*+/=?^_`{|}~-]+(?:\.[\p{L}\p{M}\p{N}!#$%&'*+/=?^_`{|}~-]+)*@(?:[\p{L}\p{N}](?:[\p{L}\p{M}\p{N}-]*[\p{L}\p{M}\p{N}])?\.)+[\p{L}\p{N}](?:[\p{L}\p{M}\p{N}-]*[\p{L}\p{M}\p{N}])?$/u;
+const TOP_LEVEL_DOMAIN_PATTERN = /\.(?!\d+$)[^\s@.]{2,}$/u;
+const isValidEmail = (value) => {
+  const email = String(value || "").trim();
+  const localPart = email.slice(0, email.lastIndexOf("@"));
+  return email.length <= 254 && localPart.length <= 64 && EMAIL_PATTERN.test(email) && TOP_LEVEL_DOMAIN_PATTERN.test(email);
+};
 const SUGGESTION_TOP_LEVEL_DOMAINS = distExports.POPULAR_TLDS.filter(
   (topLevelDomain) => topLevelDomain !== "co"
 );
@@ -6917,9 +6972,6 @@ const SinglePageCheckout = (props) => {
   return {
     loggedIn: props.loggedIn,
     email: props.email ?? "",
-    cartId: props.cartId ?? null,
-    klaviyoEnabled: Boolean(props.klaviyoEnabled),
-    trackedCheckout: false,
     subscribed: false,
     shippingAddressId: props.shippingAddressId,
     useNewAddress: props.useNewAddress ?? false,
@@ -6941,7 +6993,8 @@ const SinglePageCheckout = (props) => {
     couponError: "",
     notesError: "",
     notesButtonVisible: false,
-    addressLabels: {},
+    // Seed the labels so the shipping preview names a saved address before the first save
+    addressLabels: props.addressLabels ?? {},
     addressFields: {},
     shippingPreview: props.shippingPreview ?? "",
     pickupAvailable: props.pickupAvailable ?? false,
@@ -7250,20 +7303,20 @@ const SinglePageCheckout = (props) => {
       }
       return !zeroOnly;
     },
-    // A cart reaching zero changes which gateways fit, so the count is read rather than rendered
-    get visibleGatewayCount() {
-      const rows = Array.from(
-        this.paymentFormEl?.querySelectorAll("[data-fc-gateway]") ?? []
-      );
-      return rows.filter((row) => this.gatewayFits(row)).length;
+    // A zero total changes which gateways fit, so the rows are read rather than rendered
+    get fittingGatewayRows() {
+      return Array.from(
+        this.paymentFormEl.querySelectorAll("[data-fc-gateway]")
+      ).filter((row) => this.gatewayFits(row));
+    },
+    // Hide a lone Stripe gateway until its mount starts, which waits for canPay. Keep it shown
+    // once mounting, since an element mounted into a hidden box renders blank.
+    get awaitingGatewayForm() {
+      const rows = this.fittingGatewayRows;
+      return !this.canPay && rows.length === 1 && rows[0].dataset.stripe === "1" && !rows[0].querySelector(".stripe-payment-elements-form")?.handlerInstance;
     },
     ensureAvailableGateway() {
-      const form = this.paymentFormEl;
-      if (!form) {
-        return;
-      }
-      const rows = Array.from(form.querySelectorAll("[data-fc-gateway]"));
-      const available = rows.filter((row) => this.gatewayFits(row));
+      const available = this.fittingGatewayRows;
       const currentOk = available.some(
         (row) => Number(row.querySelector('input[name="gatewayId"]')?.value) === Number(this.gatewayId)
       );
@@ -7447,37 +7500,16 @@ const SinglePageCheckout = (props) => {
         ...customFields
       ].join("|");
     },
-    shouldTrackCheckout(saved) {
-      return this.klaviyoEnabled && !this.loggedIn && !this.trackedCheckout && isValidEmail(saved.email || this.email);
-    },
     shouldSubscribe(saved) {
-      return this.klaviyoEnabled && !this.subscribed && String(saved.subscribe || "") === "1" && Boolean(saved.list) && isValidEmail(saved.email || this.email);
+      return !this.subscribed && String(saved.subscribe || "") === "1" && isValidEmail(saved.email || this.email);
     },
-    async trackCheckoutStarted(saved, signal) {
-      try {
-        await this.postForm(
-          this.postUrl(),
-          {
-            action: "klaviyo-connect-plus/api/track",
-            email: saved.email || this.email,
-            "event[name]": "Started Checkout",
-            "event[trackOrder]": "1",
-            "event[orderId]": String(this.cartId || "")
-          },
-          signal
-        );
-      } catch {
-      }
-    },
-    async subscribeToKlaviyo(saved, signal) {
+    async subscribeToNewsletter(saved, signal) {
       try {
         const { response, isJson } = await this.postForm(
           this.postUrl(),
           {
-            action: "klaviyo-connect-plus/api/track",
-            email: saved.email || this.email,
-            list: saved.list,
-            subscribe: "1"
+            action: "foster-checkout/newsletter/subscribe",
+            email: saved.email || this.email
           },
           signal
         );
@@ -8438,31 +8470,19 @@ const RadioInput = (props) => {
     }
   };
 };
-const CheckoutTracking = (props) => {
+const NewsletterSignup = () => {
   return {
-    track() {
-      const trackStartedCheckout = props.trackStartedCheckout ?? true;
-      const list = this.$root.querySelector('[name="list"]')?.value ?? "";
-      const subscribe = list !== "";
-      if (!trackStartedCheckout && !subscribe) {
+    subscribe() {
+      if (this.$root.querySelector('[name="subscribe"]').value !== "1") {
         return;
       }
       const body = new FormData();
       body.append(window.csrfTokenName, window.csrfTokenValue);
-      body.append("action", "klaviyo-connect-plus/api/track");
+      body.append("action", "foster-checkout/newsletter/subscribe");
       body.append(
         "email",
-        this.$root.querySelector('[name="email"]')?.value ?? props.email ?? ""
+        this.$root.querySelector('[name="email"]')?.value ?? ""
       );
-      if (trackStartedCheckout) {
-        body.append("event[name]", "Started Checkout");
-        body.append("event[trackOrder]", "1");
-        body.append("event[orderId]", String(props.orderId ?? ""));
-      }
-      if (subscribe) {
-        body.append("list", list);
-        body.append("subscribe", "1");
-      }
       fetch(window.location.href, {
         method: "POST",
         body,
@@ -8581,7 +8601,7 @@ enhanceCardFields();
 module_default$1.plugin(module_default);
 module_default$1.data("ScrollableItems", ScrollableItems);
 module_default$1.data("SimpleField", SimpleField);
-module_default$1.data("CheckoutTracking", CheckoutTracking);
+module_default$1.data("NewsletterSignup", NewsletterSignup);
 module_default$1.data("ClearableInput", ClearableInput);
 module_default$1.data("RadioInput", RadioInput);
 module_default$1.data("SearchableSelect", SearchableSelect);

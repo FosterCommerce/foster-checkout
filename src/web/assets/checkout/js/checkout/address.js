@@ -13,6 +13,19 @@ export const addressBook = () => ({
 		}));
 	},
 
+	// Leave out the shipping address, which "Same as shipping address" covers, unless billing already uses it
+	offersAsBilling(addressId) {
+		const id = parseInt(addressId, 10);
+
+		return (
+			!this.collectShipping ||
+			this.useNewAddress ||
+			parseInt(this.shippingAddressId, 10) !== id ||
+			(!this.billingSameAsShipping &&
+				parseInt(this.billingAddressId, 10) === id)
+		);
+	},
+
 	escapeName(name) {
 		return typeof CSS !== 'undefined' && CSS.escape
 			? CSS.escape(name)
@@ -101,16 +114,23 @@ export const addressBook = () => ({
 
 	// Format an entered address the way the server formats a saved one
 	formatEnteredAddress(fields, formScope) {
-		return [
+		const enteredParts = [
 			fields.fullName,
 			fields.addressLine1,
 			fields.addressLine2,
 			fields.locality,
 			fields.administrativeArea,
 			fields.postalCode,
-			this.countryNameInForm(formScope),
 		]
 			.map((part) => String(part || '').trim())
+			.filter(Boolean);
+
+		// Return no preview for a form holding only its default country
+		if (enteredParts.length === 0) {
+			return '';
+		}
+
+		return [...enteredParts, this.countryNameInForm(formScope)]
 			.filter(Boolean)
 			.join(', ');
 	},

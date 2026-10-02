@@ -26,9 +26,6 @@ return [
 	// Whether to serve the single-page checkout. Existing sites stay on multi-page until this is turned on.
 	// 'enableSinglePageCheckout' => false, // true|false
 
-	// Whether or not to show the shipping estimator
-	// 'enableEstimatedShipping' => false, // true|false
-
 	// Whether or not to enable CSS page transitions
 	//(see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#browser_compatibility for browser compatibility)
 	// 'enablePageTransitions' => false, // true|false
@@ -37,12 +34,13 @@ return [
 	// (needs the AvaTax plugin with its own address validation turned on)
 	// 'enableAddressVerification' => false, // true|false
 
-	// Whether the checkout reports to Klaviyo. Needs the Klaviyo Connect Plus plugin.
-	// 'enableKlaviyoTracking' => false,
+	// Whether the checkout offers the newsletter checkbox. Klaviyo Connect subscribes customers,
+	// or a site module listening for Checkout::EVENT_NEWSLETTER_SUBSCRIBE does.
+	// 'enableNewsletter' => false,
 
-	// The Klaviyo list the subscribe checkbox adds customers to. Name an env var to keep each
+	// The list or audience the newsletter checkbox subscribes customers to. Name an env var to keep each
 	// environment on its own list. Edited at Checkout -> Features unless it is set here.
-	// 'klaviyoListId' => '$KLAVIYO_LIST_ID',
+	// 'newsletterListId' => '$NEWSLETTER_LIST_ID',
 
 	// The text to display for the subscribe checkbox. Can also be a plain string, or a callable which returns a string
 	// 'subscribe' => [

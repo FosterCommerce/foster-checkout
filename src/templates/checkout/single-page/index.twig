@@ -62,8 +62,6 @@
 	{% set config = {
 		loggedIn: currentUser ? true : false,
 		email: cart.email ?? '',
-		cartId: cart.id,
-		klaviyoEnabled: craft.fostercheckout.klaviyoTrackingEnabled(cart) ? true : false,
 		shippingAddressId: collectShipping ? initialShippingAddressId : 0,
 		useNewAddress: (collectShipping and isNewAddress) ? true : false,
 		shippingMethodHandle: live.shippingMethodHandle,
@@ -83,6 +81,7 @@
 		couponMessages: live.couponMessages,
 		paymentBlock: live.paymentBlock,
 		shippingPreview: live.shippingPreview,
+		addressLabels: live.addressLabels,
 		pickupAvailable: pickupAvailable,
 		pickupPreview: pickupAvailable ? craft.fostercheckout.customerPickupPreview(cart) : '',
 		payButtonText: 'payment.payButtonText'|t('foster-checkout'),

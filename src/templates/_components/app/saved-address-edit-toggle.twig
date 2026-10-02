@@ -1,0 +1,13 @@
+{% set otherEditState = otherEditState ?? null %}
+
+<template x-if="!{{ fixedChoices|json_encode }}.includes(offeredChoice)">
+	<button
+		type="button"
+		class="ml-auto text-[var(--brandColor)] underline"
+		{# Close the other dropdown's edit form first, where the page has one, so one address is edited at a time #}
+		@click="{{ otherEditState ? otherEditState ~ ' = 0; ' }}{{ editState }} = parseInt({{ editState }}) ? 0 : parseInt(offeredChoice)"
+	>
+		<template x-if="parseInt({{ editState }})"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
+		<template x-if="!parseInt({{ editState }})"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
+	</button>
+</template>

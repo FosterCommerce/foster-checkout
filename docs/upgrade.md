@@ -23,9 +23,23 @@ For any other key, or one that depends on the order, see [payment form parameter
 
 The checkout no longer serves `<checkout>/login` or `<checkout>/register`, and the **Account** note at **Checkout -> Notes & Links** is removed. **Sign in** goes to Craft's `loginPath`. Link to your own sign-in and registration pages instead.
 
-### Klaviyo tracking off on update
+### Newsletter checkbox
 
-**Klaviyo tracking** at **Checkout -> Features** is off after the update. To keep reporting to Klaviyo and offering the newsletter checkbox, turn it on.
+**Newsletter checkbox** at **Checkout -> Features** is off after the update, and the checkbox subscribes customers through Klaviyo Connect 7.3.0 or later rather than Klaviyo Connect Plus. The checkout ignores an earlier Klaviyo Connect. To keep offering the checkbox, turn the setting on, then install or update Klaviyo Connect, or subscribe customers from a site module, as described in [newsletter services](./dev-guide/newsletter-services.md).
+
+The cart and checkout no longer send Started Checkout events to Klaviyo. To keep sending them, see [Klaviyo Connect's documentation](https://www.fostercommerce.com/craft-cms-plugins/klaviyo-connect/docs).
+
+### Klaviyo list ID renamed
+
+**Klaviyo list ID** is now **Newsletter list ID**, and `options.klaviyoListId` is now `options.newsletterListId`. A stored value or config file using the old key still works, and writes a warning to Craft's log. To stop the warning, rename the key in your config file. For a value saved in the control panel, save **Checkout -> Features** once, which stores it under the new key.
+
+### `klaviyoTrackingEnabled()` removed
+
+`craft.fostercheckout.klaviyoTrackingEnabled()` is removed. To check whether the newsletter checkbox is offered, call `craft.fostercheckout.offersNewsletter(cart)`. To keep a template's own Klaviyo calls off an order placed for another customer, make them only when `not currentUser or currentUser.email == cart.email`.
+
+### Saved addresses limited to 10
+
+The checkout offers 10 of a customer's saved addresses: their primary address, then the most recently updated, plus the addresses the cart uses. To offer every saved address, set **Saved address limit** at **Checkout -> Addresses** to `0`.
 
 ### Voucher form action
 
@@ -35,9 +49,9 @@ The voucher form posts to `foster-checkout/voucher/add-code` and accepts gift vo
 
 **Save for later** is removed from **Checkout -> Line Items** and the cart. The plugin ignores a stored or configured value for it.
 
-### Address settings need Manage checkout settings
+### Settings moved off the Features screen
 
-**Verify shipping addresses** and the address suggestion settings are on **Checkout -> Addresses**, which needs **Manage checkout settings** rather than **Manage checkout features**. Grant it to any user group that edits them.
+**Checkout layout** and **Page transitions** are on **Checkout -> Appearance**, which needs **Manage checkout appearance**. **Verify shipping addresses**, the address suggestion settings, and **Placeholder images** are on **Checkout -> Addresses** and **Checkout -> Line Items**, which need **Manage checkout settings**. Grant these to any user group that held only **Manage checkout features**.
 
 ### `lineItemImageField()` removed
 

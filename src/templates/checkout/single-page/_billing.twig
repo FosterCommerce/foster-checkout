@@ -1,6 +1,4 @@
-{% set shippingSourceId = cart.sourceShippingAddressId ?? null %}
 {% set canSaveAddresses = craft.fostercheckout.canSaveAddresses(cart) %}
-{% set billingAddresses = addresses|filter(address => not collectShipping or shippingSourceId is empty or address.id != shippingSourceId) %}
 
 {# Share the new billing address form between the radio list and the dropdown #}
 {% set newBillingForm %}
@@ -70,8 +68,8 @@
 				</div>
 			{% endif %}
 
-			{% for address in billingAddresses %}
-				<div class="p-4 border-t" :class="{ 'bg-gray-100': parseInt(billingAddressId) === {{ address.id }} && !billingSameAsShipping }">
+			{% for address in addresses %}
+				<div class="p-4 border-t" x-show="offersAsBilling({{ address.id }})" :class="{ 'bg-gray-100': parseInt(billingAddressId) === {{ address.id }} && !billingSameAsShipping }">
 					<div class="flex justify-between items-center gap-4 radio">
 						<input
 							id="sp_bill_addr_{{ address.id }}"

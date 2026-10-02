@@ -19,6 +19,16 @@ class Settings extends Model
 	public const string SAVED_ADDRESS_DISPLAY_AUTO = 'auto';
 
 	/**
+	 * Option keys renamed in 2.0.0, so a stored value or config file naming the old key keeps working.
+	 *
+	 * @var array<string, string>
+	 */
+	private const array RENAMED_OPTIONS = [
+		'enableKlaviyoTracking' => 'enableNewsletter',
+		'klaviyoListId' => 'newsletterListId',
+	];
+
+	/**
 	 * How checkout content varies across sites, using Craft's field translation methods:
 	 * `none` for one shared copy, `site` for a copy per site, or `language` to share a copy
 	 * between sites speaking the same language.
@@ -227,6 +237,18 @@ class Settings extends Model
 	}
 
 	/**
+	 * @return array<string, string>
+	 */
+	#[\Override]
+	public function attributeLabels(): array
+	{
+		return [
+			'savedAddressDisplay' => Craft::t(FosterCheckout::HANDLE, 'settings.addresses.savedAddressDisplay'),
+			'savedAddressDropdownThreshold' => Craft::t(FosterCheckout::HANDLE, 'settings.addresses.savedAddressDropdownThreshold'),
+		];
+	}
+
+	/**
 	 * @return list<array<int|string, list<string>|int|string>>
 	 */
 	#[\Override]
@@ -251,8 +273,7 @@ class Settings extends Model
 	}
 
 	/**
-	 * An include pointing at a template that does not exist throws while rendering every cart and
-	 * checkout page, so it is rejected on save A missing include template throws on every cart and checkout render.
+	 * Reject an include whose template doesn't exist, since it throws on every cart and checkout render.
 	 */
 	public function validateIncludes(string $attribute): void
 	{
@@ -348,7 +369,7 @@ class Settings extends Model
 	#[\Override]
 	public function setAttributes($values, $safeOnly = true): void
 	{
-		$values = self::moveLineItemSettings($values);
+		$values = self::upgradeLegacySettings($values);
 
 		if (array_key_exists('options', $values)) {
 			$values['options'] = new OptionConfig($values['options']);
@@ -425,6 +446,17 @@ class Settings extends Model
 	}
 
 	/**
+	 * Rewrite settings a config file or stored value still names by an old key or place.
+	 *
+	 * @param array<mixed, mixed> $values
+	 * @return array<mixed, mixed>
+	 */
+	public static function upgradeLegacySettings(array $values): array
+	{
+		return self::renameOptions(self::moveLineItemSettings($values));
+	}
+
+	/**
 	 * These moved out of `options`, which is one node a config file replaces whole.
 	 *
 	 * @param array<mixed, mixed> $values
@@ -454,6 +486,34 @@ class Settings extends Model
 		if ($lineItems !== []) {
 			$values['lineItems'] = $lineItems;
 		}
+
+		return $values;
+	}
+
+	/**
+	 * @param array<mixed, mixed> $values
+	 * @return array<mixed, mixed>
+	 */
+	private static function renameOptions(array $values): array
+	{
+		$options = $values['options'] ?? null;
+
+		if (! is_array($options)) {
+			return $values;
+		}
+
+		foreach (self::RENAMED_OPTIONS as $oldName => $newName) {
+			if (! array_key_exists($oldName, $options)) {
+				continue;
+			}
+
+			// Log a warning instead of calling the deprecator, which throws under devMode
+			Craft::warning("`options.{$oldName}` has been renamed to `options.{$newName}`.", 'deprecation-error');
+			$options[$newName] ??= $options[$oldName];
+			unset($options[$oldName]);
+		}
+
+		$values['options'] = $options;
 
 		return $values;
 	}

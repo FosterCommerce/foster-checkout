@@ -4,7 +4,9 @@ namespace fostercommerce\fostercheckout\tests\integration;
 
 use Craft;
 use craft\elements\User;
+use fostercommerce\fostercheckout\events\NewsletterSubscribeEvent;
 use fostercommerce\fostercheckout\models\OptionConfig;
+use fostercommerce\fostercheckout\services\Checkout;
 use fostercommerce\fostercheckout\tests\Support\CartTestCase;
 
 /**
@@ -12,10 +14,12 @@ use fostercommerce\fostercheckout\tests\Support\CartTestCase;
  */
 final class NewsletterTest extends CartTestCase
 {
-	public function testTheNewsletterIsOfferedWhenTrackingAndAListAreSet(): void
+	public function testTheNewsletterIsOfferedThroughKlaviyoConnectWithAList(): void
 	{
-		if (! Craft::$app->getPlugins()->isPluginEnabled('klaviyo-connect-plus')) {
-			self::markTestSkipped('Klaviyo Connect Plus is not enabled on this site.');
+		$klaviyoConnect = Craft::$app->getPlugins()->getPlugin('klaviyoconnect');
+
+		if ($klaviyoConnect === null || version_compare($klaviyoConnect->getVersion(), '7.3.0', '<')) {
+			self::markTestSkipped('Klaviyo Connect 7.3.0 or later is not enabled on this site.');
 		}
 
 		[, $cart] = $this->signedInCustomerCart();
@@ -23,21 +27,51 @@ final class NewsletterTest extends CartTestCase
 		self::assertTrue($this->withOptions([], fn (): bool => $this->checkout()->offersNewsletter($cart)));
 	}
 
-	public function testTheNewsletterIsNotOfferedWithTrackingOff(): void
+	public function testASiteHandlerOffersTheNewsletterWithoutKlaviyoOrAList(): void
 	{
 		[, $cart] = $this->signedInCustomerCart();
+		$this->onCheckoutEvent(Checkout::EVENT_NEWSLETTER_SUBSCRIBE, static function (NewsletterSubscribeEvent $event): void {
+			$event->handled = true;
+		});
 
-		self::assertFalse($this->withOptions([
-			'enableKlaviyoTracking' => false,
+		self::assertTrue($this->withOptions([
+			'newsletterListId' => null,
 		], fn (): bool => $this->checkout()->offersNewsletter($cart)));
 	}
 
-	public function testTheNewsletterIsNotOfferedWithoutAList(): void
+	public function testASiteHandlerReceivesTheSignUp(): void
+	{
+		[, $cart] = $this->signedInCustomerCart();
+		$received = null;
+		$this->onCheckoutEvent(Checkout::EVENT_NEWSLETTER_SUBSCRIBE, static function (NewsletterSubscribeEvent $event) use (&$received): void {
+			$received = $event;
+			$event->handled = true;
+		});
+
+		$this->withOptions([], fn () => $this->checkout()->subscribeToNewsletter($cart, 'subscriber@example.com'));
+
+		self::assertInstanceOf(NewsletterSubscribeEvent::class, $received);
+		self::assertSame('subscriber@example.com', $received->email);
+		self::assertSame('TEST_LIST', $received->listId);
+		self::assertSame($cart, $received->order);
+	}
+
+	public function testTheNewsletterIsNotOfferedWhenTurnedOff(): void
 	{
 		[, $cart] = $this->signedInCustomerCart();
 
 		self::assertFalse($this->withOptions([
-			'klaviyoListId' => null,
+			'enableNewsletter' => false,
+		], fn (): bool => $this->checkout()->offersNewsletter($cart)));
+	}
+
+	public function testTheNewsletterIsNotOfferedWithoutASubscriber(): void
+	{
+		$this->requireNoCheckoutHandler(Checkout::EVENT_NEWSLETTER_SUBSCRIBE);
+		[, $cart] = $this->signedInCustomerCart();
+
+		self::assertFalse($this->withOptions([
+			'newsletterListId' => null,
 		], fn (): bool => $this->checkout()->offersNewsletter($cart)));
 	}
 
@@ -50,6 +84,9 @@ final class NewsletterTest extends CartTestCase
 			self::markTestSkipped('This site has no second user to place the order.');
 		}
 
+		$this->onCheckoutEvent(Checkout::EVENT_NEWSLETTER_SUBSCRIBE, static function (NewsletterSubscribeEvent $event): void {
+			$event->handled = true;
+		});
 		Craft::$app->getUser()->setIdentity($purchaser);
 
 		self::assertFalse($this->withOptions([], fn (): bool => $this->checkout()->offersNewsletter($cart)));
@@ -60,7 +97,7 @@ final class NewsletterTest extends CartTestCase
 		[, $cart] = $this->signedInCustomerCart();
 
 		self::assertTrue($this->withOptions([
-			'enableKlaviyoTracking' => false,
+			'enableNewsletter' => false,
 		], fn (): bool => $this->checkout()->skipsEmailStep($cart)));
 	}
 
@@ -70,21 +107,23 @@ final class NewsletterTest extends CartTestCase
 		Craft::$app->getUser()->setIdentity(null);
 
 		self::assertFalse($this->withOptions([
-			'enableKlaviyoTracking' => false,
+			'enableNewsletter' => false,
 		], fn (): bool => $this->checkout()->skipsEmailStep($cart)));
 	}
 
 	/**
+	 * @template TResult
 	 * @param array<string, mixed> $options
-	 * @param callable(): bool $check
+	 * @param callable(): TResult $check
+	 * @return TResult
 	 */
-	private function withOptions(array $options, callable $check): bool
+	private function withOptions(array $options, callable $check): mixed
 	{
 		$settings = $this->settings();
 		$storedOptions = $settings->options;
 		$settings->options = new OptionConfig([
-			'enableKlaviyoTracking' => true,
-			'klaviyoListId' => 'TEST_LIST',
+			'enableNewsletter' => true,
+			'newsletterListId' => 'TEST_LIST',
 			'subscribe' => 'Email me product updates',
 			...$options,
 		]);

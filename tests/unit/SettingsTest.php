@@ -183,6 +183,36 @@ final class SettingsTest extends CheckoutTestCase
 		self::assertEquals(new DeliveryDateConfig(), $options->deliveryDate);
 	}
 
+	public function testTheOldNewsletterKeysStillSetTheRenamedSettings(): void
+	{
+		$settings = new Settings();
+		$settings->setAttributes([
+			'options' => [
+				'enableKlaviyoTracking' => true,
+				'klaviyoListId' => '$KLAVIYO_LIST_ID',
+			],
+		], false);
+
+		self::assertTrue($settings->options->enableNewsletter);
+		self::assertSame('$KLAVIYO_LIST_ID', $settings->options->newsletterListId);
+	}
+
+	/**
+	 * A control panel save posts the new key beside the stored old one, and the new key has to win.
+	 */
+	public function testANewNewsletterKeyBeatsTheOldOneBesideIt(): void
+	{
+		$settings = new Settings();
+		$settings->setAttributes([
+			'options' => [
+				'klaviyoListId' => 'OLD',
+				'newsletterListId' => 'NEW',
+			],
+		], false);
+
+		self::assertSame('NEW', $settings->options->newsletterListId);
+	}
+
 	public function testAnEmptyProductConditionMatchesNothing(): void
 	{
 		$settings = new Settings();

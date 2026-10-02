@@ -7,7 +7,7 @@ Most settings are edited under **Checkout**. The config-only ones, listed after 
 | Screen | Config key | Holds |
 | --- | --- | --- |
 | **Appearance** | `branding`, `options.enableSinglePageCheckout` and `options.enablePageTransitions` | Whether the checkout runs as one page or separate steps, whether steps animate, and **Brand color**, **Header background color**, **Header text color**, **Font**, **Logo**, **Logo height**, **Component style**, **Field labels** and **Title prefix** |
-| **Features** | `options.enableKlaviyoTracking`, `options.klaviyoListId`, `enableCustomerPickup` and `customerPickupLabel` | Klaviyo tracking and the Klaviyo list ID, and whether the shipping address choices include the store location. See [customer pickup](../user-guide/customer-pickup.md) and [integrations](./integrations.md) |
+| **Features** | `options.enableNewsletter`, `options.newsletterListId`, `enableCustomerPickup`, and `customerPickupLabel` | Whether the checkout offers the newsletter checkbox and the list it subscribes customers to, and whether the shipping address choices include the store location. See [customer pickup](../user-guide/customer-pickup.md) and [integrations](./integrations.md) |
 | **Line Items** | `lineItems`, `products` and `lineItemOptionRules` | Which field each product type's preview image comes from, how a line item image fills its box and whether a placeholder stands in for a missing one. With `paths.useCartTemplate` on, also **Image size**, **Show the SKU**, **Show the stock count**, **Show line item options**, **Hidden option prefix**, **Truncate values to**, and the rules that rewrite an option's name and value |
 | **Gateways** | `paymentGateways` and `zeroValueGatewayHandles` | Per gateway: **Name shown to customers**, and on a Manual gateway, a field layout. A Stripe gateway also sets how its payment element lists the payment methods, their order, and whether Link is included. A PayPal gateway also sets which funding sources its buttons offer, which card brands its card fields take, plus the locale and SDK components. Also which gateways an order totaling zero can be paid with |
 | **Custom Fields** | `customerOrderNotesFieldHandle` and the checkout field layouts | The extra fields shown at each checkout position, and the field on Orders holding a customer's note. Blank hides the order notes form |
@@ -58,9 +58,8 @@ Every setting and its default, as the plugin ships.
 | Checkout layout | `options.enableSinglePageCheckout` | `false` |
 | Page transitions | `options.enablePageTransitions` | `false` |
 | Verify shipping addresses | `options.enableAddressVerification` | `false` |
-| Klaviyo tracking | `options.enableKlaviyoTracking` | `false` |
-| Shipping estimator | `options.enableEstimatedShipping` | `false` |
-| Klaviyo list ID | `options.klaviyoListId` | none. Takes a list ID or an environment variable name, such as `$KLAVIYO_LIST_ID` |
+| Newsletter checkbox | `options.enableNewsletter` | `false` |
+| Newsletter list ID | `options.newsletterListId` | none. Takes a list ID or an environment variable name, such as `$NEWSLETTER_LIST_ID` |
 | Payment due date field | `options.paymentDueDateFieldHandle` | none |
 | Address suggestions | `addressLookup.enabled` | `false` |
 | Address suggestion provider | `addressLookup.provider` | `google` |
@@ -118,9 +117,7 @@ Every setting and its default, as the plugin ships.
 | Locale (PayPal) | `paymentGateways.<handle>.locale` | empty |
 | SDK components (PayPal) | `paymentGateways.<handle>.components` | empty |
 
-Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig`, `options.paymentDueDateFieldHandle`, `lineItems.imagerXConfig`, and `options.enableEstimatedShipping`.
-
-`options.enableEstimatedShipping` is unfinished.
+Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig`, `options.paymentDueDateFieldHandle`, and `lineItems.imagerXConfig`.
 
 ## What overrides what
 

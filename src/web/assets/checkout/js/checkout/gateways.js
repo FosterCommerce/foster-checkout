@@ -1,5 +1,8 @@
 const CARD_FIELDS = ['number', 'month', 'year', 'cvv'];
 
+// Treat an older mount as failed, since Commerce Stripe's pay request has no error handler
+const STRIPE_MOUNT_LIMIT_MS = 15000;
+
 // Accept.js response codes, from Authorize.net's API reference
 const AUTHORIZE_ERROR_FIELDS = {
 	E_WC_04: 'number',
@@ -394,6 +397,11 @@ export const gatewayHandling = () => ({
 			return;
 		}
 
+		if (this.stripeMountInFlight(form)) {
+			this.remountStripeWhenRendered(form);
+			return;
+		}
+
 		const paymentElement = form.querySelector('.stripe-payment-element');
 		const hasMounted =
 			Boolean(paymentElement?.childElementCount) ||
@@ -431,11 +439,15 @@ export const gatewayHandling = () => ({
 			return;
 		}
 
+		// Wait for the in-flight mount to render before replacing its form
+		if (this.stripeMountInFlight(form)) {
+			this.remountStripeWhenRendered(form);
+			return;
+		}
+
 		// Mounting posts the total, so rebuild a mounted form only when the total changes
 		const total = Number(this.totals.total);
-		// Count an in-flight mount as mounted, since handlerInstance is set before the element renders
 		const isMounted = Boolean(
-			form.handlerInstance ||
 			form.querySelector('.stripe-payment-element')?.childElementCount
 		);
 
@@ -458,6 +470,44 @@ export const gatewayHandling = () => ({
 		});
 	},
 
+	stripeMountInFlight(form) {
+		return (
+			Boolean(form.handlerInstance) &&
+			Date.now() - (form.mountStartedAt ?? 0) < STRIPE_MOUNT_LIMIT_MS &&
+			!form.querySelector('.stripe-payment-element')?.childElementCount &&
+			!form.querySelector('.stripe-error-message')?.textContent?.trim()
+		);
+	},
+
+	// Keep the observer and timer on the form rather than in Alpine state, since a reactive proxy breaks the observer's methods
+	remountStripeWhenRendered(form) {
+		if (form.remountObserver) {
+			return;
+		}
+
+		const remount = () => {
+			form.remountObserver.disconnect();
+			form.remountObserver = null;
+			clearTimeout(form.remountTimer);
+			this.scheduleStripeReinit();
+		};
+
+		form.remountObserver = new MutationObserver(() => {
+			if (!this.stripeMountInFlight(form)) {
+				remount();
+			}
+		});
+		form.remountTimer = setTimeout(
+			remount,
+			form.mountStartedAt + STRIPE_MOUNT_LIMIT_MS - Date.now()
+		);
+		form.remountObserver.observe(form, {
+			childList: true,
+			subtree: true,
+			characterData: true,
+		});
+	},
+
 	maybeReinitStripeCheckout() {
 		if (!this.stripeInvalidated) {
 			return;
@@ -473,8 +523,18 @@ export const gatewayHandling = () => ({
 			return;
 		}
 
-		initStripe();
+		this.mountStripe();
 		this.$nextTick(() => this.syncPayButtons());
+	},
+
+	// Stamp each form, so a mount that never renders can time out
+	mountStripe() {
+		this.rootEl
+			.querySelectorAll('.stripe-payment-elements-form')
+			.forEach((form) => {
+				form.mountStartedAt = Date.now();
+			});
+		initStripe();
 	},
 
 	restoreStripeIfSkipped() {
@@ -490,7 +550,7 @@ export const gatewayHandling = () => ({
 		}
 
 		error.textContent = '';
-		initStripe();
+		this.mountStripe();
 	},
 
 	initPaypal(attempt = 0) {

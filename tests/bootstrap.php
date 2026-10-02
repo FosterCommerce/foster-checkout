@@ -41,4 +41,13 @@ if (file_exists($craftBasePath . '/bootstrap.php')) {
 	define('CRAFT_ENVIRONMENT', getenv('ENVIRONMENT') ?: 'production');
 }
 
-require CRAFT_VENDOR_PATH . '/craftcms/cms/bootstrap/console.php';
+$app = require CRAFT_VENDOR_PATH . '/craftcms/cms/bootstrap/console.php';
+
+// Register the plugin's translations, since the unit suite also runs from the plugin repo where Craft hasn't loaded it
+$app->getI18n()->translations['foster-checkout'] ??= [
+	'class' => craft\i18n\PhpMessageSource::class,
+	'sourceLanguage' => 'en-US',
+	'basePath' => dirname(__DIR__) . '/src/translations',
+	'forceTranslation' => true,
+	'allowOverrides' => true,
+];

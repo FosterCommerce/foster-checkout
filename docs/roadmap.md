@@ -8,4 +8,4 @@ Ideas under consideration for Foster Checkout. They are not commitments. To sugg
 - Delivery date: show an estimated delivery date at checkout without a site template.
 - Footer links in a modal: open the checkout's footer links in a modal on the page, so PCI compliance scans do not flag them as external links.
 - More payment gateways.
-- More newsletter sign-up options and integrations beyond Klaviyo.
+- Mailchimp: subscribe newsletter sign-ups to a Mailchimp audience without a site module.

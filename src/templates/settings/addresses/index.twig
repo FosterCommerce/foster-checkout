@@ -209,24 +209,28 @@
 		],
 		disabled: savedAddressDisplayOverridden or readOnly,
 		warning: savedAddressDisplayOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'savedAddressDisplay' }),
+		toggle: true,
+		targetPrefix: 'saved-address-display-',
 	}) }}
 
 	{% set savedAddressDropdownThresholdOverridden = 'savedAddressDropdownThreshold' in overriddenSettings %}
 
-	{{ forms.textField({
-		label: 'settings.addresses.savedAddressDropdownThreshold'|t('foster-checkout'),
-		instructions: 'settings.addresses.savedAddressDropdownThresholdHelp'|t('foster-checkout'),
-		id: 'saved-address-dropdown-threshold',
-		name: 'settings[savedAddressDropdownThreshold]',
-		type: 'number',
-		min: 1,
-		step: 1,
-		size: 5,
-		value: settings.savedAddressDropdownThreshold,
-		errors: settings.getErrors('savedAddressDropdownThreshold'),
-		disabled: savedAddressDropdownThresholdOverridden or readOnly,
-		warning: savedAddressDropdownThresholdOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'savedAddressDropdownThreshold' }),
-	}) }}
+	<div id="saved-address-display-auto"{% if settings.savedAddressDisplay != 'auto' and not settings.hasErrors('savedAddressDropdownThreshold') %} class="hidden"{% endif %}>
+		{{ forms.textField({
+			label: 'settings.addresses.savedAddressDropdownThreshold'|t('foster-checkout'),
+			instructions: 'settings.addresses.savedAddressDropdownThresholdHelp'|t('foster-checkout'),
+			id: 'saved-address-dropdown-threshold',
+			name: 'settings[savedAddressDropdownThreshold]',
+			type: 'number',
+			min: 1,
+			step: 1,
+			size: 5,
+			value: settings.savedAddressDropdownThreshold,
+			errors: settings.getErrors('savedAddressDropdownThreshold'),
+			disabled: savedAddressDropdownThresholdOverridden or readOnly,
+			warning: savedAddressDropdownThresholdOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'savedAddressDropdownThreshold' }),
+		}) }}
+	</div>
 
 	{{ forms.lightswitchField({
 		label: 'settings.addresses.showAddressLabelField'|t('foster-checkout'),

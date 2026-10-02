@@ -55,15 +55,15 @@
 
 						<div class="p-4">
 							{% set createAccountText = craft.fostercheckout.createAccountText()|striptags|trim %}
-							{% set klaviyoEnabled = craft.fostercheckout.klaviyoTrackingEnabled(cart) %}
+							{% set newsletterOffered = craft.fostercheckout.offersNewsletter(cart) %}
 
 							<form
 								class="mt-2"
 								method="post"
 								accept-charset="UTF-8"
-								{% if klaviyoEnabled %}
-									x-data="CheckoutTracking({ orderId: {{ cart.id ?? 'null' }}, email: {{ cart.email|json_encode }}, trackStartedCheckout: {{ currentUser ? 'false' : 'true' }} })"
-									@submit="track()"
+								{% if newsletterOffered %}
+									x-data="NewsletterSignup"
+									@submit="subscribe()"
 								{% endif %}
 							>
 								{{ csrfInput() }}

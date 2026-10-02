@@ -2,7 +2,7 @@
 
 **Checkout -> Notes & Links** holds the notes on the cart and each checkout step, the newsletter checkbox label, the create account description, payment method notes and the footer links. The plugin stores this copy in its own database table, not project config, so the copy stays editable on production.
 
-Buttons, field labels and messages are translations. To change one, see [write your copy](../getting-started.md#5-write-your-copy).
+Buttons, field labels and messages are translations. To change one, see [write your copy](../getting-started.md#6-write-your-copy).
 
 ## What you can edit
 

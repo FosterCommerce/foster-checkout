@@ -14,7 +14,7 @@ Once `order.customer` is someone other than the signed-in user, these change on 
 | Picking a saved address | Resolved against the order customer's book, since Commerce looks a posted id up on the signed-in user |
 | A saved address | Owned by the order's customer, so it is saved to the company's book |
 | Editing and saving addresses | Offered only when Craft lets the signed-in user save an address owned by that customer |
-| Klaviyo | Events are not sent and the newsletter checkbox is not shown, so neither is filed under someone who is not the shopper |
+| Newsletter | The newsletter checkbox is not shown, so a purchasing agent is not subscribed in the account holder's name. See [newsletter services](./newsletter-services.md#when-the-checkbox-is-shown) |
 
 The checkout also names the person signed in, below the contact, whenever their email differs from the order's.
 
@@ -79,12 +79,6 @@ Use it to gate anything of your own that writes to the book.
 ```
 
 It is false when nobody is signed in.
-
-## Whether Klaviyo is tracking
-
-`craft.fostercheckout.klaviyoTrackingEnabled(cart)` is false when **Klaviyo tracking** is off at **Checkout -> Features**, when Klaviyo Connect Plus is not installed, and when the signed-in user's email is not the order's. Guests are tracked, since there is no second person to confuse the events with.
-
-Call it in place of an `isPluginEnabled('klaviyo-connect-plus')` check in your own templates, so a purchasing agent's activity is not attributed to the account holder. See [plugin integrations](../reference/integrations.md#klaviyo-connect-plus).
 
 ## Setting the customer
 

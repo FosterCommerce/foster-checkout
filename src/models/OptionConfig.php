@@ -38,15 +38,15 @@ class OptionConfig extends Model
 	public bool $enablePageTransitions = false;
 
 	/**
-	 * Whether the checkout reports to Klaviyo. Off until a store turns it on, since a store running
-	 * the Klaviyo plugin elsewhere may still want the checkout left out.
+	 * Whether the checkout offers the newsletter checkbox. Off until a store turns it on, since a store
+	 * may run its newsletter service elsewhere and want the checkout left out.
 	 */
-	public bool $enableKlaviyoTracking = false;
+	public bool $enableNewsletter = false;
 
 	/**
-	 * The Klaviyo list ID to subscribe the customer to
+	 * The list or audience the newsletter checkbox subscribes the customer to, or an env var name holding it.
 	 */
-	public ?string $klaviyoListId = null;
+	public ?string $newsletterListId = null;
 
 	/**
 	 * The text to display for the subscribe checkbox. Can also be a plain string, or a callable which returns a string
@@ -74,6 +74,11 @@ class OptionConfig extends Model
 		}
 
 		$config['deliveryDate'] = new DeliveryDateConfig();
+
+		if (isset($config['enableEstimatedShipping'])) {
+			Craft::warning('`enableEstimatedShipping` is not supported and is ignored.', 'deprecation-error');
+			unset($config['enableEstimatedShipping']);
+		}
 
 		$config['subscribe'] = ValueConfig::fromConfig('subscribe', $config);
 

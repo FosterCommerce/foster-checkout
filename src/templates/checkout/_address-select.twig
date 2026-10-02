@@ -1,12 +1,4 @@
-{% set savedAddressOptions = [] %}
-{% for address in addresses %}
-	{% set savedAddressOptions = savedAddressOptions|merge([{
-		value: address.id|string,
-		label: craft.fostercheckout.addressPreview(address),
-		isLastPinned: loop.last,
-	}]) %}
-{% endfor %}
-{% set savedAddressOptions = savedAddressOptions|merge([{ value: 'new', label: 'address.newAddress'|t('foster-checkout') }]) %}
+{% set savedAddressOptions = craft.fostercheckout.savedAddressOptions(addresses)|merge([{ value: 'new', label: 'address.newAddress'|t('foster-checkout') }]) %}
 {% if pickupAvailable %}
 	{% set savedAddressOptions = savedAddressOptions|merge([{ value: 'pickup', label: craft.fostercheckout.customerPickupLabel() }]) %}
 {% endif %}
@@ -43,16 +35,7 @@
 			} %}
 		</div>
 		{% if canSaveAddresses %}
-			<template x-if="!['', 'new', 'pickup'].includes(offeredChoice)">
-				<button
-					type="button"
-					class="ml-auto text-[var(--brandColor)] underline"
-					@click="editExistingAddress = parseInt(editExistingAddress) ? 0 : parseInt(offeredChoice)"
-				>
-					<template x-if="parseInt(editExistingAddress)"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
-					<template x-if="!parseInt(editExistingAddress)"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
-				</button>
-			</template>
+			{% include 'foster-checkout/_components/app/saved-address-edit-toggle' with { editState: 'editExistingAddress', fixedChoices: ['', 'new', 'pickup'] } %}
 		{% endif %}
 	</div>
 

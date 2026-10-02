@@ -1,15 +1,5 @@
-{% set billingAddressOptions = [] %}
-{% if offerSameAsShipping %}
-	{% set billingAddressOptions = [{ value: 'same', label: 'billing.sameAsShippingAddress'|t('foster-checkout') }] %}
-{% endif %}
-{% for address in billingAddresses %}
-	{% set billingAddressOptions = billingAddressOptions|merge([{
-		value: address.id|string,
-		label: craft.fostercheckout.addressPreview(address),
-		isLastPinned: loop.last,
-	}]) %}
-{% endfor %}
-{% set billingAddressOptions = billingAddressOptions|merge([{ value: 'new', label: 'billing.useDifferentBillingAddress'|t('foster-checkout') }]) %}
+{% set billingAddressOptions = offerSameAsShipping ? [{ value: 'same', label: 'billing.sameAsShippingAddress'|t('foster-checkout') }] : [] %}
+{% set billingAddressOptions = billingAddressOptions|merge(craft.fostercheckout.savedAddressOptions(billingAddresses))|merge([{ value: 'new', label: 'billing.useDifferentBillingAddress'|t('foster-checkout') }]) %}
 
 {# Leave the dropdown empty for an address it doesn't offer, since the dropdown would match another option by label #}
 <div
@@ -44,16 +34,7 @@
 			} %}
 		</div>
 		{% if canSaveAddresses %}
-			<template x-if="!['', 'same', 'new'].includes(offeredChoice)">
-				<button
-					type="button"
-					class="ml-auto text-[var(--brandColor)] underline"
-					@click="editBillingAddressId = parseInt(editBillingAddressId) ? 0 : parseInt(offeredChoice)"
-				>
-					<template x-if="parseInt(editBillingAddressId)"><span>{{ 'misc.cancel'|t('foster-checkout') }}</span></template>
-					<template x-if="!parseInt(editBillingAddressId)"><span>{{ 'misc.edit'|t('foster-checkout') }}</span></template>
-				</button>
-			</template>
+			{% include 'foster-checkout/_components/app/saved-address-edit-toggle' with { editState: 'editBillingAddressId', fixedChoices: ['', 'same', 'new'] } %}
 		{% endif %}
 	</div>
 

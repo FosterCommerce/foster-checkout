@@ -4,7 +4,7 @@ A ready-made, best-practices cart and checkout for Craft Commerce.
 
 ## Where to go
 
-**Getting started:** [a walkthrough](./getting-started.md) from install to a checkout your customers can use, [installation](./installation.md), and [upgrading](./upgrade.md) from an earlier version.
+**Getting started:** [a walkthrough](./getting-started.md) from install to a checkout your customers can use, and [upgrading](./upgrade.md) from an earlier version.
 
 **User guide:**
 
@@ -23,11 +23,12 @@ A ready-made, best-practices cart and checkout for Craft Commerce.
 - [Checkout for another customer](./dev-guide/checkout-for-another-customer.md), running the checkout against an account the shopper is buying for
 - [Blocking payment](./dev-guide/blocking-payment.md), hiding the payment form with a reason your code decides
 - [Payment form parameters](./dev-guide/payment-form-params.md), changing what a gateway's form is rendered with, per order
+- [Newsletter services](./dev-guide/newsletter-services.md), subscribing customers through Mailchimp or another service
 
 **Reference:**
 
 - [Settings](./reference/settings.md), every setting, its default and what overrides what
-- [Plugin integrations](./reference/integrations.md), what AvaTax, Gift Voucher, Klaviyo Connect Plus, Postie and others add
+- [Plugin integrations](./reference/integrations.md), what AvaTax, Gift Voucher, Klaviyo Connect, Postie, and others add
 - [Permissions](./reference/permissions.md), what each permission grants
 
 **Roadmap:** [ideas under consideration](./roadmap.md).
