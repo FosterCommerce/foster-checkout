@@ -77,7 +77,7 @@ return [
 	'address.stepTitle' => 'Shipping Address',
 	'address.stepName' => 'Shipping address',
 	'address.newAddress' => 'New shipping address',
-	'address.savedAddresses' => 'Saved addresses',
+	'address.savedAddresses' => 'Ship to',
 	'address.customerPickup' => 'Customer pickup',
 	'address.saveToAddressBook' => 'Save to address book',
 	'address.nextStep' => 'Next step',

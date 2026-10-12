@@ -15,6 +15,8 @@
 - A checkout field on the single-page checkout now saves when the customer leaves it, even while its panel is incomplete.
 - The “Signed in as” line no longer shows the signed-in user's email address.
 - Renamed **Offer pickup at the store location** at **Checkout -> Features** to **Enable customer pickup**.
+- Saved address dropdowns show each address on two lines: its recipient, and its label when **Show the address label** is on, then the address.
+- The shipping address dropdown is labeled “Ship to”, since it also lists the new address and pickup choices.
 
 ### Fixed
 

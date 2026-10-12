@@ -218,11 +218,19 @@
 							'border-b border-gray-300': option.isLastPinned,
 						}"
 						>
+						{# Wrap a saved address's lines rather than truncate them, since its end tells addresses apart #}
 						<span
-							class="block truncate"
-							:class="{ 'font-semibold': isSelected(option), 'font-normal': !isSelected(option) }"
-							x-text="option.label"
+							class="block"
+							:class="{ 'font-semibold': isSelected(option), 'font-normal': !isSelected(option), 'truncate': !option.heading }"
+							x-text="option.heading || option.label"
 						></span>
+						<template x-if="option.hint">
+							<span
+								class="block text-sm"
+								:class="index === activeIndex ? 'text-gray-300' : 'text-gray-500'"
+								x-text="option.hint"
+							></span>
+						</template>
 
 							<span x-show="isSelected(option)" class="absolute inset-y-0 right-0 flex items-center pr-4">
 							<svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

@@ -5626,7 +5626,8 @@ const addressBook = () => ({
   liveAddressOptions(options) {
     return options.map((option) => ({
       ...option,
-      label: this.addressLabel(option.value, option.label)
+      label: this.addressLabel(option.value, option.label),
+      ...this.addressLines[String(option.value)]
     }));
   },
   // Leave out the shipping address, which "Same as shipping address" covers, unless billing already uses it
@@ -6195,6 +6196,9 @@ const cartPersistence = () => ({
       const live = cart.fosterCheckout || {};
       if (live.addressLabels && typeof live.addressLabels === "object") {
         this.addressLabels = live.addressLabels;
+      }
+      if (live.addressLines) {
+        this.addressLines = live.addressLines;
       }
       if (Array.isArray(live.couponMessages)) {
         this.couponMessages = live.couponMessages;
@@ -7025,6 +7029,7 @@ const SinglePageCheckout = (props) => {
     savedFieldValues: {},
     // Seed the labels so the shipping preview names a saved address before the first save
     addressLabels: props.addressLabels ?? {},
+    addressLines: props.addressLines,
     addressFields: {},
     shippingPreview: props.shippingPreview ?? "",
     pickupAvailable: props.pickupAvailable ?? false,

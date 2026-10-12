@@ -380,6 +380,10 @@ export const cartPersistence = () => ({
 				this.addressLabels = live.addressLabels;
 			}
 
+			if (live.addressLines) {
+				this.addressLines = live.addressLines;
+			}
+
 			if (Array.isArray(live.couponMessages)) {
 				this.couponMessages = live.couponMessages;
 				this.couponName = live.couponName ?? '';

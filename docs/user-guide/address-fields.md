@@ -36,7 +36,9 @@ A buyer who orders on behalf of their own clients can hold many saved addresses.
 
 With **Saved address limit** set to zero and **Saved address display** set to Dropdown, the checkout lists every saved address without lengthening the page.
 
-In the shipping section, the dropdown lists the saved addresses, then **New shipping address**, then the pickup choice when [customer pickup](./customer-pickup.md) is on.
+In the dropdown, each saved address shows its recipient, and its label when **Show the address label** is on, on one line and the address on the next. An address with neither shows the address alone, wrapped.
+
+In the shipping section, the dropdown is labeled **Ship to** and lists the saved addresses, then **New shipping address**, then the pickup choice when [customer pickup](./customer-pickup.md) is on.
 
 In the billing section, the dropdown lists **Same as shipping address**, the saved addresses, then **Use a different billing address**. A pickup order, or a checkout that asks for no shipping address, does not show **Same as shipping address**. Until the customer chooses a billing address, the single-page checkout keeps payment unavailable and lists **Billing address** as a missing detail, and the stepped checkout does not continue past the billing step.
 

@@ -75,7 +75,7 @@ return [
 	'address.stepTitle' => 'Adresse de livraison',
 	'address.stepName' => 'Adresse de livraison',
 	'address.newAddress' => 'Nouvelle adresse de livraison',
-	'address.savedAddresses' => 'Adresses enregistrées',
+	'address.savedAddresses' => 'Livrer à',
 	'address.customerPickup' => 'Retrait en magasin',
 	'address.saveToAddressBook' => "Enregistrer dans le carnet d'adresses",
 	'address.nextStep' => 'Étape suivante',

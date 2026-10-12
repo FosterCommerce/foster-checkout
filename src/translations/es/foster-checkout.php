@@ -76,7 +76,7 @@ return [
 	'address.stepTitle' => 'Dirección de envío',
 	'address.stepName' => 'Dirección de envío',
 	'address.newAddress' => 'Nueva dirección de envío',
-	'address.savedAddresses' => 'Direcciones guardadas',
+	'address.savedAddresses' => 'Enviar a',
 	'address.customerPickup' => 'Recogida en tienda',
 	'address.saveToAddressBook' => 'Guardar en la libreta de direcciones',
 	'address.nextStep' => 'Siguiente paso',

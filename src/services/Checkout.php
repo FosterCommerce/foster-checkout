@@ -81,6 +81,7 @@ use yii\base\InvalidConfigException;
  *     totals: CheckoutTotals,
  *     lineItemTotals: array<int, CheckoutLineItemTotals>,
  *     addressLabels: array<int, string>,
+ *     addressLines: array<int, array{heading: string, hint: string}>,
  *     shippingPreview: string,
  *     customerPickup: bool,
  *     couponName: ?string,
@@ -1027,13 +1028,15 @@ class Checkout extends Component
 		$shippingMethodHandle = $cartHandle !== '' && in_array($cartHandle, $handles, true)
 			? $cartHandle
 			: ($handles[0] ?? '');
+		$addressLines = $this->checkoutAddressLines($cart);
 
 		return [
 			'shippingMethods' => $shippingMethods,
 			'shippingMethodHandle' => $shippingMethodHandle,
 			'totals' => $this->checkoutTotals($cart),
 			'lineItemTotals' => $this->checkoutLineItemTotals($cart),
-			'addressLabels' => $this->checkoutAddressLabels($cart),
+			'addressLabels' => array_map(static fn (array $lines): string => implode(', ', array_filter($lines)), $addressLines),
+			'addressLines' => $addressLines,
 			'shippingPreview' => $this->addressPreview($cart->getShippingAddress(), $cart->sourceShippingAddressId),
 			'customerPickup' => $this->isCustomerPickup($cart),
 			'couponName' => $this->couponName($cart),
@@ -1171,14 +1174,7 @@ class Checkout extends Component
 			return '';
 		}
 
-		$formatted = $this->addressFormatter()->format($address);
-		$parts = array_filter([
-			$this->previewLabel($address, $sourceAddressId),
-			trim((string) $address->fullName),
-			$formatted,
-		], static fn (string $part): bool => $part !== '');
-
-		return implode(', ', $parts);
+		return implode(', ', array_filter($this->addressOptionLines($address, $sourceAddressId)));
 	}
 
 	/**
@@ -1186,7 +1182,7 @@ class Checkout extends Component
 	 * from the choices that follow.
 	 *
 	 * @param array<int, Address> $addresses
-	 * @return list<array{value: string, label: string, isLastPinned: bool}>
+	 * @return list<array{value: string, label: string, heading: string, hint: string, isLastPinned: bool}>
 	 * @since 2.0.0
 	 */
 	public function savedAddressOptions(array $addresses): array
@@ -1198,6 +1194,7 @@ class Checkout extends Component
 			$options[] = [
 				'value' => (string) $address->id,
 				'label' => $this->addressPreview($address),
+				...$this->addressOptionLines($address),
 				'isLastPinned' => $key === $lastKey,
 			];
 		}
@@ -1537,24 +1534,51 @@ class Checkout extends Component
 	}
 
 	/**
-	 * The one-line preview of each of the customer's saved addresses, keyed by id.
+	 * The two dropdown lines of each of the customer's saved addresses, keyed by id.
 	 *
-	 * @return array<int, string>
+	 * @return array<int, array{heading: string, hint: string}>
 	 */
-	private function checkoutAddressLabels(Order $cart): array
+	private function checkoutAddressLines(Order $cart): array
 	{
 		if (! $this->canViewAddresses($cart)) {
 			return [];
 		}
 
-		$labels = [];
+		/** @var User $customer */
+		$customer = $cart->getCustomer();
+		$lines = [];
 
-		/** @var Address $address */
-		foreach ($cart->getCustomer()?->getAddresses() ?? [] as $address) {
-			$labels[(int) $address->id] = $this->addressPreview($address);
+		foreach ($customer->getAddresses() as $address) {
+			$lines[(int) $address->id] = $this->addressOptionLines($address);
 		}
 
-		return $labels;
+		return $lines;
+	}
+
+	/**
+	 * An address as a dropdown option's two lines: its label (when shown) and recipient, then the formatted address.
+	 *
+	 * @return array{heading: string, hint: string}
+	 */
+	private function addressOptionLines(Address $address, ?int $sourceAddressId = null): array
+	{
+		$heading = implode(', ', array_filter([
+			$this->previewLabel($address, $sourceAddressId),
+			trim((string) $address->fullName),
+		], static fn (string $part): bool => $part !== ''));
+		$formatted = $this->addressFormatter()->format($address);
+
+		if ($heading === '') {
+			return [
+				'heading' => $formatted,
+				'hint' => '',
+			];
+		}
+
+		return [
+			'heading' => $heading,
+			'hint' => $formatted,
+		];
 	}
 
 	/**

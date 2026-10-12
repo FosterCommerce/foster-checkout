@@ -78,6 +78,7 @@ export const SinglePageCheckout = (props) => {
 		savedFieldValues: {},
 		// Seed the labels so the shipping preview names a saved address before the first save
 		addressLabels: props.addressLabels ?? {},
+		addressLines: props.addressLines,
 		addressFields: {},
 		shippingPreview: props.shippingPreview ?? '',
 		pickupAvailable: props.pickupAvailable ?? false,

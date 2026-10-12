@@ -10,6 +10,7 @@ export const addressBook = () => ({
 		return options.map((option) => ({
 			...option,
 			label: this.addressLabel(option.value, option.label),
+			...this.addressLines[String(option.value)],
 		}));
 	},
 
