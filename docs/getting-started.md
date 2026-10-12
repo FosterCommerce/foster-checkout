@@ -61,7 +61,7 @@ Reload the checkout. The field shows at the position you chose.
 
 ## 9. Set up your gateways
 
-Open **Checkout -> Gateways**. Every gateway configured in Commerce is listed. Open one to set the name customers see. On a Manual gateway, also add fields the customer fills in when they pick it. A Stripe gateway also sets how its payment element lists the payment methods, their order, and whether Link is included. A PayPal gateway also sets which funding sources its buttons offer, which card brands its card fields take, plus the locale and SDK components.
+Open **Checkout -> Gateways**. Every gateway configured in Commerce is listed. Open one to set the name customers see. On a Manual gateway, also add fields the customer fills in when they pick it. A Stripe gateway also sets how its payment element lists the payment methods, their order, and whether Link is included. A PayPal gateway also sets which funding sources its buttons show, which card brands its card fields take, plus the locale and SDK components.
 
 Reload the payment step. Each gateway shows under the name you set.
 

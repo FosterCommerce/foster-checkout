@@ -73,6 +73,54 @@
 		warning: customerPickupLabelOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'customerPickupLabel' }),
 	}) }}
 
+	<hr>
+
+	<h2>{{ 'settings.features.savedPaymentSourcesTitle'|t('foster-checkout') }}</h2>
+
+	{% set enableSavedPaymentSourcesOverridden = 'enableSavedPaymentSources' in overriddenSettings %}
+	{{ forms.lightswitchField({
+		label: 'settings.features.enableSavedPaymentSources'|t('foster-checkout'),
+		instructions: 'settings.features.enableSavedPaymentSourcesHelp'|t('foster-checkout'),
+		id: 'enable-saved-payment-sources',
+		name: 'settings[enableSavedPaymentSources]',
+		on: settings.enableSavedPaymentSources,
+		disabled: enableSavedPaymentSourcesOverridden or readOnly,
+		warning: enableSavedPaymentSourcesOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'enableSavedPaymentSources' }),
+	}) }}
+
+	{% set savedPaymentSourceDisplayOverridden = 'savedPaymentSourceDisplay' in overriddenSettings %}
+
+	{{ forms.selectField({
+		label: 'settings.features.savedPaymentSourceDisplay'|t('foster-checkout'),
+		instructions: 'settings.features.savedPaymentSourceDisplayHelp'|t('foster-checkout'),
+		id: 'saved-payment-source-display',
+		name: 'settings[savedPaymentSourceDisplay]',
+		value: settings.savedPaymentSourceDisplay,
+		errors: settings.getErrors('savedPaymentSourceDisplay'),
+		options: [
+			{ label: 'settings.features.savedPaymentSourceDisplayAddress'|t('foster-checkout'), value: 'address' },
+			{ label: 'settings.addresses.savedAddressDisplayList'|t('foster-checkout'), value: 'list' },
+			{ label: 'settings.addresses.savedAddressDisplayDropdown'|t('foster-checkout'), value: 'dropdown' },
+		],
+		disabled: savedPaymentSourceDisplayOverridden or readOnly,
+		warning: savedPaymentSourceDisplayOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'savedPaymentSourceDisplay' }),
+	}) }}
+
+	<hr>
+
+	<h2>{{ 'settings.features.clearCartTitle'|t('foster-checkout') }}</h2>
+
+	{% set deleteClearedCartsOverridden = 'deleteClearedCarts' in overriddenSettings %}
+	{{ forms.lightswitchField({
+		label: 'settings.features.deleteClearedCarts'|t('foster-checkout'),
+		instructions: 'settings.features.deleteClearedCartsHelp'|t('foster-checkout'),
+		id: 'delete-cleared-carts',
+		name: 'settings[deleteClearedCarts]',
+		on: settings.deleteClearedCarts,
+		disabled: deleteClearedCartsOverridden or readOnly,
+		warning: deleteClearedCartsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'deleteClearedCarts' }),
+	}) }}
+
 	{% include 'foster-checkout/_includes/plugin-footer' %}
 
 {% endblock %}

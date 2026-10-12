@@ -74,7 +74,7 @@ class Content extends Component
 		return match ($this->settings()->contentTranslationMethod) {
 			Field::TRANSLATION_METHOD_NONE => '1',
 			Field::TRANSLATION_METHOD_LANGUAGE => $site->language,
-			// Only none, site and language are offered in the CP, so anything else keys by site
+			// Only none, site and language are choices in the CP, so anything else keys by site
 			default => (string) $site->id,
 		};
 	}

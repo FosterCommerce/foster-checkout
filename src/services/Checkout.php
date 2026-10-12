@@ -293,7 +293,7 @@ class Checkout extends Component
 	}
 
 	/**
-	 * The saved addresses the checkout offers the customer, most recently updated first.
+	 * The saved addresses the checkout lists for the customer, most recently updated first.
 	 *
 	 * Cut to `savedAddressLimit`, since a customer who has ordered for years can hold hundreds.
 	 * The primary address is listed first whatever its age, since ordering by recency alone drops it.
@@ -578,7 +578,7 @@ class Checkout extends Component
 	}
 
 	/**
-	 * Whether the checkout offers pickup at the order's store location. Off while the location is
+	 * Whether the checkout lists pickup at the order's store location. Off while the location is
 	 * blank, since one always exists.
 	 */
 	public function customerPickupAvailable(Order $order): bool
@@ -1005,7 +1005,7 @@ class Checkout extends Component
 	}
 
 	/**
-	 * Copy for a shipping method panel with nothing to offer.
+	 * Copy for a shipping method panel with no shipping methods.
 	 *
 	 * @since 1.4.2
 	 */
@@ -1244,7 +1244,7 @@ class Checkout extends Component
 
 	/**
 	 * Whether a postal code pattern accepts digits alone, with regex escapes removed first so the `d`
-	 * of `\d` does not count as a letter. A numeric keypad offers no letter, space or hyphen.
+	 * of `\d` does not count as a letter. A numeric keypad has no letter, space or hyphen key.
 	 */
 	private function postalCodeAcceptsDigitsOnly(?string $postalCodePattern): bool
 	{

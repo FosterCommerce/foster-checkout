@@ -32,7 +32,7 @@ class NewsletterController extends BaseFrontEndController
 		$checkout = $plugin->getCheckout();
 
 		if (! $checkout->offersNewsletter($cart)) {
-			throw new ForbiddenHttpException('The newsletter checkbox is not offered for this cart.');
+			throw new ForbiddenHttpException('The newsletter checkbox is not shown for this cart.');
 		}
 
 		// Prefer the posted email, since the stepped email step saves it to the cart in a parallel request

@@ -25,7 +25,7 @@ class OptionConfig extends Model
 	public bool $enableEstimatedShipping = false;
 
 	/**
-	 * Whether to offer Avalara's corrected shipping address. Needs the AvaTax plugin and its own
+	 * Whether to suggest Avalara's corrected shipping address. Needs the AvaTax plugin and its own
 	 * address validation setting.
 	 */
 	public bool $enableAddressVerification = false;
@@ -38,7 +38,7 @@ class OptionConfig extends Model
 	public bool $enablePageTransitions = false;
 
 	/**
-	 * Whether the checkout offers the newsletter checkbox. Off until a store turns it on, since a store
+	 * Whether the checkout shows the newsletter checkbox. Off until a store turns it on, since a store
 	 * may run its newsletter service elsewhere and want the checkout left out.
 	 */
 	public bool $enableNewsletter = false;

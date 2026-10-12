@@ -125,6 +125,9 @@ return [
 	'payment.cardYearError' => 'Geben Sie ein gültiges Jahr ein.',
 	'payment.cardExpired' => 'Diese Karte ist abgelaufen.',
 	'payment.cardCvvError' => 'Geben Sie eine gültige CVV ein.',
+	'payment.newPaymentSource' => 'Neue Zahlungsmethode verwenden',
+	'payment.savedPaymentSources' => 'Gespeicherte Zahlungsmethoden',
+	'payment.savePaymentSource' => 'Diese Zahlungsmethode für künftige Einkäufe speichern',
 	'payment.voucherApplied' => 'Gutschein/Geschenkkarte angewendet',
 
 	// Gift vouchers
@@ -209,7 +212,7 @@ return [
 	'permission.manageFeatures' => 'Checkout-Funktionen verwalten',
 	'permission.manageSettings' => 'Checkout-Einstellungen verwalten',
 
-	'contact.signedInAs' => 'Angemeldet als {name} ({email})',
+	'contact.signedInAs' => 'Angemeldet als {name}',
 	'permission.viewContent' => 'Checkout-Inhalte ansehen',
 
 	'nav.checkout' => 'Checkout',
@@ -305,7 +308,7 @@ return [
 
 	'settings.features.newsletterListId' => 'Newsletter-Listen-ID',
 	'settings.features.newsletterListIdHelp' => 'Liste oder Zielgruppe, in die die Newsletter-Checkbox Kunden einträgt, oder eine Umgebungsvariable wie $NEWSLETTER_LIST_ID, damit jede Umgebung ihre eigene nutzt. Klaviyo Connect benötigt eine.',
-	'settings.features.enableCustomerPickup' => 'Abholung am Standort des Shops anbieten',
+	'settings.features.enableCustomerPickup' => 'Kundenabholung aktivieren',
 	'settings.features.enableCustomerPickupHelp' => 'Ob die Auswahl der Lieferadresse den unter Commerce -> Store Management -> General festgelegten Shop-Standort enthält. Eine Abholbestellung wird an diese Adresse geliefert, sodass eine Versandart sie über die Zone treffen kann.',
 	'settings.features.customerPickupLabel' => 'Beschriftung der Abholung',
 	'settings.features.customerPickupLabelHelp' => 'Text der Abholoption.',
@@ -333,6 +336,9 @@ return [
 	'settings.gateways.intro' => 'Optionen, die bei Wahl einer Zahlungsart angezeigt werden, und bei manuellen Zahlungsanbietern Felder zum Ausfüllen. Aufgeführt sind alle in Commerce eingerichteten Zahlungsanbieter.',
 	'settings.gateways.zeroValueGateways' => 'Zahlungsanbieter für Nullbeträge',
 	'settings.gateways.zeroValueGatewaysHelp' => 'Zahlungsanbieter, die bei einem Bestellwert von null verfügbar sind.',
+	'settings.features.savedPaymentSourceDisplay' => 'Anzeige gespeicherter Zahlungsmethoden',
+	'settings.features.savedPaymentSourceDisplayHelp' => 'Wie der Checkout die gespeicherten Zahlungsmethoden eines Kunden anbietet. „Wie gespeicherte Adressen“ folgt „Anzeige gespeicherter Adressen“ unter „Checkout -> Adressen“, „Liste“ zeigt eine Zeile pro Zahlungsmethode, und „Dropdown“ lässt den Kunden sie durchsuchen.',
+	'settings.features.savedPaymentSourceDisplayAddress' => 'Wie gespeicherte Adressen',
 	'settings.gateways.none' => 'In Commerce ist noch kein Zahlungsanbieter eingerichtet.',
 	'settings.gateways.gateway' => 'Zahlungsanbieter',
 	'settings.gateways.fields' => 'Felder',
@@ -494,6 +500,12 @@ return [
 	'settings.lineItemOptions.showLineItemStockHelp' => 'Ob jede Position im Warenkorb nennt, wie viele noch auf Lager sind.',
 	'settings.lineItemOptions.anyValue' => 'Beliebiger {subject}',
 	'settings.features.newsletterTitle' => 'Newsletter',
+	'settings.features.savedPaymentSourcesTitle' => 'Gespeicherte Zahlungsmethoden',
+	'settings.features.enableSavedPaymentSources' => 'Gespeicherte Zahlungsmethoden aktivieren',
+	'settings.features.enableSavedPaymentSourcesHelp' => 'Ob ein angemeldeter Kunde, der mit Stripe bezahlt, eine gespeicherte Zahlungsmethode wählen und eine neue speichern kann.',
+	'settings.features.clearCartTitle' => 'Warenkorb leeren',
+	'settings.features.deleteClearedCarts' => 'Geleerte Warenkörbe löschen',
+	'settings.features.deleteClearedCartsHelp' => 'Ob „Warenkorb leeren“ den Warenkorb in den Papierkorb verschiebt. Wenn aus, behält Commerce ihn als inaktiven Warenkorb unter „Commerce -> Bestellungen“.',
 	'settings.features.customerPickupTitle' => 'Abholung durch Kunden',
 	'settings.features.enableNewsletter' => 'Newsletter-Checkbox',
 	'settings.features.enableNewsletterHelp' => 'Ob der Checkout die Newsletter-Checkbox anbietet. Klaviyo Connect trägt Kunden ein, oder ein Site-Modul übernimmt die Anmeldung.',

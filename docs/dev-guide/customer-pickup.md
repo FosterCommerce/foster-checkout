@@ -4,7 +4,7 @@ A pickup order ships to the Commerce store location. No flag is stored on the or
 
 ## In PHP
 
-`isCustomerPickup()` on the checkout service answers for any order. It returns false whenever **Offer pickup at the store location** is off. A module can use it to leave carrier rates off a pickup order, here with Postie:
+`isCustomerPickup()` on the checkout service answers for any order. It returns false whenever **Enable customer pickup** is off. A module can use it to leave carrier rates off a pickup order, here with Postie:
 
 ```php
 <?php

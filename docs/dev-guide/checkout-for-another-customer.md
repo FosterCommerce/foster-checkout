@@ -13,7 +13,8 @@ Once `order.customer` is someone other than the signed-in user, these change on 
 | The address book | Listed from the order's customer, when Craft lets the signed-in user view an address owned by that customer |
 | Picking a saved address | Resolved against the order customer's book, since Commerce looks a posted id up on the signed-in user |
 | A saved address | Owned by the order's customer, so it is saved to the company's book |
-| Editing and saving addresses | Offered only when Craft lets the signed-in user save an address owned by that customer |
+| Editing and saving addresses | Available only when Craft lets the signed-in user save an address owned by that customer |
+| Saved payment methods | Listed from, and saved to, the order's customer |
 | Newsletter | The newsletter checkbox is not shown, so a purchasing agent is not subscribed in the account holder's name. See [newsletter services](./newsletter-services.md#when-the-checkbox-is-shown) |
 
 The checkout also names the person signed in, below the contact, whenever their email differs from the order's.
@@ -93,4 +94,4 @@ Craft::$app->getElements()->saveElement($order);
 
 Do not do this to a session cart. `Carts::getCart()` reassigns a session cart's customer to the signed-in user whenever their email differs from the cart's, which is exactly this arrangement, so the assignment is undone on the next request. Hold the order outside the session cart and fetch it by number.
 
-With view permission alone the agent picks from the company's addresses but cannot change them. With neither, the checkout offers only the new address form.
+With view permission alone the agent picks from the company's addresses but cannot change them. With neither, the checkout shows only the new address form.

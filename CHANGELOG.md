@@ -4,6 +4,26 @@
 
 ### Added
 
+- Added **Enable saved payment methods** at **Checkout -> Features**, which lets a signed-in customer paying with Stripe choose a saved payment method or save a new one. It is off after updating.
+- Added **Saved payment method display** at **Checkout -> Features**.
+- Added **Delete cleared carts** at **Checkout -> Features**, which moves a cart the customer clears to the trash instead of leaving it as an inactive cart. It is off after updating.
+- Added the `foster-checkout/cart/delete` action.
+
+### Changed
+
+- Order summary fields and the order note now save when the customer leaves a field or changes a choice, without a Save button.
+- A checkout field on the single-page checkout now saves when the customer leaves it, even while its panel is incomplete.
+- The “Signed in as” line no longer shows the signed-in user's email address.
+- Renamed **Offer pickup at the store location** at **Checkout -> Features** to **Enable customer pickup**.
+
+### Fixed
+
+- Fixed a bug where a checkbox checkout field with a box ticked could fail to save.
+
+## 2.0.0 - 2026-10-02
+
+### Added
+
 - Added support for Small Pics.
 - Added **Default country**, **Phone field**, **Saved address limit**, **Saved address display**, and **Dropdown threshold** at **Checkout -> Addresses**.
 - Added **Show the address label** at **Checkout -> Addresses**, which names a saved address by its label wherever the checkout lists it on one line.

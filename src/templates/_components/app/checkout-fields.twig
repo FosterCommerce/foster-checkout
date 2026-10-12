@@ -14,7 +14,7 @@
 	<div class="grid grid-cols-1 gap-y-4 gap-x-4 mt-4 sm:grid-cols-12">
 		{% for field in positionFields %}
 			{# The layout stores width as a percentage; the grid is in twelfths #}
-			<div class="sm:col-span-{{ (field.width / 100 * 12)|round }}">
+			<div class="sm:col-span-{{ (field.width / 100 * 12)|round }}" data-fc-checkout-field{% if field.required ?? false %} data-fc-required-label="{{ field.label }}"{% endif %}>
 				{# A line break needs no markup of its own, the full width cell ends the row #}
 				{% if field.type in ['hr', 'heading', 'linebreak'] %}
 					{% include 'foster-checkout/_components/app/checkout-ui-element' with { field: field } %}

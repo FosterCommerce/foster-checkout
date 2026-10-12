@@ -12,7 +12,7 @@ How to ask a customer for a detail the checkout does not collect by default.
 | **Billing step** | The billing step |
 | **Order summary** | The cart page and the order summary |
 
-On the stepped checkout, a signed-in customer skips the email step unless the newsletter checkbox is offered. When the step is skipped, **Email step** fields show on the first step they reach: the shipping address step, or the billing step when the checkout asks for no shipping address.
+On the stepped checkout, a signed-in customer skips the email step unless the newsletter checkbox is shown. When the step is skipped, **Email step** fields show on the first step they reach: the shipping address step, or the billing step when the checkout asks for no shipping address.
 
 Open a position to edit its field layout, and set each field's width and whether it is required.
 
@@ -36,8 +36,16 @@ Saving a position's layout fails when it uses a field already placed in another 
 
 Where a required field stops the customer depends on the position.
 
-- **Order summary** blocks the cart. The **Checkout** button is disabled and the missing fields are named above it.
+- **Order summary** blocks the cart. The **Checkout** button is disabled and the missing fields are named above it. The notice and the button update as each field saves.
 - **Every other position** blocks payment. The customer can move through the checkout and is stopped when they try to pay.
+
+## Order notes
+
+**Customer order notes field** at **Checkout -> Custom Fields** names the order field that holds a customer's note. Leave it blank to hide the order notes form.
+
+## When fields save
+
+On the cart page and in the order summary on each checkout step, **Order summary** fields and the order note save when the customer leaves a field or changes a choice. Each form shows Saving, then Saved, and has no Save button. On the single-page checkout, the order note saves when the customer leaves it, and **Save note** appears only after a save fails.
 
 ## Placeholders and limits
 

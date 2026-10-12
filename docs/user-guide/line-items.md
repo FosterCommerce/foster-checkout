@@ -4,7 +4,7 @@ The image each line in the cart shows, what else it shows, and how to change the
 
 Everything here is under **Checkout -> Line Items**. **Image size**, the details and options settings, and the rewrite rules appear only while **Use the built-in cart template** is on at **Checkout -> General**.
 
-The cart page shows everything on this page. The checkout summary and the order confirmation show each line's image, title, quantity and price, without the SKU, stock count or options.
+The cart page shows everything on this page. With **Delete cleared carts** on at **Checkout -> Features**, **Clear the cart** moves the cart to the trash instead of leaving it as an inactive cart. It is off by default. A cart template of your own can post to the `foster-checkout/cart/delete` action, which moves the cart to the trash whatever this setting says. The checkout summary and the order confirmation show each line's image, title, quantity and price, without the SKU, stock count or options.
 
 ## Images
 
@@ -47,7 +47,7 @@ Each rule has a condition and up to two changes: a new name, a new value. A rule
 
 To add one, click **Add a rule**, build the condition, and fill in either field. Leave a field empty to keep what was stored.
 
-The condition offers two things to test, **Option name** and **Option value**, each with the usual operators: is, begins with, ends with, contains, is empty, is not empty. Add a second condition to a rule and both must match.
+The condition tests **Option name** and **Option value**, each with the usual operators: is, begins with, ends with, contains, is empty, is not empty. Add a second condition to a rule and both must match.
 
 Turning `giftWrap: 1` into `Gift wrap: Yes` takes one rule:
 

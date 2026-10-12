@@ -1,0 +1,7 @@
+{# Leave out a hidden twin input, since Commerce Stripe binds the first savePaymentSource it finds #}
+<div class="checkbox mb-6">
+	<input type="checkbox" id="savePaymentSource_{{ gateway.id }}" name="savePaymentSource" value="1" class="sr-only">
+	<label for="savePaymentSource_{{ gateway.id }}" class="inline-flex justify-start items-center gap-4 cursor-pointer font-medium text-gray-500">
+		{{ 'payment.savePaymentSource'|t('foster-checkout') }}
+	</label>
+</div>

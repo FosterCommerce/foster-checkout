@@ -126,14 +126,14 @@ class PaymentGatewayConfig extends Model
 
 	/**
 	 * Stripe payment method types in the order the payment element lists them, such as `card` or
-	 * `apple_pay`. A type on offer but left out sorts after these; one not on offer is ignored.
+	 * `apple_pay`. A type Stripe shows but left out sorts after these; one Stripe does not show is ignored.
 	 *
 	 * @var array<string>
 	 */
 	public array $paymentMethodOrder = [];
 
 	/**
-	 * Whether Stripe offers Link, along with the methods marked “Powered by Link”, such as Klarna,
+	 * Whether the payment element includes Link, along with the methods marked “Powered by Link”, such as Klarna,
 	 * Bank and Crypto.
 	 */
 	public bool $enableLink = true;
@@ -146,7 +146,7 @@ class PaymentGatewayConfig extends Model
 	public array $disableFunding = [];
 
 	/**
-	 * PayPal funding sources the buttons add, for ones PayPal does not offer by default.
+	 * PayPal funding sources the buttons add, for ones PayPal does not show by default.
 	 *
 	 * @var array<string>
 	 */

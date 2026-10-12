@@ -3,7 +3,7 @@
 	{% set savedAddressOptions = savedAddressOptions|merge([{ value: 'pickup', label: craft.fostercheckout.customerPickupLabel() }]) %}
 {% endif %}
 
-{# Leave the dropdown empty for an address it doesn't offer, since the dropdown would match another option by label #}
+{# Leave the dropdown empty for an address it doesn't list, since the dropdown would match another option by label #}
 <div
 	x-data="{
 		savedAddressOptions: {{ savedAddressOptions|json_encode }},

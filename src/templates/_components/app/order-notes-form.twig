@@ -1,17 +1,14 @@
 {% if craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
 	{% set fieldHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
-	{% set posted = craft.app.request.getBodyParam('fields[' ~ fieldHandle ~ ']') %}
-	{% set currentValue = posted is not null ? posted : (cart.getFieldValue(fieldHandle) ?? '') %}
+	{% set currentValue = cart.getFieldValue(fieldHandle) ?? '' %}
 
-	<div class="mt-8" x-data="{
-		showButton : false,
-		buttonText : '{{ "summary.saveOrderNote"|t("foster-checkout")|e('js') }}'
-	}">
+	<div class="mt-8" x-data="AutosaveForm({
+		savingLabel: {{ 'misc.saving'|t('foster-checkout')|json_encode }},
+		savedLabel: {{ 'misc.saved'|t('foster-checkout')|json_encode }},
+		failedLabel: {{ 'misc.saveFailed'|t('foster-checkout')|json_encode }},
+	})">
 		<p class="mb-2 text-gray-500">{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</p>
-		<form method="post" class="flex flex-col md:flex-row justify-start items-end gap-4"
-			  x-on:blur="showButton = false"
-			  x-on:submit="buttonText = '{{ "misc.saving"|t("foster-checkout")|e('js') }}'"
-		>
+		<form method="post" x-ref="form" @submit.prevent="save()" @focusout="save()">
 			{{ csrfInput() }}
 			{{ actionInput('commerce/cart/update-cart') }}
 			<label for="orderNote" class="sr-only">{{ 'summary.addOrderNote'|t('foster-checkout') }}</label>
@@ -21,15 +18,8 @@
 				rows="2"
 				class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
 				placeholder="{{ 'summary.addOrderNote'|t('foster-checkout') }}"
-				x-on:focus="showButton = true"
 			>{{ currentValue }}</textarea>
-
-			<button
-				type="submit"
-				class="block px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg text-nowrap"
-				:class="showButton ? 'visible' : 'hidden'"
-				x-text="buttonText"
-			></button>
 		</form>
+		<p class="mt-2 text-sm text-gray-500" role="status" x-text="status"></p>
 	</div>
 {% endif %}

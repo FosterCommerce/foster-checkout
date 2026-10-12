@@ -205,7 +205,15 @@ export const cartPersistence = () => ({
 		}
 
 		if (this.saving) {
-			this.nextSave = { ...(this.nextSave || {}), ...extra };
+			// Merge into a full save unless both saves are field-only
+			const fieldOnly =
+				Boolean(extra.fieldOnly) && (this.nextSave?.fieldOnly ?? true);
+			const queued = { ...(this.nextSave || {}) };
+			// Drop a queued value under the key's other form, since a checkbox group posts `name` when empty and `name[]` when ticked
+			Object.keys(extra).forEach((name) => {
+				delete queued[name.endsWith('[]') ? name.slice(0, -2) : `${name}[]`];
+			});
+			this.nextSave = { ...queued, ...extra, fieldOnly };
 			this.setPanelStatus(
 				extra.panel || this.queuedSavePanel || 'delivery',
 				'saving'
@@ -218,7 +226,9 @@ export const cartPersistence = () => ({
 		delete payload.panel;
 		const force = Boolean(payload.force);
 		delete payload.force;
-		const saved = this.buildPayload(payload);
+		const fieldOnly = Boolean(payload.fieldOnly);
+		delete payload.fieldOnly;
+		const saved = fieldOnly ? payload : this.buildPayload(payload);
 		const noteName = this.$refs.orderNote?.name;
 		const savingNotes = Boolean(noteName && Object.hasOwn(payload, noteName));
 
@@ -278,7 +288,7 @@ export const cartPersistence = () => ({
 			}
 
 			const cart = data.cart || data.model || (data.data && data.data.cart);
-			this.applyCart(cart, this.shippingRateKey(saved));
+			this.applyCart(cart, fieldOnly ? '' : this.shippingRateKey(saved));
 			cartSynced = Boolean(cart) && typeof cart === 'object';
 
 			const couponError = this.couponRejectedMessage(saved, cart);
@@ -297,7 +307,10 @@ export const cartPersistence = () => ({
 			this.status = this.savedLabel;
 			this.statusTone = 'saved';
 			this.setPanelStatus(panel, 'saved');
-			this.lastSaved = JSON.stringify(saved);
+			Object.assign(this.savedFieldValues, saved);
+			if (!fieldOnly) {
+				this.lastSaved = JSON.stringify(saved);
+			}
 			if (savingNotes) {
 				this.notesButtonVisible = false;
 			}
@@ -508,6 +521,7 @@ export const cartPersistence = () => ({
 			}
 
 			if (!this.canSavePanel(panel)) {
+				this.saveCheckoutField(panel, event);
 				return;
 			}
 
@@ -520,6 +534,28 @@ export const cartPersistence = () => ({
 
 			this.queueSave(0, event, panel);
 		});
+	},
+
+	// Save only the custom field while its panel is incomplete, since a full save posts the panel's other inputs
+	saveCheckoutField(panel, event) {
+		const fieldCell = event?.target?.closest('[data-fc-checkout-field]');
+		if (!fieldCell) {
+			return;
+		}
+
+		const fields = this.collectNamedFields(fieldCell);
+		if (!this.fieldsChanged(fields)) {
+			return;
+		}
+
+		this.saveCart({ ...fields, panel, fieldOnly: true });
+	},
+
+	fieldsChanged(fields) {
+		return Object.entries(fields).some(
+			([name, value]) =>
+				JSON.stringify(this.savedFieldValues[name]) !== JSON.stringify(value)
+		);
 	},
 
 	collectNamedFields(scope) {
@@ -753,12 +789,14 @@ export const cartPersistence = () => ({
 			return;
 		}
 
+		const fields = { [input.name]: input.value };
+		if (!this.fieldsChanged(fields)) {
+			return;
+		}
+
 		this.notesError = '';
 
-		return this.saveCart({
-			[input.name]: input.value,
-			panel: 'notes',
-		});
+		return this.saveCart({ ...fields, panel: 'notes', fieldOnly: true });
 	},
 
 	markNotesError(savingNotes) {

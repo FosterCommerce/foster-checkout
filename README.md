@@ -10,7 +10,7 @@ A ready-made, best-practices cart and checkout for Craft Commerce.
 - Match the checkout to your brand with your own color, font, logo, and component style.
 - Edit checkout notes and links on production, per site or per language, without creating custom fields.
 - Ask for the details your orders need (a purchase order number, for example), and place each field on the step where it fits.
-- Skip the shipping address for products that don't ship, and offer your store location as a pickup address.
+- Skip the shipping address for products that don't ship, and list your store location as a pickup address.
 - Catch mistyped email domains, and mistyped addresses with AvaTax, before the customer places the order.
 - Sign customers up for your newsletter through Klaviyo Connect or the email marketing service you already use.
 

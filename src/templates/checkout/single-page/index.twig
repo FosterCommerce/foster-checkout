@@ -47,7 +47,8 @@
 	{% set billingFormOnly = not collectShipping and not hasBookAddresses %}
 
 	{% set gateways = cart.getAvailableGateways() %}
-	{% set cartGatewayId = cart.gatewayId ?? (gateways|length ? (gateways|first).id : null) %}
+	{# Read the gateway through the cart, since a saved payment source clears gatewayId #}
+	{% set cartGatewayId = cart.gateway.id ?? (gateways|length ? (gateways|first).id : null) %}
 	{% set gatewayIds = gateways|map(g => g.id) %}
 	{% set hasGateway = cartGatewayId and (cartGatewayId in gatewayIds) %}
 	{% set initialGatewayId = hasGateway ? cartGatewayId : (gateways|length ? (gateways|first).id : null) %}

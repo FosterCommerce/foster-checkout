@@ -125,6 +125,9 @@ return [
 	'payment.cardYearError' => 'Saisissez une année valide.',
 	'payment.cardExpired' => 'Cette carte a expiré.',
 	'payment.cardCvvError' => 'Saisissez un CVV valide.',
+	'payment.newPaymentSource' => 'Utiliser un nouveau moyen de paiement',
+	'payment.savedPaymentSources' => 'Moyens de paiement enregistrés',
+	'payment.savePaymentSource' => 'Enregistrer ce moyen de paiement pour vos prochains achats',
 	'payment.voucherApplied' => 'Coupon / carte-cadeau appliqué(e)',
 
 	// Gift vouchers
@@ -209,7 +212,7 @@ return [
 	'permission.manageFeatures' => 'Gérer les fonctionnalités du paiement',
 	'permission.manageSettings' => 'Gérer les réglages du paiement',
 
-	'contact.signedInAs' => 'Connecté en tant que {name} ({email})',
+	'contact.signedInAs' => 'Connecté en tant que {name}',
 	'permission.viewContent' => 'Voir le contenu du paiement',
 
 	'nav.checkout' => 'Paiement',
@@ -305,7 +308,7 @@ return [
 
 	'settings.features.newsletterListId' => 'ID de liste du bulletin',
 	'settings.features.newsletterListIdHelp' => 'Liste ou audience à laquelle la case du bulletin inscrit les clients, ou une variable d’environnement comme $NEWSLETTER_LIST_ID pour que chaque environnement utilise la sienne. Klaviyo Connect en a besoin.',
-	'settings.features.enableCustomerPickup' => 'Proposer le retrait à l’adresse du magasin',
+	'settings.features.enableCustomerPickup' => 'Activer le retrait client',
 	'settings.features.enableCustomerPickupHelp' => 'Si les choix d’adresse de livraison incluent l’adresse du magasin définie dans Commerce -> Store Management -> General. Une commande en retrait est livrée à cette adresse, afin qu’un mode de livraison puisse la cibler par zone.',
 	'settings.features.customerPickupLabel' => 'Libellé du retrait',
 	'settings.features.customerPickupLabelHelp' => 'Texte de l’option de retrait.',
@@ -333,6 +336,9 @@ return [
 	'settings.gateways.intro' => 'Options affichées lorsqu’un client choisit un moyen de paiement et, sur les passerelles manuelles, champs qu’il remplit. Toutes les passerelles configurées dans Commerce sont listées.',
 	'settings.gateways.zeroValueGateways' => 'Passerelles pour montant nul',
 	'settings.gateways.zeroValueGatewaysHelp' => 'Passerelles disponibles lorsque le total d’une commande est nul.',
+	'settings.features.savedPaymentSourceDisplay' => 'Affichage des moyens de paiement enregistrés',
+	'settings.features.savedPaymentSourceDisplayHelp' => 'Comment le checkout propose les moyens de paiement enregistrés d’un client. « Comme les adresses enregistrées » suit « Affichage des adresses enregistrées » dans « Paiement -> Adresses », « Liste » affiche une ligne par moyen de paiement, et « Menu déroulant » permet au client de les rechercher.',
+	'settings.features.savedPaymentSourceDisplayAddress' => 'Comme les adresses enregistrées',
 	'settings.gateways.none' => 'Aucune passerelle de paiement n’est encore configurée dans Commerce.',
 	'settings.gateways.gateway' => 'Passerelle',
 	'settings.gateways.fields' => 'Champs',
@@ -494,6 +500,12 @@ return [
 	'settings.lineItemOptions.showLineItemStockHelp' => 'Indique si chaque ligne du panier précise combien d’unités restent en stock.',
 	'settings.lineItemOptions.anyValue' => 'N’importe quel {subject}',
 	'settings.features.newsletterTitle' => 'Bulletin',
+	'settings.features.savedPaymentSourcesTitle' => 'Moyens de paiement enregistrés',
+	'settings.features.enableSavedPaymentSources' => 'Activer les moyens de paiement enregistrés',
+	'settings.features.enableSavedPaymentSourcesHelp' => 'Si un client connecté qui paie avec Stripe peut choisir un moyen de paiement enregistré et en enregistrer un nouveau.',
+	'settings.features.clearCartTitle' => 'Vider le panier',
+	'settings.features.deleteClearedCarts' => 'Supprimer les paniers vidés',
+	'settings.features.deleteClearedCartsHelp' => 'Si « Vider le panier » place le panier dans la corbeille. Désactivé, Commerce le conserve comme panier inactif dans « Commerce -> Commandes ».',
 	'settings.features.customerPickupTitle' => 'Retrait en magasin',
 	'settings.features.enableNewsletter' => 'Case du bulletin',
 	'settings.features.enableNewsletterHelp' => 'Si le checkout propose la case du bulletin. Klaviyo Connect inscrit les clients, ou un module du site gère l’inscription.',

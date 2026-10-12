@@ -34,7 +34,7 @@ return [
 	// (needs the AvaTax plugin with its own address validation turned on)
 	// 'enableAddressVerification' => false, // true|false
 
-	// Whether the checkout offers the newsletter checkbox. Klaviyo Connect subscribes customers,
+	// Whether the checkout shows the newsletter checkbox. Klaviyo Connect subscribes customers,
 	// or a site module listening for Checkout::EVENT_NEWSLETTER_SUBSCRIBE does.
 	// 'enableNewsletter' => false,
 
@@ -219,7 +219,7 @@ return [
 	// 'label' => 'Secure payment',
 	// How Stripe's payment element lists the payment methods. Stripe gateways only.
 	// 'layout' => 'tabs', // tabs|accordion|auto
-	// Whether Stripe offers Link and the methods marked "Powered by Link". Stripe gateways only.
+	// Whether the Stripe payment form includes Link and the methods marked "Powered by Link". Stripe gateways only.
 	// 'enableLink' => true, // true|false
 	// Stripe payment method types in the order the payment element lists them. Stripe gateways only.
 	// 'paymentMethodOrder' => ['card', 'apple_pay', 'google_pay', 'affirm'],
@@ -246,16 +246,26 @@ return [
 	// An array of country codes shown first in the country select dropdowns
 	// 'priorityCountries' => [],
 
-	// How many of the customer's saved addresses the checkout offers, most recently updated first.
-	// Their primary address is always among them. Zero offers every address a customer has saved.
+	// How many of the customer's saved addresses the checkout lists, most recently updated first.
+	// Their primary address is always among them. Zero lists every address a customer has saved.
 	// 'savedAddressLimit' => 10,
 
-	// How the checkout offers saved addresses. 'list' shows a row for each, 'dropdown' a searchable dropdown,
-	// and 'auto' a list until the checkout offers more than savedAddressDropdownThreshold.
+	// How the checkout lists saved addresses. 'list' shows a row for each, 'dropdown' a searchable dropdown,
+	// and 'auto' a list until the checkout lists more than savedAddressDropdownThreshold.
 	// 'savedAddressDisplay' => 'list', // list|dropdown|auto
 
 	// The most saved addresses 'auto' still shows as a list
 	// 'savedAddressDropdownThreshold' => 5,
+
+	// Whether a signed-in customer paying with Stripe can choose a saved payment method, and save a new one.
+	// 'enableSavedPaymentSources' => false, // true|false
+
+	// How the checkout lists saved payment methods. 'address' follows savedAddressDisplay,
+	// 'list' shows a row for each, and 'dropdown' a searchable dropdown.
+	// 'savedPaymentSourceDisplay' => 'address', // address|list|dropdown
+
+	// Move a cart the customer clears to the trash. Off, Commerce keeps it as an inactive cart.
+	// 'deleteClearedCarts' => false, // true|false
 
 	// Handle of the address field holding a phone number, so its input asks for a phone keypad.
 	// 'addressPhoneFieldHandle' => null,
@@ -279,7 +289,7 @@ return [
 	// (ex. ['fullName'])
 	// 'requiredBillingAddressFields' => [],
 
-	// Whether checkout address forms offer a third address line for the countries whose format uses one
+	// Whether checkout address forms include a third address line for the countries whose format uses one
 	// 'showAddressLine3' => false, // true|false
 
 	// Whether a customer editing one of their saved addresses at the checkout can name it

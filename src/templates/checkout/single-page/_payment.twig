@@ -137,7 +137,7 @@
 					{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout)|hash) }}
 					<input type="hidden" name="orderEmail" :value="email">
 
-					<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden" x-show="!awaitingGatewayForm">
+					<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:[&>div:first-of-type]:rounded-t-[7px] xl:[&>div:last-of-type]:rounded-b-[7px]" x-show="!awaitingGatewayForm">
 						{% set zeroValueGatewayHandles = craft.fostercheckout.settings.zeroValueGatewayHandles %}
 						{% for gateway in gateways %}
 							{% set gatewayClass = className(gateway) %}
@@ -220,8 +220,6 @@
 											x-init="
 												{% if gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
 													$nextTick(() => initPaypal());
-												{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
-													$nextTick(() => scheduleStripeReinit());
 												{% endif %}
 												$nextTick(() => {
 													syncPayButtons();
@@ -323,6 +321,47 @@
 													:class="!canPay ? 'opacity-50 cursor-not-allowed' : ''"
 													x-text="payButtonLabel"
 												></button>
+											{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+												{% set offersPaymentSources = currentUser and craft.fostercheckout.settings.enableSavedPaymentSources %}
+												{% set paymentSources = offersPaymentSources ? craft.commerce.paymentSources.getAllPaymentSourcesByCustomerId(cart.customerId, gateway.id).all() : [] %}
+												{% set paymentSourceIds = paymentSources|map(paymentSource => paymentSource.id) %}
+												{# Preselect the cart's saved source, then the customer's primary one #}
+												{% set preferredPaymentSourceId = cart.paymentSourceId in paymentSourceIds ? cart.paymentSourceId : (cart.customer.primaryPaymentSourceId ?? null) %}
+												{% set initialPaymentSourceId = preferredPaymentSourceId in paymentSourceIds ? preferredPaymentSourceId : ((paymentSources|first).id ?? 'new') %}
+
+												<div x-data="{ paymentSourceId: '{{ initialPaymentSourceId }}' }">
+													{% if paymentSources %}
+														{% include 'foster-checkout/_components/app/payment-sources' %}
+
+														<template x-if="paymentSourceId !== 'new'">
+															<div>
+																<input type="hidden" name="paymentSourceId" :value="paymentSourceId">
+																<button
+																	type="submit"
+																	class="justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+																	:disabled="!canPay"
+																	:aria-disabled="!canPay"
+																	:class="!canPay ? 'opacity-50 cursor-not-allowed' : ''"
+																	x-text="payButtonLabel"
+																></button>
+															</div>
+														</template>
+													{% endif %}
+
+													{# Render the gateway form only for a new payment method.
+													   Mounting Stripe's form posts the pay action, which would charge a selected saved source. #}
+													<template x-if="paymentSourceId === 'new'">
+														<div x-init="$nextTick(() => scheduleStripeReinit())">
+															{% if offersPaymentSources %}
+																{% include 'foster-checkout/_components/app/save-payment-source-checkbox' %}
+															{% endif %}
+
+															{% namespace gateway.handle|commercePaymentFormNamespace %}
+																{{ gateway.getPaymentFormHtml(params)|raw }}
+															{% endnamespace %}
+														</div>
+													</template>
+												</div>
 											{% else %}
 												{% namespace gateway.handle|commercePaymentFormNamespace %}
 													{{ gateway.getPaymentFormHtml(params)|raw }}

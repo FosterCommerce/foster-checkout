@@ -42,7 +42,7 @@
 
 						<form method="post">
 							{{ csrfInput() }}
-							{{ actionInput('commerce/cart/forget-cart') }}
+							{{ actionInput(craft.fostercheckout.settings.deleteClearedCarts ? 'foster-checkout/cart/delete' : 'commerce/cart/forget-cart') }}
 							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.cart)) }}
 							<button type="submit"
 											class="font-medium text-[var(--brandColor)]">{{ 'cart.clearCart'|t('foster-checkout') }}</button>
@@ -99,20 +99,23 @@
 
 					{% set missingFields = craft.fostercheckout.missingRequiredFields('summary', cart) %}
 
-					{% if missingFields %}
-						<p class="mt-6 text-sm text-red-500">
-							{{ 'cart.missingRequiredFields'|t('foster-checkout', { fields: missingFields|join(', ') }) }}
-						</p>
-						<span class="block w-full md:inline-block md:w-auto lg:block lg:w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl opacity-50 cursor-not-allowed" aria-disabled="true">
+					{# Track missing fields here, since the summary fields form saves without a reload #}
+					<div
+						x-data="{ missing: {{ missingFields|json_encode }} }"
+						@fc-summary-fields-saved.window="missing = $event.detail.missing"
+					>
+						<p x-show="missing.length" x-cloak class="mt-6 text-sm text-red-500"
+							x-text="{{ 'cart.missingRequiredFields'|t('foster-checkout')|json_encode }}.replace('{fields}', missing.join(', '))"
+						></p>
+						<span x-show="missing.length" x-cloak class="block w-full md:inline-block md:w-auto lg:block lg:w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl opacity-50 cursor-not-allowed" aria-disabled="true">
 							{{ 'cart.checkout'|t('foster-checkout') }}
 						</span>
-					{% else %}
-						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}"
+						<a x-show="!missing.length" {{ missingFields ? 'x-cloak' }} href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) }}"
 							 class="block w-full md:inline-block md:w-auto lg:block lg:w-full mt-6 px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl"
 						>
 							{{ 'cart.checkout'|t('foster-checkout') }}
 						</a>
-					{% endif %}
+					</div>
 
 				</div>
 			</aside>

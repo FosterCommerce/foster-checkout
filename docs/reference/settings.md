@@ -7,9 +7,9 @@ Most settings are edited under **Checkout**. The config-only ones, listed after 
 | Screen | Config key | Holds |
 | --- | --- | --- |
 | **Appearance** | `branding`, `options.enableSinglePageCheckout` and `options.enablePageTransitions` | Whether the checkout runs as one page or separate steps, whether steps animate, and **Brand color**, **Header background color**, **Header text color**, **Font**, **Logo**, **Logo height**, **Component style**, **Field labels** and **Title prefix** |
-| **Features** | `options.enableNewsletter`, `options.newsletterListId`, `enableCustomerPickup`, and `customerPickupLabel` | Whether the checkout offers the newsletter checkbox and the list it subscribes customers to, and whether the shipping address choices include the store location. See [customer pickup](../user-guide/customer-pickup.md) and [integrations](./integrations.md) |
+| **Features** | `options.enableNewsletter`, `options.newsletterListId`, `enableCustomerPickup`, `customerPickupLabel`, `enableSavedPaymentSources`, `savedPaymentSourceDisplay` and `deleteClearedCarts` | Whether the checkout shows the newsletter checkbox and the list it subscribes customers to, whether the shipping address choices include the store location, whether a signed-in customer paying with Stripe can choose a saved payment method and how they are listed, and whether **Clear the cart** moves the cart to the trash. See [customer pickup](../user-guide/customer-pickup.md), [saved payment methods](../user-guide/saved-payment-methods.md) and [integrations](./integrations.md) |
 | **Line Items** | `lineItems`, `products` and `lineItemOptionRules` | Which field each product type's preview image comes from, how a line item image fills its box and whether a placeholder stands in for a missing one. With `paths.useCartTemplate` on, also **Image size**, **Show the SKU**, **Show the stock count**, **Show line item options**, **Hidden option prefix**, **Truncate values to**, and the rules that rewrite an option's name and value |
-| **Gateways** | `paymentGateways` and `zeroValueGatewayHandles` | Per gateway: **Name shown to customers**, and on a Manual gateway, a field layout. A Stripe gateway also sets how its payment element lists the payment methods, their order, and whether Link is included. A PayPal gateway also sets which funding sources its buttons offer, which card brands its card fields take, plus the locale and SDK components. Also which gateways an order totaling zero can be paid with |
+| **Gateways** | `paymentGateways` and `zeroValueGatewayHandles` | Per gateway: **Name shown to customers**, and on a Manual gateway, a field layout. A Stripe gateway also sets how its payment element lists the payment methods, their order, and whether Link is included. A PayPal gateway also sets which funding sources its buttons show, which card brands its card fields take, plus the locale and SDK components. Also which gateways an order totaling zero can be paid with |
 | **Custom Fields** | `customerOrderNotesFieldHandle` and the checkout field layouts | The extra fields shown at each checkout position, and the field on Orders holding a customer's note. Blank hides the order notes form |
 | **Addresses** | the keys in the next table, `notShippableProducts`, `addressLookup` and `options.enableAddressVerification` | Which products need no address at all, what the checkout asks for on an address, whether Avalara verifies it, and where address suggestions come from. A cart holding only those products skips the shipping address and method, and Commerce and shipping plugins treat those products as not shippable. See [address fields](../user-guide/address-fields.md) |
 | **General** | `paths` and the keys below | Cart, checkout, account and cancel paths, plus the built-in cart template switch |
@@ -20,15 +20,15 @@ Keys on the Addresses screen:
 | --- | --- | --- |
 | Default country | `defaultCountryCode` | Country a new address starts on. Blank starts with no country chosen |
 | Priority countries | `priorityCountries` | Country codes shown at the top of country dropdowns, in the order listed |
-| Saved address limit | `savedAddressLimit` | How many of a customer's saved addresses the checkout offers, most recently updated first. Their primary address is always among them, and so are the addresses the cart already uses. Zero offers every address they have saved |
+| Saved address limit | `savedAddressLimit` | How many of a customer's saved addresses the checkout lists, most recently updated first. Their primary address is always among them, and so are the addresses the cart already uses. Zero lists every address they have saved |
 | Saved address display | `savedAddressDisplay` | How the checkout shows saved addresses: `list`, `dropdown`, or `auto`, which shows a list up to `savedAddressDropdownThreshold` addresses and a dropdown past it. A value other than these three shows the list |
-| Dropdown threshold | `savedAddressDropdownThreshold` | The most saved addresses `auto` still shows as a list, counting the addresses the checkout offers. At least 1 |
+| Dropdown threshold | `savedAddressDropdownThreshold` | The most saved addresses `auto` still shows as a list, counting the addresses the checkout lists. At least 1 |
 | Phone field | `addressPhoneFieldHandle` | Handle of the address field holding a phone number, so its input asks for a phone keypad |
 | Hidden address fields | `hiddenAddressFields` | Address fields left off the checkout. They stay in the control panel. A field the address layout marks required is always shown |
 | Hidden billing address fields | `hiddenBillingAddressFields` | Address fields also left off a new billing address, on top of the hidden list. A field the address layout marks required is always shown |
 | Required shipping address fields | `requiredAddressFields` | Address fields required on a shipping address, and on a saved address a customer edits, beyond what the address layout asks for. A hidden field is never required |
 | Required billing address fields | `requiredBillingAddressFields` | The same for a new billing address |
-| Show a third address line | `showAddressLine3` | Whether checkout address forms offer a third address line. Off by default |
+| Show a third address line | `showAddressLine3` | Whether checkout address forms include a third address line. Off by default |
 | Let customers name a saved address | `showAddressLabelField` | Whether the label of a saved address is editable at the checkout. It shows only when a customer edits an address they already saved |
 | Show the address label | `showAddressLabelInPreview` | Whether a saved address the customer named is shown by that name in the address choices and the completed steps. An order's address borrows the name of the address it was copied from, and the store location is left out |
 
@@ -97,9 +97,12 @@ Every setting and its default, as the plugin ships.
 | Show a third address line | `showAddressLine3` | `false` |
 | Let customers name a saved address | `showAddressLabelField` | `false` |
 | Show the address label | `showAddressLabelInPreview` | `false` |
-| Offer pickup at the store location | `enableCustomerPickup` | `false` |
+| Enable customer pickup | `enableCustomerPickup` | `false` |
 | Pickup label | `customerPickupLabel` | none |
 | Zero value gateways | `zeroValueGatewayHandles` | empty |
+| Enable saved payment methods | `enableSavedPaymentSources` | `false` |
+| Saved payment method display | `savedPaymentSourceDisplay` | `address` |
+| Delete cleared carts | `deleteClearedCarts` | `false` |
 | Line item option rules | `lineItemOptionRules` | empty |
 | Preview image fields | `products` | empty |
 | Product image field | `products.<handle>.productImageHandle` | none |

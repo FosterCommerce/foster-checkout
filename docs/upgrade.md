@@ -25,7 +25,7 @@ The checkout no longer serves `<checkout>/login` or `<checkout>/register`, and t
 
 ### Newsletter checkbox
 
-**Newsletter checkbox** at **Checkout -> Features** is off after the update, and the checkbox subscribes customers through Klaviyo Connect 7.3.0 or later rather than Klaviyo Connect Plus. The checkout ignores an earlier Klaviyo Connect. To keep offering the checkbox, turn the setting on, then install or update Klaviyo Connect, or subscribe customers from a site module, as described in [newsletter services](./dev-guide/newsletter-services.md).
+**Newsletter checkbox** at **Checkout -> Features** is off after the update, and the checkbox subscribes customers through Klaviyo Connect 7.3.0 or later rather than Klaviyo Connect Plus. The checkout ignores an earlier Klaviyo Connect. To keep showing the checkbox, turn the setting on, then install or update Klaviyo Connect, or subscribe customers from a site module, as described in [newsletter services](./dev-guide/newsletter-services.md).
 
 The cart and checkout no longer send Started Checkout events to Klaviyo. To keep sending them, see [Klaviyo Connect's documentation](https://www.fostercommerce.com/craft-cms-plugins/klaviyo-connect/docs).
 
@@ -35,11 +35,11 @@ The cart and checkout no longer send Started Checkout events to Klaviyo. To keep
 
 ### `klaviyoTrackingEnabled()` removed
 
-`craft.fostercheckout.klaviyoTrackingEnabled()` is removed. To check whether the newsletter checkbox is offered, call `craft.fostercheckout.offersNewsletter(cart)`. To keep a template's own Klaviyo calls off an order placed for another customer, make them only when `not currentUser or currentUser.email == cart.email`.
+`craft.fostercheckout.klaviyoTrackingEnabled()` is removed. To check whether the newsletter checkbox is shown, call `craft.fostercheckout.offersNewsletter(cart)`. To keep a template's own Klaviyo calls off an order placed for another customer, make them only when `not currentUser or currentUser.email == cart.email`.
 
 ### Saved addresses limited to 10
 
-The checkout offers 10 of a customer's saved addresses: their primary address, then the most recently updated, plus the addresses the cart uses. To offer every saved address, set **Saved address limit** at **Checkout -> Addresses** to `0`.
+The checkout lists 10 of a customer's saved addresses: their primary address, then the most recently updated, plus the addresses the cart uses. To list every saved address, set **Saved address limit** at **Checkout -> Addresses** to `0`.
 
 ### Voucher form action
 

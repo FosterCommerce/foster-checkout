@@ -129,7 +129,7 @@ The event fires more than once per page, since a position's fields are listed bo
 
 Pick a handle no order field uses. Both post under `fields`, and the order's own field would take the value.
 
-Contributed handles are collected the same way a layout's are, so saving a checkout layout that uses one is rejected with an error naming it. The field layout designer still offers the field; saving rejects it. Gateway layouts are not checked.
+Contributed handles are collected the same way a layout's are, so saving a checkout layout that uses one is rejected with an error naming it. The field layout designer still lists the field; saving rejects it. Gateway layouts are not checked.
 
 ## Storing the value
 
@@ -200,7 +200,7 @@ class Module extends BaseModule
 }
 ```
 
-`values` holds the whole `fields` payload, so check for your own handle before reading it. The value is whatever the browser posted: validate it, and set `$event->isValid = false` to refuse the update rather than storing an id you did not offer. The cart update then fails, and the errors added to the order are reported the way Commerce reports its own. The checkout renders `order.getErrors('yourHandle')` under the input.
+`values` holds the whole `fields` payload, so check for your own handle before reading it. The value is whatever the browser posted: validate it, and set `$event->isValid = false` to refuse the update rather than storing an id your input did not list. The cart update then fails, and the errors added to the order are reported the way Commerce reports its own. The checkout renders `order.getErrors('yourHandle')` under the input.
 
 It fires once per request, after the posted data has been applied to the cart and before the cart is written, so the order is in the state the update leaves it in and a change made here is part of the same save. No other request fires it.
 

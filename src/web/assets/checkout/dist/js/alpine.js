@@ -6057,7 +6057,12 @@ const cartPersistence = () => ({
       return;
     }
     if (this.saving) {
-      this.nextSave = { ...this.nextSave || {}, ...extra };
+      const fieldOnly2 = Boolean(extra.fieldOnly) && (this.nextSave?.fieldOnly ?? true);
+      const queued = { ...this.nextSave || {} };
+      Object.keys(extra).forEach((name) => {
+        delete queued[name.endsWith("[]") ? name.slice(0, -2) : `${name}[]`];
+      });
+      this.nextSave = { ...queued, ...extra, fieldOnly: fieldOnly2 };
       this.setPanelStatus(
         extra.panel || this.queuedSavePanel || "delivery",
         "saving"
@@ -6069,7 +6074,9 @@ const cartPersistence = () => ({
     delete payload.panel;
     const force = Boolean(payload.force);
     delete payload.force;
-    const saved = this.buildPayload(payload);
+    const fieldOnly = Boolean(payload.fieldOnly);
+    delete payload.fieldOnly;
+    const saved = fieldOnly ? payload : this.buildPayload(payload);
     const noteName = this.$refs.orderNote?.name;
     const savingNotes = Boolean(noteName && Object.hasOwn(payload, noteName));
     if (!force && Object.keys(payload).length === 0 && JSON.stringify(saved) === this.lastSaved) {
@@ -6114,7 +6121,7 @@ const cartPersistence = () => ({
         await this.subscribeToNewsletter(saved, signal);
       }
       const cart = data2.cart || data2.model || data2.data && data2.data.cart;
-      this.applyCart(cart, this.shippingRateKey(saved));
+      this.applyCart(cart, fieldOnly ? "" : this.shippingRateKey(saved));
       cartSynced = Boolean(cart) && typeof cart === "object";
       const couponError = this.couponRejectedMessage(saved, cart);
       if (couponError) {
@@ -6131,7 +6138,10 @@ const cartPersistence = () => ({
       this.status = this.savedLabel;
       this.statusTone = "saved";
       this.setPanelStatus(panel, "saved");
-      this.lastSaved = JSON.stringify(saved);
+      Object.assign(this.savedFieldValues, saved);
+      if (!fieldOnly) {
+        this.lastSaved = JSON.stringify(saved);
+      }
       if (savingNotes) {
         this.notesButtonVisible = false;
       }
@@ -6286,6 +6296,7 @@ const cartPersistence = () => ({
         this.refreshShippingPreview();
       }
       if (!this.canSavePanel(panel)) {
+        this.saveCheckoutField(panel, event);
         return;
       }
       const payload = this.buildPayload();
@@ -6296,6 +6307,23 @@ const cartPersistence = () => ({
       }
       this.queueSave(0, event, panel);
     });
+  },
+  // Save only the custom field while its panel is incomplete, since a full save posts the panel's other inputs
+  saveCheckoutField(panel, event) {
+    const fieldCell = event?.target?.closest("[data-fc-checkout-field]");
+    if (!fieldCell) {
+      return;
+    }
+    const fields = this.collectNamedFields(fieldCell);
+    if (!this.fieldsChanged(fields)) {
+      return;
+    }
+    this.saveCart({ ...fields, panel, fieldOnly: true });
+  },
+  fieldsChanged(fields) {
+    return Object.entries(fields).some(
+      ([name, value]) => JSON.stringify(this.savedFieldValues[name]) !== JSON.stringify(value)
+    );
   },
   collectNamedFields(scope2) {
     const payload = {};
@@ -6471,11 +6499,12 @@ const cartPersistence = () => ({
     if (!input?.name) {
       return;
     }
+    const fields = { [input.name]: input.value };
+    if (!this.fieldsChanged(fields)) {
+      return;
+    }
     this.notesError = "";
-    return this.saveCart({
-      [input.name]: input.value,
-      panel: "notes"
-    });
+    return this.saveCart({ ...fields, panel: "notes", fieldOnly: true });
   },
   markNotesError(savingNotes) {
     if (!savingNotes) {
@@ -6993,6 +7022,7 @@ const SinglePageCheckout = (props) => {
     couponError: "",
     notesError: "",
     notesButtonVisible: false,
+    savedFieldValues: {},
     // Seed the labels so the shipping preview names a saved address before the first save
     addressLabels: props.addressLabels ?? {},
     addressFields: {},
@@ -7078,6 +7108,15 @@ const SinglePageCheckout = (props) => {
     init() {
       this.rootEl = this.$root;
       this.paymentFormEl = this.$refs.paymentForm;
+      this.rootEl.querySelectorAll("[data-fc-checkout-field]").forEach(
+        (fieldCell) => Object.assign(
+          this.savedFieldValues,
+          this.collectNamedFields(fieldCell)
+        )
+      );
+      if (this.$refs.orderNote?.name) {
+        this.savedFieldValues[this.$refs.orderNote.name] = this.$refs.orderNote.value;
+      }
       this.$watch("email", () => {
         if (!this.syncingFromCart) {
           this.syncPayButtons();
@@ -8470,6 +8509,62 @@ const RadioInput = (props) => {
     }
   };
 };
+let autosaveQueue = Promise.resolve();
+const AutosaveForm = (options) => {
+  return {
+    ...options,
+    status: "",
+    lastSaved: "",
+    // Read the starting values after child fields bind theirs
+    init() {
+      this.$nextTick(() => {
+        this.lastSaved = this.formKey();
+      });
+    },
+    formKey() {
+      return JSON.stringify([...new FormData(this.$refs.form).entries()]);
+    },
+    // Post saves one at a time, so an older request cannot finish last and overwrite a newer value
+    save() {
+      autosaveQueue = autosaveQueue.then(() => this.post());
+    },
+    async post() {
+      const key = this.formKey();
+      if (key === this.lastSaved) {
+        return;
+      }
+      this.lastSaved = key;
+      this.status = this.savingLabel;
+      try {
+        const response = await fetch(window.location.href, {
+          method: "POST",
+          body: new FormData(this.$refs.form),
+          headers: { Accept: "application/json" }
+        });
+        if (!response.ok) {
+          throw new Error(response.statusText);
+        }
+      } catch {
+        this.lastSaved = "";
+        this.status = this.failedLabel;
+        return;
+      }
+      this.status = this.savedLabel;
+      if (this.reportsMissing) {
+        this.$dispatch("fc-summary-fields-saved", {
+          missing: this.missingRequiredLabels()
+        });
+      }
+    },
+    missingRequiredLabels() {
+      return [...this.$refs.form.querySelectorAll("[data-fc-required-label]")].filter(
+        (cell) => ![...cell.querySelectorAll("[name]")].some(
+          (input) => input.type === "checkbox" || input.type === "radio" ? input.checked : input.value !== ""
+        )
+      ).map((cell) => cell.dataset.fcRequiredLabel);
+    }
+  };
+};
 const NewsletterSignup = () => {
   return {
     subscribe() {
@@ -8602,6 +8697,7 @@ module_default$1.plugin(module_default);
 module_default$1.data("ScrollableItems", ScrollableItems);
 module_default$1.data("SimpleField", SimpleField);
 module_default$1.data("NewsletterSignup", NewsletterSignup);
+module_default$1.data("AutosaveForm", AutosaveForm);
 module_default$1.data("ClearableInput", ClearableInput);
 module_default$1.data("RadioInput", RadioInput);
 module_default$1.data("SearchableSelect", SearchableSelect);

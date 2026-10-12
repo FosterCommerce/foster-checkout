@@ -1,7 +1,7 @@
 {% set billingAddressOptions = collectShipping ? [{ value: 'same', label: 'billing.sameAsShippingAddress'|t('foster-checkout') }] : [] %}
 {% set billingAddressOptions = billingAddressOptions|merge(craft.fostercheckout.savedAddressOptions(addresses))|merge([{ value: 'new', label: 'billing.useDifferentBillingAddress'|t('foster-checkout') }]) %}
 
-{# Leave the dropdown empty for an address it doesn't offer, since the dropdown would match another option by label.
+{# Leave the dropdown empty for an address it doesn't list, since the dropdown would match another option by label.
    Drop the same-as-shipping option for a pickup order, whose shipping address is the store's. #}
 <div
 	x-data="{

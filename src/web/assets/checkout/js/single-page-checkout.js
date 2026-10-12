@@ -75,6 +75,7 @@ export const SinglePageCheckout = (props) => {
 		couponError: '',
 		notesError: '',
 		notesButtonVisible: false,
+		savedFieldValues: {},
 		// Seed the labels so the shipping preview names a saved address before the first save
 		addressLabels: props.addressLabels ?? {},
 		addressFields: {},
@@ -163,6 +164,20 @@ export const SinglePageCheckout = (props) => {
 			// $root is relative to the element evaluating it, so it is pinned here to the component root
 			this.rootEl = this.$root;
 			this.paymentFormEl = this.$refs.paymentForm;
+
+			// Record the values the page loaded with, so leaving an unchanged field doesn't save it
+			this.rootEl
+				.querySelectorAll('[data-fc-checkout-field]')
+				.forEach((fieldCell) =>
+					Object.assign(
+						this.savedFieldValues,
+						this.collectNamedFields(fieldCell)
+					)
+				);
+			if (this.$refs.orderNote?.name) {
+				this.savedFieldValues[this.$refs.orderNote.name] =
+					this.$refs.orderNote.value;
+			}
 
 			this.$watch('email', () => {
 				if (!this.syncingFromCart) {

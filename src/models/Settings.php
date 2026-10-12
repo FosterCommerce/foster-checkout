@@ -18,6 +18,12 @@ class Settings extends Model
 
 	public const string SAVED_ADDRESS_DISPLAY_AUTO = 'auto';
 
+	public const string SAVED_PAYMENT_SOURCE_DISPLAY_ADDRESS = 'address';
+
+	public const string SAVED_PAYMENT_SOURCE_DISPLAY_LIST = 'list';
+
+	public const string SAVED_PAYMENT_SOURCE_DISPLAY_DROPDOWN = 'dropdown';
+
 	/**
 	 * Option keys renamed in 2.0.0, so a stored value or config file naming the old key keeps working.
 	 *
@@ -95,22 +101,44 @@ class Settings extends Model
 	public array $priorityCountries = [];
 
 	/**
-	 * How many of the customer's saved addresses the checkout offers, most recently updated first.
-	 * Their primary address is always among them. Zero offers every address a customer has saved.
+	 * How many of the customer's saved addresses the checkout lists, most recently updated first.
+	 * Their primary address is always among them. Zero lists every address a customer has saved.
 	 */
 	public int $savedAddressLimit = 10;
 
 	/**
-	 * How the checkout offers a customer's saved addresses: `list` shows a row for each, `dropdown` a
-	 * searchable dropdown, and `auto` a list until the checkout offers more than `savedAddressDropdownThreshold`.
+	 * How the checkout lists a customer's saved addresses: `list` shows a row for each, `dropdown` a
+	 * searchable dropdown, and `auto` a list until the checkout lists more than `savedAddressDropdownThreshold`.
 	 */
 	public string $savedAddressDisplay = self::SAVED_ADDRESS_DISPLAY_LIST;
 
 	/**
-	 * The most saved addresses `auto` still shows as a list, counting the addresses the checkout offers.
+	 * The most saved addresses `auto` still shows as a list, counting the addresses the checkout lists.
 	 * Not read for `list` or `dropdown`.
 	 */
 	public int $savedAddressDropdownThreshold = 5;
+
+	/**
+	 * Whether a signed-in customer paying with Stripe can choose a saved payment method, and save a new one.
+	 *
+	 * @since 2.1.0
+	 */
+	public bool $enableSavedPaymentSources = false;
+
+	/**
+	 * How the checkout lists a customer's saved payment methods: `address` the same way as their saved
+	 * addresses, `list` a row for each, and `dropdown` a searchable dropdown.
+	 *
+	 * @since 2.1.0
+	 */
+	public string $savedPaymentSourceDisplay = self::SAVED_PAYMENT_SOURCE_DISPLAY_ADDRESS;
+
+	/**
+	 * Whether Clear cart moves the cart to the trash. Off, Commerce keeps it as an inactive cart.
+	 *
+	 * @since 2.1.0
+	 */
+	public bool $deleteClearedCarts = false;
 
 	/**
 	 * Handle of the address field holding a phone number, so its input asks for a phone keypad.
@@ -158,7 +186,7 @@ class Settings extends Model
 	public array $notShippableProducts = [];
 
 	/**
-	 * Whether checkout address forms offer a third address line.
+	 * Whether checkout address forms include a third address line.
 	 */
 	public bool $showAddressLine3 = false;
 
@@ -173,7 +201,7 @@ class Settings extends Model
 	public bool $showAddressLabelInPreview = false;
 
 	/**
-	 * Whether the store location is offered among the shipping addresses, for orders collected there.
+	 * Whether the store location is listed among the shipping addresses, for orders collected there.
 	 */
 	public bool $enableCustomerPickup = false;
 
@@ -209,7 +237,7 @@ class Settings extends Model
 	}
 
 	/**
-	 * Whether this many saved addresses are offered as a dropdown rather than a list.
+	 * Whether this many saved addresses are shown as a dropdown rather than a list.
 	 *
 	 * @since 2.0.0
 	 */
@@ -220,6 +248,20 @@ class Settings extends Model
 			self::SAVED_ADDRESS_DISPLAY_AUTO => $addressCount > $this->savedAddressDropdownThreshold,
 			// Show the list for a mode the config file misnames
 			default => false,
+		};
+	}
+
+	/**
+	 * Whether this many saved payment methods are shown as a dropdown rather than a list.
+	 *
+	 * @since 2.1.0
+	 */
+	public function usesPaymentSourceDropdown(int $paymentSourceCount): bool
+	{
+		return match ($this->savedPaymentSourceDisplay) {
+			self::SAVED_PAYMENT_SOURCE_DISPLAY_LIST => false,
+			self::SAVED_PAYMENT_SOURCE_DISPLAY_DROPDOWN => true,
+			default => $this->usesAddressDropdown($paymentSourceCount),
 		};
 	}
 
@@ -245,6 +287,7 @@ class Settings extends Model
 		return [
 			'savedAddressDisplay' => Craft::t(FosterCheckout::HANDLE, 'settings.addresses.savedAddressDisplay'),
 			'savedAddressDropdownThreshold' => Craft::t(FosterCheckout::HANDLE, 'settings.addresses.savedAddressDropdownThreshold'),
+			'savedPaymentSourceDisplay' => Craft::t(FosterCheckout::HANDLE, 'settings.features.savedPaymentSourceDisplay'),
 		];
 	}
 
@@ -266,6 +309,11 @@ class Settings extends Model
 				'savedAddressDropdownThreshold',
 				'integer',
 				'min' => 1,
+			],
+			[
+				'savedPaymentSourceDisplay',
+				'in',
+				'range' => [self::SAVED_PAYMENT_SOURCE_DISPLAY_ADDRESS, self::SAVED_PAYMENT_SOURCE_DISPLAY_LIST, self::SAVED_PAYMENT_SOURCE_DISPLAY_DROPDOWN],
 			],
 			[['branding', 'lineItems', 'addressLookup'], 'validateConfigNode'],
 			['paymentGateways', 'validateGatewayNodes'],

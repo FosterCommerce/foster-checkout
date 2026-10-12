@@ -14,7 +14,8 @@ A ready-made, best-practices cart and checkout for Craft Commerce.
 - [Checkout fields](./user-guide/checkout-fields.md), asking a customer for something the checkout does not collect
 - [Address fields](./user-guide/address-fields.md), what the checkout asks for on an address, and address labels
 - [Products that don’t require shipping](./user-guide/products-that-dont-require-shipping.md), skipping shipping for services and other unshippable products
-- [Customer pickup](./user-guide/customer-pickup.md), offering the store location as a shipping address
+- [Customer pickup](./user-guide/customer-pickup.md), listing the store location as a shipping address
+- [Saved payment methods](./user-guide/saved-payment-methods.md), paying with a payment method the customer saved with Stripe
 
 **Dev guide:**
 

@@ -29,7 +29,8 @@
 	{% set addresses = craft.fostercheckout.customerAddresses(cart) %}
 
 	{# Gateway seeded from the cart #}
-	{% set _cartGatewayId = cart.gatewayId ?? (gateways|length ? (gateways|first).id : null) %}
+	{# Read the gateway through the cart, since a saved payment source clears gatewayId #}
+	{% set _cartGatewayId = cart.gateway.id ?? (gateways|length ? (gateways|first).id : null) %}
 	{% set _gatewayIds = gateways|map(g => g.id) %}
 	{% set _hasGateway = _cartGatewayId and (_cartGatewayId in _gatewayIds) %}
 	{% set _initialGatewayId = _hasGateway ? _cartGatewayId : (gateways|length ? (gateways|first).id : null) %}
@@ -157,7 +158,7 @@
 									{{ hiddenInput('cancelUrl', siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/payment')|hash) }}
 									{{ hiddenInput('orderEmail', cart.email) }}
 
-									<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:overflow-hidden">
+									<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:[&>div:first-of-type]:rounded-t-[7px] xl:[&>div:last-of-type]:rounded-b-[7px]">
 										{# Hidden mirror so a cart update elsewhere could use it, and so pay forms can read it #}
 										<input type="hidden" x-ref="postGateway" value="{{ _initialGatewayId }}">
 
@@ -247,10 +248,6 @@
 															hover:[&_button#paymentForm-authorizeNet-authorizeSubmit]:opacity-90
 															"
 
-															{# Stripe's form defines this; a missing one throws and nothing in the panel renders. PayPal initializes itself once its wrapper is in the page #}
-															{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
-																x-init="typeof initStripe === 'function' && initStripe()"
-															{% endif %}
 														>
 															{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
 
@@ -342,6 +339,46 @@
 																>
 																	{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
 																</button>
+															{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+																{% set offersPaymentSources = currentUser and craft.fostercheckout.settings.enableSavedPaymentSources %}
+																{% set paymentSources = offersPaymentSources ? craft.commerce.paymentSources.getAllPaymentSourcesByCustomerId(cart.customerId, gateway.id).all() : [] %}
+																{% set paymentSourceIds = paymentSources|map(paymentSource => paymentSource.id) %}
+																{# Preselect the cart's saved source, then the customer's primary one #}
+																{% set preferredPaymentSourceId = cart.paymentSourceId in paymentSourceIds ? cart.paymentSourceId : (cart.customer.primaryPaymentSourceId ?? null) %}
+																{% set initialPaymentSourceId = preferredPaymentSourceId in paymentSourceIds ? preferredPaymentSourceId : ((paymentSources|first).id ?? 'new') %}
+
+																<div x-data="{ paymentSourceId: '{{ initialPaymentSourceId }}' }">
+																	{% if paymentSources %}
+																		{% include 'foster-checkout/_components/app/payment-sources' %}
+
+																		<template x-if="paymentSourceId !== 'new'">
+																			<div>
+																				<input type="hidden" name="paymentSourceId" :value="paymentSourceId">
+																				<button
+																					type="submit"
+																					class="justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+																				>
+																					{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
+																				</button>
+																			</div>
+																		</template>
+																	{% endif %}
+
+																	{# Render the gateway form only for a new payment method.
+																	   Mounting Stripe's form posts the pay action, which would charge a selected saved source. #}
+																	<template x-if="paymentSourceId === 'new'">
+																		{# Mount the form here when it renders after Stripe's script has loaded #}
+																		<div x-init="typeof initStripe === 'function' && initStripe()">
+																			{% if offersPaymentSources %}
+																				{% include 'foster-checkout/_components/app/save-payment-source-checkbox' %}
+																			{% endif %}
+
+																			{% namespace gateway.handle|commercePaymentFormNamespace %}
+																				{{ gateway.getPaymentFormHtml(params)|raw }}
+																			{% endnamespace %}
+																		</div>
+																	</template>
+																</div>
 															{% else %}
 																{% namespace gateway.handle|commercePaymentFormNamespace %}
 																	{{ gateway.getPaymentFormHtml(params)|raw }}

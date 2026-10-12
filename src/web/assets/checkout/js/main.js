@@ -774,6 +774,82 @@ const RadioInput = (props) => {
 	};
 };
 
+// Share one queue across the page's autosave forms, since each update-cart post saves every field on the order
+let autosaveQueue = Promise.resolve();
+
+// Post with fetch, so a save does not reload the page
+const AutosaveForm = (options) => {
+	return {
+		...options,
+		status: '',
+		lastSaved: '',
+
+		// Read the starting values after child fields bind theirs
+		init() {
+			this.$nextTick(() => {
+				this.lastSaved = this.formKey();
+			});
+		},
+
+		formKey() {
+			return JSON.stringify([...new FormData(this.$refs.form).entries()]);
+		},
+
+		// Post saves one at a time, so an older request cannot finish last and overwrite a newer value
+		save() {
+			autosaveQueue = autosaveQueue.then(() => this.post());
+		},
+
+		async post() {
+			const key = this.formKey();
+			if (key === this.lastSaved) {
+				return;
+			}
+
+			// Record the values before posting, so one edit's change and blur post once
+			this.lastSaved = key;
+			this.status = this.savingLabel;
+
+			try {
+				const response = await fetch(window.location.href, {
+					method: 'POST',
+					body: new FormData(this.$refs.form),
+					headers: { Accept: 'application/json' },
+				});
+
+				if (!response.ok) {
+					throw new Error(response.statusText);
+				}
+			} catch {
+				this.lastSaved = '';
+				this.status = this.failedLabel;
+				return;
+			}
+
+			this.status = this.savedLabel;
+
+			if (this.reportsMissing) {
+				this.$dispatch('fc-summary-fields-saved', {
+					missing: this.missingRequiredLabels(),
+				});
+			}
+		},
+
+		missingRequiredLabels() {
+			return [...this.$refs.form.querySelectorAll('[data-fc-required-label]')]
+				.filter(
+					(cell) =>
+						![...cell.querySelectorAll('[name]')].some((input) =>
+							input.type === 'checkbox' || input.type === 'radio'
+								? input.checked
+								: input.value !== ''
+						)
+				)
+				.map((cell) => cell.dataset.fcRequiredLabel);
+		},
+	};
+};
+
 const NewsletterSignup = () => {
 	return {
 		subscribe() {
@@ -976,6 +1052,7 @@ Alpine.plugin(focus);
 Alpine.data('ScrollableItems', ScrollableItems);
 Alpine.data('SimpleField', SimpleField);
 Alpine.data('NewsletterSignup', NewsletterSignup);
+Alpine.data('AutosaveForm', AutosaveForm);
 Alpine.data('ClearableInput', ClearableInput);
 Alpine.data('RadioInput', RadioInput);
 Alpine.data('SearchableSelect', SearchableSelect);

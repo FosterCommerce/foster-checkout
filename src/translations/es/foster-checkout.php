@@ -126,6 +126,9 @@ return [
 	'payment.cardYearError' => 'Introduce un año válido.',
 	'payment.cardExpired' => 'Esta tarjeta ha caducado.',
 	'payment.cardCvvError' => 'Introduce un CVV válido.',
+	'payment.newPaymentSource' => 'Usar un nuevo método de pago',
+	'payment.savedPaymentSources' => 'Métodos de pago guardados',
+	'payment.savePaymentSource' => 'Guardar este método de pago para futuras compras',
 	'payment.voucherApplied' => 'Cupón aplicado',
 
 	// Gift vouchers
@@ -210,7 +213,7 @@ return [
 	'permission.manageFeatures' => 'Gestionar las funcionalidades del pago',
 	'permission.manageSettings' => 'Gestionar los ajustes del pago',
 
-	'contact.signedInAs' => 'Sesión iniciada como {name} ({email})',
+	'contact.signedInAs' => 'Sesión iniciada como {name}',
 	'permission.viewContent' => 'Ver el contenido del pago',
 
 	'nav.checkout' => 'Pago',
@@ -306,7 +309,7 @@ return [
 
 	'settings.features.newsletterListId' => 'ID de lista del boletín',
 	'settings.features.newsletterListIdHelp' => 'Lista o audiencia a la que la casilla del boletín suscribe a los clientes, o una variable de entorno como $NEWSLETTER_LIST_ID para que cada entorno use la suya. Klaviyo Connect necesita una.',
-	'settings.features.enableCustomerPickup' => 'Ofrecer recogida en la ubicación de la tienda',
+	'settings.features.enableCustomerPickup' => 'Activar recogida del cliente',
 	'settings.features.enableCustomerPickupHelp' => 'Si las opciones de dirección de envío incluyen la ubicación de la tienda definida en Commerce -> Store Management -> General. Un pedido de recogida se envía a esa dirección, de modo que un método de envío pueda coincidir por zona.',
 	'settings.features.customerPickupLabel' => 'Etiqueta de recogida',
 	'settings.features.customerPickupLabelHelp' => 'Texto de la opción de recogida.',
@@ -334,6 +337,9 @@ return [
 	'settings.gateways.intro' => 'Opciones que se muestran cuando un cliente elige un método de pago y, en las pasarelas manuales, campos que completa. Se listan todas las pasarelas configuradas en Commerce.',
 	'settings.gateways.zeroValueGateways' => 'Pasarelas para importe cero',
 	'settings.gateways.zeroValueGatewaysHelp' => 'Pasarelas disponibles cuando el total de un pedido es cero.',
+	'settings.features.savedPaymentSourceDisplay' => 'Visualización de métodos de pago guardados',
+	'settings.features.savedPaymentSourceDisplayHelp' => 'Cómo el checkout ofrece los métodos de pago guardados de un cliente. «Igual que las direcciones guardadas» sigue «Visualización de direcciones guardadas» en «Pago -> Direcciones», «Lista» muestra una fila por cada uno y «Desplegable» permite al cliente buscarlos.',
+	'settings.features.savedPaymentSourceDisplayAddress' => 'Igual que las direcciones guardadas',
 	'settings.gateways.none' => 'Todavía no hay ninguna pasarela de pago configurada en Commerce.',
 	'settings.gateways.gateway' => 'Pasarela',
 	'settings.gateways.fields' => 'Campos',
@@ -495,6 +501,12 @@ return [
 	'settings.lineItemOptions.showLineItemStockHelp' => 'Si cada línea de pedido del carrito indica cuántas quedan en existencias.',
 	'settings.lineItemOptions.anyValue' => 'Cualquier {subject}',
 	'settings.features.newsletterTitle' => 'Boletín',
+	'settings.features.savedPaymentSourcesTitle' => 'Métodos de pago guardados',
+	'settings.features.enableSavedPaymentSources' => 'Activar métodos de pago guardados',
+	'settings.features.enableSavedPaymentSourcesHelp' => 'Si un cliente que ha iniciado sesión y paga con Stripe puede elegir un método de pago guardado y guardar uno nuevo.',
+	'settings.features.clearCartTitle' => 'Vaciar carrito',
+	'settings.features.deleteClearedCarts' => 'Eliminar carritos vaciados',
+	'settings.features.deleteClearedCartsHelp' => 'Si «Vaciar carrito» mueve el carrito a la papelera. Si está desactivado, Commerce lo conserva como carrito inactivo en «Commerce -> Pedidos».',
 	'settings.features.customerPickupTitle' => 'Recogida en tienda',
 	'settings.features.enableNewsletter' => 'Casilla del boletín',
 	'settings.features.enableNewsletterHelp' => 'Si el checkout ofrece la casilla del boletín. Klaviyo Connect suscribe a los clientes, o un módulo del sitio gestiona la suscripción.',

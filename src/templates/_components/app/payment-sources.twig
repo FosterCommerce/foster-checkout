@@ -1,0 +1,52 @@
+{% set paymentSourceOptions = [] %}
+{% for paymentSource in paymentSources %}
+	{% set card = (paymentSource.response|json_decode).card ?? null %}
+	{# Add the brand and last four unless the description already ends with them #}
+	{% set label = card and not (paymentSource.description ends with card.last4)
+		? paymentSource.description ~ ' · ' ~ card.brand|capitalize ~ ' ••••' ~ card.last4
+		: paymentSource.description %}
+	{% set paymentSourceOptions = paymentSourceOptions|merge([{
+		value: paymentSource.id ~ '',
+		label: label,
+		isLastPinned: loop.last,
+	}]) %}
+{% endfor %}
+{% set paymentSourceOptions = paymentSourceOptions|merge([{ value: 'new', label: 'payment.newPaymentSource'|t('foster-checkout') }]) %}
+
+{# Name the inputs apart from paymentSourceId, which the payment step posts only while a saved source is selected #}
+{% if craft.fostercheckout.settings.usesPaymentSourceDropdown(paymentSources|length) %}
+	<div class="mb-6">
+		{% include 'foster-checkout/_components/base/input-select-searchable' with {
+			id: 'paymentSource_' ~ gateway.id,
+			name: 'fcPaymentSource_' ~ gateway.id,
+			model: 'paymentSourceId',
+			options: paymentSourceOptions,
+			label: 'payment.savedPaymentSources'|t('foster-checkout'),
+			required: true,
+		} %}
+	</div>
+{% else %}
+	<div class="mb-6 border border-gray-250 rounded-lg" role="radiogroup" aria-label="{{ 'payment.savedPaymentSources'|t('foster-checkout') }}">
+		{% for option in paymentSourceOptions %}
+			<div class="p-4{{ not loop.first ? ' border-t' }}" :class="{ 'bg-gray-100': paymentSourceId === '{{ option.value }}' }">
+				<div class="radio">
+					<input
+						id="paymentSource_{{ gateway.id }}_{{ option.value }}"
+						type="radio"
+						class="absolute opacity-0 w-px h-px"
+						name="fcPaymentSource_{{ gateway.id }}"
+						x-model="paymentSourceId"
+						value="{{ option.value }}"
+					>
+					<label
+						for="paymentSource_{{ gateway.id }}_{{ option.value }}"
+						class="inline-flex justify-start items-center gap-4 cursor-pointer"
+						:class="{ 'font-medium text-black': paymentSourceId === '{{ option.value }}' }"
+					>
+						{{ option.label }}
+					</label>
+				</div>
+			</div>
+		{% endfor %}
+	</div>
+{% endif %}

@@ -8,7 +8,7 @@ Two screens decide this together. Craft's address field layout, at **Settings ->
 | --- | --- |
 | **Default country** | Country a new address starts on. The customer can still change it. Unset starts with no country chosen |
 | **Priority countries** | Country codes shown at the top of every country dropdown, in the order listed. They are removed from the alphabetical list below |
-| **Saved address limit** | How many of a customer’s saved addresses the checkout offers. 10 by default |
+| **Saved address limit** | How many of a customer’s saved addresses the checkout lists. 10 by default |
 | **Saved address display** | Whether the checkout shows saved addresses as a list, a searchable dropdown, or a list until there are more than **Dropdown threshold**. List by default |
 | **Dropdown threshold** | The most saved addresses Auto still shows as a list. 5 by default |
 | **Phone field** | Handle of the address field holding a phone number. Its input asks for a phone keypad instead of a text one |
@@ -16,13 +16,13 @@ Two screens decide this together. Craft's address field layout, at **Settings ->
 | **Hidden billing address fields** | Fields also left off a new billing address, such as a delivery switch, which has no use on the address a card is billed to |
 | **Required shipping address fields** | Fields the checkout requires on a shipping address, and on a saved address a customer edits, beyond what the address layout asks for |
 | **Required billing address fields** | The same for a new billing address |
-| **Show a third address line** | Whether the form offers a third address line. Off by default |
+| **Show a third address line** | Whether the form includes a third address line. Off by default |
 | **Let customers name a saved address** | Whether the label of a saved address is editable at the checkout. Off by default |
 | **Show the address label** | Whether a saved address the customer named is shown by that name in the address choices and the completed steps. Off by default |
 
 ## Saved addresses
 
-The checkout offers the most recently updated addresses, up to **Saved address limit**, with the primary address first. Set the limit to zero to offer every saved address. The addresses the cart already uses are offered too, even past the limit, so the checkout shows which address it bills or ships to. The billing choices leave out the saved address the cart ships to when the page loads, since **Same as shipping address** covers it.
+The checkout lists the most recently updated addresses, up to **Saved address limit**, with the primary address first. Set the limit to zero to list every saved address. The addresses the cart already uses are listed too, even past the limit, so the checkout shows which address it bills or ships to. The billing choices leave out the saved address the cart ships to when the page loads, since **Same as shipping address** covers it.
 
 ### List or dropdown
 
@@ -32,13 +32,13 @@ A buyer who orders on behalf of their own clients can hold many saved addresses.
 | --- | --- |
 | **List** | A row for each saved address |
 | **Dropdown** | One searchable dropdown in each section |
-| **Auto** | A list until the checkout offers more addresses than **Dropdown threshold**, then the dropdown |
+| **Auto** | A list until the checkout lists more addresses than **Dropdown threshold**, then the dropdown |
 
-With **Saved address limit** set to zero and **Saved address display** set to Dropdown, the checkout offers every saved address without lengthening the page.
+With **Saved address limit** set to zero and **Saved address display** set to Dropdown, the checkout lists every saved address without lengthening the page.
 
 In the shipping section, the dropdown lists the saved addresses, then **New shipping address**, then the pickup choice when [customer pickup](./customer-pickup.md) is on.
 
-In the billing section, the dropdown lists **Same as shipping address**, the saved addresses, then **Use a different billing address**. A pickup order, or a checkout that asks for no shipping address, does not offer **Same as shipping address**. Until the customer chooses a billing address, the single-page checkout keeps payment unavailable and lists **Billing address** as a missing detail, and the stepped checkout does not continue past the billing step.
+In the billing section, the dropdown lists **Same as shipping address**, the saved addresses, then **Use a different billing address**. A pickup order, or a checkout that asks for no shipping address, does not show **Same as shipping address**. Until the customer chooses a billing address, the single-page checkout keeps payment unavailable and lists **Billing address** as a missing detail, and the stepped checkout does not continue past the billing step.
 
 **Edit**, beside either dropdown, opens the chosen saved address for editing, for a customer who can edit their saved addresses.
 
@@ -72,7 +72,7 @@ Turn on **Let customers name a saved address** and the label becomes an editable
 
 Labels a store sets for its own purposes are never overwritten by the checkout. Leave the switch off to keep customers out of them.
 
-To offer the store location as a shipping address, see [customer pickup](./customer-pickup.md).
+To list the store location as a shipping address, see [customer pickup](./customer-pickup.md).
 
 ## Address verification and suggestions
 
@@ -80,7 +80,7 @@ Two tools help with the shipping address, both set at **Checkout -> Addresses**.
 
 | Setting | Controls |
 | --- | --- |
-| **Verify shipping addresses** | Whether Avalara checks the shipping address and offers its corrected version, which the customer can accept or decline. Needs the AvaTax plugin with its **Enable address validation** setting on. Off by default |
+| **Verify shipping addresses** | Whether Avalara checks the shipping address and suggests its corrected version, which the customer can accept or decline. Needs the AvaTax plugin with its **Enable address validation** setting on. Off by default |
 | **Address suggestions** | Whether matching addresses are listed under the shipping address as the customer types. Picking one fills the form. Off by default |
 | **Address suggestion provider** | Google Places or Loqate. Google by default |
 | **Address suggestion API key** | The provider's key, set as an environment variable name |

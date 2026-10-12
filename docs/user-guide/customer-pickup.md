@@ -2,13 +2,13 @@
 
 Let a customer collect an order instead of having it shipped. The store location becomes one of the shipping address choices, so a pickup order is a normal order shipped to your own address.
 
-Turn it on at **Checkout -> Features -> Offer pickup at the store location**. The choice is named by **Pickup label**, which shows “Customer pickup” when blank.
+Turn it on at **Checkout -> Features -> Enable customer pickup**. The choice is named by **Pickup label**, which shows “Customer pickup” when blank.
 
 ## What the customer sees
 
-Both checkout layouts offer the choice last, after the saved addresses and the new address option, and show the store location beneath it. Choosing it hides the address form. A guest sees the choice too, next to the new address form.
+Both checkout layouts list the choice last, after the saved addresses and the new address option, and show the store location beneath it. Choosing it hides the address form. A guest sees the choice too, next to the new address form.
 
-The “same as shipping address” billing choice is not offered on a pickup order, since the store location is nobody's billing address. The customer picks or enters a billing address instead.
+The “same as shipping address” billing choice is not shown on a pickup order, since the store location is nobody's billing address. The customer picks or enters a billing address instead.
 
 ## Where the address comes from
 
