@@ -25,3 +25,5 @@ A guest sees only Stripe's form, and so does every customer while **Enable saved
 When the customer ticks the checkbox, Stripe saves the payment method to the order's customer. Commerce lists it once Stripe sends the `payment_method.attached` webhook. Without the gateway's webhook, Commerce does not record the payment method, and the checkout does not list it.
 
 To check out on behalf of a company account, see [checkout for another customer](../dev-guide/checkout-for-another-customer.md).
+
+To change which saved payment methods the checkout lists for a user, or hide the save checkbox, see [saved payment methods per user](../dev-guide/saved-payment-sources.md).

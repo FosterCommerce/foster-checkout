@@ -322,8 +322,9 @@
 													x-text="payButtonLabel"
 												></button>
 											{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
-												{% set offersPaymentSources = currentUser and craft.fostercheckout.settings.enableSavedPaymentSources %}
-												{% set paymentSources = offersPaymentSources ? craft.commerce.paymentSources.getAllPaymentSourcesByCustomerId(cart.customerId, gateway.id).all() : [] %}
+												{% set savedPaymentSources = currentUser and craft.fostercheckout.settings.enableSavedPaymentSources ? craft.fostercheckout.savedPaymentSources(cart, gateway) : null %}
+												{% set paymentSources = savedPaymentSources.paymentSources ?? [] %}
+												{% set canSavePaymentSource = savedPaymentSources.canSave ?? false %}
 												{% set paymentSourceIds = paymentSources|map(paymentSource => paymentSource.id) %}
 												{# Preselect the cart's saved source, then the customer's primary one #}
 												{% set preferredPaymentSourceId = cart.paymentSourceId in paymentSourceIds ? cart.paymentSourceId : (cart.customer.primaryPaymentSourceId ?? null) %}
@@ -352,7 +353,7 @@
 													   Mounting Stripe's form posts the pay action, which would charge a selected saved source. #}
 													<template x-if="paymentSourceId === 'new'">
 														<div x-init="$nextTick(() => scheduleStripeReinit())">
-															{% if offersPaymentSources %}
+															{% if canSavePaymentSource %}
 																{% include 'foster-checkout/_components/app/save-payment-source-checkbox' %}
 															{% endif %}
 

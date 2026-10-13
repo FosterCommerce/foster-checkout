@@ -4,23 +4,21 @@
 
 ### Added
 
-- Added **Enable saved payment methods** at **Checkout -> Features**, which lets a signed-in customer paying with Stripe choose a saved payment method or save a new one. It is off after updating.
-- Added **Saved payment method display** at **Checkout -> Features**.
-- Added **Delete cleared carts** at **Checkout -> Features**, which moves a cart the customer clears to the trash instead of leaving it as an inactive cart. It is off after updating.
-- Added the `foster-checkout/cart/delete` action.
+- Added **Enable saved payment methods** and **Saved payment method display** at **Checkout -> Features**, which let a signed-in customer paying with Stripe choose a saved payment method or save a new one. Saved payment methods are off after updating.
+- Added **Delete cleared carts** at **Checkout -> Features** and the `foster-checkout/cart/delete` action, which move a cart the customer clears to the trash instead of leaving it as an inactive cart. It is off after updating.
+- Added the `Checkout::EVENT_DEFINE_SAVED_PAYMENT_SOURCES` event, so a module can change which saved payment methods the checkout lists, or hide the save checkbox, and `craft.fostercheckout.savedPaymentSources()`.
 
 ### Changed
 
-- Order summary fields and the order note now save when the customer leaves a field or changes a choice, without a Save button.
-- A checkout field on the single-page checkout now saves when the customer leaves it, even while its panel is incomplete.
+- Order summary fields and the order note now save when the customer leaves a field or changes a choice, without a Save button. On the single-page checkout, a checkout field saves even while its panel is incomplete.
 - The “Signed in as” line no longer shows the signed-in user's email address.
 - Renamed **Offer pickup at the store location** at **Checkout -> Features** to **Enable customer pickup**.
-- Saved address dropdowns show each address on two lines: its recipient, and its label when **Show the address label** is on, then the address.
-- The shipping address dropdown is labeled “Ship to”, since it also lists the new address and pickup choices.
+- Saved address dropdowns show each address on two lines: its recipient, and its label when **Show the address label** is on, then the address. The shipping address dropdown is labeled “Ship to”, since it also lists the new address and pickup choices.
 
 ### Fixed
 
 - Fixed a bug where a checkbox checkout field with a box ticked could fail to save.
+- Fixed a bug where the pay button on the single-page checkout could stay disabled after another panel saved while a new billing address was partly entered.
 
 ## 2.0.0 - 2026-10-02
 

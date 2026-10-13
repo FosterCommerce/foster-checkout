@@ -5939,7 +5939,8 @@ const cartPersistence = () => ({
       this.stripAddressGroup(payload, "billingAddress[");
       payload.billingAddressId = "";
       payload.useNewBillingAddress = "0";
-    } else if (this.useNewBillingAddress && hasBillingFields) {
+    } else if (this.useNewBillingAddress && hasBillingFields && // Leave out a half-typed billing address, since it would fail another panel's save
+    this.panelFieldsReady("payment")) {
       payload.useNewBillingAddress = "1";
       payload.billingAddressId = "";
     } else if (this.billingAddressId) {

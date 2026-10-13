@@ -24,6 +24,7 @@ A ready-made, best-practices cart and checkout for Craft Commerce.
 - [Checkout for another customer](./dev-guide/checkout-for-another-customer.md), running the checkout against an account the shopper is buying for
 - [Blocking payment](./dev-guide/blocking-payment.md), hiding the payment form with a reason your code decides
 - [Payment form parameters](./dev-guide/payment-form-params.md), changing what a gateway's form is rendered with, per order
+- [Saved payment methods per user](./dev-guide/saved-payment-sources.md), changing which saved payment methods the checkout lists, and whether it shows the save checkbox
 - [Newsletter services](./dev-guide/newsletter-services.md), subscribing customers through Mailchimp or another service
 
 **Reference:**

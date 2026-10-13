@@ -340,8 +340,9 @@
 																	{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
 																</button>
 															{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
-																{% set offersPaymentSources = currentUser and craft.fostercheckout.settings.enableSavedPaymentSources %}
-																{% set paymentSources = offersPaymentSources ? craft.commerce.paymentSources.getAllPaymentSourcesByCustomerId(cart.customerId, gateway.id).all() : [] %}
+																{% set savedPaymentSources = currentUser and craft.fostercheckout.settings.enableSavedPaymentSources ? craft.fostercheckout.savedPaymentSources(cart, gateway) : null %}
+																{% set paymentSources = savedPaymentSources.paymentSources ?? [] %}
+																{% set canSavePaymentSource = savedPaymentSources.canSave ?? false %}
 																{% set paymentSourceIds = paymentSources|map(paymentSource => paymentSource.id) %}
 																{# Preselect the cart's saved source, then the customer's primary one #}
 																{% set preferredPaymentSourceId = cart.paymentSourceId in paymentSourceIds ? cart.paymentSourceId : (cart.customer.primaryPaymentSourceId ?? null) %}
@@ -369,7 +370,7 @@
 																	<template x-if="paymentSourceId === 'new'">
 																		{# Mount the form here when it renders after Stripe's script has loaded #}
 																		<div x-init="typeof initStripe === 'function' && initStripe()">
-																			{% if offersPaymentSources %}
+																			{% if canSavePaymentSource %}
 																				{% include 'foster-checkout/_components/app/save-payment-source-checkbox' %}
 																			{% endif %}
 

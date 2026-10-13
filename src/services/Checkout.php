@@ -36,6 +36,7 @@ use fostercommerce\advanceddiscounts\variables\AdvancedDiscountsVariable;
 use fostercommerce\fostercheckout\events\DefineCheckoutContactEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentFormParamsEvent;
+use fostercommerce\fostercheckout\events\DefineSavedPaymentSourcesEvent;
 use fostercommerce\fostercheckout\events\NewsletterSubscribeEvent;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\helpers\CheckoutAddressFormatter;
@@ -160,6 +161,27 @@ class Checkout extends Component
 	public const string EVENT_DEFINE_PAYMENT_FORM_PARAMS = 'definePaymentFormParams';
 
 	/**
+	 * @event DefineSavedPaymentSourcesEvent The event that is triggered before the checkout lists the saved payment methods for a gateway.
+	 *
+	 * ```php
+	 * use fostercommerce\fostercheckout\events\DefineSavedPaymentSourcesEvent;
+	 * use fostercommerce\fostercheckout\services\Checkout;
+	 * use yii\base\Event;
+	 *
+	 * Event::on(
+	 *     Checkout::class,
+	 *     Checkout::EVENT_DEFINE_SAVED_PAYMENT_SOURCES,
+	 *     function (DefineSavedPaymentSourcesEvent $event) {
+	 *         $event->canSave = false;
+	 *     }
+	 * );
+	 * ```
+	 *
+	 * @since 2.1.0
+	 */
+	public const string EVENT_DEFINE_SAVED_PAYMENT_SOURCES = 'defineSavedPaymentSources';
+
+	/**
 	 * @event NewsletterSubscribeEvent The event that is triggered when a customer submits their email with the newsletter checkbox ticked.
 	 *
 	 * A site that runs its newsletter on a service other than Klaviyo subscribes the customer here.
@@ -271,6 +293,28 @@ class Checkout extends Component
 		$this->trigger(self::EVENT_DEFINE_PAYMENT_FORM_PARAMS, $definePaymentFormParamsEvent);
 
 		return $definePaymentFormParamsEvent->params;
+	}
+
+	/**
+	 * The order customer's saved payment methods for the gateway and the save checkbox flag, after any handler has run.
+	 * Does not check the signed-in user or `enableSavedPaymentSources`.
+	 *
+	 * @since 2.1.0
+	 */
+	public function savedPaymentSources(Order $order, GatewayInterface $gateway): DefineSavedPaymentSourcesEvent
+	{
+		/** @var Commerce $commerce */
+		$commerce = Commerce::getInstance();
+
+		$defineSavedPaymentSourcesEvent = new DefineSavedPaymentSourcesEvent([
+			'order' => $order,
+			'gateway' => $gateway,
+			'paymentSources' => $commerce->getPaymentSources()->getAllPaymentSourcesByCustomerId($order->getCustomerId(), (int) $gateway->id)->all(),
+		]);
+
+		$this->trigger(self::EVENT_DEFINE_SAVED_PAYMENT_SOURCES, $defineSavedPaymentSourcesEvent);
+
+		return $defineSavedPaymentSourcesEvent;
 	}
 
 	/**
