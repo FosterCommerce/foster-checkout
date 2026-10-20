@@ -205,7 +205,7 @@ class FosterCheckout extends Plugin
 		'Worcestershire' => 'Worcestershire',
 	];
 
-	public string $schemaVersion = '1.4.0';
+	public string $schemaVersion = '1.5.0';
 
 	public bool $hasCpSection = true;
 

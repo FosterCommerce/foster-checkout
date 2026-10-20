@@ -28,11 +28,13 @@ use craft\fieldlayoutelements\BaseField;
 use craft\fieldlayoutelements\CustomField;
 use craft\fieldlayoutelements\FullNameField;
 use craft\helpers\App;
+use craft\helpers\Db;
 use craft\helpers\StringHelper;
 use craft\web\Request as WebRequest;
 use DateTime;
 use fostercommerce\advanceddiscounts\Plugin as AdvancedDiscounts;
 use fostercommerce\advanceddiscounts\variables\AdvancedDiscountsVariable;
+use fostercommerce\fostercheckout\db\Table;
 use fostercommerce\fostercheckout\events\DefineCheckoutContactEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentFormParamsEvent;
@@ -50,6 +52,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use KlaviyoAPI\ApiException;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
+use yii\db\Exception as DbException;
 
 /**
  * Checkout service
@@ -469,6 +472,20 @@ class Checkout extends Component
 			// Log rather than throw, since the single-page checkout retries a failed sign-up on every save
 			Craft::error("Unable to subscribe {$email} to Klaviyo list {$newsletterSubscribeEvent->listId}: {$klaviyoException->getMessage()}", __METHOD__);
 		}
+	}
+
+	/**
+	 * Record the order's confirmation view, returning false when the order already has one.
+	 *
+	 * @throws DbException
+	 * @internal
+	 * @since 2.1.0
+	 */
+	public function claimConfirmationView(Order $order): bool
+	{
+		return Db::upsert(Table::CONFIRMATION_VIEWS, [
+			'orderId' => $order->id,
+		], false) === 1;
 	}
 
 	/**

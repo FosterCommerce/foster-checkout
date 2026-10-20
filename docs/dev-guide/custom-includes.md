@@ -28,18 +28,19 @@ Saving in the control panel rejects a **Head include** or **Body include** path 
 | `location` | `head`, `body` or `summary` |
 | `step` | `email`, `shipping-address`, `shipping-method`, `billing`, `payment`, `confirmation`, `single-page`, or empty on the cart |
 | `cart` | the current order. Passed to the head and summary includes on every page. The body include on the shipping address step is the one page that does not receive it |
+| `firstView` | on the confirmation page only. `true` the first time the plugin renders the order's confirmation page, for any visitor, and `false` after that. An order completed before updating to 2.1.0 gets `true` the next time its page renders |
 
 The head and body includes render on every cart and checkout page, so branch on `step` to target a single one. The summary include renders wherever the checkout summary does: `single-page` on the one page layout, and the step's own name on each step of the stepped layout.
 
 ```twig
-{% if context == 'checkout' and step == 'confirmation' %}
-	{# Purchase tracking goes here, once the order exists #}
+{% if step == 'confirmation' and firstView %}
+	{# Purchase tracking goes here #}
 {% endif %}
 ```
 
 ## Tips
 
-**Only the four variables above are a contract.** The includes also inherit the surrounding template's variables, which is how `order` is reachable on the confirmation page even though the plugin never passes it. Anything beyond the four can move without warning.
+**Only the variables above are a contract.** The includes also inherit the surrounding template's variables, which is how `order` is reachable on the confirmation page even though the plugin never passes it. Anything beyond them can move without warning.
 
 **The summary include renders once, on page load.** It does not re-render when the single-page checkout changes the shipping method or coupon.
 
