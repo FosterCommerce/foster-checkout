@@ -73,11 +73,15 @@ return [
 	// How an image fills its square box. 'contain' shows the whole image, 'cover' crops it to fill.
 	// 'imageFit' => 'contain', // contain|cover
 
+	// What transforms line item images. 'auto' uses Imager X when it is enabled and Small Pics is not, and Craft otherwise.
+	// 'imageTransformer' => 'auto', // auto|craft|imager-x|smallpics
+
+	// Params passed to Imager X or Small Pics with each line item image, such as a watermark.
+	// Nested arrays, such as Imager X's `transformerParams`, can be set only in this file.
+	// 'imageTransformConfig' => null,
+
 	// Whether a line item with no image shows a "No Image" placeholder
 	// 'enablePlaceholderImages' => false, // true|false
-
-	// Transform config passed to Imager X, when that plugin renders the line item images
-	// 'imagerXConfig' => null,
 
 	// Whether each line item shows its SKU
 	// 'showLineItemSku' => true, // true|false

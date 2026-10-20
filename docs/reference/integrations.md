@@ -11,8 +11,8 @@ These plugins change the checkout when installed. Each is optional and installed
 | Stripe for Craft Commerce | `craftcms/commerce-stripe` | Stripe's payment element, with settings at **Checkout -> Gateways** for its layout, payment method order and Link |
 | PayPal Checkout for Craft Commerce | `craftcms/commerce-paypal-checkout` | PayPal buttons and card fields, with settings at **Checkout -> Gateways** for funding sources, card brands, locale and SDK components |
 | Authorize.net for Craft Commerce | `digital-pros/commerce-authorize` | Card payments through Authorize.net |
-| Small Pics | `smallpics/craft-smallpics` | Line item images served by Small Pics |
-| Imager X | `spacecatninja/imager-x` | Line item image transforms |
+| Small Pics | `smallpics/craft-smallpics` | Line item images transformed by Small Pics, with params such as a watermark |
+| Imager X | `spacecatninja/imager-x` | Line item image transforms, with params such as a watermark |
 | Advanced Discounts | `fostercommerce/advanced-discounts` | Coupon names and messages in the cart and at checkout |
 
 ## AvaTax
@@ -37,11 +37,30 @@ Variants matched by [Products that don’t require shipping](../user-guide/produ
 
 ## Small Pics
 
-With Small Pics enabled, line item images in the cart and checkout use Craft's own image transforms, which Small Pics serves when its `transformNativeImages` setting is on. This holds even when Imager X is installed.
+With **Image transformer** set to Small Pics at **Checkout -> Line Items**, Small Pics transforms line item images in the cart and at checkout. The plugin adds the params in **Image transform params** to each image. Use them for a watermark or any other [Small Pics option](https://github.com/smallpics/craft-smallpics).
+
+The plugin sets each image's width, height and mode. A Small Pics `fit` param replaces **Image fit**. For params set in both the control panel and the config file, see [what overrides what](./settings.md#what-overrides-what).
+
+With **Image transformer** set to Craft, or to Auto (the default) while Small Pics is enabled, line item images use Craft's image transforms. Small Pics serves those when its `transformNativeImages` setting is on, with its `nativeTransformsParams` and not **Image transform params**.
 
 ## Imager X
 
-Line item images in the cart and checkout are transformed through Imager X when it is installed and Small Pics is not. Configure the transform with the `lineItems.imagerXConfig` setting in `config/foster-checkout.php`. Without the plugin, Craft's image transforms size the images.
+Imager X transforms line item images when **Image transformer** is set to Imager X, or to Auto while Imager X is enabled and Small Pics is not. The plugin passes **Image transform params** as Imager X's transform defaults. Set a nested param, such as `transformerParams`, in `lineItems.imageTransformConfig` in `config/foster-checkout.php`, because the control panel table takes only text values.
+
+With Imager X's `transformer` setting at `smallpics`, from `smallpics/imagerx-smallpics`, set a Small Pics watermark in `transformerParams`. A `width` or `fit` in `transformerParams` replaces the one Foster Checkout sets. The example works only with that transformer.
+
+```php
+'lineItems' => [
+	'imageTransformer' => 'imager-x',
+	'imageTransformConfig' => [
+		'transformerParams' => [
+			'watermarkPath' => '/assets/images/watermark.png',
+		],
+	],
+],
+```
+
+`lineItems.imagerXConfig` is now `lineItems.imageTransformConfig`. See [upgrading](../upgrade.md#imager-x-transform-config-renamed).
 
 ## Advanced Discounts
 

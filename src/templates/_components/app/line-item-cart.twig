@@ -18,18 +18,22 @@
 {% set imageSrcSet = null %}
 {% set previewImage = craft.fostercheckout.lineItemImage(lineItem) %}
 {% if previewImage|default %}
-	{# Use Craft's own transforms when Small Pics is enabled, since Small Pics takes them over #}
-	{% if craft.app.plugins.isPluginEnabled('imager-x') and not craft.app.plugins.isPluginEnabled('smallpics') %}
+	{% set imageTransformer = lineItemSettings.imageTransformerInUse() %}
+	{# Put the size in each transform, so the params can't override it #}
+	{# Leave the position out, so Imager X crops around the asset's focal point #}
+	{% set narrowTransform = {width: narrowImageSize, height: narrowImageSize, mode: cropsImage ? 'crop' : 'fit'} %}
+	{% set wideTransform = narrowTransform|merge({width: imageSize, height: imageSize}) %}
+	{% if imageTransformer == 'smallpics' %}
+		{% set imageSrcSet = craft.smallpics.srcset(
+			previewImage,
+			{(narrowImageSize ~ 'w'): narrowTransform, (imageSize ~ 'w'): wideTransform},
+			lineItemSettings.imageTransformParams()
+		) %}
+	{% elseif imageTransformer == 'imager-x' %}
 		{% set images = craft.imagerx.transformImage(
 			previewImage,
-			cropsImage ? [
-				{width: narrowImageSize, height: narrowImageSize},
-				{width: imageSize, height: imageSize}
-			] : [
-				{width: narrowImageSize},
-				{width: imageSize}
-			],
-			lineItemSettings.imagerXConfig
+			[narrowTransform, wideTransform],
+			lineItemSettings.imageTransformParams()
 		) %}
 
 		{% set imageSrcSet = craft.imagerx.srcset(images) %}

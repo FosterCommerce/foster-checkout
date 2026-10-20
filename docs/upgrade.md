@@ -6,6 +6,14 @@ What to change on a site when updating Foster Checkout. Run migrations after eve
 ./craft migrate/all
 ```
 
+## Unreleased
+
+### Imager X transform config renamed
+
+`lineItems.imagerXConfig` is now `lineItems.imageTransformConfig`. A config file using the old key still works, and writes a warning to Craft's log. To stop the warning, rename the key in your config file.
+
+A template reading `lineItems.imagerXConfig` still works and also writes the warning. Read `imageTransformConfig` instead.
+
 ## Upgrading to 2.0.0
 
 ### Extra parameters removed

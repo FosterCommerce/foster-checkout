@@ -94,6 +94,43 @@ final class SettingsTest extends CheckoutTestCase
 		], $moved['lineItems']);
 	}
 
+	public function testImagerXConfigIsReadAsImageTransformConfig(): void
+	{
+		$upgraded = Settings::upgradeLegacySettings([
+			'options' => [
+				'imagerXConfig' => [
+					'mode' => 'crop',
+				],
+			],
+		]);
+
+		self::assertSame([
+			'imageTransformConfig' => [
+				'mode' => 'crop',
+			],
+		], $upgraded['lineItems']);
+	}
+
+	public function testImageTransformConfigBeatsTheImagerXConfigKey(): void
+	{
+		$upgraded = Settings::upgradeLegacySettings([
+			'lineItems' => [
+				'imagerXConfig' => [
+					'mode' => 'fit',
+				],
+				'imageTransformConfig' => [
+					'mode' => 'crop',
+				],
+			],
+		]);
+
+		self::assertSame([
+			'imageTransformConfig' => [
+				'mode' => 'crop',
+			],
+		], $upgraded['lineItems']);
+	}
+
 	public function testValuesWithoutAnOptionsNodeAreUntouched(): void
 	{
 		$values = [

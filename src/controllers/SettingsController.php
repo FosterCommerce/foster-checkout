@@ -18,6 +18,7 @@ use craft\web\Controller;
 use fostercommerce\fostercheckout\base\AddressLookupInterface;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\models\AddressLookupConfig;
+use fostercommerce\fostercheckout\models\LineItemConfig;
 use fostercommerce\fostercheckout\models\LineItemOptionRule;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
@@ -691,13 +692,6 @@ class SettingsController extends Controller
 	}
 
 	/**
-	 * Editable tables and checkbox groups post rows, but the settings model holds a map keyed by
-	 * product type handle and plain lists of codes and handles.
-	 *
-	 * @param array<array-key, mixed> $postedSettings
-	 * @return array<array-key, mixed>
-	 */
-	/**
 	 * @param array<array-key, mixed> $storedSettings
 	 * @param array<array-key, mixed> $postedSettings
 	 * @return array<array-key, mixed>
@@ -705,8 +699,8 @@ class SettingsController extends Controller
 	private function mergeStoredSettings(array $storedSettings, array $postedSettings): array
 	{
 		foreach ($postedSettings as $name => $value) {
-			// A products row an admin deleted has to go, so that table replaces what is stored
-			$mergeGroup = $name !== 'products'
+			// Replace these tables rather than merging them, so a row an admin deleted is removed
+			$mergeGroup = ! in_array($name, ['products', 'imageTransformConfig'], true)
 				&& is_array($value)
 				&& ! array_is_list($value)
 				&& is_array($storedSettings[$name] ?? null);
@@ -720,6 +714,8 @@ class SettingsController extends Controller
 	}
 
 	/**
+	 * Turn posted table and checkbox rows into the settings model's maps and lists.
+	 *
 	 * @param array<array-key, mixed> $postedSettings
 	 * @return array<array-key, mixed>
 	 */
@@ -759,6 +755,10 @@ class SettingsController extends Controller
 			}
 
 			$postedSettings['products'] = $products;
+		}
+
+		if (is_array($postedSettings['lineItems'] ?? null) && isset($postedSettings['lineItems']['imageTransformConfig'])) {
+			$postedSettings['lineItems']['imageTransformConfig'] = LineItemConfig::imageTransformConfigFromRows($postedSettings['lineItems']['imageTransformConfig']);
 		}
 
 		if (isset($postedSettings['priorityCountries'])) {

@@ -8,7 +8,7 @@ Most settings are edited under **Checkout**. The config-only ones, listed after 
 | --- | --- | --- |
 | **Appearance** | `branding`, `options.enableSinglePageCheckout` and `options.enablePageTransitions` | Whether the checkout runs as one page or separate steps, whether steps animate, and **Brand color**, **Header background color**, **Header text color**, **Font**, **Logo**, **Logo height**, **Component style**, **Field labels** and **Title prefix** |
 | **Features** | `options.enableNewsletter`, `options.newsletterListId`, `enableCustomerPickup`, `customerPickupLabel`, `enableSavedPaymentSources`, `savedPaymentSourceDisplay` and `deleteClearedCarts` | Whether the checkout shows the newsletter checkbox and the list it subscribes customers to, whether the shipping address choices include the store location, whether a signed-in customer paying with Stripe can choose a saved payment method and how they are listed, and whether **Clear the cart** moves the cart to the trash. See [customer pickup](../user-guide/customer-pickup.md), [saved payment methods](../user-guide/saved-payment-methods.md) and [integrations](./integrations.md) |
-| **Line Items** | `lineItems`, `products` and `lineItemOptionRules` | Which field each product type's preview image comes from, how a line item image fills its box and whether a placeholder stands in for a missing one. With `paths.useCartTemplate` on, also **Image size**, **Show the SKU**, **Show the stock count**, **Show line item options**, **Hidden option prefix**, **Truncate values to**, and the rules that rewrite an option's name and value |
+| **Line Items** | `lineItems`, `products` and `lineItemOptionRules` | Which field each product type's preview image comes from, how a line item image fills its box, what transforms it and with which params, and whether a placeholder stands in for a missing one. With `paths.useCartTemplate` on, also **Image size**, **Show the SKU**, **Show the stock count**, **Show line item options**, **Hidden option prefix**, **Truncate values to**, and the rules that rewrite an option's name and value |
 | **Gateways** | `paymentGateways` and `zeroValueGatewayHandles` | Per gateway: **Name shown to customers**, and on a Manual gateway, a field layout. A Stripe gateway also sets how its payment element lists the payment methods, their order, and whether Link is included. A PayPal gateway also sets which funding sources its buttons show, which card brands its card fields take, plus the locale and SDK components. Also which gateways an order totaling zero can be paid with, except Stripe, PayPal and Authorize.net gateways |
 | **Custom Fields** | `customerOrderNotesFieldHandle` and the checkout field layouts | The extra fields shown at each checkout position, and the field on Orders holding a customer's note. Blank hides the order notes form |
 | **Addresses** | the keys in the next table, `notShippableProducts`, `addressLookup` and `options.enableAddressVerification` | Which products need no address at all, what the checkout asks for on an address, whether Avalara verifies it, and where address suggestions come from. A cart holding only those products skips the shipping address and method, and Commerce and shipping plugins treat those products as not shippable. See [address fields](../user-guide/address-fields.md) |
@@ -66,8 +66,9 @@ Every setting and its default, as the plugin ships.
 | Address suggestion API key | `addressLookup.apiKey` | none. Takes an environment variable name, such as `$FC_ADDRESS_LOOKUP_KEY` |
 | Image size | `lineItems.imageSize` | `150`, so narrow screens use 75. Accepts 40 to 200 |
 | Image fit | `lineItems.imageFit` | `contain` |
+| Image transformer | `lineItems.imageTransformer` | `auto`. One of `auto`, `craft`, `imager-x` or `smallpics` |
+| Image transform params | `lineItems.imageTransformConfig` | none. Values can be environment variable names, such as `$SMALLPICS_WATERMARK_ORIGIN` |
 | Placeholder images | `lineItems.enablePlaceholderImages` | `false` |
-| Imager X transform | `lineItems.imagerXConfig` | none |
 | Show the SKU | `lineItems.showLineItemSku` | `true` |
 | Show the stock count | `lineItems.showLineItemStock` | `true` |
 | Show line item options | `lineItems.enableLineItemOptions` | `true` |
@@ -120,7 +121,7 @@ Every setting and its default, as the plugin ships.
 | Locale (PayPal) | `paymentGateways.<handle>.locale` | empty |
 | SDK components (PayPal) | `paymentGateways.<handle>.components` | empty |
 
-Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig`, `options.paymentDueDateFieldHandle`, and `lineItems.imagerXConfig`.
+Some settings have no control panel field and are set in `config/foster-checkout.php` only: `branding.faviconConfig` and `options.paymentDueDateFieldHandle`.
 
 ## What overrides what
 
@@ -131,6 +132,8 @@ The config file is merged over stored settings on every request, so a key set in
 The merge applies per key. Setting `branding.color` in the config file pins that one field and leaves the rest of the Appearance screen editable. Remove the key from the config file to make the field editable again.
 
 A list is pinned whole rather than merged. A config file setting `priorityCountries` replaces the stored list; it does not add to it. The same holds for `hiddenAddressFields`, `hiddenBillingAddressFields`, `requiredAddressFields`, `requiredBillingAddressFields` and `zeroValueGatewayHandles`, except that Stripe, PayPal and Authorize.net handles in `zeroValueGatewayHandles` are ignored.
+
+A config file that sets `lineItems.imageTransformConfig` makes the **Image transform params** table read-only, but merges with it per param. A param saved in the table still applies unless the config file sets the same param. To use only the config file's params, delete the table's rows before adding the key.
 
 A gateway's field layout is stored outside plugin settings, so it stays editable even where `paymentGateways` is set in the config file.
 

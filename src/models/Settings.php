@@ -535,7 +535,7 @@ class Settings extends Model
 	 */
 	public static function upgradeLegacySettings(array $values): array
 	{
-		return self::renameOptions(self::moveLineItemSettings($values));
+		return self::renameOptions(self::renameImagerXConfig(self::moveLineItemSettings($values)));
 	}
 
 	/**
@@ -568,6 +568,27 @@ class Settings extends Model
 		if ($lineItems !== []) {
 			$values['lineItems'] = $lineItems;
 		}
+
+		return $values;
+	}
+
+	/**
+	 * @param array<mixed, mixed> $values
+	 * @return array<mixed, mixed>
+	 */
+	private static function renameImagerXConfig(array $values): array
+	{
+		$lineItems = $values['lineItems'] ?? null;
+
+		if (! is_array($lineItems) || ! array_key_exists('imagerXConfig', $lineItems)) {
+			return $values;
+		}
+
+		// Log a warning instead of calling the deprecator, which throws when throwExceptions is set
+		Craft::warning('`lineItems.imagerXConfig` has been renamed to `lineItems.imageTransformConfig`.', 'deprecation-error');
+		$lineItems['imageTransformConfig'] ??= $lineItems['imagerXConfig'];
+		unset($lineItems['imagerXConfig']);
+		$values['lineItems'] = $lineItems;
 
 		return $values;
 	}

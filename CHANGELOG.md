@@ -7,6 +7,7 @@
 - Added **Enable saved payment methods** and **Saved payment method display** at **Checkout -> Features**, which let a signed-in customer paying with Stripe choose a saved payment method or save a new one. Saved payment methods are off after updating.
 - Added **Delete cleared carts** at **Checkout -> Features**, which moves a cleared cart to the trash, and the `foster-checkout/cart/delete` action. The setting is off after updating.
 - Added the `Checkout::EVENT_DEFINE_SAVED_PAYMENT_SOURCES` event, so a module can change which saved payment methods the checkout lists, or hide the save checkbox, and `craft.fostercheckout.savedPaymentSources()`.
+- Added **Image transformer** and **Image transform params** at **Checkout -> Line Items**, which choose what transforms line item images and the params sent with each, such as a watermark. **Image transformer** is Auto after updating, which keeps the transformer used before.
 
 ### Changed
 
@@ -15,6 +16,10 @@
 - The single-page checkout no longer preselects a gateway when more than one is available.
 - **Zero value gateways** no longer lists Stripe, PayPal or Authorize.net gateways, and the checkout no longer uses them on an order totaling zero. To take orders totaling zero, add a Manual gateway to **Zero value gateways**.
 - Saved address dropdowns now show each address on two lines.
+
+### Deprecated
+
+- Deprecated the `lineItems.imagerXConfig` config setting and `LineItemConfig::$imagerXConfig`. Use `lineItems.imageTransformConfig` instead.
 
 ### Fixed
 

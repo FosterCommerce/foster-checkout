@@ -97,6 +97,53 @@
 		warning: 'lineItems.imageFit' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.imageFit' }),
 	}) }}
 
+	{% set imageTransformerOptions = [
+		{ label: 'settings.lineItemOptions.imageTransformerAuto'|t('foster-checkout'), value: 'auto' },
+		{ label: 'settings.lineItemOptions.imageTransformerCraft'|t('foster-checkout'), value: 'craft' },
+	] %}
+	{# List a disabled plugin only while it is selected, so the select still shows the stored value #}
+	{% if craft.app.plugins.isPluginEnabled('imager-x') or settings.lineItems.imageTransformer == 'imager-x' %}
+		{% set imageTransformerOptions = imageTransformerOptions|merge([{ label: 'Imager X', value: 'imager-x' }]) %}
+	{% endif %}
+	{% if craft.app.plugins.isPluginEnabled('smallpics') or settings.lineItems.imageTransformer == 'smallpics' %}
+		{% set imageTransformerOptions = imageTransformerOptions|merge([{ label: 'Small Pics', value: 'smallpics' }]) %}
+	{% endif %}
+
+	{{ forms.selectField({
+		label: 'settings.lineItemOptions.imageTransformer'|t('foster-checkout'),
+		instructions: 'settings.lineItemOptions.imageTransformerHelp'|t('foster-checkout'),
+		id: 'options-imageTransformer',
+		name: 'settings[lineItems][imageTransformer]',
+		value: settings.lineItems.imageTransformer,
+		options: imageTransformerOptions,
+		errors: settings.getErrors('lineItems.imageTransformer'),
+		disabled: readOnly or 'lineItems.imageTransformer' in overriddenSettings,
+		warning: 'lineItems.imageTransformer' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.imageTransformer' }),
+	}) }}
+
+	{% set imageTransformRows = (settings.lineItems.imageTransformConfig ?? [])|map((paramValue, paramName) => {
+		name: paramName,
+		value: paramValue is string ? paramValue : paramValue|json_encode,
+	})|values %}
+
+	{{ forms.editableTableField({
+		label: 'settings.lineItemOptions.imageTransformConfig'|t('foster-checkout'),
+		instructions: 'settings.lineItemOptions.imageTransformConfigHelp'|t('foster-checkout'),
+		id: 'options-imageTransformConfig',
+		name: 'settings[lineItems][imageTransformConfig]',
+		cols: {
+			name: { heading: 'settings.lineItemOptions.imageTransformParam'|t('foster-checkout'), type: 'singleline', code: true },
+			value: { heading: 'settings.lineItemOptions.imageTransformValue'|t('foster-checkout'), type: 'autosuggest', suggestEnvVars: true, code: true },
+		},
+		rows: imageTransformRows,
+		addRowLabel: 'settings.lineItemOptions.imageTransformAddRow'|t('foster-checkout'),
+		allowAdd: true,
+		allowDelete: true,
+		allowReorder: true,
+		static: readOnly or 'lineItems.imageTransformConfig' in overriddenSettings,
+		warning: 'lineItems.imageTransformConfig' in overriddenSettings ? 'settings.overridden'|t('foster-checkout', { setting: 'lineItems.imageTransformConfig' }),
+	}) }}
+
 	{{ forms.lightswitchField({
 		label: 'settings.lineItemOptions.enablePlaceholderImages'|t('foster-checkout'),
 		instructions: 'settings.lineItemOptions.enablePlaceholderImagesHelp'|t('foster-checkout'),

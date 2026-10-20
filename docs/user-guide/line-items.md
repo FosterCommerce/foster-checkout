@@ -13,6 +13,8 @@ The cart page shows everything on this page. With **Delete cleared carts** on at
 | **Preview image fields** | Per product type, the field the cart image comes from. The variant field is used when that variant has an image, the product field otherwise |
 | **Image size** | How wide the image is in the cart, in pixels. Screens narrower than 768 pixels show it at half that width, and screens narrower than 640 pixels hide it. 150 by default, and 40 to 200 is accepted |
 | **Image fit** | Whether the whole image is shown inside a square box, or cropped to fill it. Contain by default |
+| **Image transformer** | What transforms the images: Craft, Imager X or Small Pics. Auto by default, which uses Imager X when it is enabled and Small Pics is not, and Craft otherwise. The list includes Imager X and Small Pics while each is enabled or selected. If the selected plugin is disabled or uninstalled, the images use Craft's transforms and the plugin logs a warning |
+| **Image transform params** | Params sent with each image, such as a watermark, when **Image transformer** uses Imager X or Small Pics. Values can be environment variables, and `true`, `false` and numbers are sent as those types. For each plugin's params, see [plugin integrations](../reference/integrations.md) |
 | **Placeholder images** | Whether a line item with no image shows a "no image" placeholder, loaded from placehold.co. Off by default |
 
 A product type with neither image field set shows no image, and the line item's text fills the row.
