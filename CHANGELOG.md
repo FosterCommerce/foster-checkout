@@ -8,6 +8,7 @@
 - Added **Delete cleared carts** at **Checkout -> Features**, which moves a cleared cart to the trash, and the `foster-checkout/cart/delete` action. The setting is off after updating.
 - Added the `Checkout::EVENT_DEFINE_SAVED_PAYMENT_SOURCES` event, so a module can change which saved payment methods the checkout lists, or hide the save checkbox, and `craft.fostercheckout.savedPaymentSources()`.
 - Added **Image transformer** and **Image transform params** at **Checkout -> Line Items**, which choose what transforms line item images and the params sent with each, such as a watermark. **Image transformer** is Auto after updating, which keeps the transformer used before.
+- Added the `firstView` variable to the head and body includes on the confirmation page.
 
 ### Changed
 

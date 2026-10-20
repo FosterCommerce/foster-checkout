@@ -4,6 +4,7 @@
 {% if not order %}
 	{% exit 404 %}
 {% endif %}
+{% set firstView = craft.fostercheckout.claimConfirmationView(order) %}
 
 {% block head %}
 	<title>
@@ -19,7 +20,8 @@
 			context: 'checkout',
 			location: 'head',
 			step: 'confirmation',
-			cart: order
+			cart: order,
+			firstView: firstView
 		} %}
 	{% endif %}
 {% endblock %}
@@ -243,7 +245,8 @@
 			context: 'checkout',
 			location: 'body',
 			step: 'confirmation',
-			cart: order
+			cart: order,
+			firstView: firstView
 		} %}
 	{% endif %}
 {% endblock %}

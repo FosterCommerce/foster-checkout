@@ -2,6 +2,7 @@
 
 namespace fostercommerce\fostercheckout\migrations;
 
+use craft\commerce\db\Table as CommerceTable;
 use craft\db\Migration;
 use fostercommerce\fostercheckout\db\Table;
 
@@ -32,6 +33,17 @@ class Install extends Migration
 		// One row per translation key, so a concurrent save collides instead of silently duplicating.
 		$this->createIndex(null, Table::CONTENT, ['translationKey'], true);
 
+		$this->archiveTableIfExists(Table::CONFIRMATION_VIEWS);
+
+		// Keyed by order, so a second render of the same confirmation cannot claim the first view.
+		$this->createTable(Table::CONFIRMATION_VIEWS, [
+			'orderId' => $this->integer()->notNull(),
+			'dateCreated' => $this->dateTime()->notNull(),
+			'PRIMARY KEY([[orderId]])',
+		]);
+
+		$this->addForeignKey(null, Table::CONFIRMATION_VIEWS, ['orderId'], CommerceTable::ORDERS, ['id'], 'CASCADE');
+
 		// Craft stamps every other migration as applied on a fresh install without running it, so a
 		// site installing the plugin today would keep its config file and get none of its content.
 		return (new m260813_234259_migrate_checkout_content())->safeUp()
@@ -42,6 +54,7 @@ class Install extends Migration
 	#[\Override]
 	public function safeDown(): bool
 	{
+		$this->dropTableIfExists(Table::CONFIRMATION_VIEWS);
 		$this->dropTableIfExists(Table::CONTENT);
 
 		return true;
