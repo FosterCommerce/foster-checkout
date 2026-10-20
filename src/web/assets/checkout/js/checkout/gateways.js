@@ -29,7 +29,8 @@ export const gatewayHandling = () => ({
 		event.preventDefault();
 		event.stopPropagation();
 
-		if (!this.canPay) {
+		// Block paying until the Stripe mount's pay request returns
+		if (!this.canPay || this.stripeMountPending) {
 			return;
 		}
 
@@ -298,7 +299,7 @@ export const gatewayHandling = () => ({
 			return;
 		}
 
-		const allowed = this.canPay && !this.paying;
+		const allowed = this.canPay && !this.paying && !this.stripeMountPending;
 		const label = this.payButtonLabel;
 		form
 			.querySelectorAll(
@@ -429,7 +430,13 @@ export const gatewayHandling = () => ({
 
 	// One remount per tick, since a second replaces the node the first is still mounting into
 	scheduleStripeReinit() {
-		if (!this.canPay || this.paying || this.stripeReinitQueued) {
+		// Skip mounting at a zero total, since the mount's pay request would complete a free order
+		if (
+			!this.canPay ||
+			this.paying ||
+			this.stripeReinitQueued ||
+			Number(this.totals.total) === 0
+		) {
 			return;
 		}
 
@@ -515,7 +522,10 @@ export const gatewayHandling = () => ({
 
 		this.stripeInvalidated = false;
 
-		if (!this.rootEl.querySelector('.stripe-payment-elements-form')) {
+		const form = this.rootEl.querySelector('.stripe-payment-elements-form');
+
+		// Mount only the selected Stripe form, since a mount posts the payment form with whichever gateway is selected
+		if (!form || Number(form.dataset.gatewayId) !== Number(this.gatewayId)) {
 			return;
 		}
 
@@ -523,34 +533,45 @@ export const gatewayHandling = () => ({
 			return;
 		}
 
-		this.mountStripe();
+		this.mountStripe(form);
 		this.$nextTick(() => this.syncPayButtons());
 	},
 
-	// Stamp each form, so a mount that never renders can time out
-	mountStripe() {
-		this.rootEl
-			.querySelectorAll('.stripe-payment-elements-form')
-			.forEach((form) => {
-				form.mountStartedAt = Date.now();
-			});
+	// Stamp the form, so a mount that never renders can time out
+	mountStripe(form) {
+		form.mountStartedAt = Date.now();
+		this.stripeMountPending = true;
+		this.stripeMountNumber += 1;
 		initStripe();
+		this.clearPendingWhenMounted(form, this.stripeMountNumber);
+	},
+
+	// Clear the flag only for the latest mount, since an earlier mount's timer can fire during a later one
+	clearPendingWhenMounted(form, mountNumber) {
+		const release = () => {
+			observer.disconnect();
+			clearTimeout(timer);
+			if (this.stripeMountNumber === mountNumber) {
+				this.stripeMountPending = false;
+			}
+		};
+		const observer = new MutationObserver(() => {
+			if (!this.stripeMountInFlight(form)) {
+				release();
+			}
+		});
+		const timer = setTimeout(release, STRIPE_MOUNT_LIMIT_MS);
+		observer.observe(form, {
+			childList: true,
+			subtree: true,
+			characterData: true,
+		});
 	},
 
 	restoreStripeIfSkipped() {
 		if (this.stripeInvalidated && !this.saving && !this.saveTimer) {
 			this.scheduleStripeReinit();
 		}
-	},
-
-	retryStripeIfNeeded() {
-		const error = this.paymentFormEl?.querySelector('.stripe-error-message');
-		if (!error?.textContent?.trim() || typeof initStripe !== 'function') {
-			return;
-		}
-
-		error.textContent = '';
-		this.mountStripe();
 	},
 
 	initPaypal(attempt = 0) {

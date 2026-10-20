@@ -47,12 +47,6 @@
 	{% set billingFormOnly = not collectShipping and not hasBookAddresses %}
 
 	{% set gateways = cart.getAvailableGateways() %}
-	{# Read the gateway through the cart, since a saved payment source clears gatewayId #}
-	{% set cartGatewayId = cart.gateway.id ?? (gateways|length ? (gateways|first).id : null) %}
-	{% set gatewayIds = gateways|map(g => g.id) %}
-	{% set hasGateway = cartGatewayId and (cartGatewayId in gatewayIds) %}
-	{% set initialGatewayId = hasGateway ? cartGatewayId : (gateways|length ? (gateways|first).id : null) %}
-
 	{% set manualGatewayIds = [] %}
 	{% for gateway in gateways %}
 		{% if className(gateway) == 'craft\\commerce\\gateways\\Manual' %}
@@ -68,6 +62,7 @@
 		shippingMethodHandle: live.shippingMethodHandle,
 		shippable: shippable,
 		collectShipping: collectShipping,
+		requireBillingAddress: currentStore.requireBillingAddressAtCheckout ? true : false,
 		requireShippingMethod: currentStore.requireShippingMethodSelectionAtCheckout ? true : false,
 		shippingMethods: live.shippingMethods,
 		totals: live.totals,
@@ -75,7 +70,7 @@
 		billingSameAsShipping: (hasMatch and collectShipping and not customerPickup) ? true : false,
 		billingAddressId: hasMatch ? null : sourceBillId,
 		useNewBillingAddress: (isNewBilling or billingFormOnly) ? true : false,
-		gatewayId: initialGatewayId,
+		gatewayId: null,
 		hasShippingAddress: cart.shippingAddressId ? true : false,
 		couponCode: cart.couponCode ?? '',
 		couponName: live.couponName ?? '',

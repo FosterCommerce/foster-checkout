@@ -40,7 +40,7 @@ In the dropdown, each saved address shows its recipient, and its label when **Sh
 
 In the shipping section, the dropdown is labeled **Ship to** and lists the saved addresses, then **New shipping address**, then the pickup choice when [customer pickup](./customer-pickup.md) is on.
 
-In the billing section, the dropdown lists **Same as shipping address**, the saved addresses, then **Use a different billing address**. A pickup order, or a checkout that asks for no shipping address, does not show **Same as shipping address**. Until the customer chooses a billing address, the single-page checkout keeps payment unavailable and lists **Billing address** as a missing detail, and the stepped checkout does not continue past the billing step.
+In the billing section, the dropdown lists **Same as shipping address**, the saved addresses, then **Use a different billing address**. A pickup order, or a checkout that asks for no shipping address, does not show **Same as shipping address**. Until the customer chooses a billing address, the single-page checkout keeps payment unavailable and lists **Billing address** as a missing detail, and the stepped checkout does not continue past the billing step. On an order totaling zero, the single-page checkout does not ask for a billing address; see [single-page checkout](./single-page-checkout.md#what-changes).
 
 **Edit**, beside either dropdown, opens the chosen saved address for editing, for a customer who can edit their saved addresses.
 

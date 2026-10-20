@@ -164,14 +164,13 @@
 
 										{% for gateway in gateways %}
 											{% set gatewayClass = className(gateway) %}
-											{% set zeroValueGatewayHandles = craft.fostercheckout.settings.zeroValueGatewayHandles %}
 											{% set shouldRender = true %}
 											{% set isManualGateway = false %}
 											{% set gatewayNote = craft.fostercheckout.gatewayNote(gateway.handle, {cart}) %}
 
 											{% if cart.total != 0 and gatewayClass == 'craft\\commerce\\gateways\\Manual' and gateway.getOnlyAllowForZeroPriceOrders() %}
 												{% set shouldRender = false %}
-											{% elseif cart.total == 0 and gateway.handle not in zeroValueGatewayHandles %}
+											{% elseif cart.total == 0 and not craft.fostercheckout.settings.isAvailableAtZero(gateway) %}
 												{% set shouldRender = false %}
 											{% endif %}
 

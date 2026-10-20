@@ -23,7 +23,11 @@
 			</div>
 		{% endif %}
 
-		{% include 'foster-checkout/checkout/single-page/_billing' %}
+		<template x-if="collectBilling">
+			<div>
+				{% include 'foster-checkout/checkout/single-page/_billing' %}
+			</div>
+		</template>
 
 		{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
 			<section>
@@ -138,12 +142,11 @@
 					<input type="hidden" name="orderEmail" :value="email">
 
 					<div class="xl:border xl:border-gray-250 xl:rounded-lg xl:[&>div:first-of-type]:rounded-t-[7px] xl:[&>div:last-of-type]:rounded-b-[7px]" x-show="!awaitingGatewayForm">
-						{% set zeroValueGatewayHandles = craft.fostercheckout.settings.zeroValueGatewayHandles %}
 						{% for gateway in gateways %}
 							{% set gatewayClass = className(gateway) %}
 							{% set isManualGateway = false %}
 							{% set gatewayNote = craft.fostercheckout.gatewayNote(gateway.handle, {cart}) %}
-							{% set availableAtZero = gateway.handle in zeroValueGatewayHandles %}
+							{% set availableAtZero = craft.fostercheckout.settings.isAvailableAtZero(gateway) %}
 							{% set zeroOnly = gatewayClass == 'craft\\commerce\\gateways\\Manual' and gateway.getOnlyAllowForZeroPriceOrders() %}
 
 								<div
@@ -168,6 +171,8 @@
 											class="absolute opacity-0 w-px h-px"
 											x-model.number="gatewayId"
 											value="{{ gateway.id }}"
+											{# Block a change during a Stripe mount, since its pay request posts whichever gateway is checked. Not disabled, since a disabled radio drops out of that request #}
+											@click="stripeMountPending && $event.preventDefault()"
 										>
 										<label for="sp_gateway_{{ gateway.id }}" class="inline-flex justify-start items-center gap-4 cursor-pointer">
 											<span class="block">{{ craft.fostercheckout.gatewayLabel(gateway) }}</span>
@@ -176,9 +181,12 @@
 
 									{# Keep the form rendered and hidden, since PayPal's script only initializes on load #}
 									{% set isPaypal = gatewayClass == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
-									{% if not isPaypal %}<template x-if="parseInt(gatewayId) === {{ gateway.id }}">{% endif %}
+									{# Render Stripe's form until its mount's pay request returns, since that request reads the form #}
+									{% set isStripe = gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+									{% if not isPaypal %}<template x-if="parseInt(gatewayId) === {{ gateway.id }}{{ isStripe ? ' || stripeMountPending' }}">{% endif %}
 										<div
-											{% if isPaypal %}x-show="parseInt(gatewayId) === {{ gateway.id }}" x-cloak{% endif %}
+											{% if isPaypal or isStripe %}x-show="parseInt(gatewayId) === {{ gateway.id }}"{% endif %}
+											{% if isPaypal %}x-cloak{% endif %}
 											:class="fittingGatewayRows.length === 1 ? '!pt-0' : ''"
 											class="pt-8
 											[&_form]:grid [&_form]:gap-2

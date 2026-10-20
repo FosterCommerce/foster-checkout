@@ -6552,7 +6552,7 @@ const gatewayHandling = () => ({
     }
     event.preventDefault();
     event.stopPropagation();
-    if (!this.canPay) {
+    if (!this.canPay || this.stripeMountPending) {
       return;
     }
     if (!this.deliveryReadyForPay) {
@@ -6754,7 +6754,7 @@ const gatewayHandling = () => ({
     if (!form) {
       return;
     }
-    const allowed = this.canPay && !this.paying;
+    const allowed = this.canPay && !this.paying && !this.stripeMountPending;
     const label = this.payButtonLabel;
     form.querySelectorAll(
       'button[type="submit"], [id$="authorizeSubmit"], .stripe-payment-elements-submit-button'
@@ -6854,7 +6854,7 @@ const gatewayHandling = () => ({
   },
   // One remount per tick, since a second replaces the node the first is still mounting into
   scheduleStripeReinit() {
-    if (!this.canPay || this.paying || this.stripeReinitQueued) {
+    if (!this.canPay || this.paying || this.stripeReinitQueued || Number(this.totals.total) === 0) {
       return;
     }
     const form = this.rootEl.querySelector(".stripe-payment-elements-form");
@@ -6915,34 +6915,49 @@ const gatewayHandling = () => ({
       return;
     }
     this.stripeInvalidated = false;
-    if (!this.rootEl.querySelector(".stripe-payment-elements-form")) {
+    const form = this.rootEl.querySelector(".stripe-payment-elements-form");
+    if (!form || Number(form.dataset.gatewayId) !== Number(this.gatewayId)) {
       return;
     }
     if (typeof initStripe !== "function") {
       return;
     }
-    this.mountStripe();
+    this.mountStripe(form);
     this.$nextTick(() => this.syncPayButtons());
   },
-  // Stamp each form, so a mount that never renders can time out
-  mountStripe() {
-    this.rootEl.querySelectorAll(".stripe-payment-elements-form").forEach((form) => {
-      form.mountStartedAt = Date.now();
-    });
+  // Stamp the form, so a mount that never renders can time out
+  mountStripe(form) {
+    form.mountStartedAt = Date.now();
+    this.stripeMountPending = true;
+    this.stripeMountNumber += 1;
     initStripe();
+    this.clearPendingWhenMounted(form, this.stripeMountNumber);
+  },
+  // Clear the flag only for the latest mount, since an earlier mount's timer can fire during a later one
+  clearPendingWhenMounted(form, mountNumber) {
+    const release2 = () => {
+      observer2.disconnect();
+      clearTimeout(timer);
+      if (this.stripeMountNumber === mountNumber) {
+        this.stripeMountPending = false;
+      }
+    };
+    const observer2 = new MutationObserver(() => {
+      if (!this.stripeMountInFlight(form)) {
+        release2();
+      }
+    });
+    const timer = setTimeout(release2, STRIPE_MOUNT_LIMIT_MS);
+    observer2.observe(form, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
   },
   restoreStripeIfSkipped() {
     if (this.stripeInvalidated && !this.saving && !this.saveTimer) {
       this.scheduleStripeReinit();
     }
-  },
-  retryStripeIfNeeded() {
-    const error2 = this.paymentFormEl?.querySelector(".stripe-error-message");
-    if (!error2?.textContent?.trim() || typeof initStripe !== "function") {
-      return;
-    }
-    error2.textContent = "";
-    this.mountStripe();
   },
   initPaypal(attempt = 0) {
     if (this.paypalInitTimer) {
@@ -7012,6 +7027,7 @@ const SinglePageCheckout = (props) => {
     shippingMethodHandle: props.shippingMethodHandle ?? "",
     shippable: props.shippable ?? true,
     collectShipping: props.collectShipping ?? true,
+    requireBillingAddress: props.requireBillingAddress ?? true,
     requireShippingMethod: props.requireShippingMethod ?? false,
     billingSameAsShipping: props.billingSameAsShipping ?? true,
     billingAddressId: props.billingAddressId,
@@ -7070,8 +7086,7 @@ const SinglePageCheckout = (props) => {
     hasNewBillingContent: false,
     stripeReinitQueued: false,
     stripeOptionsChanged: false,
-    // Seed from the rendered total, since the form is already mounted against it
-    stripeMountedTotal: props.totals ? Number(props.totals.total) : null,
+    stripeMountedTotal: null,
     editExistingAddress: 0,
     editBillingAddressId: 0,
     gatewayId: props.gatewayId,
@@ -7102,6 +7117,8 @@ const SinglePageCheckout = (props) => {
     paypalInitTimer: null,
     paypalInvalidated: false,
     stripeInvalidated: false,
+    stripeMountPending: false,
+    stripeMountNumber: 0,
     paying: false,
     onPageShow: null,
     rootEl: null,
@@ -7148,7 +7165,6 @@ const SinglePageCheckout = (props) => {
       this.$watch("billingAddressId", () => this.onSelectionChange("payment"));
       this.$watch("useNewBillingAddress", () => {
         this.onSelectionChange("payment");
-        this.$nextTick(() => this.ensureAvailableGateway());
         this.$nextTick(() => this.refreshNewBillingContent());
       });
       this.$watch("gatewayId", () => {
@@ -7164,8 +7180,10 @@ const SinglePageCheckout = (props) => {
         this.$nextTick(() => this.scheduleStripeReinit());
       });
       this.$nextTick(() => this.refreshNewBillingContent());
+      this.$nextTick(() => this.ensureAvailableGateway());
       this.syncPayButtons();
       this.$watch("paying", () => this.syncPayButtons());
+      this.$watch("stripeMountPending", () => this.syncPayButtons());
       this.$watch(
         () => Number(this.totals.total) === 0,
         () => this.$nextTick(() => this.ensureAvailableGateway())
@@ -7246,7 +7264,14 @@ const SinglePageCheckout = (props) => {
       }
       return Boolean(this.shippingMethodHandle);
     },
+    // Skip the billing address on a free order unless the store requires one
+    get collectBilling() {
+      return this.requireBillingAddress || Number(this.totals.total) !== 0;
+    },
     get hasBilling() {
+      if (!this.collectBilling) {
+        return true;
+      }
       if (this.billingSameAsShipping) {
         return true;
       }
@@ -7368,10 +7393,8 @@ const SinglePageCheckout = (props) => {
       if (currentOk) {
         return;
       }
-      const next = available[0]?.querySelector('input[name="gatewayId"]');
-      if (next) {
-        this.gatewayId = Number(next.value);
-      }
+      const lone = available.length === 1 ? available[0].querySelector('input[name="gatewayId"]') : null;
+      this.gatewayId = lone ? Number(lone.value) : null;
     },
     get processingMessage() {
       const selected = Number(this.gatewayId);

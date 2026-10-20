@@ -335,7 +335,7 @@ return [
 	'settings.gateways.stripeLinkHelp' => 'Ob das Stripe-Zahlungsformular Link anbietet. Ist es aus, entfallen auch die mit „Powered by Link“ markierten Zahlungsarten wie Klarna, Bank und Crypto, die in [Stripes Link-Einstellungen](https://dashboard.stripe.com/settings/link) festgelegt werden.',
 	'settings.gateways.intro' => 'Optionen, die bei Wahl einer Zahlungsart angezeigt werden, und bei manuellen Zahlungsanbietern Felder zum Ausfüllen. Aufgeführt sind alle in Commerce eingerichteten Zahlungsanbieter.',
 	'settings.gateways.zeroValueGateways' => 'Zahlungsanbieter für Nullbeträge',
-	'settings.gateways.zeroValueGatewaysHelp' => 'Zahlungsanbieter, die bei einem Bestellwert von null verfügbar sind.',
+	'settings.gateways.zeroValueGatewaysHelp' => 'Zahlungsanbieter, die bei einem Bestellwert von null verfügbar sind. Stripe, PayPal und Authorize.net werden nicht aufgeführt, da sie Zahlungsdaten abfragen, die eine kostenlose Bestellung nicht braucht.',
 	'settings.features.savedPaymentSourceDisplay' => 'Anzeige gespeicherter Zahlungsmethoden',
 	'settings.features.savedPaymentSourceDisplayHelp' => 'Wie der Checkout die gespeicherten Zahlungsmethoden eines Kunden anbietet. „Wie gespeicherte Adressen“ folgt „Anzeige gespeicherter Adressen“ unter „Checkout -> Adressen“, „Liste“ zeigt eine Zeile pro Zahlungsmethode, und „Dropdown“ lässt den Kunden sie durchsuchen.',
 	'settings.features.savedPaymentSourceDisplayAddress' => 'Wie gespeicherte Adressen',

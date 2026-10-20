@@ -336,7 +336,7 @@ return [
 	'settings.gateways.stripeLinkHelp' => 'Si el formulario de pago de Stripe ofrece Link. Desactivarlo también quita los métodos marcados «Powered by Link», como Klarna, Bank y Crypto, que se configuran en [los ajustes de Link de Stripe](https://dashboard.stripe.com/settings/link).',
 	'settings.gateways.intro' => 'Opciones que se muestran cuando un cliente elige un método de pago y, en las pasarelas manuales, campos que completa. Se listan todas las pasarelas configuradas en Commerce.',
 	'settings.gateways.zeroValueGateways' => 'Pasarelas para importe cero',
-	'settings.gateways.zeroValueGatewaysHelp' => 'Pasarelas disponibles cuando el total de un pedido es cero.',
+	'settings.gateways.zeroValueGatewaysHelp' => 'Pasarelas disponibles cuando el total de un pedido es cero. Stripe, PayPal y Authorize.net no aparecen, ya que piden datos de pago que un pedido gratuito no necesita.',
 	'settings.features.savedPaymentSourceDisplay' => 'Visualización de métodos de pago guardados',
 	'settings.features.savedPaymentSourceDisplayHelp' => 'Cómo el checkout ofrece los métodos de pago guardados de un cliente. «Igual que las direcciones guardadas» sigue «Visualización de direcciones guardadas» en «Pago -> Direcciones», «Lista» muestra una fila por cada uno y «Desplegable» permite al cliente buscarlos.',
 	'settings.features.savedPaymentSourceDisplayAddress' => 'Igual que las direcciones guardadas',

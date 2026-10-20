@@ -5,6 +5,7 @@ namespace fostercommerce\fostercheckout\models;
 use Craft;
 use craft\base\Field;
 use craft\base\Model;
+use craft\commerce\base\GatewayInterface;
 use craft\commerce\elements\conditions\products\ProductCondition;
 use craft\web\View;
 use fostercommerce\fostercheckout\FosterCheckout;
@@ -23,6 +24,13 @@ class Settings extends Model
 	public const string SAVED_PAYMENT_SOURCE_DISPLAY_LIST = 'list';
 
 	public const string SAVED_PAYMENT_SOURCE_DISPLAY_DROPDOWN = 'dropdown';
+
+	// Leave out gateways that ask for payment details, since a free order takes no payment
+	private const array NONZERO_GATEWAY_CLASSES = [
+		'craft\\commerce\\stripe\\gateways\\PaymentIntents',
+		'craft\\commerce\\paypalcheckout\\gateways\\Gateway',
+		'digitalpros\\commerce\\authorize\\gateways\\Gateway',
+	];
 
 	/**
 	 * Option keys renamed in 2.0.0, so a stored value or config file naming the old key keeps working.
@@ -263,6 +271,32 @@ class Settings extends Model
 			self::SAVED_PAYMENT_SOURCE_DISPLAY_DROPDOWN => true,
 			default => $this->usesAddressDropdown($paymentSourceCount),
 		};
+	}
+
+	/**
+	 * Whether the gateway can be offered on an order totaling zero.
+	 *
+	 * @since 2.1.0
+	 */
+	public function canTakeZeroValue(GatewayInterface $gateway): bool
+	{
+		foreach (self::NONZERO_GATEWAY_CLASSES as $gatewayClass) {
+			if ($gateway instanceof $gatewayClass) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Whether the gateway is offered on an order totaling zero.
+	 *
+	 * @since 2.1.0
+	 */
+	public function isAvailableAtZero(GatewayInterface $gateway): bool
+	{
+		return in_array($gateway->handle, $this->zeroValueGatewayHandles, true) && $this->canTakeZeroValue($gateway);
 	}
 
 	public function getNotShippableProductsCondition(): ProductCondition

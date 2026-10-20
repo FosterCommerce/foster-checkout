@@ -9,6 +9,7 @@ use craft\base\Model;
 use craft\base\Plugin;
 use craft\commerce\controllers\BaseFrontEndController;
 use craft\commerce\controllers\CartController;
+use craft\commerce\elements\conditions\products\ProductCondition;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
@@ -220,6 +221,9 @@ class FosterCheckout extends Plugin
 	 * @var list<string>
 	 */
 	private array $removedLineItemMessages = [];
+
+	// Built once, since the shippable handler runs per line item for every shipping rule
+	private ?ProductCondition $notShippableProductsCondition = null;
 
 	#[\Override]
 	public function init(): void
@@ -750,7 +754,13 @@ class FosterCheckout extends Plugin
 
 				$product = $purchasable->getOwner();
 
-				if ($product instanceof Product && $settings->getNotShippableProductsCondition()->matchElement($product)) {
+				if (! $product instanceof Product) {
+					return;
+				}
+
+				$this->notShippableProductsCondition ??= $settings->getNotShippableProductsCondition();
+
+				if ($this->notShippableProductsCondition->matchElement($product)) {
 					$purchasableShippableEvent->isShippable = false;
 				}
 			}

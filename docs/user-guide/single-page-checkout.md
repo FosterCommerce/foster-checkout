@@ -6,7 +6,7 @@ Turn it on at **Checkout -> Appearance -> Checkout layout**.
 
 ## What changes
 
-The customer sees four panels on one page, with the order summary beside them: **Contact information**, **Shipping address**, **Shipping method** and **Payment**. The billing address is part of **Payment**. When no item ships, the **Shipping method** panel is absent, and so is **Shipping address** unless the store requires one. The page does not submit a form between panels. The cart saves in the background each time the customer leaves a field or changes a choice, and each panel shows its own saving and saved state.
+The customer sees four panels on one page, with the order summary beside them: **Contact information**, **Shipping address**, **Shipping method** and **Payment**. The billing address is part of **Payment**. On an order totaling zero, **Payment** leaves out the billing address unless **Require Billing Address At Checkout** is on at **Commerce -> Settings -> Stores**. When no item ships, the **Shipping method** panel is absent, and so is **Shipping address** unless the store requires one. The page does not submit a form between panels. The cart saves in the background each time the customer leaves a field or changes a choice, and each panel shows its own saving and saved state.
 
 The URL stays the same throughout. While this is on, the stepped URLs `/email`, `/address`, `/shipping`, `/billing` and `/payment` under the checkout path redirect to the single page, so a bookmarked link still works. The order confirmation page at `/order` does not redirect.
 
@@ -27,5 +27,7 @@ These settings apply to both layouts: checkout copy, checkout fields, payment ga
 **A checkout field saves before its panel is complete.** While a panel has an unfilled required field, a checkout field in that panel saves alone when the customer leaves it. The rest of the panel saves once it is complete.
 
 ## Payment forms
+
+With more than one gateway available, the checkout selects none until the customer chooses one. Stripe's form loads only for the selected Stripe gateway.
 
 Stripe and PayPal mount their own forms against the order total at the moment they mount. Stripe's form is rebuilt when the total changes, or when the billing address it pre-fills changes, so editing an address after opening the payment panel reloads it only when one of those changes. PayPal's form is rebuilt whenever the cart changes.

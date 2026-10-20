@@ -335,7 +335,7 @@ return [
 	'settings.gateways.stripeLinkHelp' => 'Si le formulaire de paiement Stripe propose Link. Le désactiver retire aussi les moyens marqués « Powered by Link », comme Klarna, Bank et Crypto, qui se règlent dans [les paramètres Link de Stripe](https://dashboard.stripe.com/settings/link).',
 	'settings.gateways.intro' => 'Options affichées lorsqu’un client choisit un moyen de paiement et, sur les passerelles manuelles, champs qu’il remplit. Toutes les passerelles configurées dans Commerce sont listées.',
 	'settings.gateways.zeroValueGateways' => 'Passerelles pour montant nul',
-	'settings.gateways.zeroValueGatewaysHelp' => 'Passerelles disponibles lorsque le total d’une commande est nul.',
+	'settings.gateways.zeroValueGatewaysHelp' => 'Passerelles disponibles lorsque le total d’une commande est nul. Stripe, PayPal et Authorize.net ne sont pas proposés, car ils demandent des informations de paiement dont une commande gratuite n’a pas besoin.',
 	'settings.features.savedPaymentSourceDisplay' => 'Affichage des moyens de paiement enregistrés',
 	'settings.features.savedPaymentSourceDisplayHelp' => 'Comment le checkout propose les moyens de paiement enregistrés d’un client. « Comme les adresses enregistrées » suit « Affichage des adresses enregistrées » dans « Paiement -> Adresses », « Liste » affiche une ligne par moyen de paiement, et « Menu déroulant » permet au client de les rechercher.',
 	'settings.features.savedPaymentSourceDisplayAddress' => 'Comme les adresses enregistrées',

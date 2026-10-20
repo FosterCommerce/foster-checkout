@@ -237,7 +237,7 @@ return [
 	// */
 	// 'paymentGateways' => [],
 
-	// An array of gateway handles that should handle zero value orders
+	// Gateway handles available on an order totaling zero. Stripe, PayPal and Authorize.net handles are ignored.
 	// 'zeroValueGatewayHandles' => [],
 
 	// Country a new address starts on, as a two-letter code. Empty asks with nothing chosen.

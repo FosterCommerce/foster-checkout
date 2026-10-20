@@ -60,6 +60,7 @@ export const SinglePageCheckout = (props) => {
 		shippingMethodHandle: props.shippingMethodHandle ?? '',
 		shippable: props.shippable ?? true,
 		collectShipping: props.collectShipping ?? true,
+		requireBillingAddress: props.requireBillingAddress ?? true,
 		requireShippingMethod: props.requireShippingMethod ?? false,
 		billingSameAsShipping: props.billingSameAsShipping ?? true,
 		billingAddressId: props.billingAddressId,
@@ -118,8 +119,7 @@ export const SinglePageCheckout = (props) => {
 		hasNewBillingContent: false,
 		stripeReinitQueued: false,
 		stripeOptionsChanged: false,
-		// Seed from the rendered total, since the form is already mounted against it
-		stripeMountedTotal: props.totals ? Number(props.totals.total) : null,
+		stripeMountedTotal: null,
 		editExistingAddress: 0,
 		editBillingAddressId: 0,
 		gatewayId: props.gatewayId,
@@ -150,6 +150,8 @@ export const SinglePageCheckout = (props) => {
 		paypalInitTimer: null,
 		paypalInvalidated: false,
 		stripeInvalidated: false,
+		stripeMountPending: false,
+		stripeMountNumber: 0,
 		paying: false,
 		onPageShow: null,
 		rootEl: null,
@@ -203,8 +205,6 @@ export const SinglePageCheckout = (props) => {
 			this.$watch('billingAddressId', () => this.onSelectionChange('payment'));
 			this.$watch('useNewBillingAddress', () => {
 				this.onSelectionChange('payment');
-				// A cart already at zero renders with a gatewayId its total may exclude
-				this.$nextTick(() => this.ensureAvailableGateway());
 				this.$nextTick(() => this.refreshNewBillingContent());
 			});
 			this.$watch('gatewayId', () => {
@@ -221,8 +221,10 @@ export const SinglePageCheckout = (props) => {
 				this.$nextTick(() => this.scheduleStripeReinit());
 			});
 			this.$nextTick(() => this.refreshNewBillingContent());
+			this.$nextTick(() => this.ensureAvailableGateway());
 			this.syncPayButtons();
 			this.$watch('paying', () => this.syncPayButtons());
+			this.$watch('stripeMountPending', () => this.syncPayButtons());
 			this.$watch(
 				() => Number(this.totals.total) === 0,
 				() => this.$nextTick(() => this.ensureAvailableGateway())
@@ -322,7 +324,16 @@ export const SinglePageCheckout = (props) => {
 			return Boolean(this.shippingMethodHandle);
 		},
 
+		// Skip the billing address on a free order unless the store requires one
+		get collectBilling() {
+			return this.requireBillingAddress || Number(this.totals.total) !== 0;
+		},
+
 		get hasBilling() {
+			if (!this.collectBilling) {
+				return true;
+			}
+
 			if (this.billingSameAsShipping) {
 				return true;
 			}
@@ -504,10 +515,12 @@ export const SinglePageCheckout = (props) => {
 				return;
 			}
 
-			const next = available[0]?.querySelector('input[name="gatewayId"]');
-			if (next) {
-				this.gatewayId = Number(next.value);
-			}
+			// Select only a lone gateway, since a selected Stripe form starts a payment
+			const lone =
+				available.length === 1
+					? available[0].querySelector('input[name="gatewayId"]')
+					: null;
+			this.gatewayId = lone ? Number(lone.value) : null;
 		},
 
 		get processingMessage() {

@@ -5,20 +5,24 @@
 ### Added
 
 - Added **Enable saved payment methods** and **Saved payment method display** at **Checkout -> Features**, which let a signed-in customer paying with Stripe choose a saved payment method or save a new one. Saved payment methods are off after updating.
-- Added **Delete cleared carts** at **Checkout -> Features** and the `foster-checkout/cart/delete` action, which move a cart the customer clears to the trash instead of leaving it as an inactive cart. It is off after updating.
+- Added **Delete cleared carts** at **Checkout -> Features**, which moves a cleared cart to the trash, and the `foster-checkout/cart/delete` action. The setting is off after updating.
 - Added the `Checkout::EVENT_DEFINE_SAVED_PAYMENT_SOURCES` event, so a module can change which saved payment methods the checkout lists, or hide the save checkbox, and `craft.fostercheckout.savedPaymentSources()`.
 
 ### Changed
 
 - Order summary fields and the order note now save when the customer leaves a field or changes a choice, without a Save button. On the single-page checkout, a checkout field saves even while its panel is incomplete.
-- The “Signed in as” line no longer shows the signed-in user's email address.
-- Renamed **Offer pickup at the store location** at **Checkout -> Features** to **Enable customer pickup**.
-- Saved address dropdowns show each address on two lines: its recipient, and its label when **Show the address label** is on, then the address. The shipping address dropdown is labeled “Ship to”, since it also lists the new address and pickup choices.
+- The single-page checkout no longer asks for a billing address on an order totaling zero, unless **Require Billing Address At Checkout** is on.
+- The single-page checkout no longer preselects a gateway when more than one is available.
+- **Zero value gateways** no longer lists Stripe, PayPal or Authorize.net gateways, and the checkout no longer uses them on an order totaling zero. To take orders totaling zero, add a Manual gateway to **Zero value gateways**.
+- Saved address dropdowns now show each address on two lines.
 
 ### Fixed
 
+- Fixed a bug where saving a cart with many line items could be slow when **Products that don’t require shipping** had rules.
+- Fixed an error that could occur on the single-page checkout when the customer chose another gateway while Stripe’s payment form was loading.
 - Fixed a bug where a checkbox checkout field with a box ticked could fail to save.
 - Fixed a bug where the pay button on the single-page checkout could stay disabled after another panel saved while a new billing address was partly entered.
+- Fixed a bug where the single-page checkout could complete an order totaling zero before the customer placed it.
 
 ## 2.0.0 - 2026-10-02
 
@@ -68,7 +72,7 @@
 - Removed `craft.fostercheckout.klaviyoTrackingEnabled()`.
 - Removed **Save for later** from **Checkout -> Line Items** and the cart, since its button had no action.
 - Removed the checkout's login and register pages, and the **Account** note at **Checkout -> Notes & Links**. **Sign in** goes to Craft's `loginPath`.
-- Removed the **Products** screen. **Preview image fields** moved to **Checkout -> Line Items**, and **Products that never ship**, now **Products that don't require shipping**, moved to **Checkout -> Addresses**.
+- Removed the **Products** screen. **Preview image fields** moved to **Checkout -> Line Items**, and **Products that never ship**, now **Products that don’t require shipping**, moved to **Checkout -> Addresses**.
 - Removed **Extra parameters** and the `paymentGateways.<handle>.params` setting. The plugin logs and ignores a `params` key.
 
 ### Fixed

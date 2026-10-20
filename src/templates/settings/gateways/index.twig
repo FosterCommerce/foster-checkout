@@ -25,7 +25,7 @@
 
 	{% set zeroValueOverridden = 'zeroValueGatewayHandles' in overriddenSettings %}
 	{% set gatewayOptions = [] %}
-	{% for gateway in gateways %}
+	{% for gateway in gateways|filter(gateway => settings.canTakeZeroValue(gateway)) %}
 		{% set gatewayOptions = gatewayOptions|merge([{ label: gateway.name, value: gateway.handle }]) %}
 	{% endfor %}
 
