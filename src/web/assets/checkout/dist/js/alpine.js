@@ -7025,6 +7025,7 @@ const SinglePageCheckout = (props) => {
     shippingAddressId: props.shippingAddressId,
     useNewAddress: props.useNewAddress ?? false,
     shippingMethodHandle: props.shippingMethodHandle ?? "",
+    cartShippingMethodHandle: props.cartShippingMethodHandle,
     shippable: props.shippable ?? true,
     collectShipping: props.collectShipping ?? true,
     requireBillingAddress: props.requireBillingAddress ?? true,
@@ -7195,7 +7196,9 @@ const SinglePageCheckout = (props) => {
       };
       window.addEventListener("pageshow", this.onPageShow);
       this.$nextTick(() => {
-        if (this.cartHasShippingAddress) {
+        if (this.shippingMethodHandle !== this.cartShippingMethodHandle) {
+          this.saveIfValid("shipping");
+        } else if (this.cartHasShippingAddress) {
           this.lastSaved = JSON.stringify(this.buildPayload());
         }
         this.bindPayOverlay();

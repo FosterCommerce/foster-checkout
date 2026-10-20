@@ -18,6 +18,7 @@
 
 ### Fixed
 
+- Fixed a bug where Stripe’s payment form on the single-page checkout could fail with “There is no shipping method selected for this order.”
 - Fixed a bug where saving a cart with many line items could be slow when **Products that don’t require shipping** had rules.
 - Fixed an error that could occur on the single-page checkout when the customer chose another gateway while Stripe’s payment form was loading.
 - Fixed a bug where a checkbox checkout field with a box ticked could fail to save.

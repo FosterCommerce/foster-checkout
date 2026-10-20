@@ -60,6 +60,7 @@
 		shippingAddressId: collectShipping ? initialShippingAddressId : 0,
 		useNewAddress: (collectShipping and isNewAddress) ? true : false,
 		shippingMethodHandle: live.shippingMethodHandle,
+		cartShippingMethodHandle: cart.shippingMethodHandle ?? '',
 		shippable: shippable,
 		collectShipping: collectShipping,
 		requireBillingAddress: currentStore.requireBillingAddressAtCheckout ? true : false,

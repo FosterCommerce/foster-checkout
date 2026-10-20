@@ -58,6 +58,7 @@ export const SinglePageCheckout = (props) => {
 		shippingAddressId: props.shippingAddressId,
 		useNewAddress: props.useNewAddress ?? false,
 		shippingMethodHandle: props.shippingMethodHandle ?? '',
+		cartShippingMethodHandle: props.cartShippingMethodHandle,
 		shippable: props.shippable ?? true,
 		collectShipping: props.collectShipping ?? true,
 		requireBillingAddress: props.requireBillingAddress ?? true,
@@ -236,7 +237,10 @@ export const SinglePageCheckout = (props) => {
 			};
 			window.addEventListener('pageshow', this.onPageShow);
 			this.$nextTick(() => {
-				if (this.cartHasShippingAddress) {
+				// Save a shipping method shown but not on the cart, since a pay request reads the cart's method
+				if (this.shippingMethodHandle !== this.cartShippingMethodHandle) {
+					this.saveIfValid('shipping');
+				} else if (this.cartHasShippingAddress) {
 					this.lastSaved = JSON.stringify(this.buildPayload());
 				}
 				this.bindPayOverlay();
