@@ -130,9 +130,7 @@
 												<ul class="text-gray-500 m-0 list-disc">
 													{% for adj in voucherAdjustments %}
 														{% set code = craft.fostercheckout.voucherLabel(adj) %}
-														<li class="ml-5">{{ code }}
-															({{ adj.amount|abs|currency }}
-															applied)</li>
+														<li class="ml-5">{{ code }} ({{ adj.amount|abs|currency }})</li>
 													{% endfor %}
 												</ul>
 											</div>

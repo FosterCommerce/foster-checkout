@@ -6,6 +6,7 @@ use Craft;
 use craft\commerce\controllers\BaseFrontEndController;
 use craft\commerce\Plugin as Commerce;
 use verbb\giftvoucher\GiftVoucher;
+use verbb\giftvoucher\storage\Order as OrderCodeStorage;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
@@ -37,13 +38,15 @@ class VoucherController extends BaseFrontEndController
 		/** @var GiftVoucher $giftVoucher */
 		$giftVoucher = GiftVoucher::$plugin;
 
+		$codeStorage = $giftVoucher->getCodeStorage();
 		$error = '';
 
-		// Storing the code saves the order, since a code lives on the order or in the session
+		// Save the cart so the response has the voucher adjustment, unless order code storage already saved it
 		$applied = $giftVoucher->getCodes()->matchCode($voucherCode, $error)
-			&& $giftVoucher->getCodeStorage()->add($voucherCode, $cart);
+			&& $codeStorage->add($voucherCode, $cart)
+			&& ($codeStorage instanceof OrderCodeStorage || Craft::$app->getElements()->saveElement($cart, false, false, $commerce->getSettings()->updateCartSearchIndexes));
 
-		// Gift Voucher leaves the message empty when a store has no code storage configured
+		// Set a message for a failed add() or cart save, since neither sets one
 		if (! $applied && $error === '') {
 			$error = Craft::t('foster-checkout', 'voucher.applyFailed');
 		}

@@ -72,7 +72,7 @@
 							</p>
 							<ul class="text-gray-500 m-0 list-disc">
 								<template x-for="voucher in totals.vouchers" :key="voucher.name + voucher.amountAsCurrency">
-									<li class="ml-5" x-text="voucher.name + ' (' + voucher.amountAsCurrency + ')'"></li>
+									<li class="ml-5" x-text="voucher.name + ' (' + voucher.appliedAmountAsCurrency + ')'"></li>
 								</template>
 							</ul>
 						</div>

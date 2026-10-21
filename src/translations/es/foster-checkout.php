@@ -140,11 +140,11 @@ return [
 
 	// Gift vouchers
 	'voucher.fallbackLabel' => 'Cupón/tarjeta regalo',
-	'voucher.voucherHeading' => 'Aplicar cupón',
+	'voucher.voucherHeading' => 'Tarjeta regalo o cupón',
 	'voucher.voucherCode' => 'Código de cupón',
-	'voucher.enterCode' => 'Introduce el código de cupón',
+	'voucher.enterCode' => 'Introduce el código',
 	'voucher.applyCode' => 'Aplicar',
-	'voucher.appliedCodesHeading' => 'Vales/tarjetas regalo aplicados a tu pedido',
+	'voucher.appliedCodesHeading' => 'Aplicados a tu pedido',
 	'voucher.applyingCode' => 'Aplicando',
 	'voucher.applyFailed' => 'No se pudo aplicar el código. Inténtalo de nuevo.',
 	'addressVerification.heading' => 'Hemos encontrado una dirección ligeramente distinta',

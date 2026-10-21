@@ -72,7 +72,7 @@ use yii\db\Exception as DbException;
  *     totalAsCurrency: string,
  *     currency: string,
  *     discounts: list<array{name: string, amountAsCurrency: string}>,
- *     vouchers: list<array{name: string, amountAsCurrency: string}>
+ *     vouchers: list<array{name: string, amountAsCurrency: string, appliedAmountAsCurrency: string}>
  * }
  * @phpstan-type CheckoutLineItemTotals array{
  *     discountNames: list<string>,
@@ -1803,6 +1803,7 @@ class Checkout extends Component
 				$vouchers[] = [
 					'name' => $this->voucherLabel($adjustment),
 					'amountAsCurrency' => $adjustment->amountAsCurrency,
+					'appliedAmountAsCurrency' => Currency::formatAsCurrency(abs($adjustment->amount), $cart->currency),
 				];
 			}
 		}

@@ -49,10 +49,10 @@ return [
 	'summary.couponCodeLabel' => 'Discount code',
 	'summary.couponCodeAdded' => 'Coupon code added',
 	'summary.couponCode' => 'Coupon code',
-	'summary.couponCodeMessage' => 'Submit a coupon code to get a discount on your order.',
+	'summary.couponCodeMessage' => 'Enter a coupon code to get a discount on your order.',
 	'summary.couponCodePrompt' => 'Enter coupon code',
 	'summary.couponCodeNeedsEmail' => 'Enter your email address before applying a coupon code.',
-	'summary.submitCouponCode' => 'Submit',
+	'summary.submitCouponCode' => 'Apply',
 	'summary.estimatedTotal' => 'Estimated total',
 	'summary.total' => 'Total',
 	'summary.lineItem.quantity' => 'Qty',
@@ -146,11 +146,11 @@ return [
 
 	// Gift vouchers
 	'voucher.fallbackLabel' => 'Voucher/gift card',
-	'voucher.voucherHeading' => 'Apply voucher/gift card',
+	'voucher.voucherHeading' => 'Gift card or voucher',
 	'voucher.voucherCode' => 'Voucher code',
-	'voucher.enterCode' => 'Enter voucher/gift card code',
-	'voucher.applyCode' => 'Submit',
-	'voucher.appliedCodesHeading' => 'Vouchers/gift cards applied to your order',
+	'voucher.enterCode' => 'Enter code',
+	'voucher.applyCode' => 'Apply',
+	'voucher.appliedCodesHeading' => 'Applied to your order',
 	'voucher.applyingCode' => 'Applying',
 	'voucher.applyFailed' => 'That code could not be applied. Try again.',
 

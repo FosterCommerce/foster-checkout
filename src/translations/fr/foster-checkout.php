@@ -139,11 +139,11 @@ return [
 
 	// Gift vouchers
 	'voucher.fallbackLabel' => 'Coupon/carte-cadeau',
-	'voucher.voucherHeading' => 'Appliquer un coupon / carte-cadeau',
+	'voucher.voucherHeading' => 'Carte-cadeau ou coupon',
 	'voucher.voucherCode' => 'Code coupon',
-	'voucher.enterCode' => 'Saisissez le code du coupon / carte-cadeau',
+	'voucher.enterCode' => 'Saisissez le code',
 	'voucher.applyCode' => 'Appliquer',
-	'voucher.appliedCodesHeading' => 'Coupons / cartes-cadeaux appliqués à votre commande',
+	'voucher.appliedCodesHeading' => 'Appliqués à votre commande',
 	'voucher.applyingCode' => 'Application en cours',
 	'voucher.applyFailed' => 'Ce code n’a pas pu être appliqué. Réessayez.',
 	'addressVerification.heading' => 'Nous avons trouvé une adresse légèrement différente',

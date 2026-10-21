@@ -19,6 +19,7 @@
 - Saved address dropdowns now show each address on two lines.
 - Foster Checkout now completes a paid cart that isn't a completed order when the customer opens the checkout, and refuses changes to that cart and further payments until it completes.
 - The cart and checkout pages, including the order confirmation page, now send no-cache headers and are excluded from Blitz's cache.
+- Renamed the Submit button on the coupon and gift voucher forms to Apply, and shortened the gift voucher form’s other labels. Applied codes under the form now show only the code and amount, such as `CODE ($16.00)`.
 
 ### Deprecated
 
@@ -32,6 +33,7 @@
 - Fixed a bug where a checkbox checkout field with a box ticked could fail to save.
 - Fixed a bug where the pay button on the single-page checkout could stay disabled after another panel saved while a new billing address was partly entered.
 - Fixed a bug where the single-page checkout could complete an order totaling zero before the customer placed it.
+- Fixed a bug where the single-page checkout reported a gift voucher code as failed after applying it.
 
 ## 2.0.0 - 2026-10-02
 
