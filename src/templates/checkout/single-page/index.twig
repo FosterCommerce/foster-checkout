@@ -46,7 +46,7 @@
 	{% set isNewBilling = (not hasMatch) and (sourceBillId is null) and hasBillingRecord %}
 	{% set billingFormOnly = not collectShipping and not hasBookAddresses %}
 
-	{% set gateways = cart.getAvailableGateways() %}
+	{% set gateways = craft.fostercheckout.singlePageGateways(cart) %}
 	{% set manualGatewayIds = [] %}
 	{% for gateway in gateways %}
 		{% if className(gateway) == 'craft\\commerce\\gateways\\Manual' %}

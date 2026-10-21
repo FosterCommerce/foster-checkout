@@ -35,6 +35,7 @@
 - Fixed a bug where the single-page checkout could complete an order totaling zero before the customer placed it.
 - Fixed a bug where the single-page checkout reported a gift voucher code as failed after applying it.
 - Fixed bugs where the single-page checkout asked a guest for their email address on page load or in the wrong panel, and marked only one panel as saved when autofill changed two.
+- Fixed a bug where the single-page checkout listed no payment method after a gift voucher brought the total to zero, until the page was reloaded.
 
 ## 2.0.0 - 2026-10-02
 

@@ -11,6 +11,7 @@ use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
 use craft\commerce\enums\LineItemType;
+use craft\commerce\gateways\Manual;
 use craft\commerce\helpers\Currency;
 use craft\commerce\models\LineItem;
 use craft\commerce\models\OrderAdjustment;
@@ -49,6 +50,7 @@ use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\models\ValueConfig;
 use fostercommerce\klaviyoconnect\Plugin as KlaviyoConnect;
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Support\Collection;
 use KlaviyoAPI\ApiException;
 use Throwable;
 use yii\base\Component;
@@ -1057,6 +1059,32 @@ class Checkout extends Component
 		}
 
 		return $elements;
+	}
+
+	/**
+	 * The cart's gateways, including one limited to orders totaling zero while the total is above zero.
+	 *
+	 * @return Collection<array-key, mixed>
+	 */
+	public function singlePageGateways(Order $cart): Collection
+	{
+		/** @var Commerce $commerce */
+		$commerce = Commerce::getInstance();
+
+		return $commerce->getGateways()->getAllCustomerEnabledGateways()
+			->filter(function (mixed $gateway) use ($cart): bool {
+				if (! $gateway instanceof Gateway) {
+					return false;
+				}
+
+				// Check a zero-only gateway's other rules, since a voucher can bring the total to zero without a reload
+				if ($gateway instanceof Manual && $gateway->getOnlyAllowForZeroPriceOrders()) {
+					$gateway = clone $gateway;
+					$gateway->setOnlyAllowForZeroPriceOrders(false);
+				}
+
+				return $gateway->availableForUseWithOrder($cart);
+			});
 	}
 
 	/**
