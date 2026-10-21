@@ -4,6 +4,13 @@ return [
 	// Cart page
 	'cart.cartTitle' => 'Panier',
 	'cart.clearCart' => 'Vider le panier',
+	'cart.paidButIncomplete' => "Nous avons bien reçu votre paiement, mais nous n'avons pas pu finaliser votre commande. Veuillez nous contacter.",
+	'cart.paidButIncompleteTitle' => 'Paiement reçu',
+	'cart.authorizedButIncomplete' => 'Nous avons autorisé votre paiement, mais nous n’avons pas pu finaliser votre commande. Veuillez nous contacter.',
+	'cart.authorizedButIncompleteTitle' => 'Paiement autorisé',
+	'cart.startNewCart' => 'Commencer un nouveau panier',
+	'cart.paidCartCompleted' => 'Votre commande a bien été finalisée.',
+	'cart.paidButIncompleteCartNumber' => 'Votre numéro de panier est {number}.',
 	'cart.totalItemsPlural' => 'Il y a {qty} articles dans votre panier',
 	'cart.totalItemsSingle' => 'Il y a {qty} article dans votre panier',
 	'cart.totalItemsZero' => 'Votre panier est vide',

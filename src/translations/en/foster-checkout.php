@@ -4,6 +4,13 @@ return [
 	// Cart page
 	'cart.cartTitle' => 'Cart',
 	'cart.clearCart' => 'Clear the cart',
+	'cart.paidButIncomplete' => 'We received your payment but couldn’t complete your order. Please contact us.',
+	'cart.paidButIncompleteTitle' => 'Payment received',
+	'cart.authorizedButIncomplete' => 'We authorized your payment but couldn’t complete your order. Please contact us.',
+	'cart.authorizedButIncompleteTitle' => 'Payment authorized',
+	'cart.startNewCart' => 'Start a new cart',
+	'cart.paidCartCompleted' => 'Your order is complete.',
+	'cart.paidButIncompleteCartNumber' => 'Your cart number is {number}.',
 	'cart.totalItemsPlural' => 'There are {qty} items in your cart',
 	'cart.totalItemsSingle' => 'There is {qty} item in your cart',
 	'cart.totalItemsZero' => 'There are no items in your cart',

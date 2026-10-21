@@ -115,6 +115,11 @@ export const cartPersistence = () => ({
 			isJson = false;
 		}
 
+		// A refused change on a paid cart that just completed names the confirmation page
+		if (!response.ok && typeof data.redirect === 'string') {
+			window.location.assign(data.redirect);
+		}
+
 		return { response, data, isJson };
 	},
 

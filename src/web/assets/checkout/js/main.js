@@ -818,6 +818,14 @@ const AutosaveForm = (options) => {
 				});
 
 				if (!response.ok) {
+					const data = await response.json().catch(() => ({}));
+
+					// A refused change on a paid cart that just completed names the confirmation page
+					if (typeof data.redirect === 'string') {
+						window.location.assign(data.redirect);
+						return;
+					}
+
 					throw new Error(response.statusText);
 				}
 			} catch {

@@ -65,6 +65,8 @@ Open **Checkout -> Gateways**. Every gateway configured in Commerce is listed. O
 
 Reload the payment step. Each gateway shows under the name you set.
 
+If a gateway's page at **Commerce -> Settings -> Gateways** shows a **Webhook URL**, add that URL to the gateway account's webhook settings. If a customer pays but doesn't come back to the checkout, the webhook completes the order.
+
 Place a test order to confirm payment works end to end.
 
 ## Where to go next

@@ -5,6 +5,7 @@ These plugins change the checkout when installed. Each is optional and installed
 | Plugin | Package | What it adds |
 | --- | --- | --- |
 | AvaTax | `surprisehighway/craft-avatax` | Address verification on the shipping address |
+| Blitz | `putyourlightson/craft-blitz` | Cart and checkout pages kept out of its cache |
 | Gift Voucher | `verbb/gift-voucher` | A voucher and gift card field on the payment step |
 | Klaviyo Connect | `fostercommerce/klaviyoconnect` 7.3.0 or later | Newsletter checkbox subscriptions to a Klaviyo list |
 | Postie | `verbb/postie` | Carrier shipping rates |
@@ -18,6 +19,16 @@ These plugins change the checkout when installed. Each is optional and installed
 ## AvaTax
 
 Needed for **Verify shipping addresses** on **Checkout -> Addresses**. AvaTax's own **Enable address validation** setting must also be on. Covers the United States and Canada. For how it interacts with address suggestions, see [address fields](../user-guide/address-fields.md#address-verification-and-suggestions).
+
+## Blitz
+
+Foster Checkout keeps the cart path and every checkout page, including the order confirmation page, out of Blitz's cache, so they don't need to be in Blitz's excluded URI patterns. This includes a cart template of your own at the cart path.
+
+If your web server serves Blitz's cached files directly, it keeps serving the cart and checkout pages Blitz cached before you installed or updated Foster Checkout. To clear them, run:
+
+```sh
+./craft blitz/cache/clear-urls "https://example.com/cart*,https://example.com/checkout*"
+```
 
 ## Gift Voucher
 
