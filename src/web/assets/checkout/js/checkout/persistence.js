@@ -202,14 +202,12 @@ export const cartPersistence = () => ({
 	},
 
 	async saveCart(extra = {}) {
-		// Commerce holds a guest's cart against their email, so the panel says why it is not saving
+		// Ask for the email in the contact panel, since a guest's cart is saved against their email
 		if (!this.loggedIn && !this.hasEmail && !this.cartHasShippingAddress) {
 			this.status = this.emailNeededLabel;
 			this.statusTone = 'error';
-			this.setPanelStatus(
-				extra.panel || this.queuedSavePanel || 'delivery',
-				'error'
-			);
+			this.clearSavingPanel(extra.panel || this.queuedSavePanel);
+			this.setPanelStatus('contact', 'error');
 
 			return;
 		}

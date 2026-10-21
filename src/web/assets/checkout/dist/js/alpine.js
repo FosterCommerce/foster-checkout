@@ -6055,10 +6055,8 @@ const cartPersistence = () => ({
     if (!this.loggedIn && !this.hasEmail && !this.cartHasShippingAddress) {
       this.status = this.emailNeededLabel;
       this.statusTone = "error";
-      this.setPanelStatus(
-        extra.panel || this.queuedSavePanel || "delivery",
-        "error"
-      );
+      this.clearSavingPanel(extra.panel || this.queuedSavePanel);
+      this.setPanelStatus("contact", "error");
       return;
     }
     if (this.saving) {
