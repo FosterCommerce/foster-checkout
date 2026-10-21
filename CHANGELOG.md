@@ -20,6 +20,7 @@
 - Foster Checkout now completes a paid cart that isn't a completed order when the customer opens the checkout, and refuses changes to that cart and further payments until it completes.
 - The cart and checkout pages, including the order confirmation page, now send no-cache headers and are excluded from Blitz's cache.
 - Renamed the Submit button on the coupon and gift voucher forms to Apply, and shortened the gift voucher form’s other labels. Applied codes under the form now show only the code and amount, such as `CODE ($16.00)`.
+- The pay button now reads “Complete order” on an order totaling zero, instead of “Pay $0.00”.
 
 ### Deprecated
 

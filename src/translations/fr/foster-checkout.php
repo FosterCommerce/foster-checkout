@@ -125,6 +125,7 @@ return [
 	'payment.stepName' => 'Paiement',
 	'payment.paymentMethod' => 'Moyen de paiement',
 	'payment.payButtonText' => 'Payer',
+	'payment.completeOrder' => 'Finaliser la commande',
 	'payment.processing' => 'Veuillez patienter pendant le traitement de votre paiement.',
 	'payment.placingOrder' => 'Veuillez patienter pendant que nous enregistrons votre commande.',
 	'payment.cardNumberError' => 'Saisissez un numéro de carte valide.',

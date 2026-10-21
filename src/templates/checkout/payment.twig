@@ -334,7 +334,7 @@
 																	type="submit"
 																	class="justify-between items-center gap-4 w-full px-4 py-3 mt-6 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
 																>
-																	{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
+																	{{ cart.total == 0 ? 'payment.completeOrder'|t('foster-checkout') : 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
 																</button>
 															{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
 																{% set savedPaymentSources = currentUser and craft.fostercheckout.settings.enableSavedPaymentSources ? craft.fostercheckout.savedPaymentSources(cart, gateway) : null %}

@@ -132,6 +132,7 @@ return [
 	'payment.stepName' => 'Payment',
 	'payment.paymentMethod' => 'Payment method',
 	'payment.payButtonText' => 'Pay',
+	'payment.completeOrder' => 'Complete order',
 	'payment.processing' => 'Please wait while we process your payment.',
 	'payment.placingOrder' => 'Please wait while we place your order.',
 	'payment.cardNumberError' => 'Enter a valid card number.',

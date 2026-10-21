@@ -108,6 +108,7 @@ export const SinglePageCheckout = (props) => {
 		applyingVoucherLabel: props.applyingVoucherLabel ?? '',
 		voucherFailedLabel: props.voucherFailedLabel ?? '',
 		payButtonText: props.payButtonText ?? '',
+		completeOrderLabel: props.completeOrderLabel ?? '',
 		processingLabel: props.processingLabel ?? '',
 		placingOrderLabel: props.placingOrderLabel ?? '',
 		manualGatewayIds: asList(props.manualGatewayIds),
@@ -477,6 +478,10 @@ export const SinglePageCheckout = (props) => {
 		},
 
 		get payButtonLabel() {
+			if (Number(this.totals.total) === 0) {
+				return this.completeOrderLabel;
+			}
+
 			return `${this.payButtonText} ${this.totals.totalAsCurrency || ''}`.trim();
 		},
 
