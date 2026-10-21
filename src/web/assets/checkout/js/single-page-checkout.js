@@ -141,7 +141,7 @@ export const SinglePageCheckout = (props) => {
 		},
 		panelErrors: {},
 		panelStatusTimers: {},
-		queuedSavePanel: null,
+		queuedSavePanels: [],
 		pending: 0,
 		saveTimer: null,
 		saveAbort: null,
@@ -238,7 +238,10 @@ export const SinglePageCheckout = (props) => {
 			window.addEventListener('pageshow', this.onPageShow);
 			this.$nextTick(() => {
 				// Save a shipping method shown but not on the cart, since a pay request reads the cart's method
-				if (this.shippingMethodHandle !== this.cartShippingMethodHandle) {
+				if (
+					this.shippingMethodHandle !== this.cartShippingMethodHandle &&
+					this.canSaveCart()
+				) {
 					this.saveIfValid('shipping');
 				} else if (this.cartHasShippingAddress) {
 					this.lastSaved = JSON.stringify(this.buildPayload());
@@ -572,6 +575,10 @@ export const SinglePageCheckout = (props) => {
 			}
 
 			this.setPanelStatus(panel, 'idle');
+		},
+
+		setPanelsStatus(panels, tone) {
+			panels.forEach((panel) => this.setPanelStatus(panel, tone));
 		},
 
 		setPanelStatus(panel, tone) {

@@ -201,12 +201,20 @@ export const cartPersistence = () => ({
 		return fieldErrors?.[0] || data.error || this.voucherFailedLabel;
 	},
 
+	// Wait for a guest's email, since their cart is saved against it
+	canSaveCart() {
+		return this.loggedIn || this.hasEmail || this.cartHasShippingAddress;
+	},
+
 	async saveCart(extra = {}) {
-		// Ask for the email in the contact panel, since a guest's cart is saved against their email
-		if (!this.loggedIn && !this.hasEmail && !this.cartHasShippingAddress) {
+		const panels = extra.panels?.length
+			? extra.panels
+			: [extra.panel || 'delivery'];
+
+		if (!this.canSaveCart()) {
 			this.status = this.emailNeededLabel;
 			this.statusTone = 'error';
-			this.clearSavingPanel(extra.panel || this.queuedSavePanel);
+			panels.forEach((panel) => this.clearSavingPanel(panel));
 			this.setPanelStatus('contact', 'error');
 
 			return;
@@ -222,16 +230,13 @@ export const cartPersistence = () => ({
 				delete queued[name.endsWith('[]') ? name.slice(0, -2) : `${name}[]`];
 			});
 			this.nextSave = { ...queued, ...extra, fieldOnly };
-			this.setPanelStatus(
-				extra.panel || this.queuedSavePanel || 'delivery',
-				'saving'
-			);
+			this.setPanelsStatus(panels, 'saving');
 			return;
 		}
 
-		const panel = extra.panel || this.queuedSavePanel || 'delivery';
 		const payload = { ...extra };
 		delete payload.panel;
+		delete payload.panels;
 		const force = Boolean(payload.force);
 		delete payload.force;
 		const fieldOnly = Boolean(payload.fieldOnly);
@@ -245,13 +250,13 @@ export const cartPersistence = () => ({
 			Object.keys(payload).length === 0 &&
 			JSON.stringify(saved) === this.lastSaved
 		) {
-			this.clearSavingPanel(panel);
+			panels.forEach((panel) => this.clearSavingPanel(panel));
 			return;
 		}
 
-		this.queuedSavePanel = null;
+		this.queuedSavePanels = [];
 
-		this.setPanelStatus(panel, 'saving');
+		this.setPanelsStatus(panels, 'saving');
 		this.saving = true;
 		this.saveAbort = new AbortController();
 		const { signal } = this.saveAbort;
@@ -279,14 +284,14 @@ export const cartPersistence = () => ({
 			if (!isJson) {
 				this.status = this.failedLabel;
 				this.statusTone = 'error';
-				this.setPanelStatus(panel, 'error');
+				this.setPanelsStatus(panels, 'error');
 				this.markNotesError(savingNotes);
 				return;
 			}
 
 			if (!response.ok || data.success === false) {
 				this.applyErrors(data);
-				this.setPanelStatus(panel, 'error');
+				this.setPanelsStatus(panels, 'error');
 				this.markNotesError(savingNotes);
 				return;
 			}
@@ -305,7 +310,7 @@ export const cartPersistence = () => ({
 					couponCode: [couponError],
 				});
 				this.couponOpen = true;
-				this.setPanelStatus(panel, 'error');
+				this.setPanelsStatus(panels, 'error');
 				this.status = '';
 				this.statusTone = 'idle';
 				return;
@@ -314,7 +319,7 @@ export const cartPersistence = () => ({
 			this.clearInputErrors();
 			this.status = this.savedLabel;
 			this.statusTone = 'saved';
-			this.setPanelStatus(panel, 'saved');
+			this.setPanelsStatus(panels, 'saved');
 			Object.assign(this.savedFieldValues, saved);
 			if (!fieldOnly) {
 				this.lastSaved = JSON.stringify(saved);
@@ -329,7 +334,7 @@ export const cartPersistence = () => ({
 
 			this.status = this.failedLabel;
 			this.statusTone = 'error';
-			this.setPanelStatus(panel, 'error');
+			this.setPanelsStatus(panels, 'error');
 			this.markNotesError(savingNotes);
 		} finally {
 			this.saving = false;
@@ -494,25 +499,24 @@ export const cartPersistence = () => ({
 		const nextPanel =
 			(fromEvent && fromEvent.getAttribute('data-fc-panel')) ||
 			panel ||
-			this.queuedSavePanel ||
+			this.queuedSavePanels.at(-1) ||
 			'delivery';
 
 		if (this.saveTimer) {
 			clearTimeout(this.saveTimer);
 		}
 
-		if (this.queuedSavePanel && this.queuedSavePanel !== nextPanel) {
-			this.clearSavingPanel(this.queuedSavePanel);
+		// Queue each panel, since autofill can change two panels within one save delay
+		if (!this.queuedSavePanels.includes(nextPanel)) {
+			this.queuedSavePanels = [...this.queuedSavePanels, nextPanel];
 		}
-
-		this.queuedSavePanel = nextPanel;
 		this.setPanelStatus(nextPanel, 'saving');
 
 		this.saveTimer = setTimeout(() => {
-			const queuedPanel = this.queuedSavePanel;
+			const queuedPanels = this.queuedSavePanels;
 			this.saveTimer = null;
 			this.syncPayButtons();
-			this.saveCart({ panel: queuedPanel });
+			this.saveCart({ panels: queuedPanels });
 		}, delay);
 
 		this.syncPayButtons();

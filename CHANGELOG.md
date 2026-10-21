@@ -34,7 +34,7 @@
 - Fixed a bug where the pay button on the single-page checkout could stay disabled after another panel saved while a new billing address was partly entered.
 - Fixed a bug where the single-page checkout could complete an order totaling zero before the customer placed it.
 - Fixed a bug where the single-page checkout reported a gift voucher code as failed after applying it.
-- Fixed a bug where the single-page checkout could ask a guest for their email address in a panel other than the contact panel.
+- Fixed bugs where the single-page checkout asked a guest for their email address on page load or in the wrong panel, and marked only one panel as saved when autofill changed two.
 
 ## 2.0.0 - 2026-10-02
 

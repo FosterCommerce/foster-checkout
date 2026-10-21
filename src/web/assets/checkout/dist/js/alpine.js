@@ -6051,11 +6051,16 @@ const cartPersistence = () => ({
     const fieldErrors = data2.errors?.voucherCode;
     return fieldErrors?.[0] || data2.error || this.voucherFailedLabel;
   },
+  // Wait for a guest's email, since their cart is saved against it
+  canSaveCart() {
+    return this.loggedIn || this.hasEmail || this.cartHasShippingAddress;
+  },
   async saveCart(extra = {}) {
-    if (!this.loggedIn && !this.hasEmail && !this.cartHasShippingAddress) {
+    const panels = extra.panels?.length ? extra.panels : [extra.panel || "delivery"];
+    if (!this.canSaveCart()) {
       this.status = this.emailNeededLabel;
       this.statusTone = "error";
-      this.clearSavingPanel(extra.panel || this.queuedSavePanel);
+      panels.forEach((panel) => this.clearSavingPanel(panel));
       this.setPanelStatus("contact", "error");
       return;
     }
@@ -6066,15 +6071,12 @@ const cartPersistence = () => ({
         delete queued[name.endsWith("[]") ? name.slice(0, -2) : `${name}[]`];
       });
       this.nextSave = { ...queued, ...extra, fieldOnly: fieldOnly2 };
-      this.setPanelStatus(
-        extra.panel || this.queuedSavePanel || "delivery",
-        "saving"
-      );
+      this.setPanelsStatus(panels, "saving");
       return;
     }
-    const panel = extra.panel || this.queuedSavePanel || "delivery";
     const payload = { ...extra };
     delete payload.panel;
+    delete payload.panels;
     const force = Boolean(payload.force);
     delete payload.force;
     const fieldOnly = Boolean(payload.fieldOnly);
@@ -6083,11 +6085,11 @@ const cartPersistence = () => ({
     const noteName = this.$refs.orderNote?.name;
     const savingNotes = Boolean(noteName && Object.hasOwn(payload, noteName));
     if (!force && Object.keys(payload).length === 0 && JSON.stringify(saved) === this.lastSaved) {
-      this.clearSavingPanel(panel);
+      panels.forEach((panel) => this.clearSavingPanel(panel));
       return;
     }
-    this.queuedSavePanel = null;
-    this.setPanelStatus(panel, "saving");
+    this.queuedSavePanels = [];
+    this.setPanelsStatus(panels, "saving");
     this.saving = true;
     this.saveAbort = new AbortController();
     const { signal } = this.saveAbort;
@@ -6110,13 +6112,13 @@ const cartPersistence = () => ({
       if (!isJson) {
         this.status = this.failedLabel;
         this.statusTone = "error";
-        this.setPanelStatus(panel, "error");
+        this.setPanelsStatus(panels, "error");
         this.markNotesError(savingNotes);
         return;
       }
       if (!response.ok || data2.success === false) {
         this.applyErrors(data2);
-        this.setPanelStatus(panel, "error");
+        this.setPanelsStatus(panels, "error");
         this.markNotesError(savingNotes);
         return;
       }
@@ -6132,7 +6134,7 @@ const cartPersistence = () => ({
           couponCode: [couponError]
         });
         this.couponOpen = true;
-        this.setPanelStatus(panel, "error");
+        this.setPanelsStatus(panels, "error");
         this.status = "";
         this.statusTone = "idle";
         return;
@@ -6140,7 +6142,7 @@ const cartPersistence = () => ({
       this.clearInputErrors();
       this.status = this.savedLabel;
       this.statusTone = "saved";
-      this.setPanelStatus(panel, "saved");
+      this.setPanelsStatus(panels, "saved");
       Object.assign(this.savedFieldValues, saved);
       if (!fieldOnly) {
         this.lastSaved = JSON.stringify(saved);
@@ -6154,7 +6156,7 @@ const cartPersistence = () => ({
       }
       this.status = this.failedLabel;
       this.statusTone = "error";
-      this.setPanelStatus(panel, "error");
+      this.setPanelsStatus(panels, "error");
       this.markNotesError(savingNotes);
     } finally {
       this.saving = false;
@@ -6273,20 +6275,19 @@ const cartPersistence = () => ({
       this.refreshNewBillingContent();
     }
     const fromEvent = event?.target?.closest("[data-fc-panel]");
-    const nextPanel = fromEvent && fromEvent.getAttribute("data-fc-panel") || panel || this.queuedSavePanel || "delivery";
+    const nextPanel = fromEvent && fromEvent.getAttribute("data-fc-panel") || panel || this.queuedSavePanels.at(-1) || "delivery";
     if (this.saveTimer) {
       clearTimeout(this.saveTimer);
     }
-    if (this.queuedSavePanel && this.queuedSavePanel !== nextPanel) {
-      this.clearSavingPanel(this.queuedSavePanel);
+    if (!this.queuedSavePanels.includes(nextPanel)) {
+      this.queuedSavePanels = [...this.queuedSavePanels, nextPanel];
     }
-    this.queuedSavePanel = nextPanel;
     this.setPanelStatus(nextPanel, "saving");
     this.saveTimer = setTimeout(() => {
-      const queuedPanel = this.queuedSavePanel;
+      const queuedPanels = this.queuedSavePanels;
       this.saveTimer = null;
       this.syncPayButtons();
-      this.saveCart({ panel: queuedPanel });
+      this.saveCart({ panels: queuedPanels });
     }, delay3);
     this.syncPayButtons();
   },
@@ -7109,7 +7110,7 @@ const SinglePageCheckout = (props) => {
     },
     panelErrors: {},
     panelStatusTimers: {},
-    queuedSavePanel: null,
+    queuedSavePanels: [],
     pending: 0,
     saveTimer: null,
     saveAbort: null,
@@ -7197,7 +7198,7 @@ const SinglePageCheckout = (props) => {
       };
       window.addEventListener("pageshow", this.onPageShow);
       this.$nextTick(() => {
-        if (this.shippingMethodHandle !== this.cartShippingMethodHandle) {
+        if (this.shippingMethodHandle !== this.cartShippingMethodHandle && this.canSaveCart()) {
           this.saveIfValid("shipping");
         } else if (this.cartHasShippingAddress) {
           this.lastSaved = JSON.stringify(this.buildPayload());
@@ -7436,6 +7437,9 @@ const SinglePageCheckout = (props) => {
         return;
       }
       this.setPanelStatus(panel, "idle");
+    },
+    setPanelsStatus(panels, tone) {
+      panels.forEach((panel) => this.setPanelStatus(panel, tone));
     },
     setPanelStatus(panel, tone) {
       if (!panel) {
