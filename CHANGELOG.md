@@ -17,6 +17,8 @@
 - The single-page checkout no longer preselects a gateway when more than one is available.
 - **Zero value gateways** no longer lists Stripe, PayPal or Authorize.net gateways, and the checkout no longer uses them on an order totaling zero. To take orders totaling zero, add a Manual gateway to **Zero value gateways**.
 - Saved address dropdowns now show each address on two lines.
+- Foster Checkout now completes a paid cart that isn't a completed order when the customer opens the checkout, and refuses changes to that cart and further payments until it completes.
+- The cart and checkout pages, including the order confirmation page, now send no-cache headers and are excluded from Blitz's cache.
 
 ### Deprecated
 

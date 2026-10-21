@@ -14,6 +14,24 @@ What to change on a site when updating Foster Checkout. Run migrations after eve
 
 A template reading `lineItems.imagerXConfig` still works and also writes the warning. Read `imageTransformConfig` instead.
 
+### Paid carts refuse changes
+
+Foster Checkout completes a paid cart that isn't a completed order when the customer opens a checkout page or the built-in cart page, and takes them to the order confirmation page. If it can't complete the order, those pages show a notice asking the customer to contact you, with their cart number and a **Start a new cart** button.
+
+Until the order completes, `commerce/cart/update-cart`, `commerce/payments/pay`, `foster-checkout/voucher/add-code`, `gift-voucher/cart/add-code` and `gift-voucher/cart/remove-code` refuse the cart, and each first tries to complete it. A JSON request gets a 400 response with `message` and `error`, plus a `redirect` to the confirmation page when Foster Checkout completed the order. If your own cart template sends JSON requests, follow `redirect` when it's present. Clearing the cart with `commerce/cart/forget-cart` or `foster-checkout/cart/delete` also tries to complete it first, and clears it if that fails, so the customer can shop again while you resolve the paid cart in the control panel.
+
+Payments made in the control panel aren't refused.
+
+A cart template of your own at the cart path doesn't complete the order or show the notice when it loads. Only the checkout pages do.
+
+### Cart and checkout pages excluded from Blitz
+
+The cart and checkout pages now send no-cache headers and are excluded from Blitz's cache. If your web server serves Blitz's cached files directly, clear the pages Blitz cached before updating:
+
+```sh
+./craft blitz/cache/clear-urls "https://example.com/cart*,https://example.com/checkout*"
+```
+
 ## Upgrading to 2.0.0
 
 ### Extra parameters removed

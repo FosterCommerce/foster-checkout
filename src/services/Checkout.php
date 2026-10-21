@@ -50,6 +50,7 @@ use fostercommerce\fostercheckout\models\ValueConfig;
 use fostercommerce\klaviyoconnect\Plugin as KlaviyoConnect;
 use GuzzleHttp\Exception\GuzzleException;
 use KlaviyoAPI\ApiException;
+use Throwable;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\db\Exception as DbException;
@@ -207,6 +208,13 @@ class Checkout extends Component
 	 * @since 2.0.0
 	 */
 	public const string EVENT_NEWSLETTER_SUBSCRIBE = 'newsletterSubscribe';
+
+	/**
+	 * IDs of the orders completion was attempted on in this request, shared across the Twig variable's instances.
+	 *
+	 * @var list<int|null>
+	 */
+	private static array $completionAttempts = [];
 
 	/**
 	 * @var array<string, array<int, string>>|null
@@ -665,6 +673,29 @@ class Checkout extends Component
 	public function customerPickupPreview(Order $order): string
 	{
 		return $this->addressPreview($this->pickupLocation($order));
+	}
+
+	/**
+	 * Whether a cart has a payment recorded against it but is not a completed order.
+	 */
+	public function isPaidButIncomplete(Order $order): bool
+	{
+		return ! $order->isCompleted && ($order->getTotalPaid() > 0 || $order->getTotalAuthorized() > 0);
+	}
+
+	/**
+	 * Complete a cart that is paid but incomplete, returning whether it is now a completed order.
+	 */
+	public function completePaidCart(Order $order): bool
+	{
+		// Attempt each order once per request, since a refused form post renders a page that asks again
+		if (! in_array($order->id, self::$completionAttempts, true)) {
+			self::$completionAttempts[] = $order->id;
+			$this->attemptCompletion($order);
+		}
+
+		// Read the database, since Commerce marks the order completed in memory before the steps that can fail
+		return Order::find()->id($order->id)->isCompleted(true)->exists();
 	}
 
 	/**
@@ -1261,6 +1292,31 @@ class Checkout extends Component
 		}
 
 		return $options;
+	}
+
+	private function attemptCompletion(Order $order): void
+	{
+		$mutex = Craft::$app->getMutex();
+		$lockName = 'order:' . $order->number;
+
+		// Share the lock name of Commerce's update-cart and pay actions, so neither saves the order meanwhile
+		if (! $mutex->acquire($lockName, 5)) {
+			return;
+		}
+
+		try {
+			/** @var Order|null $freshOrder */
+			$freshOrder = Order::find()->id($order->id)->one();
+
+			if ($freshOrder !== null && ! $freshOrder->isCompleted) {
+				$freshOrder->updateOrderPaidInformation();
+			}
+		} catch (Throwable $throwable) {
+			// Log rather than rethrow, so the page shows the paid-but-incomplete notice
+			Craft::error(sprintf('Could not complete paid order %s: %s', $order->number, $throwable->getMessage()), __METHOD__);
+		} finally {
+			$mutex->release($lockName);
+		}
 	}
 
 	/**

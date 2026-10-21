@@ -5989,6 +5989,9 @@ const cartPersistence = () => ({
     } catch {
       isJson = false;
     }
+    if (!response.ok && typeof data2.redirect === "string") {
+      window.location.assign(data2.redirect);
+    }
     return { response, data: data2, isJson };
   },
   // Posted to the checkout URL, not /actions, so the plugin attaches live totals to the response.
@@ -8574,6 +8577,11 @@ const AutosaveForm = (options) => {
           headers: { Accept: "application/json" }
         });
         if (!response.ok) {
+          const data2 = await response.json().catch(() => ({}));
+          if (typeof data2.redirect === "string") {
+            window.location.assign(data2.redirect);
+            return;
+          }
           throw new Error(response.statusText);
         }
       } catch {

@@ -1,0 +1,21 @@
+{# Clear the refusal flash, since this notice replaces the page that shows flashes #}
+{% do craft.app.session.getFlash('error') %}
+
+{% set authorizedOnly = cart.totalPaid <= 0 %}
+
+<div class="max-w-xl mx-auto my-16 p-8 text-center bg-gray-50 border border-gray-200 rounded-xl">
+	<h1 class="text-2xl font-medium">{{ (authorizedOnly ? 'cart.authorizedButIncompleteTitle' : 'cart.paidButIncompleteTitle')|t('foster-checkout') }}</h1>
+	<p class="mt-4 text-gray-600">{{ (authorizedOnly ? 'cart.authorizedButIncomplete' : 'cart.paidButIncomplete')|t('foster-checkout') }}</p>
+	<p class="mt-2 text-gray-600">{{ 'cart.paidButIncompleteCartNumber'|t('foster-checkout', { number: cart.shortNumber }) }}</p>
+
+	<form method="post" class="mt-6">
+		{{ csrfInput() }}
+		{{ actionInput('commerce/cart/forget-cart') }}
+		{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.cart)) }}
+		<button type="submit" class="px-4 py-3 font-medium text-[var(--brandColor)] bg-white border border-[var(--brandColor)] rounded-xl">{{ 'cart.startNewCart'|t('foster-checkout') }}</button>
+	</form>
+
+	<div class="flex justify-center">
+		{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+	</div>
+</div>

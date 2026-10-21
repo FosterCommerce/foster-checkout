@@ -9,6 +9,7 @@ use craft\base\Model;
 use craft\base\Plugin;
 use craft\commerce\controllers\BaseFrontEndController;
 use craft\commerce\controllers\CartController;
+use craft\commerce\controllers\PaymentsController;
 use craft\commerce\elements\conditions\products\ProductCondition;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
@@ -16,8 +17,10 @@ use craft\commerce\elements\Variant;
 use craft\commerce\events\ModifyCartInfoEvent;
 use craft\commerce\events\OrderNoticeEvent;
 use craft\commerce\events\PurchasableShippableEvent;
+use craft\commerce\Plugin as Commerce;
 use craft\commerce\services\Purchasables;
 use craft\elements\Address;
+use craft\events\CancelableEvent;
 use craft\events\DefineAddressFieldLabelEvent;
 use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
@@ -31,16 +34,21 @@ use craft\i18n\PhpMessageSource;
 use craft\services\Addresses;
 use craft\services\ProjectConfig;
 use craft\services\UserPermissions;
+use craft\web\Controller as WebController;
 use craft\web\Request as WebRequest;
 use craft\web\Response;
 use craft\web\View;
+use fostercommerce\fostercheckout\controllers\CartController as FosterCheckoutCartController;
+use fostercommerce\fostercheckout\controllers\VoucherController;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\plugin\Routes;
 use fostercommerce\fostercheckout\plugin\Services;
 use fostercommerce\fostercheckout\plugin\Variables;
 use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
+use yii\base\ActionEvent;
 use yii\base\Event;
 use yii\base\ModelEvent;
+use yii\web\Response as YiiResponse;
 
 class FosterCheckout extends Plugin
 {
@@ -645,6 +653,163 @@ class FosterCheckout extends Plugin
 		$this->addCheckoutStateToCartResponses();
 		$this->flashOrderNoticesOnce();
 		$this->listUkCounties();
+		$this->keepCartPagesUncached();
+		$this->lockPaidCarts();
+	}
+
+	/**
+	 * Refuse changes and payments on a cart that is paid but incomplete, since a later payment would charge only the difference.
+	 */
+	private function lockPaidCarts(): void
+	{
+		$lockedActions = [
+			CartController::class => ['update-cart', 'forget-cart'],
+			PaymentsController::class => ['pay'],
+			FosterCheckoutCartController::class => ['delete'],
+			VoucherController::class => ['add-code'],
+			'verbb\giftvoucher\controllers\CartController' => ['add-code', 'remove-code'],
+		];
+
+		foreach ($lockedActions as $controllerClass => $actionIds) {
+			Event::on(
+				$controllerClass,
+				WebController::EVENT_BEFORE_ACTION,
+				function (ActionEvent $actionEvent) use ($actionIds): void {
+					$actionId = $actionEvent->action->id;
+
+					if (! in_array($actionId, $actionIds, true) || $this->isStaffRequest()) {
+						return;
+					}
+
+					$order = $this->requestedOrder($actionId);
+
+					if (! $order instanceof Order || ! $this->getCheckout()->isPaidButIncomplete($order)) {
+						return;
+					}
+
+					$completed = $this->getCheckout()->completePaidCart($order);
+
+					// Let the customer clear a cart that won't complete, so they can shop again while staff resolve it
+					if (! $completed && in_array($actionId, ['forget-cart', 'delete'], true)) {
+						return;
+					}
+
+					/** @var WebController $controller */
+					$controller = $actionEvent->action->controller;
+					$actionEvent->isValid = false;
+
+					if ($completed) {
+						$message = Craft::t('foster-checkout', 'cart.paidCartCompleted');
+						$response = $controller->request->getAcceptsJson()
+							? $controller->asFailure($message, [
+								'error' => $message,
+								'redirect' => $this->confirmationUrl($order),
+							])
+							: $controller->redirect($this->confirmationUrl($order));
+					} else {
+						$message = Craft::t('foster-checkout', $order->getTotalPaid() > 0 ? 'cart.paidButIncomplete' : 'cart.authorizedButIncomplete');
+						$response = $controller->asFailure($message, [
+							'error' => $message,
+						]);
+					}
+
+					// End with the response now, since a refused action otherwise renders the posted page
+					if ($response !== null) {
+						Craft::$app->end(0, $response);
+					}
+				}
+			);
+		}
+	}
+
+	/**
+	 * Whether Commerce treats the request as staff working on an order, since staff payments go through the control panel.
+	 */
+	private function isStaffRequest(): bool
+	{
+		return Craft::$app->getRequest()->getIsCpRequest() && Craft::$app->getUser()->checkPermission('commerce-manageOrders');
+	}
+
+	/**
+	 * Read the order the way each locked action reads it.
+	 */
+	private function requestedOrder(string $actionId): ?Order
+	{
+		/** @var Commerce $commerce */
+		$commerce = Commerce::getInstance();
+		/** @var WebRequest $request */
+		$request = Craft::$app->getRequest();
+
+		$number = match ($actionId) {
+			'update-cart' => $request->getBodyParam('number'),
+			'pay' => $request->getParam('number'),
+			default => null,
+		};
+		$orderId = in_array($actionId, ['add-code', 'remove-code'], true) ? $request->getParam('orderId') : null;
+
+		$order = match (true) {
+			is_string($number) && $number !== '' => $commerce->getOrders()->getOrderByNumber($number),
+			is_numeric($orderId) => $commerce->getOrders()->getOrderById((int) $orderId),
+			default => null,
+		};
+
+		// Leave a visitor without a cart alone, since loading one for forget-cart would create it
+		if ($order === null && ! $commerce->getCarts()->getHasSessionCartNumber()) {
+			return null;
+		}
+
+		return $order ?? $commerce->getCarts()->getCart();
+	}
+
+	private function confirmationUrl(Order $order): string
+	{
+		return UrlHelper::siteUrl($this->getCheckout()->settings()->paths->checkout . '/order', [
+			'number' => $order->number,
+			'success' => 'true',
+		]);
+	}
+
+	/**
+	 * Keep cart and checkout pages out of page caches, since each shows one customer's cart.
+	 */
+	private function keepCartPagesUncached(): void
+	{
+		if (! $this->isCartOrCheckoutRequest()) {
+			return;
+		}
+
+		// Exclude the page from Blitz directly, since a config file can replace a site's Blitz exclusions
+		Event::on(
+			'putyourlightson\blitz\services\CacheRequestService',
+			'isCacheableRequest',
+			static function (CancelableEvent $cancelableEvent): void {
+				$cancelableEvent->isValid = false;
+			}
+		);
+
+		/** @var Response $response */
+		$response = Craft::$app->getResponse();
+
+		// Set the headers just before sending, since Blitz sets Cache-Control during app init, after this handler
+		$response->on(
+			YiiResponse::EVENT_BEFORE_SEND,
+			static function () use ($response): void {
+				$response->setNoCacheHeaders();
+			}
+		);
+	}
+
+	private function isCartOrCheckoutRequest(): bool
+	{
+		if ($this->checkoutRequestPath() !== null) {
+			return true;
+		}
+
+		$request = Craft::$app->getRequest();
+
+		return $request instanceof WebRequest
+			&& $request->getIsSiteRequest()
+			&& $request->getPathInfo() === $this->getCheckout()->settings()->paths->cart;
 	}
 
 	/**
