@@ -34,6 +34,23 @@ If your web server serves Blitz's cached files directly, it keeps serving the ca
 
 Adds a code field to the payment step and lists applied vouchers in the order summary.
 
+### Checkout holds
+
+From Gift Voucher 4.0.20, each payment places a hold on the voucher value it uses. The hold stays until the order completes, the payment is declined, or Foster Checkout or staff release it. Stripe's payment element starts a payment when it loads, so opening the payment step places a hold.
+
+Foster Checkout releases holds when a customer applies a code, when staff apply one from **Manage gift vouchers** on an order's edit page, and before each payment:
+
+| Hold | When Foster Checkout releases it |
+| --- | --- |
+| The order's own hold from an earlier payment attempt | Once the attempt has a transaction, or 15 minutes after the hold was placed |
+| Another checkout's hold on the same code | After that checkout goes 15 minutes without starting a payment |
+| The hold of an order that is complete, or has a pending, processing or successful payment | Never |
+| A hold the **Checkout Holds** list shows as **Needs review** | Never |
+
+If another checkout's hold leaves the code with no value for this order, the payment step's code field shows “This code is in use in another checkout. Try again in 5 minutes.”, with the minutes until that hold is 15 minutes old.
+
+To release a hold whose payment can no longer succeed, open the code at **Gift Voucher -> Voucher Codes** and click **Release** under **Checkout Holds**.
+
 ## Klaviyo Connect
 
 With **Newsletter checkbox** turned on at **Checkout -> Features** and a Klaviyo list ID at **Checkout -> Features -> Newsletter list ID**, the newsletter checkbox subscribes customers to that list.

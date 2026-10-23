@@ -147,6 +147,7 @@ return [
 	'voucher.appliedCodesHeading' => 'Appliqués à votre commande',
 	'voucher.applyingCode' => 'Application en cours',
 	'voucher.applyFailed' => 'Ce code n’a pas pu être appliqué. Réessayez.',
+	'voucher.inUseElsewhere' => 'Ce code est utilisé dans un autre paiement. Réessayez dans {minutes, plural, =1{# minute} other{# minutes}}.',
 	'addressVerification.heading' => 'Nous avons trouvé une adresse légèrement différente',
 	'addressVerification.entered' => 'Votre saisie',
 	'addressVerification.suggested' => 'Suggestion',

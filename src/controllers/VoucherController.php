@@ -5,6 +5,7 @@ namespace fostercommerce\fostercheckout\controllers;
 use Craft;
 use craft\commerce\controllers\BaseFrontEndController;
 use craft\commerce\Plugin as Commerce;
+use fostercommerce\fostercheckout\FosterCheckout;
 use verbb\giftvoucher\GiftVoucher;
 use verbb\giftvoucher\storage\Order as OrderCodeStorage;
 use yii\web\NotFoundHttpException;
@@ -38,11 +39,27 @@ class VoucherController extends BaseFrontEndController
 		/** @var GiftVoucher $giftVoucher */
 		$giftVoucher = GiftVoucher::$plugin;
 
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		// Release stale holds first, since held value counts against the code's balance
+		$checkout = $plugin->getCheckout();
+		$checkout->releaseStaleVoucherHolds($cart, $voucherCode);
+
 		$codeStorage = $giftVoucher->getCodeStorage();
 		$error = '';
+		$matched = $giftVoucher->getCodes()->matchCode($voucherCode, $error, $cart);
+		$holdMinutesLeft = $matched ? null : $checkout->voucherHoldMinutesLeft($cart, $voucherCode);
+
+		// Say how long to wait when another checkout's recent hold is why the code was refused
+		if ($holdMinutesLeft !== null) {
+			$error = Craft::t('foster-checkout', 'voucher.inUseElsewhere', [
+				'minutes' => $holdMinutesLeft,
+			]);
+		}
 
 		// Save the cart so the response has the voucher adjustment, unless order code storage already saved it
-		$applied = $giftVoucher->getCodes()->matchCode($voucherCode, $error)
+		$applied = $matched
 			&& $codeStorage->add($voucherCode, $cart)
 			&& ($codeStorage instanceof OrderCodeStorage || Craft::$app->getElements()->saveElement($cart, false, false, $commerce->getSettings()->updateCartSearchIndexes));
 

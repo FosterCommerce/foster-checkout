@@ -16,10 +16,13 @@ use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
 use craft\commerce\events\ModifyCartInfoEvent;
 use craft\commerce\events\OrderNoticeEvent;
+use craft\commerce\events\ProcessPaymentEvent;
 use craft\commerce\events\PurchasableShippableEvent;
 use craft\commerce\Plugin as Commerce;
+use craft\commerce\services\Payments;
 use craft\commerce\services\Purchasables;
 use craft\elements\Address;
+use craft\elements\User;
 use craft\events\CancelableEvent;
 use craft\events\DefineAddressFieldLabelEvent;
 use craft\events\DefineAddressFieldsEvent;
@@ -45,6 +48,7 @@ use fostercommerce\fostercheckout\plugin\Routes;
 use fostercommerce\fostercheckout\plugin\Services;
 use fostercommerce\fostercheckout\plugin\Variables;
 use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
+use verbb\giftvoucher\GiftVoucher;
 use yii\base\ActionEvent;
 use yii\base\Event;
 use yii\base\ModelEvent;
@@ -655,6 +659,76 @@ class FosterCheckout extends Plugin
 		$this->listUkCounties();
 		$this->keepCartPagesUncached();
 		$this->lockPaidCarts();
+		$this->releaseStaleVoucherHoldsBeforePayment();
+		$this->releaseStaleVoucherHoldsOnStaffApply();
+	}
+
+	/**
+	 * Release stale gift voucher holds when staff apply a code to an order, as the checkout does when a customer applies one.
+	 */
+	private function releaseStaleVoucherHoldsOnStaffApply(): void
+	{
+		Event::on(
+			'verbb\giftvoucher\controllers\OrderVouchersController',
+			WebController::EVENT_BEFORE_ACTION,
+			function (ActionEvent $actionEvent): void {
+				if ($actionEvent->action->id !== 'add-code') {
+					return;
+				}
+
+				// Read the body only, since this runs before the action's POST and CSRF checks
+				/** @var WebController $controller */
+				$controller = $actionEvent->action->controller;
+				$voucherCode = $controller->request->getBodyParam('voucherCode');
+				$orderId = filter_var($controller->request->getBodyParam('orderId'), FILTER_VALIDATE_INT, [
+					'options' => [
+						'min_range' => 1,
+					],
+				]);
+
+				if (! is_string($voucherCode) || $orderId === false) {
+					return;
+				}
+
+				/** @var Commerce $commerce */
+				$commerce = Commerce::getInstance();
+				$order = $commerce->getOrders()->getOrderById($orderId);
+
+				/** @var GiftVoucher $giftVoucher */
+				$giftVoucher = GiftVoucher::$plugin;
+
+				/** @var User $currentUser */
+				$currentUser = Craft::$app->getUser()->getIdentity();
+
+				// Release only for a staff member the action lets apply the code, since its order check runs after this
+				if (! $order instanceof Order || ! $giftVoucher->getOrderPermissions()->canManage($order, $currentUser)) {
+					return;
+				}
+
+				$this->getCheckout()->releaseStaleVoucherHolds($order, $voucherCode);
+			}
+		);
+	}
+
+	/**
+	 * Release stale gift voucher holds before a payment, since a stale hold can make the payment fail.
+	 */
+	private function releaseStaleVoucherHoldsBeforePayment(): void
+	{
+		if (! Craft::$app->getPlugins()->isPluginEnabled('gift-voucher')) {
+			return;
+		}
+
+		// Prepend the handler, since Gift Voucher's handler refuses the payment while a stale hold exists
+		Event::on(
+			Payments::class,
+			Payments::EVENT_BEFORE_PROCESS_PAYMENT,
+			function (ProcessPaymentEvent $processPaymentEvent): void {
+				$this->getCheckout()->releaseStaleVoucherHolds($processPaymentEvent->order);
+			},
+			null,
+			false
+		);
 	}
 
 	/**

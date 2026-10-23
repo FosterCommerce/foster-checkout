@@ -41,6 +41,7 @@
 - Fixed a bug where the single-page checkout reported a gift voucher code as failed after applying it.
 - Fixed bugs where the single-page checkout asked a guest for their email address on page load or in the wrong panel, and marked only one panel as saved when autofill changed two.
 - Fixed a bug where the single-page checkout listed no payment method after a gift voucher brought the total to zero, until the page was reloaded.
+- Fixed a bug where a payment could fail, or a gift voucher code could be refused as having no amount left, because of a Gift Voucher hold from an unfinished payment.
 
 ## 2.0.0 - 2026-10-02
 

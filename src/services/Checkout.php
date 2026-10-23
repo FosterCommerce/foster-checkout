@@ -16,6 +16,8 @@ use craft\commerce\models\LineItem;
 use craft\commerce\models\OrderAdjustment;
 use craft\commerce\models\ShippingMethodOption;
 use craft\commerce\Plugin as Commerce;
+use craft\commerce\records\Transaction as TransactionRecord;
+use craft\db\Query;
 use craft\elements\Address;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
@@ -29,6 +31,7 @@ use craft\fieldlayoutelements\BaseField;
 use craft\fieldlayoutelements\CustomField;
 use craft\fieldlayoutelements\FullNameField;
 use craft\helpers\App;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\StringHelper;
 use craft\web\Request as WebRequest;
@@ -54,6 +57,10 @@ use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
 use KlaviyoAPI\ApiException;
 use Throwable;
+use verbb\giftvoucher\elements\Code;
+use verbb\giftvoucher\GiftVoucher;
+use verbb\giftvoucher\records\Reservation;
+use verbb\giftvoucher\services\Reservations;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\db\Exception as DbException;
@@ -234,6 +241,9 @@ class Checkout extends Component
 	 * @since 2.0.0
 	 */
 	public const string EVENT_NEWSLETTER_SUBSCRIBE = 'newsletterSubscribe';
+
+	// Minutes after a checkout's last payment request before another checkout can take its hold
+	private const int VOUCHER_HOLD_IDLE_MINUTES = 15;
 
 	/**
 	 * IDs of the orders completion was attempted on in this request, shared across the Twig variable's instances.
@@ -751,6 +761,132 @@ class Checkout extends Component
 
 		// Read the database, since Commerce marks the order completed in memory before the steps that can fail
 		return Order::find()->id($order->id)->isCompleted(true)->exists();
+	}
+
+	/**
+	 * Release gift voucher holds left by earlier payment attempts on the order, and holds other checkouts left idle on
+	 * its codes or on the code being applied.
+	 *
+	 * @since 2.1.0
+	 */
+	public function releaseStaleVoucherHolds(Order $order, ?string $codeKeyBeingApplied = null): void
+	{
+		// Skip Gift Voucher before 4.0.20, which has no holds
+		if (! class_exists(Reservation::class)) {
+			return;
+		}
+
+		/** @var GiftVoucher $giftVoucher */
+		$giftVoucher = GiftVoucher::$plugin;
+		$codeKeys = $giftVoucher->getCodeStorage()->getCodeKeys($order);
+
+		if ($codeKeyBeingApplied !== null) {
+			$codeKeys[] = $codeKeyBeingApplied;
+		}
+
+		$idleSince = $this->voucherHoldIdleSince();
+
+		/** @var list<array{id: int|string, orderId: int|string|null}> $holds */
+		$holds = Reservation::find()
+			->select(['id', 'orderId'])
+			->where([
+				'status' => Reservations::STATUS_HELD,
+			])
+			->andWhere([
+				'or',
+				// Keep the order's recent hold without a transaction hash, since its gateway request is unanswered
+				[
+					'and',
+					[
+						'orderNumber' => $order->number,
+					],
+					[
+						'or',
+						['not', [
+							'transactionHash' => null,
+						]],
+						['<', 'dateUpdated', $idleSince],
+					],
+				],
+				[
+					'and',
+					[
+						'codeId' => $this->voucherCodeIds($codeKeys),
+					],
+					['<', 'dateUpdated', $idleSince],
+				],
+			])
+			->asArray()
+			->all();
+
+		foreach ($holds as $hold) {
+			// Keep the hold of an order that is complete or being paid, so the voucher value is not spent twice
+			if ($this->needsVoucherHold((int) $hold['orderId'])) {
+				continue;
+			}
+
+			$giftVoucher->getReservations()->releaseReservation((int) $hold['id'], 'Released by Foster Checkout for a voucher change or payment on order ' . $order->number . '.');
+		}
+	}
+
+	/**
+	 * Minutes until the code has value for the order again, once other checkouts' recent holds on it go idle. Null when
+	 * waiting would not make the code usable.
+	 *
+	 * @since 2.1.0
+	 */
+	public function voucherHoldMinutesLeft(Order $order, string $codeKey): ?int
+	{
+		if (! class_exists(Reservation::class)) {
+			return null;
+		}
+
+		/** @var GiftVoucher $giftVoucher */
+		$giftVoucher = GiftVoucher::$plugin;
+		$code = Code::findOne([
+			'codeKey' => $codeKey,
+		]);
+
+		// Wait only on a code refused for its held balance, rather than one that is invalid or expired
+		if (
+			! $code instanceof Code
+			|| ($code->expiryDate instanceof DateTime && $code->expiryDate->format('Ymd') < (new DateTime())->format('Ymd'))
+			|| $giftVoucher->getReservations()->getAvailableAmount($code, $order) > 0
+		) {
+			return null;
+		}
+
+		/** @var list<array{orderId: int|string|null, dateUpdated: string}> $recentHolds */
+		$recentHolds = Reservation::find()
+			->select(['orderId', 'dateUpdated'])
+			->where([
+				'status' => Reservations::STATUS_HELD,
+				'codeId' => $code->id,
+			])
+			->andWhere(['not', [
+				'orderNumber' => $order->number,
+			]])
+			->andWhere(['>=', 'dateUpdated', $this->voucherHoldIdleSince()])
+			->asArray()
+			->all();
+
+		$releasableUpdates = [];
+
+		foreach ($recentHolds as $recentHold) {
+			if (! $this->needsVoucherHold((int) $recentHold['orderId'])) {
+				$releasableUpdates[] = $recentHold['dateUpdated'];
+			}
+		}
+
+		if ($releasableUpdates === []) {
+			return null;
+		}
+
+		/** @var DateTime $idleAt */
+		$idleAt = DateTimeHelper::toDateTime(max($releasableUpdates));
+		$idleAt->modify('+' . self::VOUCHER_HOLD_IDLE_MINUTES . ' minutes');
+
+		return max(1, (int) ceil(($idleAt->getTimestamp() - time()) / 60));
 	}
 
 	/**
@@ -1399,6 +1535,52 @@ class Checkout extends Component
 		} finally {
 			$mutex->release($lockName);
 		}
+	}
+
+	/**
+	 * Whether the order is complete, or has a payment that can still complete it without the customer.
+	 */
+	private function needsVoucherHold(int $orderId): bool
+	{
+		if (Order::find()->id($orderId)->isCompleted(true)->exists()) {
+			return true;
+		}
+
+		/** @var Commerce $commerce */
+		$commerce = Commerce::getInstance();
+
+		foreach ($commerce->getTransactions()->getAllTopLevelTransactionsByOrderId($orderId) as $transaction) {
+			if (in_array($transaction->status, [TransactionRecord::STATUS_PENDING, TransactionRecord::STATUS_PROCESSING, TransactionRecord::STATUS_SUCCESS], true)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * The time before which a hold counts as idle, in the UTC format hold dates are stored in.
+	 */
+	private function voucherHoldIdleSince(): string
+	{
+		/** @var string $idleSince */
+		$idleSince = Db::prepareDateForDb(new DateTime('-' . self::VOUCHER_HOLD_IDLE_MINUTES . ' minutes'));
+
+		return $idleSince;
+	}
+
+	/**
+	 * @param list<string> $codeKeys
+	 * @return Query<array-key, mixed>
+	 */
+	private function voucherCodeIds(array $codeKeys): Query
+	{
+		return (new Query())
+			->select(['id'])
+			->from('{{%giftvoucher_codes}}')
+			->where([
+				'codeKey' => $codeKeys,
+			]);
 	}
 
 	/**

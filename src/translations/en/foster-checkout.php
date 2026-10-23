@@ -154,6 +154,7 @@ return [
 	'voucher.appliedCodesHeading' => 'Applied to your order',
 	'voucher.applyingCode' => 'Applying',
 	'voucher.applyFailed' => 'That code could not be applied. Try again.',
+	'voucher.inUseElsewhere' => 'This code is in use in another checkout. Try again in {minutes, plural, =1{# minute} other{# minutes}}.',
 
 	// Order Confirmation page
 	'order.stepTitle' => 'Order',

@@ -148,6 +148,7 @@ return [
 	'voucher.appliedCodesHeading' => 'Aplicados a tu pedido',
 	'voucher.applyingCode' => 'Aplicando',
 	'voucher.applyFailed' => 'No se pudo aplicar el código. Inténtalo de nuevo.',
+	'voucher.inUseElsewhere' => 'Este código se está usando en otro proceso de pago. Inténtalo de nuevo en {minutes, plural, =1{# minuto} other{# minutos}}.',
 	'addressVerification.heading' => 'Hemos encontrado una dirección ligeramente distinta',
 	'addressVerification.entered' => 'Lo que introdujiste',
 	'addressVerification.suggested' => 'Sugerencia',
