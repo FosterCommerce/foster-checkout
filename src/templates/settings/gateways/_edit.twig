@@ -138,6 +138,24 @@
 		}) }}
 	{% endif %}
 
+	{% if className(gateway) == 'fostercommerce\\netterms\\gateways\\NetTerms' %}
+		<hr>
+
+		<h2>{{ 'settings.gateways.netTermsTitle'|t('foster-checkout') }}</h2>
+
+		{% set partialPaymentStepSetting = 'paymentGateways.' ~ gateway.handle ~ '.useAsPartialPaymentStep' %}
+		{% set partialPaymentStepOverridden = partialPaymentStepSetting in overriddenSettings %}
+
+		{{ forms.lightswitchField({
+			label: 'settings.gateways.useAsPartialPaymentStep'|t('foster-checkout'),
+			id: 'useAsPartialPaymentStep',
+			name: 'useAsPartialPaymentStep',
+			on: gatewayConfig ? gatewayConfig.useAsPartialPaymentStep : false,
+			disabled: readOnly or partialPaymentStepOverridden,
+			warning: partialPaymentStepOverridden ? 'settings.overridden'|t('foster-checkout', { setting: partialPaymentStepSetting }),
+		}) }}
+	{% endif %}
+
 	{% if className(gateway) == 'craft\\commerce\\paypalcheckout\\gateways\\Gateway' %}
 		<hr>
 

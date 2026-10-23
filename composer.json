@@ -47,6 +47,7 @@
 		"craftcms/phpstan": "dev-main",
 		"craftcms/rector": "dev-main",
 		"fostercommerce/advanced-discounts": "^1.1",
+		"fostercommerce/commerce-net-terms": "dev-main",
 		"fostercommerce/ecs": "dev-main",
 		"fostercommerce/klaviyoconnect": "^7.2",
 		"fostercommerce/rector": "dev-main",

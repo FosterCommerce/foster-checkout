@@ -365,6 +365,8 @@ return [
 	'settings.gateways.fieldsHelp' => 'Fields a customer fills in when they pick this payment method. Selected fields must exist on the order first.',
 	'settings.gateways.label' => 'Name shown to customers',
 	'settings.gateways.labelHelp' => 'Leave it blank to use the gateway’s own name.',
+	'settings.gateways.netTermsTitle' => 'Net Terms',
+	'settings.gateways.useAsPartialPaymentStep' => 'Use as a partial payment step',
 	'settings.gateways.paypalTitle' => 'PayPal',
 	'settings.gateways.paypalDisableFunding' => 'Hidden funding sources',
 	'settings.gateways.paypalDisableFundingHelp' => 'Funding sources PayPal leaves off its buttons. [See PayPal docs for options](https://developer.paypal.com/sdk/js/configuration/#disable-funding).',

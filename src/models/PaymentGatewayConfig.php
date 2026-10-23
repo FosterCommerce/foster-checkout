@@ -138,6 +138,8 @@ class PaymentGatewayConfig extends Model
 	 */
 	public bool $enableLink = true;
 
+	public bool $useAsPartialPaymentStep = false;
+
 	/**
 	 * PayPal funding sources the buttons leave out, such as `paylater` or `venmo`.
 	 *

@@ -595,6 +595,12 @@ class SettingsController extends Controller
 			$gateway['enableLink'] = (bool) $postedLink;
 		}
 
+		$postedPartialPaymentStep = $this->request->getBodyParam('useAsPartialPaymentStep');
+
+		if ($postedPartialPaymentStep !== null && ! in_array("paymentGateways.{$gatewayHandle}.useAsPartialPaymentStep", $overridden, true)) {
+			$gateway['useAsPartialPaymentStep'] = (bool) $postedPartialPaymentStep;
+		}
+
 		// Only the PayPal screen renders these, so another gateway posts nothing and keeps its defaults
 		foreach (['disableFunding', 'enableFunding', 'disableCard'] as $checkboxSetting) {
 			$postedValues = $this->request->getBodyParam($checkboxSetting);
