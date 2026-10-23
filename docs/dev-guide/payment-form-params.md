@@ -31,7 +31,7 @@ Event::on(
 );
 ```
 
-`params` holds whatever the checkout built for that gateway. For Stripe that includes `elementOptions`, which the Payment Element is created with; for PayPal the SDK URL options. Anything a gateway's own payment form template reads can be set here.
+`params` holds whatever the checkout built for that gateway. For Stripe that includes `elementOptions`, which the Payment Element is created with; for PayPal the SDK URL options. For any other gateway except Manual, it holds `order`, `submitButtonText` and `submitButtonClasses`. Anything a gateway's own payment form template reads can be set here.
 
 ## Stripe and Link
 

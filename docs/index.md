@@ -9,7 +9,7 @@ A ready-made, best-practices cart and checkout for Craft Commerce.
 **User guide:**
 
 - [Single-page checkout](./user-guide/single-page-checkout.md), running the checkout as one page
-- [Notes and links](./user-guide/content.md), editing checkout copy, payment method notes and footer links
+- [Notes and links](./user-guide/content.md), editing checkout copy, payment and shipping method notes, and footer links
 - [Line items](./user-guide/line-items.md), the image a cart line shows, what else it shows, and rewriting option names and values
 - [Checkout fields](./user-guide/checkout-fields.md), asking a customer for something the checkout does not collect
 - [Address fields](./user-guide/address-fields.md), what the checkout asks for on an address, and address labels
@@ -25,6 +25,7 @@ A ready-made, best-practices cart and checkout for Craft Commerce.
 - [Blocking payment](./dev-guide/blocking-payment.md), hiding the payment form with a reason your code decides
 - [Payment form parameters](./dev-guide/payment-form-params.md), changing what a gateway's form is rendered with, per order
 - [Saved payment methods per user](./dev-guide/saved-payment-sources.md), changing which saved payment methods the checkout lists, and whether it shows the save checkbox
+- [Shipping method notes](./dev-guide/shipping-method-notes.md), showing a line such as a transit time under each shipping method
 - [Newsletter services](./dev-guide/newsletter-services.md), subscribing customers through Mailchimp or another service
 
 **Reference:**

@@ -47,6 +47,17 @@ class ContentController extends Controller
 		$this->requirePermission(FosterCheckout::PERMISSION_VIEW_CONTENT);
 
 		$plugin = $this->plugin();
+		$shippingMethods = $this->commerce()->getShippingMethods()->getAllShippingMethods();
+		/** @var array<string, string> $shippingMethodNotes */
+		$shippingMethodNotes = $plugin->getContent()->get('notes.shippingMethods') ?? [];
+		$otherShippingMethodNotes = [];
+
+		foreach (array_diff_key($shippingMethodNotes, $shippingMethods->keyBy('handle')->all()) as $handle => $note) {
+			$otherShippingMethodNotes[] = [
+				'handle' => $handle,
+				'note' => $note,
+			];
+		}
 
 		return $this->renderTemplate('foster-checkout/content/index', [
 			// _layouts/base.twig sets `requestedSite` itself, so one passed here is overwritten
@@ -57,6 +68,9 @@ class ContentController extends Controller
 			'footerLinks' => $plugin->getContent()->get('links.footerLinks') ?? [],
 			'gateways' => $this->commerce()->getGateways()->getAllGateways(),
 			'gatewayNotes' => $plugin->getContent()->get('notes.gateways') ?? [],
+			'shippingMethods' => $shippingMethods->all(),
+			'shippingMethodNotes' => $shippingMethodNotes,
+			'otherShippingMethodNotes' => $otherShippingMethodNotes,
 			'readOnly' => ! Craft::$app->getUser()->checkPermission(FosterCheckout::PERMISSION_EDIT_CONTENT),
 		]);
 	}
@@ -96,6 +110,7 @@ class ContentController extends Controller
 		}
 
 		$storedNotes['gateways'] = $gatewayNotes;
+		$storedNotes['shippingMethods'] = $this->postedShippingMethodNotes();
 
 		$storedLinks = is_array($content['links'] ?? null) ? $content['links'] : [];
 		$storedLinks['footerLinks'] = $this->postedFooterLinks();
@@ -143,6 +158,32 @@ class ContentController extends Controller
 		}
 
 		return $footerLinks;
+	}
+
+	/**
+	 * Empty notes are left out, so clearing a field deletes its note.
+	 *
+	 * @return array<string, string>
+	 */
+	private function postedShippingMethodNotes(): array
+	{
+		$postedFields = $this->request->getBodyParam('notes.shippingMethods', []);
+		$postedRows = $this->request->getBodyParam('otherShippingMethodNotes', []);
+		$notes = [];
+
+		foreach (is_array($postedFields) ? $postedFields : [] as $handle => $note) {
+			$notes[(string) $handle] = trim((string) $note);
+		}
+
+		foreach (is_array($postedRows) ? $postedRows : [] as $postedRow) {
+			$handle = is_array($postedRow) ? trim((string) ($postedRow['handle'] ?? '')) : '';
+
+			if ($handle !== '') {
+				$notes[$handle] = trim((string) ($postedRow['note'] ?? ''));
+			}
+		}
+
+		return array_filter($notes, static fn (string $note): bool => $note !== '');
 	}
 
 	/**

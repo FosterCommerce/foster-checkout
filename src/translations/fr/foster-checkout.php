@@ -272,6 +272,13 @@ return [
 	'content.createAccount' => 'Description de la création de compte',
 	'content.createAccountHelp' => 'Texte sous la case de création de compte, par exemple ce qu’un compte apporte au client. Laissez vide pour ne rien afficher.',
 
+	'content.shippingMethodNotes' => 'Notes par mode de livraison',
+	'content.shippingMethodNotesHelp' => 'Affichée sous le nom d’un mode de livraison, comme un délai d’acheminement. Accepte Twig, pas le HTML.',
+	'content.otherShippingMethodNotes' => 'Notes des autres modes de livraison',
+	'content.otherShippingMethodNotesHelp' => 'Pour les modes qu’un plugin de livraison ajoute au paiement, par identifiant, comme FEDEX_GROUND. Une ligne sans identifiant ou sans note est supprimée à l’enregistrement.',
+	'content.shippingMethodHandle' => 'Identifiant',
+	'content.shippingMethodNoteText' => 'Note',
+	'content.addShippingMethodNote' => 'Ajouter une note',
 	'content.gatewayNotes' => 'Notes des moyens de paiement',
 	'content.gatewayNotesHelp' => 'Affichée lorsqu’un client choisit ce moyen de paiement.',
 

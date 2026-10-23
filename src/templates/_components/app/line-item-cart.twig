@@ -1,5 +1,6 @@
 {# Render without a purchasable, since a trashed one stays on the line item until the cart recalculates #}
-{% set purchasable = lineItem.purchasable %}
+{# Skip the lookup on a custom line item, since reading its purchasable throws #}
+{% set purchasable = lineItem.purchasableId ? lineItem.purchasable : null %}
 
 {% set minQty = purchasable ? purchasable.minQty : null %}
 {% set maxQty = purchasable ? purchasable.maxQty : null %}

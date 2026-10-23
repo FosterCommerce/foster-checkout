@@ -72,6 +72,38 @@
 				allowReorder: true,
 				static: readOnly,
 			}) }}
+		{% elseif groupKey == 'shippingMethod' %}
+			<h3>{{ 'content.shippingMethodNotes'|t('foster-checkout') }}</h3>
+			<p>{{ 'content.shippingMethodNotesHelp'|t('foster-checkout') }}</p>
+
+			{% for shippingMethod in shippingMethods %}
+				{{ forms.textareaField({
+					label: shippingMethod.name,
+					instructions: shippingMethod.handle,
+					id: "shipping-method-note-#{shippingMethod.handle}",
+					name: "notes[shippingMethods][#{shippingMethod.handle}]",
+					value: shippingMethodNotes[shippingMethod.handle] ?? '',
+					rows: 2,
+					disabled: readOnly,
+				}) }}
+			{% endfor %}
+
+			{{ forms.editableTableField({
+				label: 'content.otherShippingMethodNotes'|t('foster-checkout'),
+				instructions: 'content.otherShippingMethodNotesHelp'|t('foster-checkout'),
+				id: 'other-shipping-method-notes',
+				name: 'otherShippingMethodNotes',
+				cols: {
+					handle: { heading: 'content.shippingMethodHandle'|t('foster-checkout'), type: 'singleline', code: true },
+					note: { heading: 'content.shippingMethodNoteText'|t('foster-checkout'), type: 'multiline' },
+				},
+				rows: otherShippingMethodNotes,
+				addRowLabel: 'content.addShippingMethodNote'|t('foster-checkout'),
+				allowAdd: true,
+				allowDelete: true,
+				allowReorder: false,
+				static: readOnly,
+			}) }}
 		{% elseif groupKey == 'payment' and gateways is not empty %}
 			<h3>{{ 'content.gatewayNotes'|t('foster-checkout') }}</h3>
 			<p>{{ 'content.gatewayNotesHelp'|t('foster-checkout') }}</p>

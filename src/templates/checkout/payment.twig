@@ -246,9 +246,10 @@
 															"
 
 														>
-															{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
+															{% set buttonText = cart.total == 0 ? 'payment.completeOrder'|t('foster-checkout') : 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
 
 															{% set params = {} %}
+															{% set payButtonClasses = 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block' %}
 															{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
 																{% set stripeConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
 																{% set params = {
@@ -266,7 +267,7 @@
 																		}
 																	},
 																	submitButtonText: buttonText,
-																	submitButtonClasses: 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block',
+																	submitButtonClasses: payButtonClasses,
 																	elementOptions: {
 																		layout: {
 																			type: stripeConfig.layout|default('tabs'),
@@ -305,6 +306,9 @@
 															{% elseif gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
 																{% set isManualGateway = true %}
 																{% set manualFields  = craft.fostercheckout.gatewayFields(gateway.handle, cart) %}
+															{% else %}
+																{# Style the pay button of any gateway that reads submitButtonText and submitButtonClasses #}
+																{% set params = { order: cart, submitButtonText: buttonText, submitButtonClasses: payButtonClasses } %}
 															{% endif %}
 
 															{% set params = craft.fostercheckout.paymentFormParams(cart, gateway, params) %}

@@ -273,6 +273,13 @@ return [
 	'content.createAccount' => 'Descripción de creación de cuenta',
 	'content.createAccountHelp' => 'Texto debajo de la casilla de crear cuenta, como lo que una cuenta le aporta al cliente. Déjalo en blanco para no mostrar nada.',
 
+	'content.shippingMethodNotes' => 'Notas de cada método de envío',
+	'content.shippingMethodNotesHelp' => 'Se muestra bajo el nombre de un método de envío, como un plazo de tránsito. Admite Twig, no HTML.',
+	'content.otherShippingMethodNotes' => 'Notas de otros métodos de envío',
+	'content.otherShippingMethodNotesHelp' => 'Para los métodos que un plugin de envío añade en el pago, por identificador, como FEDEX_GROUND. Una fila sin identificador o sin nota se descarta al guardar.',
+	'content.shippingMethodHandle' => 'Identificador',
+	'content.shippingMethodNoteText' => 'Nota',
+	'content.addShippingMethodNote' => 'Añadir una nota',
 	'content.gatewayNotes' => 'Notas de los métodos de pago',
 	'content.gatewayNotesHelp' => 'Se muestra cuando un cliente elige ese método de pago.',
 

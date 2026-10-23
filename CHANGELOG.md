@@ -7,6 +7,8 @@
 - Added **Enable saved payment methods** and **Saved payment method display** at **Checkout -> Features**, which let a signed-in customer paying with Stripe choose a saved payment method or save a new one. Saved payment methods are off after updating.
 - Added **Delete cleared carts** at **Checkout -> Features**, which moves a cleared cart to the trash, and the `foster-checkout/cart/delete` action. The setting is off after updating.
 - Added the `Checkout::EVENT_DEFINE_SAVED_PAYMENT_SOURCES` event, so a module can change which saved payment methods the checkout lists, or hide the save checkbox, and `craft.fostercheckout.savedPaymentSources()`.
+- Added **Notes for each shipping method** at **Checkout -> Notes & Links**, shown under a shipping method's name.
+- Added the `Checkout::EVENT_DEFINE_SHIPPING_METHOD_NOTE` event and `craft.fostercheckout.shippingMethodNote()`, for changing the line shown under a shipping method.
 - Added **Image transformer** and **Image transform params** at **Checkout -> Line Items**, which choose what transforms line item images and the params sent with each, such as a watermark. **Image transformer** is Auto after updating, which keeps the transformer used before.
 - Added the `firstView` variable to the head and body includes on the confirmation page.
 
@@ -21,6 +23,7 @@
 - The cart and checkout pages, including the order confirmation page, now send no-cache headers and are excluded from Blitz's cache.
 - Renamed the Submit button on the coupon and gift voucher forms to Apply, and shortened the gift voucher form’s other labels. Applied codes under the form now show only the code and amount, such as `CODE ($16.00)`.
 - The pay button now reads “Complete order” on an order totaling zero, instead of “Pay $0.00”.
+- The checkout now passes `order`, `submitButtonText` and `submitButtonClasses` to the payment form of gateways other than Stripe Payment Intents, PayPal and Manual.
 
 ### Deprecated
 
@@ -28,6 +31,7 @@
 
 ### Fixed
 
+- Fixed an error that occurred on the cart page when the cart contained a custom line item.
 - Fixed a bug where Stripe’s payment form on the single-page checkout could fail with “There is no shipping method selected for this order.”
 - Fixed a bug where saving a cart with many line items could be slow when **Products that don’t require shipping** had rules.
 - Fixed an error that could occur on the single-page checkout when the customer chose another gateway while Stripe’s payment form was loading.

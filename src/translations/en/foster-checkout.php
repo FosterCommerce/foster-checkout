@@ -268,6 +268,13 @@ return [
 	'content.createAccount' => 'Create account description',
 	'content.createAccountHelp' => 'Text under the create account checkbox, such as what an account gets the customer. Leave blank to show no description.',
 
+	'content.shippingMethodNotes' => 'Notes for each shipping method',
+	'content.shippingMethodNotesHelp' => 'Shown under a shipping method’s name, such as a transit time. Accepts Twig, not HTML.',
+	'content.otherShippingMethodNotes' => 'Notes for other shipping methods',
+	'content.otherShippingMethodNotesHelp' => 'For methods a shipping plugin adds at checkout, by handle, such as FEDEX_GROUND. A row missing a handle or a note is dropped when you save.',
+	'content.shippingMethodHandle' => 'Handle',
+	'content.shippingMethodNoteText' => 'Note',
+	'content.addShippingMethodNote' => 'Add a note',
 	'content.gatewayNotes' => 'Payment method notes',
 	'content.gatewayNotesHelp' => 'Shown when a customer picks that payment method.',
 

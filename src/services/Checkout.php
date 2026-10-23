@@ -10,11 +10,11 @@ use craft\commerce\behaviors\CustomerBehavior;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
-use craft\commerce\enums\LineItemType;
 use craft\commerce\gateways\Manual;
 use craft\commerce\helpers\Currency;
 use craft\commerce\models\LineItem;
 use craft\commerce\models\OrderAdjustment;
+use craft\commerce\models\ShippingMethodOption;
 use craft\commerce\Plugin as Commerce;
 use craft\elements\Address;
 use craft\elements\Asset;
@@ -40,6 +40,7 @@ use fostercommerce\fostercheckout\events\DefineCheckoutContactEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentFormParamsEvent;
 use fostercommerce\fostercheckout\events\DefineSavedPaymentSourcesEvent;
+use fostercommerce\fostercheckout\events\DefineShippingMethodNoteEvent;
 use fostercommerce\fostercheckout\events\NewsletterSubscribeEvent;
 use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\helpers\CheckoutAddressFormatter;
@@ -64,7 +65,7 @@ use yii\db\Exception as DbException;
  * @phpstan-import-type RenderableUiElement from CheckoutFieldLayouts
  * @phpstan-type AddressFormElement array{type: string, required: bool, width: int, field: ?RenderableField}
  * @phpstan-type LinksTable array<array-key, array{text: non-empty-string, url: non-empty-string}>
- * @phpstan-type CheckoutShippingMethod array{handle: string, name: string, description: string, price: float, priceAsCurrency: string}
+ * @phpstan-type CheckoutShippingMethod array{handle: string, name: string, description: string, note: string, price: float, priceAsCurrency: string}
  * @phpstan-type CheckoutTotals array{
  *     itemsAsCurrency: string,
  *     shipping: float,
@@ -142,6 +143,29 @@ class Checkout extends Component
 	 * @since 1.4.1
 	 */
 	public const string EVENT_DEFINE_PAYMENT_BLOCK = 'definePaymentBlock';
+
+	/**
+	 * @event DefineShippingMethodNoteEvent The event that is triggered for each shipping method the checkout lists.
+	 *
+	 * ```php
+	 * use fostercommerce\fostercheckout\events\DefineShippingMethodNoteEvent;
+	 * use fostercommerce\fostercheckout\services\Checkout;
+	 * use yii\base\Event;
+	 *
+	 * Event::on(
+	 *     Checkout::class,
+	 *     Checkout::EVENT_DEFINE_SHIPPING_METHOD_NOTE,
+	 *     function (DefineShippingMethodNoteEvent $event) {
+	 *         if ($event->shippingMethodOption->getHandle() === 'pickup') {
+	 *             $event->note = 'Ready the next business day.';
+	 *         }
+	 *     }
+	 * );
+	 * ```
+	 *
+	 * @since 2.1.0
+	 */
+	public const string EVENT_DEFINE_SHIPPING_METHOD_NOTE = 'defineShippingMethodNote';
 
 	/**
 	 * @event DefinePaymentFormParamsEvent The event that is triggered before a gateway's payment form is rendered.
@@ -282,6 +306,35 @@ class Checkout extends Component
 		$this->trigger(self::EVENT_DEFINE_PAYMENT_BLOCK, $definePaymentBlockEvent);
 
 		return $definePaymentBlockEvent->reason;
+	}
+
+	/**
+	 * The line shown under a shipping method, from its note under Notes & Links and any handler, or null.
+	 *
+	 * @since 2.1.0
+	 */
+	public function shippingMethodNote(Order $order, ShippingMethodOption $shippingMethodOption): ?string
+	{
+		$note = $this->note("shippingMethods.{$shippingMethodOption->getHandle()}", [
+			'cart' => $order,
+			'shippingMethod' => $shippingMethodOption,
+		]);
+		$note = $note !== null ? trim(strip_tags($note)) : '';
+		$note = $note !== '' ? $note : null;
+
+		if (! $this->hasEventHandlers(self::EVENT_DEFINE_SHIPPING_METHOD_NOTE)) {
+			return $note;
+		}
+
+		$defineShippingMethodNoteEvent = new DefineShippingMethodNoteEvent([
+			'order' => $order,
+			'shippingMethodOption' => $shippingMethodOption,
+			'note' => $note,
+		]);
+
+		$this->trigger(self::EVENT_DEFINE_SHIPPING_METHOD_NOTE, $defineShippingMethodNoteEvent);
+
+		return $defineShippingMethodNoteEvent->note;
 	}
 
 	/**
@@ -846,7 +899,8 @@ class Checkout extends Component
 	 */
 	public function lineItemImage(LineItem $lineItem): ?Asset
 	{
-		if ($lineItem->type === LineItemType::Custom) {
+		// A custom line item has no purchasable, and reading it throws
+		if ($lineItem->purchasableId === null) {
 			return null;
 		}
 
@@ -1766,6 +1820,7 @@ class Checkout extends Component
 				'handle' => (string) $handle,
 				'name' => Craft::t('site', $method->name ?? (string) $handle),
 				'description' => $description !== '' ? Craft::t('site', $description) : '',
+				'note' => $this->shippingMethodNote($cart, $method) ?? '',
 				'price' => (float) $method->price,
 				'priceAsCurrency' => $method->priceAsCurrency,
 			];

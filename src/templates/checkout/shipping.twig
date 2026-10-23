@@ -77,6 +77,7 @@
 										{% for handle, method in availableShippingMethodOptions %}
 											{% set rule = craft.commerce.shippingMethods.getMatchingShippingRule(cart, method) %}
 											{% set methodDescription = rule and rule.getDescription() ? rule.getDescription() : null %}
+											{% set methodNote = craft.fostercheckout.shippingMethodNote(cart, method) %}
 											{% set methodPrice = method.getPrice() ?? (rule ? rule.price : null) %}
 
 											<div class="p-4 border-b border-gray-250"
@@ -101,6 +102,9 @@
 															  <span class="block mt-1 text-sm text-gray-500">
 															  {{ methodDescription|t('foster-checkout') }}
 															</span>
+														  {% endif %}
+														  {% if methodNote %}
+															  <span class="block mt-1 text-sm text-gray-500">{{ methodNote }}</span>
 														  {% endif %}
 														</span>
 													</label>

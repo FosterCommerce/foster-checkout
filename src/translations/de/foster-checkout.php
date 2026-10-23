@@ -272,6 +272,13 @@ return [
 	'content.createAccount' => 'Beschreibung zur Kontoerstellung',
 	'content.createAccountHelp' => 'Text unter der Checkbox zum Kontoerstellen, etwa was ein Konto der Kundin oder dem Kunden bringt. Leer lassen, um nichts anzuzeigen.',
 
+	'content.shippingMethodNotes' => 'Hinweise je Versandart',
+	'content.shippingMethodNotesHelp' => 'Wird unter dem Namen einer Versandart angezeigt, etwa eine Laufzeit. Akzeptiert Twig, kein HTML.',
+	'content.otherShippingMethodNotes' => 'Hinweise für weitere Versandarten',
+	'content.otherShippingMethodNotesHelp' => 'Für Versandarten, die ein Versand-Plugin im Checkout hinzufügt, nach Handle, etwa FEDEX_GROUND. Eine Zeile ohne Handle oder Hinweis wird beim Speichern verworfen.',
+	'content.shippingMethodHandle' => 'Handle',
+	'content.shippingMethodNoteText' => 'Hinweis',
+	'content.addShippingMethodNote' => 'Hinweis hinzufügen',
 	'content.gatewayNotes' => 'Hinweise zu Zahlungsarten',
 	'content.gatewayNotesHelp' => 'Wird angezeigt, wenn diese Zahlungsart gewählt wird.',
 
