@@ -15,19 +15,12 @@
 			<dd class="text-right text-black">{{ craft.fostercheckout.itemsTotal(cart) }}</dd>
 		</div>
 
-		{% if not cart.shippingAddressId %}
-			{% if craft.fostercheckout.settings.options.enableEstimatedShipping %}
-				{% include 'foster-checkout/_components/app/estimated-shipping' %}
-			{% endif %}
-
-
-		{% else %}
+		{% if cart.shippingAddressId %}
 			<div class="flex justify-between items-center gap-4">
 				<dt class="text-gray-500">{{ 'summary.shippingLabel'|t('foster-checkout') }}</dt>
 				<dd class="text-right text-black">{{ cart.totalShippingCostAsCurrency }}</dd>
 			</div>
 		{% endif %}
-
 
 		<div class="flex justify-between items-center gap-4">
 			{% if estimated ?? true %}

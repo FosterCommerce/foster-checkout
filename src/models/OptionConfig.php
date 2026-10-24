@@ -20,11 +20,6 @@ class OptionConfig extends Model
 	public bool $enableSinglePageCheckout = false;
 
 	/**
-	 * Unfinished: `estimated-shipping.twig` has its own condition commented out, so this only gates the include.
-	 */
-	public bool $enableEstimatedShipping = false;
-
-	/**
 	 * Whether to suggest Avalara's corrected shipping address. Needs the AvaTax plugin and its own
 	 * address validation setting.
 	 */

@@ -29,6 +29,10 @@
 
 - Deprecated the `lineItems.imagerXConfig` config setting and `LineItemConfig::$imagerXConfig`. Use `lineItems.imageTransformConfig` instead.
 
+### Removed
+
+- Removed `OptionConfig::$enableEstimatedShipping` and the unfinished `_components/app/estimated-shipping` template. Updating removes the stored `options.enableEstimatedShipping` setting, which logged a deprecation warning on every request.
+
 ### Fixed
 
 - Fixed an error that occurred on the cart page when the cart contained a custom line item.
