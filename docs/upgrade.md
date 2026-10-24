@@ -24,6 +24,10 @@ Payments made in the control panel aren't refused.
 
 A cart template of your own at the cart path doesn't complete the order or show the notice when it loads. Only the checkout pages do.
 
+### Estimated shipping setting removed
+
+A migration removes `options.enableEstimatedShipping` from the stored settings. The plugin logs a warning for the key and ignores it, so remove it from your config file too.
+
 ### Cart and checkout pages excluded from Blitz
 
 The cart and checkout pages now send no-cache headers and are excluded from Blitz's cache. If your web server serves Blitz's cached files directly, clear the pages Blitz cached before updating:

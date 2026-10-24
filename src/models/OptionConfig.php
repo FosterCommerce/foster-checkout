@@ -12,7 +12,7 @@ class OptionConfig extends Model
 	 *
 	 * @var list<string>
 	 */
-	private const array REMOVED_SETTINGS = ['enableFreeShippingMessage', 'enableMadeAMistake'];
+	private const array REMOVED_SETTINGS = ['enableFreeShippingMessage', 'enableMadeAMistake', 'enableEstimatedShipping'];
 
 	/**
 	 * Whether to serve the single-page checkout. Existing sites stay on the stepped flow until this is turned on.
@@ -69,11 +69,6 @@ class OptionConfig extends Model
 		}
 
 		$config['deliveryDate'] = new DeliveryDateConfig();
-
-		if (isset($config['enableEstimatedShipping'])) {
-			Craft::warning('`enableEstimatedShipping` is not supported and is ignored.', 'deprecation-error');
-			unset($config['enableEstimatedShipping']);
-		}
 
 		$config['subscribe'] = ValueConfig::fromConfig('subscribe', $config);
 

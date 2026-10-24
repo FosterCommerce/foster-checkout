@@ -31,7 +31,7 @@
 
 ### Removed
 
-- Removed `OptionConfig::$enableEstimatedShipping` and the unfinished `_components/app/estimated-shipping` template. Updating removes the stored `options.enableEstimatedShipping` setting, which logged a deprecation warning on every request.
+- Removed `OptionConfig::$enableEstimatedShipping` and the unfinished `_components/app/estimated-shipping` template. Updating removes the stored `options.enableEstimatedShipping` setting, so the plugin stops logging a warning for it on every request. Remove the key from `config/foster-checkout.php` too.
 
 ### Fixed
 
