@@ -30,6 +30,9 @@
 <div
 	data-fc-collect
 	@input="refreshNewBillingContent()"
+	@blur.capture="saveIfValid('payment', $event)"
+	@change="saveIfValid('payment', $event)"
+	@selected="$nextTick(() => saveIfValid('payment', $event))"
 >
 	<h3 class="mb-4 font-semibold">
 		{{ 'billing.stepName'|t('foster-checkout') }}
@@ -160,7 +163,7 @@
 		{% endif %}
 	</div>
 
-	{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'billing', panel: 'payment', showRequired: true } %}
+	{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'billing', showRequired: true } %}
 
 	{% set note = craft.fostercheckout.note('billing', {cart}) %}
 	{% if note %}

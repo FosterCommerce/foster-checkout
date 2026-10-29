@@ -468,8 +468,16 @@ export const gatewayHandling = () => ({
 
 		this.stripeReinitQueued = true;
 
-		this.$nextTick(() => {
+		this.$nextTick(async () => {
+			// Save the cart first, since Stripe's pay button confirms without saving it
+			await this.saveCart({ panel: 'payment' });
+
 			this.stripeReinitQueued = false;
+			// Recheck after the save, which can fail or bring the total to zero
+			if (!this.canPay || Number(this.totals.total) === 0) {
+				return;
+			}
+
 			this.stripeOptionsChanged = false;
 			this.stripeMountedTotal = Number(this.totals.total);
 			this.invalidateStripeCheckout();

@@ -50,7 +50,7 @@ Every setting and its default, as the plugin ships.
 | Header text color | `branding.headerTextColor` | `#1F2937` |
 | Font | `branding.font` | `Rubik` |
 | Logo | `branding.logo` | empty. A path relative to the web root |
-| Logo height | `branding.logoHeight` | `40`. Accepts 40 to 200 |
+| Logo height | `branding.logoHeight` | `40`. Accepts 12 to 200 |
 | Component style | `branding.style` | `rounded`. One of `rounded` or `flat` |
 | Field labels | `branding.labelStyle` | `floating`. One of `floating` (**Inside the field**) or `above` (**Above the field**) |
 | Title prefix | `branding.title` | empty |

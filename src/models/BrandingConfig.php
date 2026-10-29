@@ -61,7 +61,7 @@ class BrandingConfig extends Model
 			[
 				'logoHeight',
 				'integer',
-				'min' => 40,
+				'min' => 12,
 				'max' => 200,
 			],
 		];

@@ -14,6 +14,7 @@
 
 ### Changed
 
+- **Logo height** at **Checkout -> Appearance** now accepts heights from 12 pixels, down from 40, so a wide wordmark fits the header.
 - Order summary fields and the order note now save when the customer leaves a field or changes a choice, without a Save button. On the single-page checkout, a checkout field saves even while its panel is incomplete.
 - The single-page checkout no longer asks for a billing address on an order totaling zero, unless **Require Billing Address At Checkout** is on.
 - The single-page checkout no longer preselects a gateway when more than one is available.
@@ -35,6 +36,7 @@
 
 ### Fixed
 
+- Fixed a bug where paying with Stripe or PayPal on the single-page checkout could leave an order with no billing address, or an outdated one.
 - Fixed an error that occurred on the cart page when the cart contained a custom line item.
 - Fixed a bug where Stripe’s payment form on the single-page checkout could fail with “There is no shipping method selected for this order.”
 - Fixed a bug where saving a cart with many line items could be slow when **Products that don’t require shipping** had rules.

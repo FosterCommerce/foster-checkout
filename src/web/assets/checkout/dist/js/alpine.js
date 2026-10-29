@@ -6875,8 +6875,12 @@ const gatewayHandling = () => ({
       return;
     }
     this.stripeReinitQueued = true;
-    this.$nextTick(() => {
+    this.$nextTick(async () => {
+      await this.saveCart({ panel: "payment" });
       this.stripeReinitQueued = false;
+      if (!this.canPay || Number(this.totals.total) === 0) {
+        return;
+      }
       this.stripeOptionsChanged = false;
       this.stripeMountedTotal = Number(this.totals.total);
       this.invalidateStripeCheckout();
