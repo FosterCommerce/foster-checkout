@@ -1,8 +1,8 @@
 # Custom includes
 
-Three of your own templates can be injected: one into the document head, one before the closing body tag, and one above the checkout summary. Use the first two for analytics, tracking pixels, support widgets or anything else that has to appear on the checkout, and the third for a message about the order, such as how much more it takes to earn free shipping.
+The plugin can include three templates of your own: one in the document head, one before the closing body tag, and one above the checkout summary. Use the head and body includes for analytics, tracking pixels or support widgets. Use the summary include for a message about the order, such as how much more the customer needs to spend for free shipping.
 
-## Setting them
+## Setting the paths
 
 **Control panel:** **Checkout -> General**, under **Head include**, **Body include** and **Summary include**. Enter a template path relative to your templates directory, without the file extension.
 
@@ -10,15 +10,15 @@ Three of your own templates can be injected: one into the document head, one bef
 
 ```php
 'includes' => [
-    'head' => '_includes/checkout/head',
-    'body' => '_includes/checkout/body',
-    'summary' => '_includes/checkout/summary',
+	'head' => '_includes/checkout/head',
+	'body' => '_includes/checkout/body',
+	'summary' => '_includes/checkout/summary',
 ],
 ```
 
-The config file wins over the control panel. A key set there pins that one field; the others stay editable. See [settings](../reference/settings.md).
+A key set in the config file locks that one field; the other two stay editable. For how the config file overrides the control panel, see [what overrides what](../reference/settings.md#what-overrides-what).
 
-Saving in the control panel rejects a **Head include** or **Body include** path with no template behind it. **Summary include** is not checked, and neither is a path set through the config file. A missing template throws on every page that renders it.
+When you save in the control panel, the plugin rejects a **Head include** or **Body include** path that matches no template. The plugin does not check **Summary include**, or any path set in the config file. A path to a missing template throws an error on every page that renders the include.
 
 ## What your template receives
 
@@ -27,10 +27,10 @@ Saving in the control panel rejects a **Head include** or **Body include** path 
 | `context` | `cart` or `checkout` |
 | `location` | `head`, `body` or `summary` |
 | `step` | `email`, `shipping-address`, `shipping-method`, `billing`, `payment`, `confirmation`, `single-page`, or empty on the cart |
-| `cart` | the current order. Passed to the head and summary includes on every page. The body include on the shipping address step is the one page that does not receive it |
-| `firstView` | on the confirmation page only. `true` the first time the plugin renders the order's confirmation page, for any visitor, and `false` after that. An order completed before updating to 2.1.0 gets `true` the next time its page renders |
+| `cart` | The current order. Passed to the head and summary includes on every page. The body include receives it on every page except the shipping address step |
+| `firstView` | On the confirmation page only. `true` the first time the plugin renders the order's confirmation page, for any visitor, and `false` after that. An order completed before the update to Foster Checkout 2.1.0 gets `true` the next time its confirmation page renders |
 
-The head and body includes render on every cart and checkout page, so branch on `step` to target a single one. The summary include renders wherever the checkout summary does: `single-page` on the one page layout, and the step's own name on each step of the stepped layout.
+The head and body includes render on every cart and checkout page, so check `step` to target one page. The summary include renders wherever the checkout summary does: `single-page` on the single-page checkout, and the step's name on each step of the stepped checkout.
 
 ```twig
 {% if step == 'confirmation' and firstView %}
@@ -38,10 +38,10 @@ The head and body includes render on every cart and checkout page, so branch on 
 {% endif %}
 ```
 
-## Tips
+## Edge cases
 
-**Only the variables above are a contract.** The includes also inherit the surrounding template's variables, which is how `order` is reachable on the confirmation page even though the plugin never passes it. Anything beyond them can move without warning.
+**Only the variables in the table are a contract.** The includes also inherit the surrounding template's variables, which is why `order` is available on the confirmation page although the plugin does not pass it. Those inherited variables can change in any release.
 
 **The summary include renders once, on page load.** It does not re-render when the single-page checkout changes the shipping method or coupon.
 
-**It gets its own bordered container, and only when it renders something.** A template that outputs nothing for this cart leaves no empty box, so branch inside it rather than setting the include conditionally.
+**The summary include gets a bordered container only when its template outputs markup.** A template that outputs an empty string leaves no empty box. Put the condition inside the template rather than setting the include path conditionally.

@@ -16,11 +16,11 @@ A ready-made, best-practices cart and checkout for Craft Commerce.
 
 ## How it works
 
-Install the plugin and the store has a checkout at the path you choose. Configure the checkout on the **Checkout** screens in the control panel, or pin settings in a `config/foster-checkout.php` file. The plugin stores checkout copy in its own database table rather than project config, so the copy stays editable on production.
+Install the plugin and the store has a checkout at the path you choose. Configure the checkout on the **Checkout** screens in the control panel, or set them in a `config/foster-checkout.php` file. The plugin stores checkout copy in its own database table rather than project config, so the copy stays editable on production.
 
 ## Requirements
 
-- Craft CMS `^5.0.0`
+- Craft CMS `^5.10.0`
 - Craft Commerce `^5.0.15`
 - PHP `^8.3`
 

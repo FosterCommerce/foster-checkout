@@ -4,27 +4,30 @@
 
 ### Added
 
-- Added **Enable saved payment methods** and **Saved payment method display** at **Checkout -> Features**, which let a signed-in customer paying with Stripe choose a saved payment method or save a new one. Saved payment methods are off after updating.
-- Added **Delete cleared carts** at **Checkout -> Features**, which moves a cleared cart to the trash, and the `foster-checkout/cart/delete` action. The setting is off after updating.
-- Added the `Checkout::EVENT_DEFINE_SAVED_PAYMENT_SOURCES` event, so a module can change which saved payment methods the checkout lists, or hide the save checkbox, and `craft.fostercheckout.savedPaymentSources()`.
-- Added **Notes for each shipping method** at **Checkout -> Notes & Links**, shown under a shipping method's name.
+- Added the “Enable saved payment methods” and “Saved payment method display” settings, which let a signed-in customer paying with Stripe choose a saved payment method or save a new one. Saved payment methods are off after updating.
+- Added the “Delete cleared carts” setting, which moves a cleared cart to the trash. The setting is off after updating.
+- Added the `foster-checkout/cart/delete` action.
+- Added the `Checkout::EVENT_DEFINE_SAVED_PAYMENT_SOURCES` event, for changing which saved payment methods the checkout lists or hiding the save checkbox.
+- Added `craft.fostercheckout.savedPaymentSources()`.
+- Added the “Notes for each shipping method” setting, for a note shown under a shipping method's name.
 - Added the `Checkout::EVENT_DEFINE_SHIPPING_METHOD_NOTE` event and `craft.fostercheckout.shippingMethodNote()`, for changing the line shown under a shipping method.
-- Added **Image transformer** and **Image transform params** at **Checkout -> Line Items**, which choose what transforms line item images and the params sent with each, such as a watermark. **Image transformer** is Auto after updating, which keeps the transformer used before.
+- Added the “Image transformer” and “Image transform params” settings, for choosing the transformer for line item images and the params sent with each image, such as a watermark. “Image transformer” is “Auto” after updating, which keeps the transformer used before.
 - Added the `firstView` variable to the head and body includes on the confirmation page.
-- Added support for Mollie gateways, including a list of the Mollie account's payment methods at checkout. Mollie support hasn't been tested against a Mollie account yet.
-- Added `craft.fostercheckout.molliePaymentMethods()`.
+- Added support for Mollie gateways, which show the Mollie account's payment methods at checkout, and `craft.fostercheckout.molliePaymentMethods()`. Foster Commerce hasn't tested Mollie support against a live Mollie account.
 
 ### Changed
 
-- **Logo height** at **Checkout -> Appearance** now accepts heights from 12 pixels, down from 40, so a wide wordmark fits the header.
-- Order summary fields and the order note now save when the customer leaves a field or changes a choice, without a Save button. On the single-page checkout, a checkout field saves even while its panel is incomplete.
-- The single-page checkout no longer asks for a billing address on an order totaling zero, unless **Require Billing Address At Checkout** is on.
+- Foster Checkout now requires Craft CMS 5.10.0 or later.
+- “Logo height” now accepts heights from 12 pixels, down from 40.
+- Order summary fields and the order note now save when the customer leaves a field or changes a choice, and no longer have a Save button.
+- On the single-page checkout, a checkout field now saves even while its panel is incomplete.
+- The single-page checkout no longer asks for a billing address on an order totaling zero, unless “Require Billing Address At Checkout” is on.
 - The single-page checkout no longer preselects a gateway when more than one is available.
-- **Zero value gateways** no longer lists Stripe, PayPal, Authorize.net or Mollie gateways, and the checkout no longer uses them on an order totaling zero. To take orders totaling zero, add a Manual gateway to **Zero value gateways**.
+- “Zero value gateways” no longer lists Stripe, PayPal, Authorize.net or Mollie gateways, and the checkout no longer uses them on an order totaling zero. To take orders totaling zero, add a Manual gateway to “Zero value gateways”.
 - Saved address dropdowns now show each address on two lines.
-- Foster Checkout now completes a paid cart that isn't a completed order when the customer opens the checkout, and refuses changes to that cart and further payments until it completes.
-- The cart and checkout pages, including the order confirmation page, now send no-cache headers and are excluded from Blitz's cache.
-- Renamed the Submit button on the coupon and gift voucher forms to Apply, and shortened the gift voucher form’s other labels. Applied codes under the form now show only the code and amount, such as `CODE ($16.00)`.
+- Foster Checkout now completes a paid cart that isn't a completed order when the customer opens the checkout or the built-in cart page, and blocks changes and further payments on that cart until the order completes.
+- The cart and checkout pages, including the order confirmation page, now send no-cache headers, and Foster Checkout excludes them from Blitz's cache.
+- Applied coupon and gift voucher codes now show only the code and amount, such as `CODE ($16.00)`.
 - The pay button now reads “Complete order” on an order totaling zero, instead of “Pay $0.00”.
 - The checkout now passes `order`, `submitButtonText` and `submitButtonClasses` to the payment form of gateways other than Stripe Payment Intents, PayPal, Mollie and Manual.
 
@@ -34,22 +37,23 @@
 
 ### Removed
 
-- Removed `OptionConfig::$enableEstimatedShipping` and the unfinished `_components/app/estimated-shipping` template. Updating removes the stored `options.enableEstimatedShipping` setting, so the plugin stops logging a warning for it on every request. Remove the key from `config/foster-checkout.php` too.
+- Removed `OptionConfig::$enableEstimatedShipping` and the unfinished `_components/app/estimated-shipping` template. Remove `options.enableEstimatedShipping` from `config/foster-checkout.php` if you set it there.
 
 ### Fixed
 
 - Fixed a bug where paying with Stripe or PayPal on the single-page checkout could leave an order with no billing address, or an outdated one.
 - Fixed an error that occurred on the cart page when the cart contained a custom line item.
-- Fixed a bug where Stripe’s payment form on the single-page checkout could fail with “There is no shipping method selected for this order.”
-- Fixed a bug where saving a cart with many line items could be slow when **Products that don’t require shipping** had rules.
-- Fixed an error that could occur on the single-page checkout when the customer chose another gateway while Stripe’s payment form was loading.
+- Fixed an error that could occur when paying with Stripe on the single-page checkout (“There is no shipping method selected for this order.”).
+- Fixed a bug where saving a cart with many line items could be slow when “Products that don’t require shipping” had rules.
+- Fixed an error that could occur on the single-page checkout when the customer chose another gateway while Stripe's payment form was loading.
 - Fixed a bug where a checkbox checkout field with a box ticked could fail to save.
-- Fixed a bug where the pay button on the single-page checkout could stay disabled after another panel saved while a new billing address was partly entered.
+- Fixed a bug where the pay button on the single-page checkout could stay disabled after another panel saved while the customer was partway through a new billing address.
 - Fixed a bug where the single-page checkout could complete an order totaling zero before the customer placed it.
 - Fixed a bug where the single-page checkout reported a gift voucher code as failed after applying it.
-- Fixed bugs where the single-page checkout asked a guest for their email address on page load or in the wrong panel, and marked only one panel as saved when autofill changed two.
-- Fixed a bug where the single-page checkout listed no payment method after a gift voucher brought the total to zero, until the page was reloaded.
-- Fixed a bug where a payment could fail, or a gift voucher code could be refused as having no amount left, because of a Gift Voucher hold from an unfinished payment.
+- Fixed a bug where the single-page checkout asked a guest for their email address on page load or in the wrong panel.
+- Fixed a bug where the single-page checkout marked only one panel as saved when autofill changed two panels.
+- Fixed a bug where the single-page checkout did not list a payment method after a gift voucher brought the total to zero, until the customer reloaded the page.
+- Fixed a bug where, after an unfinished payment, a payment could fail or a gift voucher code could report no amount left.
 
 ## 2.0.0 - 2026-10-02
 

@@ -6592,8 +6592,8 @@ const gatewayHandling = () => ({
       }
     }
     await this.$nextTick();
-    const nextMollieMethod = this.checkedMollieMethod();
-    if (mollieMethod && nextMollieMethod && nextMollieMethod !== mollieMethod) {
+    const mollieMethodsShown = this.paymentFormEl.querySelector("[data-mollie-payment-methods]") !== null;
+    if (mollieMethod && mollieMethodsShown && this.checkedMollieMethod() !== mollieMethod) {
       this.paying = false;
       return;
     }

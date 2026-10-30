@@ -139,7 +139,7 @@ return [
 	'payment.savePaymentSource' => 'Guardar este método de pago para futuras compras',
 	'payment.mollieIssuer' => 'Banco o tarjeta',
 	'payment.mollieIssuerPlaceholder' => 'Elegir en la página siguiente',
-	'payment.mollieMethodReplaced' => 'Tu método de pago no está disponible para este pedido. Elige otro.',
+	'payment.mollieMethodUnavailable' => 'Tu método de pago no está disponible para este pedido. Elige otro.',
 	'payment.voucherApplied' => 'Cupón aplicado',
 
 	// Gift vouchers

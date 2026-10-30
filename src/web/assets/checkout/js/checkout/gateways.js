@@ -77,10 +77,16 @@ export const gatewayHandling = () => ({
 			}
 		}
 
-		// Stop the pay submit when a save replaced the chosen Mollie method
+		// Stop the pay submit when the shown Mollie list no longer includes the chosen method
 		await this.$nextTick();
-		const nextMollieMethod = this.checkedMollieMethod();
-		if (mollieMethod && nextMollieMethod && nextMollieMethod !== mollieMethod) {
+		const mollieMethodsShown =
+			this.paymentFormEl.querySelector('[data-mollie-payment-methods]') !==
+			null;
+		if (
+			mollieMethod &&
+			mollieMethodsShown &&
+			this.checkedMollieMethod() !== mollieMethod
+		) {
 			this.paying = false;
 			return;
 		}

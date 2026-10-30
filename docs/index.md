@@ -10,8 +10,9 @@ A ready-made, best-practices cart and checkout for Craft Commerce.
 
 - [Single-page checkout](./user-guide/single-page-checkout.md), running the checkout as one page
 - [Notes and links](./user-guide/content.md), editing checkout copy, payment and shipping method notes, and footer links
-- [Line items](./user-guide/line-items.md), the image a cart line shows, what else it shows, and rewriting option names and values
-- [Checkout fields](./user-guide/checkout-fields.md), asking a customer for something the checkout does not collect
+- [Cart](./user-guide/cart.md), what **Clear the cart** does with the cart
+- [Line items](./user-guide/line-items.md), the image, SKU and options a cart line shows, and rewriting option names and values
+- [Checkout fields](./user-guide/checkout-fields.md), asking a customer for a detail the checkout does not collect
 - [Address fields](./user-guide/address-fields.md), what the checkout asks for on an address, and address labels
 - [Products that don’t require shipping](./user-guide/products-that-dont-require-shipping.md), skipping shipping for services and other unshippable products
 - [Customer pickup](./user-guide/customer-pickup.md), listing the store location as a shipping address
@@ -21,12 +22,9 @@ A ready-made, best-practices cart and checkout for Craft Commerce.
 
 - [Custom includes](./dev-guide/custom-includes.md), injecting your own templates into every checkout page
 - [Contributed fields](./dev-guide/contributed-fields.md), adding a checkout field your own code stores
-- [Checkout for another customer](./dev-guide/checkout-for-another-customer.md), running the checkout against an account the shopper is buying for
-- [Blocking payment](./dev-guide/blocking-payment.md), hiding the payment form with a reason your code decides
-- [Payment form parameters](./dev-guide/payment-form-params.md), changing what a gateway's form is rendered with, per order
-- [Saved payment methods per user](./dev-guide/saved-payment-sources.md), changing which saved payment methods the checkout lists, and whether it shows the save checkbox
-- [Shipping method notes](./dev-guide/shipping-method-notes.md), showing a line such as a transit time under each shipping method
-- [Newsletter services](./dev-guide/newsletter-services.md), subscribing customers through Mailchimp or another service
+- [Checkout for another customer](./dev-guide/checkout-for-another-customer.md), running the checkout for an account other than the signed-in user's
+- [Blocking payment](./dev-guide/blocking-payment.md), hiding the payment form, with a reason your code sets
+- [Payment form parameters](./dev-guide/payment-form-params.md), changing the parameters a gateway's payment form receives, per order
 
 **Reference:**
 

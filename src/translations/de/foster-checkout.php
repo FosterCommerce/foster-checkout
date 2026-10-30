@@ -138,7 +138,7 @@ return [
 	'payment.savePaymentSource' => 'Diese Zahlungsmethode für künftige Einkäufe speichern',
 	'payment.mollieIssuer' => 'Bank oder Karte',
 	'payment.mollieIssuerPlaceholder' => 'Auf der nächsten Seite wählen',
-	'payment.mollieMethodReplaced' => 'Ihre Zahlungsart ist für diese Bestellung nicht verfügbar. Wählen Sie eine andere.',
+	'payment.mollieMethodUnavailable' => 'Ihre Zahlungsart ist für diese Bestellung nicht verfügbar. Wählen Sie eine andere.',
 	'payment.voucherApplied' => 'Gutschein/Geschenkkarte angewendet',
 
 	// Gift vouchers

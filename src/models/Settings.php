@@ -275,7 +275,7 @@ class Settings extends Model
 	}
 
 	/**
-	 * Whether the gateway can be offered on an order totaling zero.
+	 * Whether the gateway can take an order totaling zero.
 	 *
 	 * @since 2.1.0
 	 */
@@ -291,7 +291,7 @@ class Settings extends Model
 	}
 
 	/**
-	 * Whether the gateway is offered on an order totaling zero.
+	 * Whether the checkout shows the gateway on an order totaling zero.
 	 *
 	 * @since 2.1.0
 	 */

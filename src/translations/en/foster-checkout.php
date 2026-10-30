@@ -145,7 +145,7 @@ return [
 	'payment.savePaymentSource' => 'Save this payment method for future purchases',
 	'payment.mollieIssuer' => 'Bank or card',
 	'payment.mollieIssuerPlaceholder' => 'Choose on the next page',
-	'payment.mollieMethodReplaced' => 'Your payment method isn’t available for this order. Choose another.',
+	'payment.mollieMethodUnavailable' => 'Your payment method isn’t available for this order. Choose another.',
 	'payment.voucherApplied' => 'Voucher/Gift card applied',
 
 	// Gift vouchers

@@ -1,27 +1,27 @@
 # Checkout for another customer
 
-Running the checkout where the order's customer is not the person signed in, as a purchasing agent buying against a company account does.
+Run the checkout for an order whose customer is not the signed-in user, such as a purchasing agent who buys for a company account.
 
 No control panel setting turns this on. Your own code sets the order's customer; the checkout reads it.
 
 ## What follows the order's customer
 
-Once `order.customer` is someone other than the signed-in user, these change on their own.
+When `order.customer` is a user other than the signed-in user, the checkout changes these behaviors:
 
 | What | Behavior |
 | --- | --- |
 | The address book | Listed from the order's customer, when Craft lets the signed-in user view an address owned by that customer |
-| Picking a saved address | Resolved against the order customer's book, since Commerce looks a posted id up on the signed-in user |
-| A saved address | Owned by the order's customer, so it is saved to the company's book |
+| Picking a saved address | Looked up in the order customer's address book, because Commerce looks up a posted ID on the signed-in user |
+| A saved address | Owned by the order's customer and saved to that customer's address book |
 | Editing and saving addresses | Available only when Craft lets the signed-in user save an address owned by that customer |
 | Saved payment methods | Listed from, and saved to, the order's customer |
-| Newsletter | The newsletter checkbox is not shown, so a purchasing agent is not subscribed in the account holder's name. See [newsletter services](./newsletter-services.md#when-the-checkbox-is-shown) |
+| Newsletter | The checkout hides the newsletter checkbox, so a purchasing agent cannot subscribe the account holder. See [newsletter services](./newsletter-services.md#when-the-checkbox-is-shown) |
 
 The checkout also names the person signed in, below the contact, whenever their email differs from the order's.
 
 ## The contact shown
 
-`craft.fostercheckout.contact(order)` returns what the checkout prints as the contact. It is the order's email unless a handler sets something else, which is how a company name or an account reference is shown in place of a shared mailbox.
+`craft.fostercheckout.contact(order)` returns what the checkout prints as the contact. By default it returns the order's email. To show a company name or an account reference instead, set `value` in a handler.
 
 ```php
 <?php
@@ -59,19 +59,19 @@ class Module extends BaseModule
 }
 ```
 
-Leave `value` as null and the order's email is used.
+Leave `value` null to show the order's email.
 
-## Whether the book is shown
+## Whether the address book is shown
 
-`craft.fostercheckout.canViewAddresses(cart)` answers whether the signed-in user can see the order customer's saved addresses. The checkout lists the book and ships to a picked address only when it is true.
+`craft.fostercheckout.canViewAddresses(cart)` returns whether the signed-in user can view the order customer's saved addresses. The checkout lists the address book, and ships to a picked address, only when it returns true.
 
-Grant it the way Craft grants any address view: give the signed-in user permission on the customer that owns them.
+To let the signed-in user view the addresses, give them Craft's address permission on the customer that owns the addresses.
 
 ## Whether addresses can be saved
 
-`craft.fostercheckout.canSaveAddresses(cart)` answers whether the signed-in user can add to or edit the order customer's address book. It asks Craft the same question Craft's own address screens ask, so a permission granted there is honored here.
+`craft.fostercheckout.canSaveAddresses(cart)` returns whether the signed-in user can add to or edit the order customer's address book. It runs the same check as Craft's address screens, so the same permissions apply.
 
-Use it to gate anything of your own that writes to the book.
+Use it to gate your own controls that write to the address book.
 
 ```twig
 {% if craft.fostercheckout.canSaveAddresses(cart) %}
@@ -79,11 +79,13 @@ Use it to gate anything of your own that writes to the book.
 {% endif %}
 ```
 
-It is false when nobody is signed in.
+It returns false when no user is signed in.
+
+If the agent can view the company's addresses but not save them, the checkout lists the addresses but does not let the agent edit them. If the agent can do neither, the checkout shows only the new address form.
 
 ## Setting the customer
 
-The plugin never sets `order.customer`. Do it when the agent picks the account they are buying for, before the checkout renders.
+The plugin does not set `order.customer`. Set it when the agent picks the account they buy for, before the checkout renders.
 
 ```php
 use Craft;
@@ -92,6 +94,4 @@ $order->setCustomer($companyUser);
 Craft::$app->getElements()->saveElement($order);
 ```
 
-Do not do this to a session cart. `Carts::getCart()` reassigns a session cart's customer to the signed-in user whenever their email differs from the cart's, which is exactly this arrangement, so the assignment is undone on the next request. Hold the order outside the session cart and fetch it by number.
-
-With view permission alone the agent picks from the company's addresses but cannot change them. With neither, the checkout shows only the new address form.
+Do not set the customer on a session cart. On the next request, `Carts::getCart()` reassigns the session cart's customer to the signed-in user, because their email differs from the cart's. Keep the order outside the session cart and fetch it by number.

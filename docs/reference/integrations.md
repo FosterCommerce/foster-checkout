@@ -1,6 +1,6 @@
 # Plugin integrations
 
-These plugins change the checkout when installed. Each is optional and installed separately. AvaTax and Klaviyo Connect also need settings turned on.
+Foster Checkout changes the checkout when one of these plugins is installed. AvaTax and Klaviyo Connect also need settings turned on.
 
 | Plugin | Package | What it adds |
 | --- | --- | --- |
@@ -19,13 +19,13 @@ These plugins change the checkout when installed. Each is optional and installed
 
 ## AvaTax
 
-Needed for **Verify shipping addresses** on **Checkout -> Addresses**. AvaTax's own **Enable address validation** setting must also be on. Covers the United States and Canada. For how it interacts with address suggestions, see [address fields](../user-guide/address-fields.md#address-verification-and-suggestions).
+**Verify shipping addresses** at **Checkout -> Addresses** needs AvaTax, with AvaTax's **Enable address validation** setting turned on. Verification covers addresses in the United States and Canada. For how it interacts with address suggestions, see [address fields](../user-guide/address-fields.md#address-verification-and-suggestions).
 
 ## Blitz
 
-Foster Checkout keeps the cart path and every checkout page, including the order confirmation page, out of Blitz's cache, so they don't need to be in Blitz's excluded URI patterns. This includes a cart template of your own at the cart path.
+Foster Checkout keeps the cart path and every checkout page, including the order confirmation page, out of Blitz's cache. You do not need to add them to Blitz's excluded URI patterns. The cart path stays out of the cache when your own cart template renders it.
 
-If your web server serves Blitz's cached files directly, it keeps serving the cart and checkout pages Blitz cached before you installed or updated Foster Checkout. To clear them, run:
+If your web server serves Blitz's cached files directly, it keeps serving the cart and checkout pages Blitz cached before you installed or updated Foster Checkout. To clear those cached pages, run:
 
 ```sh
 ./craft blitz/cache/clear-urls "https://example.com/cart*,https://example.com/checkout*"
@@ -33,7 +33,7 @@ If your web server serves Blitz's cached files directly, it keeps serving the ca
 
 ## Gift Voucher
 
-Adds a code field to the payment step and lists applied vouchers in the order summary.
+Foster Checkout adds a code field to the payment step and lists applied vouchers in the order summary.
 
 ### Checkout holds
 
@@ -48,45 +48,45 @@ Foster Checkout releases holds when a customer applies a code, when staff apply 
 | The hold of an order that is complete, or has a pending, processing or successful payment | Never |
 | A hold the **Checkout Holds** list shows as **Needs review** | Never |
 
-If another checkout's hold leaves the code with no value for this order, the payment step's code field shows “This code is in use in another checkout. Try again in 5 minutes.”, with the minutes until that hold is 15 minutes old.
+If another checkout's hold leaves the code with no value for this order, the code field on the payment step shows “This code is in use in another checkout. Try again in 5 minutes.” The number is the minutes left until that hold is 15 minutes old.
 
 To release a hold whose payment can no longer succeed, open the code at **Gift Voucher -> Voucher Codes** and click **Release** under **Checkout Holds**.
 
 ## Klaviyo Connect
 
-With **Newsletter checkbox** turned on at **Checkout -> Features** and a Klaviyo list ID at **Checkout -> Features -> Newsletter list ID**, the newsletter checkbox subscribes customers to that list.
+With **Newsletter checkbox** turned on at **Checkout -> Features** and a Klaviyo list ID in **Newsletter list ID**, the checkout subscribes customers who select the newsletter checkbox to that list.
 
-The checkout ignores an earlier version. For when the checkbox is shown, or to use another newsletter service, see [newsletter services](../dev-guide/newsletter-services.md).
+The checkout ignores Klaviyo Connect versions before 7.3.0. For when the checkout shows the checkbox, or to use another newsletter service, see [newsletter services](../dev-guide/newsletter-services.md).
 
 ## Postie
 
-Postie's rates appear as shipping methods. The plugin registers the checkout path with Postie at runtime, the one page or the multi-page shipping step, so rates are fetched where the customer picks a method.
+Foster Checkout lists Postie's rates as shipping methods. It registers the checkout path with Postie at runtime, on the single-page checkout or the stepped checkout's shipping step, so Postie fetches rates where the customer picks a method.
 
-Variants matched by [Products that don’t require shipping](../user-guide/products-that-dont-require-shipping.md) are left out of Postie's parcel. For how Postie quotes a pickup order, see [customer pickup](../user-guide/customer-pickup.md#pricing-pickup).
+Foster Checkout leaves variants matched by [Products that don’t require shipping](../user-guide/products-that-dont-require-shipping.md) out of Postie's parcel. For how Postie quotes a pickup order, see [customer pickup](../user-guide/customer-pickup.md#pricing-pickup).
 
 ## Mollie
 
-For a Mollie gateway, the checkout lists the payment methods active on the Mollie account that accept the order's amount due, currency and billing country, each with its logo, and selects the first. A method with issuers, such as gift cards, also shows a **Bank or card** list once the customer selects it. If the customer leaves that list at **Choose on the next page**, Mollie asks for the issuer after Commerce sends the customer to Mollie to pay.
+For a Mollie gateway, the checkout lists the payment methods active on the Mollie account, with their logos, and selects the first. It lists only methods that accept the order's amount due, currency and billing country. When the customer selects a method with issuers, such as gift cards, the checkout also shows a **Bank or card** list. If the customer leaves that list at **Choose on the next page**, Mollie asks for the issuer after Commerce sends the customer to Mollie to pay.
 
 Mollie translates and orders the methods for the site's locale. For a site whose region Mollie doesn't list, such as `en-AU`, the checkout requests the language's default region, such as `en_US`. For a language Mollie doesn't list, the request has no locale.
 
-When the list is empty, the checkout shows the pay button without a method list, and the customer chooses a method on Mollie's page. The list is empty when Mollie has no method for the order, or when the request to Mollie fails. Foster Checkout logs a failed request as a warning. Unless Mollie rejected the order's amount or country, the checkout then sends no request for that gateway for the next minute.
+When the list is empty, the checkout shows the pay button without a method list, and the customer chooses a method on Mollie's page. The list is empty when Mollie has no method for the order, or when the request to Mollie fails. Foster Checkout logs a failed request as a warning. After a failed request, the checkout does not send another request for that gateway for 1 minute, unless Mollie rejected the order's amount or country.
 
-Foster Checkout caches the list for five minutes, so a method turned on in the Mollie dashboard can take that long to appear. On the single-page checkout, the list updates when the amount due or billing country changes. The selected method stays selected while it is listed. Otherwise the checkout selects the first method and shows “Your payment method isn’t available for this order. Choose another.” If a save made as the customer clicks pay replaces the selected method, the checkout doesn't submit the payment.
+Foster Checkout caches the list for 5 minutes, so a method turned on in the Mollie dashboard can take that long to appear. On the single-page checkout, the list updates when the amount due or billing country changes. The selected method stays selected while it is listed. Otherwise the checkout selects the first method, if any, and shows “Your payment method isn’t available for this order. Choose another.” If a save that runs when the customer clicks pay replaces or removes the selected method, the checkout does not submit the payment.
 
 Commerce sends the webhook URL with each Mollie payment, so the Mollie account needs no webhook setting.
 
 ## Small Pics
 
-With **Image transformer** set to Small Pics at **Checkout -> Line Items**, Small Pics transforms line item images in the cart and at checkout. The plugin adds the params in **Image transform params** to each image. Use them for a watermark or any other [Small Pics option](https://github.com/smallpics/craft-smallpics).
+With **Image transformer** set to Small Pics at **Checkout -> Line Items**, Small Pics transforms line item images in the cart and at checkout. Foster Checkout adds the params in **Image transform params** to each image. Use them for a watermark or any other [Small Pics option](https://github.com/smallpics/craft-smallpics).
 
-The plugin sets each image's width, height and mode. A Small Pics `fit` param replaces **Image fit**. For params set in both the control panel and the config file, see [what overrides what](./settings.md#what-overrides-what).
+Foster Checkout sets each image's width, height and mode. A Small Pics `fit` param replaces **Image fit**. For params set in both the control panel and the config file, see [what overrides what](./settings.md#what-overrides-what).
 
-With **Image transformer** set to Craft, or to Auto (the default) while Small Pics is enabled, line item images use Craft's image transforms. Small Pics serves those when its `transformNativeImages` setting is on, with its `nativeTransformsParams` and not **Image transform params**.
+With **Image transformer** set to Craft, or to Auto (the default) while Small Pics is enabled, line item images use Craft's image transforms. Small Pics serves Craft's transforms when its `transformNativeImages` setting is on, with its `nativeTransformsParams` and not **Image transform params**.
 
 ## Imager X
 
-Imager X transforms line item images when **Image transformer** is set to Imager X, or to Auto while Imager X is enabled and Small Pics is not. The plugin passes **Image transform params** as Imager X's transform defaults. Set a nested param, such as `transformerParams`, in `lineItems.imageTransformConfig` in `config/foster-checkout.php`, because the control panel table takes only text values.
+Imager X transforms line item images when **Image transformer** is set to Imager X, or to Auto while Imager X is enabled and Small Pics is not. Foster Checkout passes **Image transform params** as Imager X's transform defaults. Set a nested param, such as `transformerParams`, in `lineItems.imageTransformConfig` in `config/foster-checkout.php`, because the control panel table takes only text values.
 
 With Imager X's `transformer` setting at `smallpics`, from `smallpics/imagerx-smallpics`, set a Small Pics watermark in `transformerParams`. A `width` or `fit` in `transformerParams` replaces the one Foster Checkout sets. The example works only with that transformer.
 
@@ -101,8 +101,8 @@ With Imager X's `transformer` setting at `smallpics`, from `smallpics/imagerx-sm
 ],
 ```
 
-`lineItems.imagerXConfig` is now `lineItems.imageTransformConfig`. See [upgrading](../upgrade.md#imager-x-transform-config-renamed).
+For the renamed `lineItems.imagerXConfig` key, see [upgrading](../upgrade.md#imager-x-transform-config-renamed).
 
 ## Advanced Discounts
 
-An applied Advanced Discounts coupon is named next to its code, as a Commerce coupon is. Messages from Advanced Discounts, including why a coupon did not apply, are rendered in the cart and at checkout. On the single-page checkout they update as a coupon is applied or removed.
+The checkout names an applied Advanced Discounts coupon next to its code, as it does a Commerce coupon. It also renders messages from Advanced Discounts in the cart and at checkout, including why a coupon did not apply. On the single-page checkout, the messages update when the customer applies or removes a coupon.
