@@ -136,6 +136,9 @@ return [
 	'payment.newPaymentSource' => 'Neue Zahlungsmethode verwenden',
 	'payment.savedPaymentSources' => 'Gespeicherte Zahlungsmethoden',
 	'payment.savePaymentSource' => 'Diese Zahlungsmethode für künftige Einkäufe speichern',
+	'payment.mollieIssuer' => 'Bank oder Karte',
+	'payment.mollieIssuerPlaceholder' => 'Auf der nächsten Seite wählen',
+	'payment.mollieMethodReplaced' => 'Ihre Zahlungsart ist für diese Bestellung nicht verfügbar. Wählen Sie eine andere.',
 	'payment.voucherApplied' => 'Gutschein/Geschenkkarte angewendet',
 
 	// Gift vouchers
@@ -343,7 +346,7 @@ return [
 	'settings.gateways.stripeLinkHelp' => 'Ob das Stripe-Zahlungsformular Link anbietet. Ist es aus, entfallen auch die mit „Powered by Link“ markierten Zahlungsarten wie Klarna, Bank und Crypto, die in [Stripes Link-Einstellungen](https://dashboard.stripe.com/settings/link) festgelegt werden.',
 	'settings.gateways.intro' => 'Optionen, die bei Wahl einer Zahlungsart angezeigt werden, und bei manuellen Zahlungsanbietern Felder zum Ausfüllen. Aufgeführt sind alle in Commerce eingerichteten Zahlungsanbieter.',
 	'settings.gateways.zeroValueGateways' => 'Zahlungsanbieter für Nullbeträge',
-	'settings.gateways.zeroValueGatewaysHelp' => 'Zahlungsanbieter, die bei einem Bestellwert von null verfügbar sind. Stripe, PayPal und Authorize.net werden nicht aufgeführt, da sie Zahlungsdaten abfragen, die eine kostenlose Bestellung nicht braucht.',
+	'settings.gateways.zeroValueGatewaysHelp' => 'Zahlungsanbieter, die bei einem Bestellwert von null verfügbar sind. Stripe, PayPal, Authorize.net und Mollie werden nicht aufgeführt, da sie Zahlungsdaten abfragen, die eine kostenlose Bestellung nicht braucht.',
 	'settings.features.savedPaymentSourceDisplay' => 'Anzeige gespeicherter Zahlungsmethoden',
 	'settings.features.savedPaymentSourceDisplayHelp' => 'Wie der Checkout die gespeicherten Zahlungsmethoden eines Kunden anbietet. „Wie gespeicherte Adressen“ folgt „Anzeige gespeicherter Adressen“ unter „Checkout -> Adressen“, „Liste“ zeigt eine Zeile pro Zahlungsmethode, und „Dropdown“ lässt den Kunden sie durchsuchen.',
 	'settings.features.savedPaymentSourceDisplayAddress' => 'Wie gespeicherte Adressen',
@@ -356,6 +359,8 @@ return [
 	'settings.gateways.fieldsHelp' => 'Felder, die ein Kunde ausfüllt, wenn er diese Zahlungsart wählt. Ausgewählte Felder müssen zuerst auf der Bestellung vorhanden sein.',
 	'settings.gateways.label' => 'Für Kunden sichtbarer Name',
 	'settings.gateways.labelHelp' => 'Leer lassen, um den eigenen Namen des Zahlungsanbieters zu verwenden.',
+	'settings.gateways.netTermsTitle' => 'Net Terms',
+	'settings.gateways.useAsPartialPaymentStep' => 'Als Teilzahlungsschritt verwenden',
 	'settings.gateways.paypalTitle' => 'PayPal',
 	'settings.gateways.paypalDisableFunding' => 'Ausgeblendete Zahlungsquellen',
 	'settings.gateways.paypalDisableFundingHelp' => 'Zahlungsquellen, die PayPal auf seinen Buttons nicht anbietet. [Optionen in der PayPal-Dokumentation](https://developer.paypal.com/sdk/js/configuration/#disable-funding).',

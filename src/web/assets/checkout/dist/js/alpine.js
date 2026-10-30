@@ -6167,6 +6167,10 @@ const cartPersistence = () => ({
       if (next) {
         await this.saveCart(next);
       }
+      if (!this.saving && this.resolveSaves) {
+        this.resolveSaves();
+        this.resolveSaves = null;
+      }
       if (cartSynced) {
         this.maybeReinitPaypalCheckout();
       }
@@ -6248,6 +6252,9 @@ const cartPersistence = () => ({
         }
         if (live.lineItemTotals && typeof live.lineItemTotals === "object") {
           this.lineItemTotals = live.lineItemTotals;
+        }
+        if (live.molliePaymentMethods) {
+          this.molliePaymentMethods = live.molliePaymentMethods;
         }
       }
       if (cart.billingAddress && typeof cart.billingAddress === "object") {
@@ -6565,8 +6572,14 @@ const gatewayHandling = () => ({
       this.panelFieldsReady("delivery", null, true);
       return;
     }
-    const payloadChanged = JSON.stringify(this.buildPayload()) !== this.lastSaved;
+    const mollieMethod = this.checkedMollieMethod();
     this.paying = true;
+    if (this.saving) {
+      await new Promise((resolve) => {
+        this.resolveSaves = resolve;
+      });
+    }
+    const payloadChanged = JSON.stringify(this.buildPayload()) !== this.lastSaved;
     if (this.saveTimer || payloadChanged) {
       if (this.saveTimer) {
         clearTimeout(this.saveTimer);
@@ -6578,8 +6591,19 @@ const gatewayHandling = () => ({
         return;
       }
     }
+    await this.$nextTick();
+    const nextMollieMethod = this.checkedMollieMethod();
+    if (mollieMethod && nextMollieMethod && nextMollieMethod !== mollieMethod) {
+      this.paying = false;
+      return;
+    }
     this.lastSaved = JSON.stringify(this.buildPayload());
     this.paymentFormEl?.submit();
+  },
+  checkedMollieMethod() {
+    return this.paymentFormEl.querySelector(
+      "input[data-mollie-payment-method]:checked"
+    )?.value ?? "";
   },
   bindPayOverlay() {
     const form = this.paymentFormEl;
@@ -7047,6 +7071,7 @@ const SinglePageCheckout = (props) => {
     couponMessages: asList(props.couponMessages),
     couponNeedsEmailLabel: props.couponNeedsEmailLabel ?? "",
     paymentBlock: props.paymentBlock ?? "",
+    molliePaymentMethods: props.molliePaymentMethods ?? {},
     couponError: "",
     notesError: "",
     notesButtonVisible: false,
@@ -7121,6 +7146,7 @@ const SinglePageCheckout = (props) => {
     saveAbort: null,
     saving: false,
     nextSave: null,
+    resolveSaves: null,
     lastSaved: "",
     paypalInitTimer: null,
     paypalInvalidated: false,

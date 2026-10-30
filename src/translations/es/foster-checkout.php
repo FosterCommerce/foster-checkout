@@ -137,6 +137,9 @@ return [
 	'payment.newPaymentSource' => 'Usar un nuevo método de pago',
 	'payment.savedPaymentSources' => 'Métodos de pago guardados',
 	'payment.savePaymentSource' => 'Guardar este método de pago para futuras compras',
+	'payment.mollieIssuer' => 'Banco o tarjeta',
+	'payment.mollieIssuerPlaceholder' => 'Elegir en la página siguiente',
+	'payment.mollieMethodReplaced' => 'Tu método de pago no está disponible para este pedido. Elige otro.',
 	'payment.voucherApplied' => 'Cupón aplicado',
 
 	// Gift vouchers
@@ -344,7 +347,7 @@ return [
 	'settings.gateways.stripeLinkHelp' => 'Si el formulario de pago de Stripe ofrece Link. Desactivarlo también quita los métodos marcados «Powered by Link», como Klarna, Bank y Crypto, que se configuran en [los ajustes de Link de Stripe](https://dashboard.stripe.com/settings/link).',
 	'settings.gateways.intro' => 'Opciones que se muestran cuando un cliente elige un método de pago y, en las pasarelas manuales, campos que completa. Se listan todas las pasarelas configuradas en Commerce.',
 	'settings.gateways.zeroValueGateways' => 'Pasarelas para importe cero',
-	'settings.gateways.zeroValueGatewaysHelp' => 'Pasarelas disponibles cuando el total de un pedido es cero. Stripe, PayPal y Authorize.net no aparecen, ya que piden datos de pago que un pedido gratuito no necesita.',
+	'settings.gateways.zeroValueGatewaysHelp' => 'Pasarelas disponibles cuando el total de un pedido es cero. Stripe, PayPal, Authorize.net y Mollie no aparecen, ya que piden datos de pago que un pedido gratuito no necesita.',
 	'settings.features.savedPaymentSourceDisplay' => 'Visualización de métodos de pago guardados',
 	'settings.features.savedPaymentSourceDisplayHelp' => 'Cómo el checkout ofrece los métodos de pago guardados de un cliente. «Igual que las direcciones guardadas» sigue «Visualización de direcciones guardadas» en «Pago -> Direcciones», «Lista» muestra una fila por cada uno y «Desplegable» permite al cliente buscarlos.',
 	'settings.features.savedPaymentSourceDisplayAddress' => 'Igual que las direcciones guardadas',
@@ -357,6 +360,8 @@ return [
 	'settings.gateways.fieldsHelp' => 'Campos que rellena el cliente al elegir este método de pago. Los campos elegidos deben existir antes en el pedido.',
 	'settings.gateways.label' => 'Nombre visible para los clientes',
 	'settings.gateways.labelHelp' => 'Déjalo en blanco para usar el nombre propio de la pasarela.',
+	'settings.gateways.netTermsTitle' => 'Net Terms',
+	'settings.gateways.useAsPartialPaymentStep' => 'Usar como paso de pago parcial',
 	'settings.gateways.paypalTitle' => 'PayPal',
 	'settings.gateways.paypalDisableFunding' => 'Fuentes de pago ocultas',
 	'settings.gateways.paypalDisableFundingHelp' => 'Fuentes de pago que PayPal no ofrecerá en sus botones. [Consulta las opciones en la documentación de PayPal](https://developer.paypal.com/sdk/js/configuration/#disable-funding).',

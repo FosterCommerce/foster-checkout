@@ -11,6 +11,8 @@
 - Added the `Checkout::EVENT_DEFINE_SHIPPING_METHOD_NOTE` event and `craft.fostercheckout.shippingMethodNote()`, for changing the line shown under a shipping method.
 - Added **Image transformer** and **Image transform params** at **Checkout -> Line Items**, which choose what transforms line item images and the params sent with each, such as a watermark. **Image transformer** is Auto after updating, which keeps the transformer used before.
 - Added the `firstView` variable to the head and body includes on the confirmation page.
+- Added support for Mollie gateways, including a list of the Mollie account's payment methods at checkout. Mollie support hasn't been tested against a Mollie account yet.
+- Added `craft.fostercheckout.molliePaymentMethods()`.
 
 ### Changed
 
@@ -18,13 +20,13 @@
 - Order summary fields and the order note now save when the customer leaves a field or changes a choice, without a Save button. On the single-page checkout, a checkout field saves even while its panel is incomplete.
 - The single-page checkout no longer asks for a billing address on an order totaling zero, unless **Require Billing Address At Checkout** is on.
 - The single-page checkout no longer preselects a gateway when more than one is available.
-- **Zero value gateways** no longer lists Stripe, PayPal or Authorize.net gateways, and the checkout no longer uses them on an order totaling zero. To take orders totaling zero, add a Manual gateway to **Zero value gateways**.
+- **Zero value gateways** no longer lists Stripe, PayPal, Authorize.net or Mollie gateways, and the checkout no longer uses them on an order totaling zero. To take orders totaling zero, add a Manual gateway to **Zero value gateways**.
 - Saved address dropdowns now show each address on two lines.
 - Foster Checkout now completes a paid cart that isn't a completed order when the customer opens the checkout, and refuses changes to that cart and further payments until it completes.
 - The cart and checkout pages, including the order confirmation page, now send no-cache headers and are excluded from Blitz's cache.
 - Renamed the Submit button on the coupon and gift voucher forms to Apply, and shortened the gift voucher form’s other labels. Applied codes under the form now show only the code and amount, such as `CODE ($16.00)`.
 - The pay button now reads “Complete order” on an order totaling zero, instead of “Pay $0.00”.
-- The checkout now passes `order`, `submitButtonText` and `submitButtonClasses` to the payment form of gateways other than Stripe Payment Intents, PayPal and Manual.
+- The checkout now passes `order`, `submitButtonText` and `submitButtonClasses` to the payment form of gateways other than Stripe Payment Intents, PayPal, Mollie and Manual.
 
 ### Deprecated
 

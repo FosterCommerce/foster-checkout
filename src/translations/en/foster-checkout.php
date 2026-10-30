@@ -143,6 +143,9 @@ return [
 	'payment.newPaymentSource' => 'Use a new payment method',
 	'payment.savedPaymentSources' => 'Saved payment methods',
 	'payment.savePaymentSource' => 'Save this payment method for future purchases',
+	'payment.mollieIssuer' => 'Bank or card',
+	'payment.mollieIssuerPlaceholder' => 'Choose on the next page',
+	'payment.mollieMethodReplaced' => 'Your payment method isn’t available for this order. Choose another.',
 	'payment.voucherApplied' => 'Voucher/Gift card applied',
 
 	// Gift vouchers
@@ -344,7 +347,7 @@ return [
 	'settings.gateways.stripeLinkHelp' => 'Whether the Stripe payment form includes Link. Turning it off also removes the methods marked “Powered by Link”, such as Klarna, Bank and Crypto, which are set in [Stripe’s Link settings](https://dashboard.stripe.com/settings/link).',
 	'settings.gateways.intro' => 'Options shown when a customer picks a payment method, and on Manual gateways, fields they fill in. Every gateway configured in Commerce is listed.',
 	'settings.gateways.zeroValueGateways' => 'Zero value gateways',
-	'settings.gateways.zeroValueGatewaysHelp' => 'Gateways available when an order totals zero. This list leaves out Stripe, PayPal and Authorize.net gateways, because they ask for payment details a free order doesn’t need.',
+	'settings.gateways.zeroValueGatewaysHelp' => 'Gateways available when an order totals zero. This list leaves out Stripe, PayPal, Authorize.net and Mollie gateways, because they ask for payment details a free order doesn’t need.',
 	'settings.features.savedPaymentSourceDisplay' => 'Saved payment method display',
 	'settings.features.savedPaymentSourceDisplayHelp' => 'How the checkout lists a customer’s saved payment methods. Same as saved addresses follows Saved address display at Checkout -> Addresses, List shows a row for each payment method, and Dropdown lets the customer search them.',
 	'settings.features.savedPaymentSourceDisplayAddress' => 'Same as saved addresses',

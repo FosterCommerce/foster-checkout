@@ -30,4 +30,4 @@ These settings apply to both layouts: checkout copy, checkout fields, payment ga
 
 With more than one gateway available, the checkout selects none until the customer chooses one. Stripe's form loads only for the selected Stripe gateway.
 
-Stripe and PayPal mount their own forms against the order total at the moment they mount. Stripe's form is rebuilt when the total changes, or when the billing address it pre-fills changes, so editing an address after opening the payment panel reloads it only when one of those changes. PayPal's form is rebuilt whenever the cart changes.
+Stripe and PayPal mount their own forms against the order total at the moment they mount. Stripe's form is rebuilt when the total changes, or when the billing address it pre-fills changes, so editing an address after opening the payment panel reloads it only when one of those changes. PayPal's form is rebuilt whenever the cart changes. For when a Mollie gateway's list of payment methods updates, see [Mollie](../reference/integrations.md#mollie).

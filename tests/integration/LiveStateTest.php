@@ -20,11 +20,13 @@ final class LiveStateTest extends CartTestCase
 			'totals',
 			'lineItemTotals',
 			'addressLabels',
+			'addressLines',
 			'shippingPreview',
 			'customerPickup',
 			'couponName',
 			'couponMessages',
 			'paymentBlock',
+			'molliePaymentMethods',
 		], array_keys($this->checkout()->checkoutLiveState($cart)));
 	}
 
@@ -41,6 +43,7 @@ final class LiveStateTest extends CartTestCase
 		self::assertIsString($state['shippingPreview']);
 		self::assertIsBool($state['customerPickup']);
 		self::assertIsList($state['couponMessages']);
+		self::assertIsArray($state['molliePaymentMethods']);
 
 		if (! $this->checkout()->hasEventHandlers(Checkout::EVENT_DEFINE_PAYMENT_BLOCK)) {
 			self::assertNull($state['paymentBlock']);

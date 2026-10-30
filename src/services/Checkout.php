@@ -70,6 +70,7 @@ use yii\db\Exception as DbException;
  *
  * @phpstan-import-type RenderableField from CheckoutFieldLayouts
  * @phpstan-import-type RenderableUiElement from CheckoutFieldLayouts
+ * @phpstan-import-type MolliePaymentMethod from MolliePaymentMethods
  * @phpstan-type AddressFormElement array{type: string, required: bool, width: int, field: ?RenderableField}
  * @phpstan-type LinksTable array<array-key, array{text: non-empty-string, url: non-empty-string}>
  * @phpstan-type CheckoutShippingMethod array{handle: string, name: string, description: string, note: string, price: float, priceAsCurrency: string}
@@ -102,6 +103,7 @@ use yii\db\Exception as DbException;
  *     couponName: ?string,
  *     couponMessages: list<string>,
  *     paymentBlock: ?string,
+ *     molliePaymentMethods: array<int, list<MolliePaymentMethod>>,
  *     couponCodeError?: string
  * }
  */
@@ -391,6 +393,20 @@ class Checkout extends Component
 		$this->trigger(self::EVENT_DEFINE_SAVED_PAYMENT_SOURCES, $defineSavedPaymentSourcesEvent);
 
 		return $defineSavedPaymentSourcesEvent;
+	}
+
+	/**
+	 * The gateway's Mollie payment methods for the order, before any payment form params handler has run.
+	 *
+	 * @return list<MolliePaymentMethod>
+	 * @since 2.1.0
+	 */
+	public function molliePaymentMethods(Order $order, GatewayInterface $gateway): array
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $plugin->getMolliePaymentMethods()->forOrder($order, $gateway);
 	}
 
 	/**
@@ -1352,6 +1368,7 @@ class Checkout extends Component
 			'couponName' => $this->couponName($cart),
 			'couponMessages' => $this->couponMessages($cart),
 			'paymentBlock' => $this->paymentBlock($cart),
+			'molliePaymentMethods' => $this->molliePaymentMethodLists($cart),
 		];
 	}
 
@@ -1510,6 +1527,43 @@ class Checkout extends Component
 		}
 
 		return $options;
+	}
+
+	/**
+	 * Each Mollie gateway's methods for the cart, keyed by gateway ID, after any payment form params handler has run.
+	 *
+	 * @return array<int, list<MolliePaymentMethod>>
+	 */
+	private function molliePaymentMethodLists(Order $cart): array
+	{
+		$gateways = $cart->getAvailableGateways();
+		$paymentMethodLists = [];
+
+		foreach ($gateways as $gateway) {
+			if (! $gateway instanceof Gateway) {
+				continue;
+			}
+
+			// Match the class exactly, as the payment templates do
+			$gatewayClass = $gateway::class;
+
+			if ($gatewayClass !== MolliePaymentMethods::GATEWAY_CLASS) {
+				continue;
+			}
+
+			// Skip the request on a zero total, since Mollie gateways are hidden then
+			$params = $this->paymentFormParams($cart, $gateway, [
+				'paymentMethods' => $cart->getTotal() > 0 ? $this->molliePaymentMethods($cart, $gateway) : [],
+			]);
+
+			/** @var array<array-key, MolliePaymentMethod> $paymentMethods */
+			$paymentMethods = $params['paymentMethods'] ?? [];
+
+			// Reindex a handler's filtered list, which would otherwise encode as a JSON object
+			$paymentMethodLists[(int) $gateway->id] = array_values($paymentMethods);
+		}
+
+		return $paymentMethodLists;
 	}
 
 	private function attemptCompletion(Order $order): void

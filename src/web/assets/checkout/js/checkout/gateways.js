@@ -50,10 +50,19 @@ export const gatewayHandling = () => ({
 			return;
 		}
 
-		const payloadChanged =
-			JSON.stringify(this.buildPayload()) !== this.lastSaved;
+		const mollieMethod = this.checkedMollieMethod();
 
 		this.paying = true;
+
+		// Wait for the save in flight, since saveCart only queues a save made during one
+		if (this.saving) {
+			await new Promise((resolve) => {
+				this.resolveSaves = resolve;
+			});
+		}
+
+		const payloadChanged =
+			JSON.stringify(this.buildPayload()) !== this.lastSaved;
 
 		if (this.saveTimer || payloadChanged) {
 			if (this.saveTimer) {
@@ -68,8 +77,24 @@ export const gatewayHandling = () => ({
 			}
 		}
 
+		// Stop the pay submit when a save replaced the chosen Mollie method
+		await this.$nextTick();
+		const nextMollieMethod = this.checkedMollieMethod();
+		if (mollieMethod && nextMollieMethod && nextMollieMethod !== mollieMethod) {
+			this.paying = false;
+			return;
+		}
+
 		this.lastSaved = JSON.stringify(this.buildPayload());
 		this.paymentFormEl?.submit();
+	},
+
+	checkedMollieMethod() {
+		return (
+			this.paymentFormEl.querySelector(
+				'input[data-mollie-payment-method]:checked'
+			)?.value ?? ''
+		);
 	},
 
 	bindPayOverlay() {

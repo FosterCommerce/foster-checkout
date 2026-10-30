@@ -145,6 +145,7 @@
 						{% for gateway in gateways %}
 							{% set gatewayClass = className(gateway) %}
 							{% set isManualGateway = false %}
+							{% set isMollieGateway = false %}
 							{% set gatewayNote = craft.fostercheckout.gatewayNote(gateway.handle, {cart}) %}
 							{% set availableAtZero = craft.fostercheckout.settings.isAvailableAtZero(gateway) %}
 							{% set zeroOnly = gatewayClass == 'craft\\commerce\\gateways\\Manual' and gateway.getOnlyAllowForZeroPriceOrders() %}
@@ -294,6 +295,9 @@
 												} %}
 												{# Empty options are dropped, since the gateway sends any key it finds #}
 												{% set params = { currency: cart.paymentCurrency }|merge(paypalOptions|filter(paypalOption => paypalOption is not empty)) %}
+											{% elseif gatewayClass == 'craft\\commerce\\mollie\\gateways\\Gateway' %}
+												{# Read the methods from the live state, which the plugin rebuilds after each save #}
+												{% set isMollieGateway = true %}
 											{% elseif gatewayClass == 'craft\\commerce\\gateways\\Manual' %}
 												{% set isManualGateway = true %}
 												{% set manualFields = craft.fostercheckout.gatewayFields(gateway.handle, cart) %}
@@ -302,7 +306,10 @@
 												{% set params = { order: cart, submitButtonText: buttonText, submitButtonClasses: payButtonClasses } %}
 											{% endif %}
 
-											{% set params = craft.fostercheckout.paymentFormParams(cart, gateway, params) %}
+											{# Skip the event for Mollie, since building the live state already triggered it #}
+											{% if not isMollieGateway %}
+												{% set params = craft.fostercheckout.paymentFormParams(cart, gateway, params) %}
+											{% endif %}
 
 											{% if gatewayNote|default %}
 												<div class="mb-4 text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
@@ -310,8 +317,8 @@
 												</div>
 											{% endif %}
 
-											{% if isManualGateway %}
-												{% if manualFields|length %}
+											{% if isManualGateway or isMollieGateway %}
+												{% if isManualGateway and manualFields|length %}
 													<div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-12">
 														{% for field in manualFields %}
 															{# The layout stores width as a percentage; the grid is in twelfths #}
@@ -323,6 +330,10 @@
 															</div>
 														{% endfor %}
 													</div>
+												{% endif %}
+
+												{% if isMollieGateway %}
+													{% include 'foster-checkout/_components/app/mollie-payment-methods' with { paymentMethodsExpression: 'molliePaymentMethods[' ~ gateway.id ~ '] ?? []' } %}
 												{% endif %}
 
 												<button

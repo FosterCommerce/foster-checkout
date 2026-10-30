@@ -31,7 +31,9 @@ Event::on(
 );
 ```
 
-`params` holds whatever the checkout built for that gateway. For Stripe that includes `elementOptions`, which the Payment Element is created with; for PayPal the SDK URL options. For any other gateway except Manual, it holds `order`, `submitButtonText` and `submitButtonClasses`. Anything a gateway's own payment form template reads can be set here.
+`params` holds whatever the checkout built for that gateway. For Stripe that includes `elementOptions`, which the Payment Element is created with; for PayPal the SDK URL options. For any other gateway except Manual and Mollie, it holds `order`, `submitButtonText` and `submitButtonClasses`. Anything a gateway's own payment form template reads can be set here.
+
+For a Mollie gateway, `params` holds `paymentMethods`, the list of methods the checkout shows. Each method has `id`, `name`, `image` (an SVG URL) and `issuers` (each with `id` and `name`). The checkout renders that list itself and ignores every other key. On the single-page checkout, the event runs for each available Mollie gateway when the page loads and after every save. `craft.fostercheckout.molliePaymentMethods(cart, gateway)` returns the list without this event's changes. It returns an empty list when the request to Mollie fails, or when the checkout skips the request after a failure.
 
 ## Stripe and Link
 

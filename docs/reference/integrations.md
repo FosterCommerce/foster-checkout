@@ -12,6 +12,7 @@ These plugins change the checkout when installed. Each is optional and installed
 | Stripe for Craft Commerce | `craftcms/commerce-stripe` | Stripe's payment element, with settings at **Checkout -> Gateways** for its layout, payment method order and Link |
 | PayPal Checkout for Craft Commerce | `craftcms/commerce-paypal-checkout` | PayPal buttons and card fields, with settings at **Checkout -> Gateways** for funding sources, card brands, locale and SDK components |
 | Authorize.net for Craft Commerce | `digital-pros/commerce-authorize` | Card payments through Authorize.net |
+| Mollie for Craft Commerce | `craftcms/commerce-mollie` | The Mollie account's payment methods, with their logos |
 | Small Pics | `smallpics/craft-smallpics` | Line item images transformed by Small Pics, with params such as a watermark |
 | Imager X | `spacecatninja/imager-x` | Line item image transforms, with params such as a watermark |
 | Advanced Discounts | `fostercommerce/advanced-discounts` | Coupon names and messages in the cart and at checkout |
@@ -62,6 +63,18 @@ The checkout ignores an earlier version. For when the checkbox is shown, or to u
 Postie's rates appear as shipping methods. The plugin registers the checkout path with Postie at runtime, the one page or the multi-page shipping step, so rates are fetched where the customer picks a method.
 
 Variants matched by [Products that don’t require shipping](../user-guide/products-that-dont-require-shipping.md) are left out of Postie's parcel. For how Postie quotes a pickup order, see [customer pickup](../user-guide/customer-pickup.md#pricing-pickup).
+
+## Mollie
+
+For a Mollie gateway, the checkout lists the payment methods active on the Mollie account that accept the order's amount due, currency and billing country, each with its logo, and selects the first. A method with issuers, such as gift cards, also shows a **Bank or card** list once the customer selects it. If the customer leaves that list at **Choose on the next page**, Mollie asks for the issuer after Commerce sends the customer to Mollie to pay.
+
+Mollie translates and orders the methods for the site's locale. For a site whose region Mollie doesn't list, such as `en-AU`, the checkout requests the language's default region, such as `en_US`. For a language Mollie doesn't list, the request has no locale.
+
+When the list is empty, the checkout shows the pay button without a method list, and the customer chooses a method on Mollie's page. The list is empty when Mollie has no method for the order, or when the request to Mollie fails. Foster Checkout logs a failed request as a warning. Unless Mollie rejected the order's amount or country, the checkout then sends no request for that gateway for the next minute.
+
+Foster Checkout caches the list for five minutes, so a method turned on in the Mollie dashboard can take that long to appear. On the single-page checkout, the list updates when the amount due or billing country changes. The selected method stays selected while it is listed. Otherwise the checkout selects the first method and shows “Your payment method isn’t available for this order. Choose another.” If a save made as the customer clicks pay replaces the selected method, the checkout doesn't submit the payment.
+
+Commerce sends the webhook URL with each Mollie payment, so the Mollie account needs no webhook setting.
 
 ## Small Pics
 

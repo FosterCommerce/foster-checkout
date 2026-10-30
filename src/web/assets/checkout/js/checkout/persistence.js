@@ -347,6 +347,11 @@ export const cartPersistence = () => ({
 				await this.saveCart(next);
 			}
 
+			if (!this.saving && this.resolveSaves) {
+				this.resolveSaves();
+				this.resolveSaves = null;
+			}
+
 			// Redraw PayPal after the queued save, which returns early without redrawing when it has no
 			// change to send. Stripe is left out, since applyCart already remounts it.
 			if (cartSynced) {
@@ -458,6 +463,11 @@ export const cartPersistence = () => ({
 
 				if (live.lineItemTotals && typeof live.lineItemTotals === 'object') {
 					this.lineItemTotals = live.lineItemTotals;
+				}
+
+				// Replace the Mollie lists alongside the totals, since Mollie filters methods by amount
+				if (live.molliePaymentMethods) {
+					this.molliePaymentMethods = live.molliePaymentMethods;
 				}
 			}
 

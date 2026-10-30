@@ -30,6 +30,7 @@ class Settings extends Model
 		'craft\\commerce\\stripe\\gateways\\PaymentIntents',
 		'craft\\commerce\\paypalcheckout\\gateways\\Gateway',
 		'digitalpros\\commerce\\authorize\\gateways\\Gateway',
+		'craft\\commerce\\mollie\\gateways\\Gateway',
 	];
 
 	/**

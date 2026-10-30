@@ -1,0 +1,72 @@
+{# The single-page checkout passes an expression on its live state, so the list redraws after each save #}
+{% set paymentMethodsExpression = paymentMethodsExpression ?? 'mollieMethods' %}
+{% set idPrefix = 'mollie-' ~ gateway.handle ~ '-' %}
+{% set floatingLabel = craft.fostercheckout.settings.branding.labelStyle|default('floating') == 'floating' %}
+
+{# Select the first method when the list no longer includes the selected method, and say why. With an empty list the form posts no method, so Mollie's page asks for one. #}
+<div
+	x-data="{ mollieMethods: {{ (paymentMethods ?? [])|json_encode }}, molliePaymentMethod: '', mollieMethodReplaced: false }"
+	x-effect="
+		const mollieMethodIds = ({{ paymentMethodsExpression }}).map((paymentMethod) => paymentMethod.id);
+		if (!mollieMethodIds.includes(molliePaymentMethod)) {
+			mollieMethodReplaced = molliePaymentMethod !== '';
+			molliePaymentMethod = mollieMethodIds[0] ?? '';
+		}
+	"
+>
+	{% namespace gateway.handle|commercePaymentFormNamespace %}
+		<template x-if="({{ paymentMethodsExpression }}).length">
+			<div>
+				<p x-show="mollieMethodReplaced" class="mb-4 text-sm text-red-500" role="alert">{{ 'payment.mollieMethodReplaced'|t('foster-checkout') }}</p>
+				<div class="border border-gray-250 rounded-lg" role="radiogroup" aria-label="{{ 'payment.paymentMethod'|t('foster-checkout') }}">
+					<template x-for="(paymentMethod, index) in {{ paymentMethodsExpression }}" :key="paymentMethod.id">
+						<div class="p-4" :class="{ 'border-t': index > 0, 'bg-gray-100': molliePaymentMethod === paymentMethod.id }">
+							<div class="radio">
+								<input
+									:id="'{{ idPrefix }}' + paymentMethod.id"
+									type="radio"
+									class="absolute opacity-0 w-px h-px"
+									name="paymentMethod"
+									data-mollie-payment-method
+									x-model="molliePaymentMethod"
+									:value="paymentMethod.id"
+									@change="mollieMethodReplaced = false"
+								>
+								<label
+									:for="'{{ idPrefix }}' + paymentMethod.id"
+									class="inline-flex justify-start items-center gap-4 cursor-pointer"
+									:class="{ 'font-medium text-black': molliePaymentMethod === paymentMethod.id }"
+								>
+									<img :src="paymentMethod.image" alt="" class="w-8 h-6" loading="lazy">
+									<span x-text="paymentMethod.name"></span>
+								</label>
+							</div>
+
+							{# Leave the issuer unchosen by default, so Mollie's page asks for one #}
+							<template x-if="molliePaymentMethod === paymentMethod.id && paymentMethod.issuers.length">
+								<div class="relative mt-4">
+									{% if not floatingLabel %}
+										<label :for="'{{ idPrefix }}issuer-' + paymentMethod.id" class="block mb-2 font-medium text-gray-500">{{ 'payment.mollieIssuer'|t('foster-checkout') }}</label>
+									{% endif %}
+									<select
+										:id="'{{ idPrefix }}issuer-' + paymentMethod.id"
+										name="issuer"
+										class="w-full h-12 px-4 {{ floatingLabel ? 'pt-5 pb-1.5 leading-5' }} bg-white rounded-lg border-gray-250 focus:border-black focus:!ring-0 focus:!outline-none transition-color duration-300"
+									>
+										<option value="" selected>{{ 'payment.mollieIssuerPlaceholder'|t('foster-checkout') }}</option>
+										<template x-for="issuer in paymentMethod.issuers" :key="issuer.id">
+											<option :value="issuer.id" x-text="issuer.name"></option>
+										</template>
+									</select>
+									{% if floatingLabel %}
+										<label :for="'{{ idPrefix }}issuer-' + paymentMethod.id" class="absolute left-4 top-1.5 text-xs text-gray-500 pointer-events-none">{{ 'payment.mollieIssuer'|t('foster-checkout') }}</label>
+									{% endif %}
+								</div>
+							</template>
+						</div>
+					</template>
+				</div>
+			</div>
+		</template>
+	{% endnamespace %}
+</div>
