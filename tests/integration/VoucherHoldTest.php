@@ -54,6 +54,23 @@ final class VoucherHoldTest extends CartTestCase
 		self::assertNull($this->checkout()->voucherHoldMinutesLeft($cart, $this->codeKey($codeId)));
 	}
 
+	public function testApplyingACodeReleasesTheIdleHoldOfACheckoutWithOnlyARedirectPayment(): void
+	{
+		[$cart, $abandonedCart] = $this->cartsWithoutLivePayments(2);
+		$codeId = $this->codeId();
+		$holdId = $this->hold($abandonedCart, $codeId, minutesIdle: 20);
+		Db::insert(CommerceTable::TRANSACTIONS, [
+			'orderId' => $abandonedCart->id,
+			'hash' => 'test-redirect-transaction',
+			'type' => TransactionRecord::TYPE_PURCHASE,
+			'status' => TransactionRecord::STATUS_REDIRECT,
+		]);
+
+		$this->checkout()->releaseStaleVoucherHolds($cart, $this->codeKey($codeId));
+
+		self::assertSame(Reservations::STATUS_RELEASED, $this->holdStatus($holdId));
+	}
+
 	public function testApplyingACodeKeepsAnotherCartsRecentHoldAndReportsTheWait(): void
 	{
 		[$cart, $payingCart] = $this->cartsWithoutLivePayments(2);

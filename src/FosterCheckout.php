@@ -763,8 +763,9 @@ class FosterCheckout extends Plugin
 
 					$completed = $this->getCheckout()->completePaidCart($order);
 
-					// Let the customer clear a cart that won't complete, so they can shop again while staff resolve it
-					if (! $completed && in_array($actionId, ['forget-cart', 'delete'], true)) {
+					// Let the customer forget a cart that won't complete, so they can shop again while staff resolve it.
+					// Refuse a delete, since a trashed order hides its payment from the Orders index.
+					if (! $completed && $actionId === 'forget-cart') {
 						return;
 					}
 
@@ -797,7 +798,7 @@ class FosterCheckout extends Plugin
 	}
 
 	/**
-	 * Whether Commerce treats the request as staff working on an order, since staff payments go through the control panel.
+	 * Whether the request comes from staff managing orders in the control panel, where staff payments are made.
 	 */
 	private function isStaffRequest(): bool
 	{
@@ -819,13 +820,8 @@ class FosterCheckout extends Plugin
 			'pay' => $request->getParam('number'),
 			default => null,
 		};
-		$orderId = in_array($actionId, ['add-code', 'remove-code'], true) ? $request->getParam('orderId') : null;
 
-		$order = match (true) {
-			is_string($number) && $number !== '' => $commerce->getOrders()->getOrderByNumber($number),
-			is_numeric($orderId) => $commerce->getOrders()->getOrderById((int) $orderId),
-			default => null,
-		};
+		$order = is_string($number) && $number !== '' ? $commerce->getOrders()->getOrderByNumber($number) : null;
 
 		// Leave a visitor without a cart alone, since loading one for forget-cart would create it
 		if ($order === null && ! $commerce->getCarts()->getHasSessionCartNumber()) {

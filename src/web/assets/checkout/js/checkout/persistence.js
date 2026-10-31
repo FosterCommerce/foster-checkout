@@ -229,7 +229,16 @@ export const cartPersistence = () => ({
 			Object.keys(extra).forEach((name) => {
 				delete queued[name.endsWith('[]') ? name.slice(0, -2) : `${name}[]`];
 			});
-			this.nextSave = { ...queued, ...extra, fieldOnly };
+			// Keep both saves' panels, since `panels` would otherwise replace a queued `panel`
+			const queuedPanels = queued.panels?.length
+				? queued.panels
+				: [queued.panel].filter(Boolean);
+			this.nextSave = {
+				...queued,
+				...extra,
+				fieldOnly,
+				panels: [...new Set([...queuedPanels, ...panels])],
+			};
 			this.setPanelsStatus(panels, 'saving');
 			return;
 		}
@@ -465,7 +474,7 @@ export const cartPersistence = () => ({
 					this.lineItemTotals = live.lineItemTotals;
 				}
 
-				// Replace the Mollie lists alongside the totals, since Mollie filters methods by amount
+				// Replace the Mollie lists alongside the totals, since each list is fetched for the order's amount
 				if (live.molliePaymentMethods) {
 					this.molliePaymentMethods = live.molliePaymentMethods;
 				}

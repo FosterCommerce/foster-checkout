@@ -6070,7 +6070,13 @@ const cartPersistence = () => ({
       Object.keys(extra).forEach((name) => {
         delete queued[name.endsWith("[]") ? name.slice(0, -2) : `${name}[]`];
       });
-      this.nextSave = { ...queued, ...extra, fieldOnly: fieldOnly2 };
+      const queuedPanels = queued.panels?.length ? queued.panels : [queued.panel].filter(Boolean);
+      this.nextSave = {
+        ...queued,
+        ...extra,
+        fieldOnly: fieldOnly2,
+        panels: [.../* @__PURE__ */ new Set([...queuedPanels, ...panels])]
+      };
       this.setPanelsStatus(panels, "saving");
       return;
     }
@@ -7165,10 +7171,12 @@ const SinglePageCheckout = (props) => {
     init() {
       this.rootEl = this.$root;
       this.paymentFormEl = this.$refs.paymentForm;
-      this.rootEl.querySelectorAll("[data-fc-checkout-field]").forEach(
-        (fieldCell) => Object.assign(
-          this.savedFieldValues,
-          this.collectNamedFields(fieldCell)
+      this.$nextTick(
+        () => this.rootEl.querySelectorAll("[data-fc-checkout-field]").forEach(
+          (fieldCell) => Object.assign(
+            this.savedFieldValues,
+            this.collectNamedFields(fieldCell)
+          )
         )
       );
       if (this.$refs.orderNote?.name) {
