@@ -48,6 +48,8 @@ Foster Checkout releases holds when a customer applies a code, when staff apply 
 | The hold of an order that is complete, or has a pending, processing or successful payment | Never |
 | A hold the **Checkout Holds** list shows as **Needs review** | Never |
 
+A payment waiting on the customer, such as a 3DS check, does not keep its hold. Stripe's payment element starts that kind of payment whenever it loads, so counting it would keep the hold of every abandoned checkout. A customer who spends more than 15 minutes on that step can lose the hold to another checkout using the same code.
+
 If another checkout's hold leaves the code with no value for this order, the code field on the payment step shows “This code is in use in another checkout. Try again in 5 minutes.” The number is the minutes left until that hold is 15 minutes old.
 
 To release a hold whose payment can no longer succeed, open the code at **Gift Voucher -> Voucher Codes** and click **Release** under **Checkout Holds**.

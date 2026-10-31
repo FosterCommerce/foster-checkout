@@ -18,7 +18,7 @@ A template that reads `lineItems.imagerXConfig` still works, and the plugin writ
 
 When a customer opens a checkout page or the built-in cart page, Foster Checkout completes a paid cart that isn't a completed order. The customer then sees the order confirmation page. If Foster Checkout can't complete the order, those pages show a notice asking the customer to contact you, with their cart number and a **Start a new cart** button.
 
-Until the order completes, `commerce/cart/update-cart`, `commerce/payments/pay`, `foster-checkout/voucher/add-code`, `gift-voucher/cart/add-code` and `gift-voucher/cart/remove-code` first try to complete the order, then reject the request. A JSON request gets a 400 response with `message` and `error`, plus a `redirect` to the confirmation page when Foster Checkout completed the order. If your own cart template sends JSON requests, follow `redirect` when the response includes it. `commerce/cart/forget-cart` and `foster-checkout/cart/delete` also try to complete the order first. If that fails, they clear the cart anyway. The customer can then shop again while you resolve the paid cart in the control panel.
+Until the order completes, `commerce/cart/update-cart`, `commerce/payments/pay`, `foster-checkout/voucher/add-code`, `gift-voucher/cart/add-code` and `gift-voucher/cart/remove-code` first try to complete the order, then reject the request. A JSON request gets a 400 response with `message` and `error`, plus a `redirect` to the confirmation page when Foster Checkout completed the order. If your own cart template sends JSON requests, follow `redirect` when the response includes it. `commerce/cart/forget-cart` and `foster-checkout/cart/delete` also try to complete the order first. If that fails, `forget-cart` clears the cart anyway, so the customer can shop again while you resolve the paid cart in the control panel. `delete` is rejected instead, since a trashed order no longer appears in the Orders index.
 
 Foster Checkout does not block payments made in the control panel.
 
@@ -27,6 +27,10 @@ If you serve your own cart template at the cart path, loading it does not comple
 ### Estimated shipping setting removed
 
 A migration removes `options.enableEstimatedShipping` from the stored settings. If your config file sets the key, the plugin logs a warning and ignores the value. Remove the key from your config file.
+
+### Zero value gateways limited to Manual gateways
+
+On an order totaling zero, the checkout no longer offers a Stripe, PayPal, Authorize.net or Mollie gateway, even when **Zero value gateways** lists it. If the list held only those gateways, add a Manual gateway to it, or the checkout offers no way to place a free order.
 
 ### Cart and checkout pages excluded from Blitz
 

@@ -54,7 +54,7 @@ export const gatewayHandling = () => ({
 
 		this.paying = true;
 
-		// Wait for the save in flight, since saveCart only queues a save made during one
+		// Wait for the running save, since saveCart queues a save made while one runs instead of sending it
 		if (this.saving) {
 			await new Promise((resolve) => {
 				this.resolveSaves = resolve;

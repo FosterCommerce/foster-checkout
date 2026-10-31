@@ -27,7 +27,12 @@ class m261024_024237_remove_estimated_shipping_setting extends Migration
 		}
 
 		$optionsPath = $pluginPath . '.settings.options';
-		$options = ProjectConfigHelper::unpackAssociativeArray((array) ($projectConfig->get($optionsPath) ?? []));
+		$options = ProjectConfigHelper::unpackAssociativeArray((array) $projectConfig->get($optionsPath));
+
+		// Repacking an unchanged list still renumbers it, which would record a change
+		if (! array_key_exists('enableEstimatedShipping', $options)) {
+			return true;
+		}
 
 		unset($options['enableEstimatedShipping']);
 		$projectConfig->set($optionsPath, ProjectConfigHelper::packAssociativeArray($options));

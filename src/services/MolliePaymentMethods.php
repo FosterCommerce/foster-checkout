@@ -37,7 +37,7 @@ class MolliePaymentMethods extends Component
 	];
 
 	/**
-	 * The gateway's active Mollie methods that accept the order's payment amount, or an empty list when the request fails or the gateway's last request failed in the past minute.
+	 * The gateway's active Mollie methods that accept the order's payment amount.
 	 *
 	 * @return list<MolliePaymentMethod>
 	 */

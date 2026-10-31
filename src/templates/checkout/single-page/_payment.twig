@@ -172,7 +172,7 @@
 											class="absolute opacity-0 w-px h-px"
 											x-model.number="gatewayId"
 											value="{{ gateway.id }}"
-											{# Block a change during a Stripe mount, since its pay request posts whichever gateway is checked. Not disabled, since a disabled radio drops out of that request #}
+											{# Block a change during a Stripe mount, since its pay request posts whichever gateway is checked. Not disabled, since the request omits a disabled radio #}
 											@click="stripeMountPending && $event.preventDefault()"
 										>
 										<label for="sp_gateway_{{ gateway.id }}" class="inline-flex justify-start items-center gap-4 cursor-pointer">
@@ -353,7 +353,8 @@
 												{% set preferredPaymentSourceId = cart.paymentSourceId in paymentSourceIds ? cart.paymentSourceId : (cart.customer.primaryPaymentSourceId ?? null) %}
 												{% set initialPaymentSourceId = preferredPaymentSourceId in paymentSourceIds ? preferredPaymentSourceId : ((paymentSources|first).id ?? 'new') %}
 
-												<div x-data="{ paymentSourceId: '{{ initialPaymentSourceId }}' }">
+												{# Clear a pending Stripe mount when a saved card is chosen, since the mount's form is removed and never finishes #}
+												<div x-data="{ paymentSourceId: '{{ initialPaymentSourceId }}' }" x-init="$watch('paymentSourceId', (value) => value !== 'new' && (stripeMountPending = false))">
 													{% if paymentSources %}
 														{% include 'foster-checkout/_components/app/payment-sources' %}
 

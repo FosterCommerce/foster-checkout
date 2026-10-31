@@ -172,15 +172,18 @@ export const SinglePageCheckout = (props) => {
 			this.rootEl = this.$root;
 			this.paymentFormEl = this.$refs.paymentForm;
 
-			// Record the values the page loaded with, so leaving an unchanged field doesn't save it
-			this.rootEl
-				.querySelectorAll('[data-fc-checkout-field]')
-				.forEach((fieldCell) =>
-					Object.assign(
-						this.savedFieldValues,
-						this.collectNamedFields(fieldCell)
+			// Record the values the page loaded with, so leaving an unchanged field doesn't save it.
+			// Wait a tick, since the billing fields render from an x-if template after this runs.
+			this.$nextTick(() =>
+				this.rootEl
+					.querySelectorAll('[data-fc-checkout-field]')
+					.forEach((fieldCell) =>
+						Object.assign(
+							this.savedFieldValues,
+							this.collectNamedFields(fieldCell)
+						)
 					)
-				);
+			);
 			if (this.$refs.orderNote?.name) {
 				this.savedFieldValues[this.$refs.orderNote.name] =
 					this.$refs.orderNote.value;

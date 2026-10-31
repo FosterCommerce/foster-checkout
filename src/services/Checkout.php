@@ -59,6 +59,7 @@ use KlaviyoAPI\ApiException;
 use Throwable;
 use verbb\giftvoucher\elements\Code;
 use verbb\giftvoucher\GiftVoucher;
+use verbb\giftvoucher\records\Code as CodeRecord;
 use verbb\giftvoucher\records\Reservation;
 use verbb\giftvoucher\services\Reservations;
 use yii\base\Component;
@@ -1604,6 +1605,8 @@ class Checkout extends Component
 		$commerce = Commerce::getInstance();
 
 		foreach ($commerce->getTransactions()->getAllTopLevelTransactionsByOrderId($orderId) as $transaction) {
+			// Leave out redirect, unlike Gift Voucher, since mounting the Stripe card form saves one and every abandoned checkout would keep its hold.
+			// A 3DS check idle past the cutoff can lose its hold in exchange. VoucherHoldTest covers this.
 			if (in_array($transaction->status, [TransactionRecord::STATUS_PENDING, TransactionRecord::STATUS_PROCESSING, TransactionRecord::STATUS_SUCCESS], true)) {
 				return true;
 			}
@@ -1631,7 +1634,7 @@ class Checkout extends Component
 	{
 		return (new Query())
 			->select(['id'])
-			->from('{{%giftvoucher_codes}}')
+			->from(CodeRecord::tableName())
 			->where([
 				'codeKey' => $codeKeys,
 			]);
