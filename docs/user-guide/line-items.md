@@ -33,6 +33,8 @@ A product type with neither image field set shows no image, and the line item's 
 
 Truncation cuts on a word boundary and ends with an ellipsis. Truncation matters for free-text options: a "special instructions" option can be thousands of characters long.
 
+To show a line item's quantity as text, with no stepper, see [fixed quantity line items](../dev-guide/fixed-quantity-line-items.md).
+
 ## Options as the customer sees them
 
 An option is a name and a value saved on the line item when the item was added. Without any rules, both show exactly as stored, so an option named `giftWrap` holding `1` reads:

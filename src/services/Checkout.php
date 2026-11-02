@@ -40,6 +40,7 @@ use fostercommerce\advanceddiscounts\Plugin as AdvancedDiscounts;
 use fostercommerce\advanceddiscounts\variables\AdvancedDiscountsVariable;
 use fostercommerce\fostercheckout\db\Table;
 use fostercommerce\fostercheckout\events\DefineCheckoutContactEvent;
+use fostercommerce\fostercheckout\events\DefineLineItemQtyEditableEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentFormParamsEvent;
 use fostercommerce\fostercheckout\events\DefineSavedPaymentSourcesEvent;
@@ -222,6 +223,31 @@ class Checkout extends Component
 	public const string EVENT_DEFINE_SAVED_PAYMENT_SOURCES = 'defineSavedPaymentSources';
 
 	/**
+	 * @event DefineLineItemQtyEditableEvent The event that is triggered for each line item the cart page lists.
+	 *
+	 * ```php
+	 * use craft\commerce\enums\LineItemType;
+	 * use fostercommerce\fostercheckout\events\DefineLineItemQtyEditableEvent;
+	 * use fostercommerce\fostercheckout\services\Checkout;
+	 * use verbb\events\elements\Ticket;
+	 * use yii\base\Event;
+	 *
+	 * Event::on(
+	 *     Checkout::class,
+	 *     Checkout::EVENT_DEFINE_LINE_ITEM_QTY_EDITABLE,
+	 *     function (DefineLineItemQtyEditableEvent $event) {
+	 *         if ($event->lineItem->type !== LineItemType::Custom && $event->lineItem->getPurchasable() instanceof Ticket) {
+	 *             $event->isQtyEditable = false;
+	 *         }
+	 *     }
+	 * );
+	 * ```
+	 *
+	 * @since 2.1.0
+	 */
+	public const string EVENT_DEFINE_LINE_ITEM_QTY_EDITABLE = 'defineLineItemQtyEditable';
+
+	/**
 	 * @event NewsletterSubscribeEvent The event that is triggered when a customer submits their email with the newsletter checkbox ticked.
 	 *
 	 * A site that runs its newsletter on a service other than Klaviyo subscribes the customer here.
@@ -319,6 +345,26 @@ class Checkout extends Component
 		$this->trigger(self::EVENT_DEFINE_PAYMENT_BLOCK, $definePaymentBlockEvent);
 
 		return $definePaymentBlockEvent->reason;
+	}
+
+	/**
+	 * Whether the cart page lets the customer change the line item's quantity.
+	 *
+	 * @since 2.1.0
+	 */
+	public function isLineItemQtyEditable(LineItem $lineItem): bool
+	{
+		if (! $this->hasEventHandlers(self::EVENT_DEFINE_LINE_ITEM_QTY_EDITABLE)) {
+			return true;
+		}
+
+		$defineLineItemQtyEditableEvent = new DefineLineItemQtyEditableEvent([
+			'lineItem' => $lineItem,
+		]);
+
+		$this->trigger(self::EVENT_DEFINE_LINE_ITEM_QTY_EDITABLE, $defineLineItemQtyEditableEvent);
+
+		return $defineLineItemQtyEditableEvent->isQtyEditable;
 	}
 
 	/**
