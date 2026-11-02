@@ -8,6 +8,8 @@
 {% set unlimitedStock = purchasable and (purchasable.hasUnlimitedStock or purchasable.allowOutOfStockPurchases) ? 1 : 0 %}
 {% set hasSales = purchasable and purchasable.getSales()|length > 0 %}
 
+{% set isQtyEditable = craft.fostercheckout.isLineItemQtyEditable(lineItem) %}
+
 {% set onSale = lineItem.onPromotion or lineItem.purchasableId in discountedPurchasableIds|default([]) %}
 {# Add Sale for a promotional price, which no discount badge covers, or when the line's discounts have no badge #}
 {% set badgeLabels = discountTags %}
@@ -144,6 +146,7 @@
 					{{ csrfInput() }}
 					{{ actionInput('commerce/cart/update-cart') }}
 
+					{% if isQtyEditable %}
 					<div class="inline-flex bg-white border border-gray-300 rounded-lg overflow-hidden">
 						<!-- Persistent left control to avoid DOM swap issues -->
 						<button
@@ -195,6 +198,10 @@
 							</svg>
 						</button>
 					</div>
+					{% else %}
+					<input type="hidden" name="lineItems[{{ lineItem.id }}][qty]" value="{{ lineItem.qty }}">
+					<p class="text-sm text-gray-500">{{ 'cart.lineItem.quantity'|t('foster-checkout') }}: {{ lineItem.qty }}</p>
+					{% endif %}
 
 					<p x-cloak x-show="sending" class="inline-flex justify-center items-center gap-1 text-sm text-gray-500">
 						<svg aria-hidden="true" role="status" class="inline-block w-4 h-4 me-3 text-gray-300 animate-spin"
@@ -271,7 +278,8 @@
 
 		</div>
 
-		<footer class="hidden md:block flex flex-col justify-between items-start gap-3">
+		{# Show at every width for a fixed quantity, since the stepper with its trash button is not rendered #}
+		<footer class="{{ isQtyEditable ? 'hidden md:block' }}">
 			{% if lineItemSettings.showLineItemStock and purchasable and not unlimitedStock %}
 				<p class="text-sm font-medium text-gray-500">
 					{{ 'cart.lineItem.limitedStock'|t('foster-checkout', params = { qty: stock }) }}

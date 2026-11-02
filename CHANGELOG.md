@@ -12,6 +12,7 @@
 - Added the “Notes for each shipping method” setting, for a note shown under a shipping method's name.
 - Added the `Checkout::EVENT_DEFINE_SHIPPING_METHOD_NOTE` event and `craft.fostercheckout.shippingMethodNote()`, for changing the line shown under a shipping method.
 - Added the “Image transformer” and “Image transform params” settings, for choosing the transformer for line item images and the params sent with each image, such as a watermark. “Image transformer” is “Auto” after updating, which keeps the transformer used before.
+- Added the `Checkout::EVENT_DEFINE_LINE_ITEM_QTY_EDITABLE` event and `craft.fostercheckout.isLineItemQtyEditable()`, for showing a line item's quantity on the cart page as text, with no stepper.
 - Added the `firstView` variable to the head and body includes on the confirmation page.
 - Added support for Mollie gateways, which show the Mollie account's payment methods at checkout, and `craft.fostercheckout.molliePaymentMethods()`. Foster Commerce hasn't tested Mollie support against a live Mollie account.
 - Added a `data-fc-notice="discount"` attribute to Advanced Discounts messages, for restyling them from the head include.
