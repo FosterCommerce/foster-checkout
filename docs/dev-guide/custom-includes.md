@@ -1,6 +1,6 @@
 # Custom includes
 
-The plugin can include three templates of your own: one in the document head, one before the closing body tag, and one above the checkout summary. Use the head and body includes for analytics, tracking pixels or support widgets. Use the summary include for a message about the order, such as how much more the customer needs to spend for free shipping.
+The plugin can include three templates of your own: one in the document head, one before the closing body tag, and one above the checkout summary. Use the head and body includes for analytics, tracking pixels, support widgets, or styles. Use the summary include for a message about the order, such as how much more the customer needs to spend for free shipping.
 
 ## Setting the paths
 
@@ -36,6 +36,20 @@ The head and body includes render on every cart and checkout page, so check `ste
 {% if step == 'confirmation' and firstView %}
 	{# Purchase tracking goes here #}
 {% endif %}
+```
+
+## Restyling Advanced Discounts messages
+
+Messages from [Advanced Discounts](../reference/integrations.md#advanced-discounts) have `data-fc-notice="discount"`. To restyle them, add a `<style>` block to the head include with a rule on that attribute. Mark each declaration `!important`, because the checkout's Tailwind styles load after the head include.
+
+```twig
+<style>
+	[data-fc-notice="discount"] {
+		background-color: #1e3a8a !important;
+		border-color: #1e3a8a !important;
+		color: #ffffff !important;
+	}
+</style>
 ```
 
 ## Edge cases

@@ -56,8 +56,41 @@
 					{# Collected once per cart so each line item can check membership without rescanning adjustments #}
 					{# Coupon-gated discounts are excluded so a redeemed code doesn't read as a sale #}
 					{% set discountedPurchasableIds = [] %}
+					{% set discountTagsByPurchasable = {} %}
+					{% set saleTag = 'cart.lineItem.saleTag'|t('foster-checkout') %}
 					{% for adjustment in cart.adjustments|filter(adjustment => adjustment.type == 'discount' and not (adjustment.sourceSnapshot.requireCouponCode ?? false)) %}
-						{% set discountedPurchasableIds = discountedPurchasableIds|merge(adjustment.sourceSnapshot.discountedPurchasableIds ?? []) %}
+						{% set snapshot = adjustment.sourceSnapshot %}
+						{% set adjustmentPurchasableIds = snapshot.discountedPurchasableIds ?? [] %}
+						{% set discountedPurchasableIds = discountedPurchasableIds|merge(adjustmentPurchasableIds) %}
+
+						{% set discountType = snapshot.discountType ?? null %}
+						{% set discountTag = null %}
+						{# Badge Buy X, Get Y as Sale, since its rule's value covers only the earned units #}
+						{% if (snapshot.rule ?? null) == 'bogo' %}
+							{% set discountTag = saleTag %}
+						{% elseif discountType == 'percentage' %}
+							{% set discountTag = 'cart.lineItem.percentOffTag'|t('foster-checkout', {percent: snapshot.discountValue}) %}
+						{# Show the line's capped amount, since the discount stops at what's left on the line #}
+						{% elseif discountType == 'flatAmount' and adjustment.lineItemId and snapshot.applyPer is defined %}
+							{% if snapshot.applyPer == 'purchasable' %}
+								{% set discountTag = 'cart.lineItem.amountOffEachTag'|t('foster-checkout', {amount: (-adjustment.amount / adjustment.lineItem.qty)|currency(cart.currency)}) %}
+							{% else %}
+								{% set discountTag = 'cart.lineItem.amountOffTag'|t('foster-checkout', {amount: (-adjustment.amount)|currency(cart.currency)}) %}
+							{% endif %}
+						{# Badge Sale for an order-level amount, or one without applyPer to tell per unit from per line #}
+						{% elseif discountType == 'flatAmount' %}
+							{% set discountTag = saleTag %}
+						{% endif %}
+
+						{% if discountTag %}
+							{# Key by discount, so two discounts with the same label keep two badges and one Sale badge covers them all #}
+							{% set discountKey = discountTag == saleTag ? 'sale' : snapshot.advancedDiscountId ~ '-' ~ discountTag %}
+							{# Prefix the keys, since merge renumbers integer keys #}
+							{% for purchasableId in adjustmentPurchasableIds %}
+								{% set tagKey = 'purchasable-' ~ purchasableId %}
+								{% set discountTagsByPurchasable = discountTagsByPurchasable|merge({(tagKey): (discountTagsByPurchasable[tagKey] ?? {})|merge({(discountKey): discountTag})}) %}
+							{% endfor %}
+						{% endif %}
 					{% endfor %}
 
 					<ul class="grid grid-cols-1 gap-4 lg:gap-6">
@@ -65,7 +98,8 @@
 							<li>
 								{% include 'foster-checkout/_components/app/line-item-cart' with {
 									lineItem: lineItem,
-									discountedPurchasableIds: discountedPurchasableIds
+									discountedPurchasableIds: discountedPurchasableIds,
+									discountTags: discountTagsByPurchasable['purchasable-' ~ lineItem.purchasableId] ?? {},
 								} %}
 							</li>
 						{% endfor %}

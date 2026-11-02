@@ -9,6 +9,12 @@
 {% set hasSales = purchasable and purchasable.getSales()|length > 0 %}
 
 {% set onSale = lineItem.onPromotion or lineItem.purchasableId in discountedPurchasableIds|default([]) %}
+{# Add Sale for a promotional price, which no discount badge covers, or when the line's discounts have no badge #}
+{% set badgeLabels = discountTags %}
+{% if lineItem.onPromotion or badgeLabels is empty %}
+	{% set badgeLabels = {sale: 'cart.lineItem.saleTag'|t('foster-checkout')}|merge(badgeLabels) %}
+{% endif %}
+{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
 
 {% set lineItemSettings = craft.fostercheckout.settings.lineItems %}
 {% set imageSize = lineItemSettings.imageSize %}
@@ -88,8 +94,10 @@
 					alt="{{ 'misc.imageOf'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
 				/>
 				{% if onSale %}
-					<figcaption class="absolute px-2 py-1 text-xs font-semibold uppercase tracking-wide text-white bg-[var(--brandColor)] {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'bottom-0 left-0' : 'bottom-2 left-2 rounded' }}">
-						{{ 'cart.lineItem.saleTag'|t('foster-checkout') }}
+					<figcaption class="absolute flex flex-wrap gap-1 {{ isFlat ? 'bottom-0 left-0' : 'bottom-2 left-2' }}">
+						{% for badgeLabel in badgeLabels %}
+							<span class="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-white bg-[var(--brandColor)] {{ not isFlat ? 'rounded' }}">{{ badgeLabel }}</span>
+						{% endfor %}
 					</figcaption>
 				{% endif %}
 			</figure>
@@ -104,9 +112,11 @@
 				<h3 class="font-semibold">{{ lineItem.description }}</h3>
 				{% if onSale %}
 					{# Image is hidden below sm and absent entirely when the line item has none, so the badge repeats here #}
-					<span class="{{ hasImage ? 'sm:hidden ' }}inline-block mt-1 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-white bg-[var(--brandColor)] rounded">
-						{{ 'cart.lineItem.saleTag'|t('foster-checkout') }}
-					</span>
+					<div class="{{ hasImage ? 'sm:hidden ' }}flex flex-wrap gap-1 mt-1">
+						{% for badgeLabel in badgeLabels %}
+							<span class="px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-white bg-[var(--brandColor)] {{ not isFlat ? 'rounded' }}">{{ badgeLabel }}</span>
+						{% endfor %}
+					</div>
 				{% endif %}
 				{% if lineItemSettings.showLineItemSku %}
 					<p class="mt-1 text-sm uppercase text-gray-500 break-all">{{ lineItem.sku }}</p>

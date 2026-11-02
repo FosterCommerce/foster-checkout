@@ -15,7 +15,7 @@ Foster Checkout changes the checkout when one of these plugins is installed. Ava
 | Mollie for Craft Commerce | `craftcms/commerce-mollie` | The Mollie account's payment methods, with their logos |
 | Small Pics | `smallpics/craft-smallpics` | Line item images transformed by Small Pics, with params such as a watermark |
 | Imager X | `spacecatninja/imager-x` | Line item image transforms, with params such as a watermark |
-| Advanced Discounts | `fostercommerce/advanced-discounts` | Coupon names and messages in the cart and at checkout |
+| Advanced Discounts | `fostercommerce/advanced-discounts` | Coupon names and messages in the cart and at checkout, and discount badges in the cart |
 
 ## AvaTax
 
@@ -108,3 +108,5 @@ For the renamed `lineItems.imagerXConfig` key, see [upgrading](../upgrade.md#ima
 ## Advanced Discounts
 
 The checkout names an applied Advanced Discounts coupon next to its code, as it does a Commerce coupon. It also renders messages from Advanced Discounts in the cart and at checkout, including why a coupon did not apply. On the single-page checkout, the messages update when the customer applies or removes a coupon.
+
+In the cart, a line item shows a badge with the percent or amount off for each Advanced Discounts discount on it, such as “20% off” or “$5.00 off each”. A discount that requires a coupon code does not add a badge. A Buy X, Get Y discount shows “Sale” instead, because only some of the line's units might be discounted. A flat amount from an Item Subtotal action also shows “Sale”, because it comes off the order rather than the line. A flat amount shows what came off the line, which can be less than the discount's value when the line costs less. With Advanced Discounts 1.2.0 or earlier, a flat amount from a Line Items action shows “Sale”. A line with a Commerce promotional price shows “Sale” as well.
