@@ -14,6 +14,7 @@
 - Added the “Image transformer” and “Image transform params” settings, for choosing the transformer for line item images and the params sent with each image, such as a watermark. “Image transformer” is “Auto” after updating, which keeps the transformer used before.
 - Added the `firstView` variable to the head and body includes on the confirmation page.
 - Added support for Mollie gateways, which show the Mollie account's payment methods at checkout, and `craft.fostercheckout.molliePaymentMethods()`. Foster Commerce hasn't tested Mollie support against a live Mollie account.
+- Added a `data-fc-notice="discount"` attribute to Advanced Discounts messages, for restyling them from the head include.
 
 ### Changed
 
@@ -23,6 +24,7 @@
 - On the single-page checkout, a checkout field now saves even while its panel is incomplete.
 - The single-page checkout no longer asks for a billing address on an order totaling zero, unless “Require Billing Address At Checkout” is on.
 - The single-page checkout no longer preselects a gateway when more than one is available.
+- Cart line items now show the percent or amount off from Advanced Discounts, such as “20% off” or “$5.00 off each”, instead of “Sale”.
 - “Zero value gateways” no longer lists Stripe, PayPal, Authorize.net or Mollie gateways, and the checkout no longer uses them on an order totaling zero. To take orders totaling zero, add a Manual gateway to “Zero value gateways”.
 - Saved address dropdowns now show each address on two lines.
 - Foster Checkout now completes a paid cart that isn't a completed order when the customer opens the checkout or the built-in cart page, and blocks changes and further payments on that cart until the order completes.

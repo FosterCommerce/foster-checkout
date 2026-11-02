@@ -30,6 +30,9 @@ return [
 	'cart.lineItem.maxQtyMessage' => 'Sie können maximal {qty} Stück dieses Artikels kaufen',
 	'cart.lineItem.limitedStock' => 'Nur noch {qty} auf Lager',
 	'cart.lineItem.saleTag' => 'Angebot',
+	'cart.lineItem.percentOffTag' => '{percent,number} % Rabatt',
+	'cart.lineItem.amountOffTag' => '{amount} Rabatt',
+	'cart.lineItem.amountOffEachTag' => '{amount} Rabatt pro Stück',
 	'cart.seePreviousItemsMessage' => 'um Artikel anzuzeigen, die Sie möglicherweise zuvor hinzugefügt haben',
 	'cart.continueShopping' => 'Weiter einkaufen',
 

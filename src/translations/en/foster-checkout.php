@@ -30,6 +30,9 @@ return [
 	'cart.lineItem.maxQtyMessage' => 'You can only purchase up to {qty} of this item',
 	'cart.lineItem.limitedStock' => 'Only {qty} in stock',
 	'cart.lineItem.saleTag' => 'Sale',
+	'cart.lineItem.percentOffTag' => '{percent,number}% off',
+	'cart.lineItem.amountOffTag' => '{amount} off',
+	'cart.lineItem.amountOffEachTag' => '{amount} off each',
 	'cart.seePreviousItemsMessage' => 'to see items you might have added previously',
 	'cart.continueShopping' => 'Continue shopping',
 
