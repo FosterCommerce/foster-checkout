@@ -182,6 +182,24 @@
 					</template>
 				{% endif %}
 
+				<template x-for="payment in (totals.partialPayments || [])" :key="payment.transactionId">
+					<div x-data="PartialPaymentControls(true)" class="flex flex-wrap justify-between items-center gap-4">
+						<dt class="text-gray-500" x-text="payment.name"></dt>
+						<dd class="text-right text-red-500">
+							<form method="post" class="inline" @submit.prevent="submitPartialPayment($el)" data-error-message="{{ 'partialPayment.failed'|t('foster-checkout') }}">
+								{{ csrfInput() }}
+								{{ actionInput('foster-checkout/partial-payment/remove') }}
+								<input type="hidden" name="gatewayId" :value="payment.gatewayId">
+								<input type="hidden" name="accountId" :value="payment.accountId">
+								<input type="hidden" name="transactionId" :value="payment.transactionId">
+								<button type="submit" :disabled="busy" :aria-disabled="busy" :class="busy ? 'opacity-50 cursor-not-allowed' : ''" class="mr-2 text-sm underline text-gray-500">{{ 'partialPayment.remove'|t('foster-checkout') }}</button>
+							</form>
+							<span x-text="payment.amountAsCurrency"></span>
+						</dd>
+						<p x-show="error" x-cloak class="w-full text-sm text-red-500" role="alert" x-text="error"></p>
+					</div>
+				</template>
+
 				<div class="flex justify-between items-center gap-4">
 					<dt class="font-semibold text-black">{{ 'summary.total'|t('foster-checkout') }}</dt>
 					<dd

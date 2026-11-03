@@ -1,6 +1,9 @@
 <?php
 
 return [
+	'partialPayment.remove' => 'Remove',
+	'partialPayment.failed' => 'Unable to update the account payment. Please try again.',
+	'partialPayment.removeToEdit' => 'Remove the applied payment before changing your cart, delivery details, or vouchers.',
 	// Cart page
 	'cart.cartTitle' => 'Cart',
 	'cart.clearCart' => 'Clear the cart',

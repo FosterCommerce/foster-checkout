@@ -1,5 +1,6 @@
 import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
+import { PartialPaymentControls } from './partial-payments.js';
 import {
 	SinglePageCheckout,
 	isEmptyValue,
@@ -1057,6 +1058,7 @@ const enhanceCardFields = () => {
 enhanceCardFields();
 
 Alpine.plugin(focus);
+Alpine.store('partialPayments', { busy: false, error: '' });
 Alpine.data('ScrollableItems', ScrollableItems);
 Alpine.data('SimpleField', SimpleField);
 Alpine.data('NewsletterSignup', NewsletterSignup);
@@ -1066,6 +1068,7 @@ Alpine.data('RadioInput', RadioInput);
 Alpine.data('SearchableSelect', SearchableSelect);
 Alpine.data('LineItem', LineItem);
 Alpine.data('SinglePageCheckout', SinglePageCheckout);
+Alpine.data('PartialPaymentControls', PartialPaymentControls);
 Alpine.data('AddressVerification', AddressVerification);
 Alpine.data('AddressAutocomplete', AddressAutocomplete);
 

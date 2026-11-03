@@ -158,7 +158,7 @@
 
 	{% include 'foster-checkout/_components/app/header' with { showCartLink: showCartLink|default(false) } %}
 
-	<div class="max-w-[1200px] mx-auto px-4 text-gray-800 bg-white sm:px-6">
+	<div data-fc-checkout-content class="max-w-[1200px] mx-auto px-4 text-gray-800 bg-white sm:px-6">
 		{# Show the notice in place of the checkout forms while a paid cart stays incomplete #}
 		{% if craft.app.request.getSegment(-1) != 'order' and craft.fostercheckout.isPaidButIncomplete(cart) %}
 			{% include 'foster-checkout/_components/app/paid-but-incomplete' %}

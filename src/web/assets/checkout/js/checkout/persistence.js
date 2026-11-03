@@ -402,6 +402,18 @@ export const cartPersistence = () => ({
 
 			const live = cart.fosterCheckout || {};
 
+			if (live.paymentNeedsRefresh) {
+				this.invalidateStripeCheckout();
+				this.invalidatePaypalCheckout();
+			}
+
+			if (
+				typeof live.partialPaymentsHtml === 'string' &&
+				this.$refs.partialPayments
+			) {
+				this.$refs.partialPayments.innerHTML = live.partialPaymentsHtml;
+			}
+
 			// Apply outside the address gate, since book labels don't depend on the cart's address
 			if (live.addressLabels && typeof live.addressLabels === 'object') {
 				this.addressLabels = live.addressLabels;
@@ -466,6 +478,7 @@ export const cartPersistence = () => ({
 					this.totals = {
 						discounts: [],
 						vouchers: [],
+						partialPayments: [],
 						...live.totals,
 					};
 				}

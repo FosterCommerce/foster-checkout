@@ -25,7 +25,7 @@
 {% endblock %}
 
 {% block body %}
-	{% set gateways = cart.getAvailableGateways() %}
+	{% set gateways = craft.fostercheckout.paymentGateways(cart) %}
 	{% set addresses = craft.fostercheckout.customerAddresses(cart) %}
 
 	{# Gateway seeded from the cart #}
@@ -140,14 +140,25 @@
 								</section>
 							{% endif %}
 
+							<p x-show="$store.partialPayments.error" x-cloak class="text-sm text-red-500" role="alert" x-text="$store.partialPayments.error"></p>
+							{% include 'foster-checkout/_components/app/partial-payments' with { singlePage: false } %}
+
 							{% set paymentBlock = craft.fostercheckout.paymentBlock(cart) %}
 							{% if paymentBlock %}
 							<section>
 								<p class="px-4 text-sm text-gray-500 xl:px-0" role="status">{{ paymentBlock }}</p>
 							</section>
+							{% elseif craft.fostercheckout.partialPayments.hasApplied(cart) and craft.fostercheckout.partialPayments.remainingAmount(cart) == 0 %}
+							{% include 'foster-checkout/_components/app/partial-payment-complete' with { singlePage: false } %}
 							{% else %}
 							<section>
-								<form method="POST" class="grid gap-y-4 gap-x-4" id="paymentForm">
+								<form method="POST" class="grid gap-y-4 gap-x-4" id="paymentForm" :inert="$store.partialPayments.busy" @submit="
+									if ($event.defaultPrevented || $el.dataset.processing || $store.partialPayments.busy) {
+										$event.preventDefault();
+									} else {
+										$el.dataset.processing = 'true';
+									}
+								">
 									{{ csrfInput() }}
 									{{ actionInput('commerce/payments/pay') }}
 
@@ -247,7 +258,7 @@
 															"
 
 														>
-															{% set buttonText = cart.total == 0 ? 'payment.completeOrder'|t('foster-checkout') : 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
+															{% set buttonText = cart.total == 0 ? 'payment.completeOrder'|t('foster-checkout') : 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ craft.fostercheckout.partialPayments.remainingAmount(cart)|currency(cart.currency) %}
 
 															{% set params = {} %}
 															{% set payButtonClasses = 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block' %}
@@ -346,7 +357,7 @@
 																	type="submit"
 																	class="justify-between items-center gap-4 w-full px-4 py-3 mt-6 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
 																>
-																	{{ cart.total == 0 ? 'payment.completeOrder'|t('foster-checkout') : 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
+																	{{ cart.total == 0 ? 'payment.completeOrder'|t('foster-checkout') : 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ craft.fostercheckout.partialPayments.remainingAmount(cart)|currency(cart.currency) }}
 																</button>
 															{% elseif gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
 																{% set savedPaymentSources = currentUser and craft.fostercheckout.settings.enableSavedPaymentSources ? craft.fostercheckout.savedPaymentSources(cart, gateway) : null %}
@@ -368,7 +379,7 @@
 																					type="submit"
 																					class="justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
 																				>
-																					{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency }}
+																					{{ 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ craft.fostercheckout.partialPayments.remainingAmount(cart)|currency(cart.currency) }}
 																				</button>
 																			</div>
 																		</template>
@@ -417,19 +428,6 @@
 
 	</div>
 
-	{% js %}
-	const paymentForm = document.getElementById('paymentForm');
-
-	// A second submit would take a second payment, so the first one claims the form
-	paymentForm.addEventListener('submit', function (event) {
-		if (event.defaultPrevented || paymentForm.dataset.processing) {
-			event.preventDefault();
-			return false;
-		}
-
-		paymentForm.dataset.processing = true;
-	});
-	{% endjs %}
 {% endblock %}
 
 {% block includeBody %}

@@ -81,13 +81,17 @@
 			</section>
 		{% endif %}
 
+		<p x-show="$store.partialPayments.error" x-cloak class="text-sm text-red-500" role="alert" x-text="$store.partialPayments.error"></p>
+		<div x-ref="partialPayments">{{ live.partialPaymentsHtml|raw }}</div>
+
+		{% include 'foster-checkout/_components/app/partial-payment-complete' with { singlePage: true } %}
 		<section x-show="paymentBlock" x-cloak>
 			<h3 class="mb-4 font-semibold">
 				{{ 'payment.paymentMethod'|t('foster-checkout') }}
 			</h3>
 			<p class="text-sm text-gray-500" role="status" x-text="paymentBlock"></p>
 		</section>
-		<section class="relative" x-show="!paymentBlock" x-cloak>
+		<section class="relative" x-show="!paymentBlock && !partialPaymentCoversTotal" x-cloak>
 			<h3 class="mb-4 font-semibold" x-show="!paying">
 				{{ 'payment.paymentMethod'|t('foster-checkout') }}
 			</h3>
@@ -131,6 +135,7 @@
 					method="POST"
 					class="grid gap-y-4 gap-x-4"
 					id="paymentForm"
+					x-bind:inert="$store.partialPayments.busy"
 					x-ref="paymentForm"
 					data-fc-skip-collect
 					@submit="onPaySubmit($event)"
@@ -238,7 +243,7 @@
 												})
 											"
 										>
-											{% set buttonText = cart.total == 0 ? 'payment.completeOrder'|t('foster-checkout') : 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ cart.totalAsCurrency %}
+											{% set buttonText = cart.total == 0 ? 'payment.completeOrder'|t('foster-checkout') : 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ craft.fostercheckout.partialPayments.remainingAmount(cart)|currency(cart.currency) %}
 											{% set params = {} %}
 											{% set payButtonClasses = 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block' %}
 

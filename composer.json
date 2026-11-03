@@ -43,6 +43,7 @@
 		}
 	},
 	"require-dev": {
+		"craftcms/commerce-stripe": "^5.1.0.3",
 		"craftcms/generator": "^2.1",
 		"craftcms/phpstan": "dev-main",
 		"craftcms/rector": "dev-main",
