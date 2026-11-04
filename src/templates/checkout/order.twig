@@ -190,7 +190,7 @@
 						{{ 'summary.itemsTitle'|t('foster-checkout') }}
 					</h2>
 
-					<ul class="grid grid-cols-1 gap-4">
+					<ul class="grid grid-cols-1 divide-y {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'divide-gray-300' : 'divide-gray-250' }}">
 						{% for lineItem in order.lineItems %}
 							<li>
 								{% include 'foster-checkout/_components/app/line-item-checkout' with {

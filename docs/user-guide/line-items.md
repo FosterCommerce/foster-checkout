@@ -15,7 +15,7 @@ The checkout summary and the order confirmation show each line's image, title, q
 | **Image fit** | Whether the whole image is shown inside a square box, or cropped to fill it. **Contain** by default |
 | **Image transformer** | What transforms the images: Craft, Imager X or Small Pics. Auto by default, which uses Imager X when it is enabled and Small Pics is not, and Craft otherwise. The list includes Imager X and Small Pics while each is enabled or selected. If the selected plugin is disabled or uninstalled, the images use Craft's transforms and the plugin logs a warning |
 | **Image transform params** | Parameters sent with each image, such as a watermark, when **Image transformer** uses Imager X or Small Pics. Values can be environment variables, and the plugin sends `true`, `false` and numbers as those types. For each plugin's parameters, see [plugin integrations](../reference/integrations.md) |
-| **Placeholder images** | Whether a line item with no image shows a "no image" placeholder, loaded from placehold.co. Off by default |
+| **Placeholder images** | Whether a line item with no image shows a built-in placeholder. Off by default |
 
 A product type with neither image field set shows no image, and the line item's text fills the row.
 

@@ -56,12 +56,24 @@
 	{% else %}
 		{% set imageSrcSet = previewImage.getSrcSet([narrowImageSize, imageSize]) %}
 	{% endif %}
-{% elseif lineItemSettings.enablePlaceholderImages %}
-	{% set placeHolderImage = 'https://placehold.co/' ~ imageSize ~ 'x' ~ imageSize ~ '?text=' ~ 'misc.noImage'|t('foster-checkout')|split(' ')|join('+') %}
-	{% set imageSrcSet = placeHolderImage ~ ' ' ~ imageSize ~ 'w' %}
-{% else %}
+{% elseif not lineItemSettings.enablePlaceholderImages %}
 	{% set hasImage = false %}
 {% endif %}
+
+{% set removeButton %}
+	<button
+		type="button"
+		class="inline-flex justify-start items-center gap-2 text-sm underline text-gray-500 hover:no-underline hover:text-gray-700"
+		:disabled="sending"
+		@mousedown="onButtonMouseDown()"
+		@click="remove()"
+	>
+		<svg xmlns="http://www.w3.org/2000/svg" width="12" height="14" viewBox="0 0 12 14" class="fill-current">
+			<path d="M2.31807 13.0996C2.01032 13.0996 1.74346 12.9871 1.51751 12.7619C1.29155 12.5367 1.17857 12.2708 1.17857 11.9641V2.5319H0.42749V1.39638H3.73221V0.824646H8.26372V1.39638H11.5724V2.5319H10.8213V11.9641C10.8213 12.2708 10.7084 12.5367 10.4824 12.7619C10.2565 12.9871 9.9896 13.0996 9.68184 13.0996H2.31807ZM4.06481 10.5627H5.13257V3.9127H4.06481V10.5627ZM6.86734 10.5627H7.93909V3.9127H6.86734V10.5627Z" fill="#6B7280"/>
+		</svg>
+		<span class="inline">{{ 'cart.lineItem.remove'|t('foster-checkout') }}</span>
+	</button>
+{% endset %}
 
 <article
 	x-data="LineItem({
@@ -78,25 +90,34 @@
 		showErrorMinMessage: false,
 		showErrorStockMessage: false
 	})"
-	class="flex justify-between items-stretch gap-4 p-4 bg-gray-200 rounded-lg"
+	class="flex justify-between items-stretch gap-4 py-4"
 >
 
 	{% if hasImage %}
 		<div
 			style="--lineItemImageSize: {{ imageSize }}px;"
-			class="hidden sm:block flex-none max-w-full w-[calc(var(--lineItemImageSize)/2)] md:w-[var(--lineItemImageSize)]"
+			class="flex-none max-w-full w-[calc(var(--lineItemImageSize)/2)] md:w-[var(--lineItemImageSize)]"
 		>
 			<figure class="relative aspect-square rounded-lg overflow-hidden min-w-full {{ cropsImage ? '' : 'bg-white' }}">
-				<img
-					srcset="{{ imageSrcSet }}"
-					sizes="(min-width: 768px) {{ imageSize }}px, {{ narrowImageSize }}px"
-					width="{{ imageSize }}"
-					height="{{ imageSize }}"
-					class="w-full h-full {{ cropsImage ? 'object-cover' : 'object-contain' }}"
-					alt="{{ 'misc.imageOf'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
-				/>
+				{% if imageSrcSet %}
+					<img
+						srcset="{{ imageSrcSet }}"
+						sizes="(min-width: 768px) {{ imageSize }}px, {{ narrowImageSize }}px"
+						width="{{ imageSize }}"
+						height="{{ imageSize }}"
+						class="w-full h-full {{ cropsImage ? 'object-cover' : 'object-contain' }}"
+						alt="{{ 'misc.imageOf'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
+					/>
+				{% else %}
+					<div class="flex justify-center items-center w-full h-full bg-gray-100 text-gray-300">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10" aria-hidden="true">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/>
+							<path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z"/>
+						</svg>
+					</div>
+				{% endif %}
 				{% if onSale %}
-					<figcaption class="absolute flex flex-wrap gap-1 {{ isFlat ? 'bottom-0 left-0' : 'bottom-2 left-2' }}">
+					<figcaption class="absolute hidden sm:flex flex-wrap gap-1 {{ isFlat ? 'bottom-0 left-0' : 'bottom-2 left-2' }}">
 						{% for badgeLabel in badgeLabels %}
 							<span class="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-white bg-[var(--brandColor)] {{ not isFlat ? 'rounded' }}">{{ badgeLabel }}</span>
 						{% endfor %}
@@ -113,7 +134,7 @@
 			<div class="pr-4">
 				<h3 class="font-semibold">{{ lineItem.description }}</h3>
 				{% if onSale %}
-					{# Image is hidden below sm and absent entirely when the line item has none, so the badge repeats here #}
+					{# Repeat the badge here, since the image hides its copy below sm and a line item may have no image #}
 					<div class="{{ hasImage ? 'sm:hidden ' }}flex flex-wrap gap-1 mt-1">
 						{% for badgeLabel in badgeLabels %}
 							<span class="px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-white bg-[var(--brandColor)] {{ not isFlat ? 'rounded' }}">{{ badgeLabel }}</span>
@@ -136,6 +157,9 @@
 			</div>
 
 			<div class="mt-0 flex flex-col-reverse gap-3 justify-start items-end md:w-1/2">
+
+				{# The column is reversed, so this button shows under the quantity #}
+				<div class="md:hidden">{{ removeButton }}</div>
 
 				<form
 					id="lineItemQty-{{ lineItem.id }}"
@@ -200,7 +224,7 @@
 					</div>
 					{% else %}
 					<input type="hidden" name="lineItems[{{ lineItem.id }}][qty]" value="{{ lineItem.qty }}">
-					<p class="text-sm text-gray-500">{{ 'cart.lineItem.quantity'|t('foster-checkout') }}: {{ lineItem.qty }}</p>
+					<p class="text-sm text-gray-500 whitespace-nowrap">{{ 'cart.lineItem.quantity'|t('foster-checkout') }}: {{ lineItem.qty }}</p>
 					{% endif %}
 
 					<p x-cloak x-show="sending" class="inline-flex justify-center items-center gap-1 text-sm text-gray-500">
@@ -278,8 +302,7 @@
 
 		</div>
 
-		{# Show at every width for a fixed quantity, since the stepper with its trash button is not rendered #}
-		<footer class="{{ isQtyEditable ? 'hidden md:block' }}">
+		<footer class="hidden md:block">
 			{% if lineItemSettings.showLineItemStock and purchasable and not unlimitedStock %}
 				<p class="text-sm font-medium text-gray-500">
 					{{ 'cart.lineItem.limitedStock'|t('foster-checkout', params = { qty: stock }) }}
@@ -289,18 +312,7 @@
 			<div class="flex flex-col justify-between items-start gap-2 sm:flex-row sm:justify-start sm:items-center sm:gap-8">
 
 
-				<button
-					type="button"
-					class="inline-flex justify-start items-center gap-2 text-sm underline text-gray-500 hover:no-underline hover:text-gray-700"
-					:disabled="sending"
-					@mousedown="onButtonMouseDown()"
-					@click="remove()"
-				>
-					<svg xmlns="http://www.w3.org/2000/svg" width="12" height="14" viewBox="0 0 12 14" class="fill-current">
-						<path d="M2.31807 13.0996C2.01032 13.0996 1.74346 12.9871 1.51751 12.7619C1.29155 12.5367 1.17857 12.2708 1.17857 11.9641V2.5319H0.42749V1.39638H3.73221V0.824646H8.26372V1.39638H11.5724V2.5319H10.8213V11.9641C10.8213 12.2708 10.7084 12.5367 10.4824 12.7619C10.2565 12.9871 9.9896 13.0996 9.68184 13.0996H2.31807ZM4.06481 10.5627H5.13257V3.9127H4.06481V10.5627ZM6.86734 10.5627H7.93909V3.9127H6.86734V10.5627Z" fill="#6B7280"/>
-					</svg>
-					<span class="inline">{{ 'cart.lineItem.remove'|t('foster-checkout') }}</span>
-				</button>
+				{{ removeButton }}
 			</div>
 		</footer>
 

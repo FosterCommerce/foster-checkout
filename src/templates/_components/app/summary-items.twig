@@ -4,7 +4,7 @@
 		class="max-h-96 overflow-y-auto"
 		@scroll="measurePosition()"
 	>
-		<ul x-ref="items" class="grid grid-cols-1 gap-4">
+		<ul x-ref="items" class="grid grid-cols-1 divide-y {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'divide-gray-300' : 'divide-gray-250' }}">
 			{% for lineItem in cart.lineItems %}
 				<li>
 					{% include 'foster-checkout/_components/app/line-item-checkout' with { lineItem: lineItem, liveTotals: liveTotals|default(false) } %}

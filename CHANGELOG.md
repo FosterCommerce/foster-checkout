@@ -35,6 +35,8 @@
 - The cart and checkout pages, including the order confirmation page, now send no-cache headers, and Foster Checkout excludes them from Blitz's cache.
 - The checkout now passes `order`, `submitButtonText` and `submitButtonClasses` to the payment form of gateways other than Stripe Payment Intents, PayPal, Mollie and Manual.
 - The cart page no longer shows “Continue shopping” when the cart has items.
+- “Placeholder images” now shows a built-in placeholder instead of an image from placehold.co.
+- Cart line items now show their image and Remove link on phones, with Remove under the quantity.
 - The order confirmation page now lists each payment with its amount, date and any refund, and whether it was charged, authorized or applied, instead of only the last payment's card.
 
 ### Deprecated

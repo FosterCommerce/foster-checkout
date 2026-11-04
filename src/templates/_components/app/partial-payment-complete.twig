@@ -2,6 +2,6 @@
 	<form method="post" @submit.prevent="submitPartialPayment($el)" data-error-message="{{ 'partialPayment.failed'|t('foster-checkout') }}">
 		{{ csrfInput() }}
 		{{ actionInput('foster-checkout/partial-payment/complete') }}
-		<button type="submit" :disabled="busy{{ singlePage|default(false) ? ' || !canEnterPayment' : '' }}" class="w-full h-12 px-4 font-medium text-white bg-[var(--brandColor)] rounded-xl">{{ 'payment.completeOrder'|t('foster-checkout') }}</button>
+		<button type="submit" :disabled="busy{{ singlePage|default(false) ? ' || !canEnterPayment' : '' }}" class="w-full h-12 px-4 font-medium text-white bg-[var(--brandColor)] rounded-lg">{{ 'payment.completeOrder'|t('foster-checkout') }}</button>
 	</form>
 </section>

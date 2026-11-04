@@ -36,23 +36,30 @@
 			quality: 90,
 		}) %}
 	{% endif %}
-{% elseif lineItemSettings.enablePlaceholderImages %}
-	{% set imageUrl = 'https://placehold.co/70x70?text=' ~ 'misc.noImage'|t('foster-checkout')|split(' ')|join('+') %}
-{% else %}
+{% elseif not lineItemSettings.enablePlaceholderImages %}
 	{% set hasImage = false %}
 {% endif %}
 
-<article class="flex justify-between items-center gap-4 p-4 bg-gray-200 rounded-lg">
+<article class="flex justify-between items-center gap-4 py-4">
 	{% if hasImage %}
 		<div class="relative w-[70px] min-w-[70px]">
 			<figure class="aspect-square rounded-lg overflow-hidden {{ cropsImage ? '' : 'bg-white' }}">
-				<img
-					src="{{ imageUrl }}"
-					width="70"
-					height="70"
-					class="w-full h-full {{ cropsImage ? 'object-cover' : 'object-contain' }}"
-					alt="{{ 'misc.imageOf'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
-				/>
+				{% if imageUrl %}
+					<img
+						src="{{ imageUrl }}"
+						width="70"
+						height="70"
+						class="w-full h-full {{ cropsImage ? 'object-cover' : 'object-contain' }}"
+						alt="{{ 'misc.imageOf'|t('foster-checkout') ~ ' ' ~ lineItem.description }}"
+					/>
+				{% else %}
+					<div class="flex justify-center items-center w-full h-full bg-gray-100 text-gray-300">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6" aria-hidden="true">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/>
+							<path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z"/>
+						</svg>
+					</div>
+				{% endif %}
 			</figure>
 			{# The figure clips its corners, so the badge sits outside it #}
 			<span class="absolute -top-2 -right-2 flex justify-center items-center w-6 h-6 text-xs font-medium text-white bg-[var(--brandColor)] rounded-full">

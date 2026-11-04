@@ -197,7 +197,6 @@ return [
 	// Miscellaneous
 	'misc.checkoutTitle' => 'Checkout',
 	'misc.cartTitle' => 'Cart',
-	'misc.noImage' => 'No Image',
 	'misc.imageOf' => 'Image of',
 
 	'misc.signIn' => 'Sign in',

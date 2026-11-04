@@ -54,7 +54,7 @@
 							:disabled="voucherCode.trim() === '' || applyingVoucher"
 							:aria-disabled="voucherCode.trim() === '' || applyingVoucher"
 							:class="voucherCode.trim() === '' || applyingVoucher ? 'opacity-50 cursor-not-allowed' : ''"
-							class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-xl"
+							class="h-[48px] flex justify-center items-center gap-2 px-4 text-white bg-[var(--brandColor)] rounded-lg"
 							@click="applyVoucher()"
 						>
 							<span x-text="applyingVoucher ? applyingVoucherLabel : '{{ 'voucher.applyCode'|t('foster-checkout')|e('js') }}'">{{ 'voucher.applyCode'|t('foster-checkout') }}</span>
@@ -208,7 +208,7 @@
 											[&_.multitext>.multitextrow:not(:first-child)]:grid-cols-3
 											[&_.multitextrow>*]:min-w-0
 											[&_input.text]:block [&_input.text]:w-full
-											[&_input.text]:rounded-xl
+											[&_input.text]:rounded-lg
 											[&_input.text]:border [&_input.text]:border-gray-250
 											[&_input.text]:px-3 [&_input.text]:py-2
 											[&_input.text:focus]:outline-none [&_input.text:focus]:ring-0 [&_input.text:focus]:border-black [&_input.text]:transition-colors [&_input.text]:duration-300
@@ -225,7 +225,7 @@
 											[&_button#paymentForm-authorizeNet-authorizeSubmit]:bg-[var(--brandColor)]
 											[&_button#paymentForm-authorizeNet-authorizeSubmit]:border
 											[&_button#paymentForm-authorizeNet-authorizeSubmit]:border-[var(--brandColor)]
-											[&_button#paymentForm-authorizeNet-authorizeSubmit]:rounded-xl
+											[&_button#paymentForm-authorizeNet-authorizeSubmit]:rounded-lg
 											[&_button#paymentForm-authorizeNet-authorizeSubmit]:transition
 											hover:[&_button#paymentForm-authorizeNet-authorizeSubmit]:opacity-90
 											"
@@ -243,7 +243,7 @@
 										>
 											{% set buttonText = cart.total == 0 ? 'payment.completeOrder'|t('foster-checkout') : 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ craft.fostercheckout.partialPayments.remainingAmount(cart)|currency(cart.currency) %}
 											{% set params = {} %}
-											{% set payButtonClasses = 'mt-6 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block' %}
+											{% set payButtonClasses = 'mt-6 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg lg:inline-block' %}
 
 											{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
 												{% set stripeConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
@@ -341,7 +341,7 @@
 
 												<button
 													type="submit"
-													class="justify-between items-center gap-4 w-full px-4 py-3 mt-6 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+													class="justify-between items-center gap-4 w-full px-4 py-3 mt-6 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg lg:inline-block"
 													:disabled="!canPay"
 													:aria-disabled="!canPay"
 													:class="!canPay ? 'opacity-50 cursor-not-allowed' : ''"
@@ -366,7 +366,7 @@
 																<input type="hidden" name="paymentSourceId" :value="paymentSourceId">
 																<button
 																	type="submit"
-																	class="justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block"
+																	class="justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg lg:inline-block"
 																	:disabled="!canPay"
 																	:aria-disabled="!canPay"
 																	:class="!canPay ? 'opacity-50 cursor-not-allowed' : ''"
