@@ -789,6 +789,8 @@ const AutosaveForm = (options) => {
 	return {
 		...options,
 		status: '',
+		statusVisible: false,
+		statusTimer: null,
 		lastSaved: '',
 
 		// Read the starting values after child fields bind theirs
@@ -815,7 +817,9 @@ const AutosaveForm = (options) => {
 
 			// Record the values before posting, so one edit's change and blur post once
 			this.lastSaved = key;
+			clearTimeout(this.statusTimer);
 			this.status = this.savingLabel;
+			this.statusVisible = true;
 
 			try {
 				const response = await fetch(window.location.href, {
@@ -842,6 +846,10 @@ const AutosaveForm = (options) => {
 			}
 
 			this.status = this.savedLabel;
+			// Keep the status text, so it stays readable during the fade
+			this.statusTimer = setTimeout(() => {
+				this.statusVisible = false;
+			}, 2500);
 
 			if (this.reportsMissing) {
 				this.$dispatch('fc-summary-fields-saved', {

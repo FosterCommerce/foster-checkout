@@ -14,7 +14,7 @@
 				{{ hiddenInput('gatewayId', step.gateway.id) }}
 				{{ hiddenInput('paymentForm[accountId]', step.accountId) }}
 				<fieldset class="grid grid-cols-[1fr,_120px] items-center gap-4" :aria-busy="busy">
-					<p class="flex items-center w-full h-12 px-4 bg-white rounded-lg border border-gray-250 text-gray-800">{{ step.label|replace({'{amount}': step.amount|currency(cart.currency)}) }}</p>
+					<p class="flex items-center w-full h-12 px-3 bg-white rounded-lg border border-gray-250 text-gray-800">{{ step.label|replace({'{amount}': step.amount|currency(cart.currency)}) }}</p>
 					<button type="submit" class="h-12 px-8 text-white bg-[var(--brandColor)] rounded-xl" :disabled="busy" :aria-disabled="busy" :class="busy ? 'opacity-50 cursor-not-allowed' : ''">
 						<span x-text="busy ? '{{ 'voucher.applyingCode'|t('foster-checkout')|e('js') }}' : '{{ 'voucher.applyCode'|t('foster-checkout')|e('js') }}'">{{ 'voucher.applyCode'|t('foster-checkout') }}</span>
 					</button>

@@ -7262,6 +7262,7 @@ const SinglePageCheckout = (props) => {
     },
     panelErrors: {},
     panelStatusTimers: {},
+    panelStatusFading: {},
     queuedSavePanels: [],
     pending: 0,
     saveTimer: null,
@@ -7617,6 +7618,10 @@ const SinglePageCheckout = (props) => {
           [panel]: null
         };
       }
+      this.panelStatusFading = {
+        ...this.panelStatusFading,
+        [panel]: false
+      };
       this.panelStatus = {
         ...this.panelStatus,
         [panel]: tone
@@ -7636,12 +7641,17 @@ const SinglePageCheckout = (props) => {
         ])
       );
       const timer = setTimeout(() => {
-        if (this.panelStatus[panel] === "saved") {
-          this.panelStatus = {
-            ...this.panelStatus,
-            [panel]: "idle"
-          };
+        if (this.panelStatus[panel] !== "saved") {
+          return;
         }
+        this.panelStatusFading = {
+          ...this.panelStatusFading,
+          [panel]: true
+        };
+        this.panelStatusTimers = {
+          ...this.panelStatusTimers,
+          [panel]: setTimeout(() => this.setPanelStatus(panel, "idle"), 300)
+        };
       }, 2500);
       this.panelStatusTimers = {
         ...this.panelStatusTimers,
@@ -8719,6 +8729,8 @@ const AutosaveForm = (options) => {
   return {
     ...options,
     status: "",
+    statusVisible: false,
+    statusTimer: null,
     lastSaved: "",
     // Read the starting values after child fields bind theirs
     init() {
@@ -8739,7 +8751,9 @@ const AutosaveForm = (options) => {
         return;
       }
       this.lastSaved = key;
+      clearTimeout(this.statusTimer);
       this.status = this.savingLabel;
+      this.statusVisible = true;
       try {
         const response = await fetch(window.location.href, {
           method: "POST",
@@ -8760,6 +8774,9 @@ const AutosaveForm = (options) => {
         return;
       }
       this.status = this.savedLabel;
+      this.statusTimer = setTimeout(() => {
+        this.statusVisible = false;
+      }, 2500);
       if (this.reportsMissing) {
         this.$dispatch("fc-summary-fields-saved", {
           missing: this.missingRequiredLabels()

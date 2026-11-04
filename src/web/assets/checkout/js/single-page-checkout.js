@@ -144,6 +144,7 @@ export const SinglePageCheckout = (props) => {
 		},
 		panelErrors: {},
 		panelStatusTimers: {},
+		panelStatusFading: {},
 		queuedSavePanels: [],
 		pending: 0,
 		saveTimer: null,
@@ -618,6 +619,11 @@ export const SinglePageCheckout = (props) => {
 				};
 			}
 
+			this.panelStatusFading = {
+				...this.panelStatusFading,
+				[panel]: false,
+			};
+
 			this.panelStatus = {
 				...this.panelStatus,
 				[panel]: tone,
@@ -645,12 +651,19 @@ export const SinglePageCheckout = (props) => {
 			);
 
 			const timer = setTimeout(() => {
-				if (this.panelStatus[panel] === 'saved') {
-					this.panelStatus = {
-						...this.panelStatus,
-						[panel]: 'idle',
-					};
+				if (this.panelStatus[panel] !== 'saved') {
+					return;
 				}
+
+				// Keep the saved tone until the fade ends, since the message reads from the tone
+				this.panelStatusFading = {
+					...this.panelStatusFading,
+					[panel]: true,
+				};
+				this.panelStatusTimers = {
+					...this.panelStatusTimers,
+					[panel]: setTimeout(() => this.setPanelStatus(panel, 'idle'), 300),
+				};
 			}, 2500);
 
 			this.panelStatusTimers = {

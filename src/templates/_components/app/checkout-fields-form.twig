@@ -20,6 +20,8 @@
 
 			{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'summary', showRequired: true } %}
 		</form>
-		<p class="mt-2 text-sm text-gray-500" role="status" x-text="status"></p>
+		<div role="status">
+			<p class="mt-2 text-sm text-gray-500" x-show="statusVisible" x-transition.opacity.duration.300ms x-text="status"></p>
+		</div>
 	</div>
 {% endif %}

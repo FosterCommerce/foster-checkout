@@ -3,7 +3,8 @@
 <span
 	class="inline-flex items-center gap-1.5 shrink-0"
 	x-cloak
-	x-show="panelStatus['{{ panel }}'] && panelStatus['{{ panel }}'] !== 'idle'"
+	x-show="panelStatus['{{ panel }}'] && panelStatus['{{ panel }}'] !== 'idle' && !panelStatusFading['{{ panel }}']"
+	x-transition.opacity.duration.300ms
 >
 	<svg
 		x-show="panelStatus['{{ panel }}'] === 'saving'"

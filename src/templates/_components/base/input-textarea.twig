@@ -36,7 +36,7 @@
 		name="{{ fieldName }}"
 		rows="{{ rows|default(4) }}"
 		{{ maxLength ? "maxlength=#{maxLength}" }}
-		class="peer w-full px-4 {{ floatingLabel ? 'pt-7 pb-2 placeholder-shown:py-3' : 'py-3' }} bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-colors duration-300"
+		class="peer w-full px-3 {{ floatingLabel ? 'pt-7 pb-2 placeholder-shown:py-3' : 'py-3' }} bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-colors duration-300"
 		:class="{
 			'text-red-500 border-red-500 focus:border-red-500': errors.length,
 			'text-gray-800 border-green-500 focus:border-green-500': success.length,
@@ -50,7 +50,7 @@
 		:required="isRequired()"
 	></textarea>
 	{% if floatingLabel %}
-		<label for="{{ fieldId }}" class="absolute left-4 right-4 top-1.5 truncate text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400">
+		<label for="{{ fieldId }}" class="absolute left-3 right-3 top-1.5 truncate text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400">
 			{{ label }}<span x-text="isRequired() ? '*' : ''"></span>
 		</label>
 	{% endif %}
