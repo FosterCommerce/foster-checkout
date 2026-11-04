@@ -6,7 +6,7 @@ return [
 	'partialPayment.removeToEdit' => 'Quita el pago aplicado antes de cambiar tu carrito, los datos de entrega o los vales.',
 	// Cart page
 	'cart.cartTitle' => 'Carrito',
-	'cart.clearCart' => 'Vaciar carrito',
+	'cart.deleteCart' => 'Eliminar este carrito',
 	'cart.paidButIncomplete' => 'Recibimos tu pago, pero no pudimos completar tu pedido. Por favor, contáctanos.',
 	'cart.paidButIncompleteTitle' => 'Pago recibido',
 	'cart.authorizedButIncomplete' => 'Autorizamos tu pago, pero no pudimos completar tu pedido. Por favor, contáctanos.',
@@ -535,7 +535,7 @@ return [
 	'settings.features.enableSavedPaymentSourcesHelp' => 'Si un cliente que ha iniciado sesión y paga con Stripe puede elegir un método de pago guardado y guardar uno nuevo.',
 	'settings.features.clearCartTitle' => 'Vaciar carrito',
 	'settings.features.deleteClearedCarts' => 'Eliminar carritos vaciados',
-	'settings.features.deleteClearedCartsHelp' => 'Si «Vaciar carrito» mueve el carrito a la papelera. Si está desactivado, Commerce lo conserva como carrito inactivo en «Commerce -> Pedidos».',
+	'settings.features.deleteClearedCartsHelp' => 'Si la página del carrito ofrece «Eliminar este carrito», que mueve el carrito a la papelera. Si está desactivado, ofrece «Empezar un carrito nuevo», y Commerce conserva el anterior como carrito inactivo en «Commerce -> Pedidos».',
 	'settings.features.customerPickupTitle' => 'Recogida en tienda',
 	'settings.features.enableNewsletter' => 'Casilla del boletín',
 	'settings.features.enableNewsletterHelp' => 'Si el checkout ofrece la casilla del boletín. Klaviyo Connect suscribe a los clientes, o un módulo del sitio gestiona la suscripción.',

@@ -2,7 +2,7 @@
 {% set options =  options ?? [] %}
 
 <div x-data="{
-	value: '{{ value|default('') }}',
+	value: {{ (value|default(''))|json_encode }},
 	errors: {{ errors|default([])|json_encode }},
 	success: {{ success|default([])|json_encode }}
 }">

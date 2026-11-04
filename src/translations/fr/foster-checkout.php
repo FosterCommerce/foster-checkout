@@ -6,7 +6,7 @@ return [
 	'partialPayment.removeToEdit' => 'Retirez le paiement appliqué avant de modifier votre panier, vos informations de livraison ou vos bons d’achat.',
 	// Cart page
 	'cart.cartTitle' => 'Panier',
-	'cart.clearCart' => 'Vider le panier',
+	'cart.deleteCart' => 'Supprimer ce panier',
 	'cart.paidButIncomplete' => "Nous avons bien reçu votre paiement, mais nous n'avons pas pu finaliser votre commande. Veuillez nous contacter.",
 	'cart.paidButIncompleteTitle' => 'Paiement reçu',
 	'cart.authorizedButIncomplete' => 'Nous avons autorisé votre paiement, mais nous n’avons pas pu finaliser votre commande. Veuillez nous contacter.',
@@ -534,7 +534,7 @@ return [
 	'settings.features.enableSavedPaymentSourcesHelp' => 'Si un client connecté qui paie avec Stripe peut choisir un moyen de paiement enregistré et en enregistrer un nouveau.',
 	'settings.features.clearCartTitle' => 'Vider le panier',
 	'settings.features.deleteClearedCarts' => 'Supprimer les paniers vidés',
-	'settings.features.deleteClearedCartsHelp' => 'Si « Vider le panier » place le panier dans la corbeille. Désactivé, Commerce le conserve comme panier inactif dans « Commerce -> Commandes ».',
+	'settings.features.deleteClearedCartsHelp' => 'Si la page du panier propose « Supprimer ce panier », qui place le panier dans la corbeille. Désactivé, elle propose « Commencer un nouveau panier », et Commerce conserve l’ancien comme panier inactif dans « Commerce -> Commandes ».',
 	'settings.features.customerPickupTitle' => 'Retrait en magasin',
 	'settings.features.enableNewsletter' => 'Case du bulletin',
 	'settings.features.enableNewsletterHelp' => 'Si le checkout propose la case du bulletin. Klaviyo Connect inscrit les clients, ou un module du site gère l’inscription.',

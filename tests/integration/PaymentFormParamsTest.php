@@ -31,12 +31,13 @@ final class PaymentFormParamsTest extends CartTestCase
 			$event->params['appearance'] = 'night';
 		});
 
-		self::assertSame([
+		$params = $this->checkout()->paymentFormParams($cart, $this->firstGateway(), [
 			'layout' => 'tabs',
-			'appearance' => 'night',
-		], $this->checkout()->paymentFormParams($cart, $this->firstGateway(), [
-			'layout' => 'tabs',
-		]));
+		]);
+
+		// Check only these keys, since a site's own handler can add more
+		self::assertSame('tabs', $params['layout'] ?? null);
+		self::assertSame('night', $params['appearance'] ?? null);
 	}
 
 	public function testAHandlerCanReplaceTheWholeSet(): void

@@ -1,26 +1,32 @@
-<article>
+<article class="pt-6 border-t {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'border-gray-300' : 'border-gray-250' }}">
 
-	{% set orderDiscountAdjustments = cart.adjustments|filter(
-		adjustment => adjustment.type == 'discount' and not adjustment.lineItemId
-	) %}
-
-	<div class="mb-6">
-		{% include 'foster-checkout/_components/app/coupon-code' %}
-	</div>
-
-	<dl class="grid grid-cols-1 gap-4">
+	<dl class="grid grid-cols-1 gap-2">
 
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">{{ 'summary.itemsLabel'|t('foster-checkout') }}</dt>
 			<dd class="text-right text-black">{{ craft.fostercheckout.itemsTotal(cart) }}</dd>
 		</div>
 
-		{% if cart.shippingAddressId %}
+		{% if cart.shippingAddressId or cart.totalShippingCost != 0 %}
 			<div class="flex justify-between items-center gap-4">
 				<dt class="text-gray-500">{{ 'summary.shippingLabel'|t('foster-checkout') }}</dt>
 				<dd class="text-right text-black">{{ cart.totalShippingCostAsCurrency }}</dd>
 			</div>
 		{% endif %}
+
+		{% for discount in craft.fostercheckout.orderDiscounts(cart) %}
+			<div class="flex justify-between items-center gap-4">
+				<dt class="text-gray-500">{{ discount.name }}</dt>
+				<dd class="text-right text-red-500">{{ discount.amountAsCurrency }}</dd>
+			</div>
+		{% endfor %}
+
+		{% for row in craft.fostercheckout.otherAdjustments(cart) %}
+			<div class="flex justify-between items-center gap-4">
+				<dt class="text-gray-500">{{ row.name }}</dt>
+				<dd class="text-right text-black">{{ row.amountAsCurrency }}</dd>
+			</div>
+		{% endfor %}
 
 		<div class="flex justify-between items-center gap-4">
 			{% if estimated ?? true %}
@@ -31,10 +37,10 @@
 			<dd class="text-right text-black">{{ cart.totalTaxAsCurrency }}</dd>
 		</div>
 
-		{% for adjustment in orderDiscountAdjustments %}
+		{% for row in craft.fostercheckout.afterTaxDiscounts(cart) %}
 			<div class="flex justify-between items-center gap-4">
-				<dt class="text-gray-500">{{ adjustment.name }}</dt>
-				<dd class="text-right text-red-500">{{ adjustment.amount|commerceCurrency }}</dd>
+				<dt class="text-gray-500">{{ row.name }}</dt>
+				<dd class="text-right text-red-500">{{ row.amountAsCurrency }}</dd>
 			</div>
 		{% endfor %}
 

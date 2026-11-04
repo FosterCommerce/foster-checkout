@@ -13,12 +13,34 @@
 	{% endif %}
 {% endif %}
 
+{% if cart.couponCode and not couponCodeError %}
+{% set couponName = craft.fostercheckout.couponName(cart) %}
+<form
+	x-data="{ sending: false }"
+	method="post"
+	@submit="sending = true"
+	class="flex justify-between items-center gap-4 py-3 border-t {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'border-gray-300' : 'border-gray-250' }}"
+>
+	{{ csrfInput() }}
+	{{ actionInput('commerce/cart/update-cart') }}
+	<input type="hidden" name="couponCode" value="" />
+	<p>
+		<span class="font-semibold text-gray-800">{{ cart.couponCode }}</span>
+		{% if couponName and couponName != cart.couponCode %}
+			<span class="text-sm text-gray-500">{{ couponName }}</span>
+		{% endif %}
+	</p>
+	<button type="submit" name="removeCouponCode" value="1" class="shrink-0 text-sm underline text-gray-500 hover:no-underline hover:text-gray-700" :disabled="sending">
+		{{ 'summary.removeCoupon'|t('foster-checkout') }}
+	</button>
+</form>
+{% else %}
 <div
-	x-data="{ isOpen: {{ (cart.couponCode or couponCodeError) ? 'true' : 'false' }}, sending: false }"
-	class="px-3 border border-gray-250 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? '' : 'rounded-lg' }}"
+	x-data="{ isOpen: {{ couponCodeError ? 'true' : 'false' }}, sending: false }"
+	class="border-t {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'border-gray-300' : 'border-gray-250' }}"
 >
 	<button class="flex justify-between items-center w-full py-3" @click="isOpen = !isOpen">
-		<span id="couponCodeLabel" class="font-medium text-gray-500">
+		<span id="couponCodeLabel" class="text-gray-500">
 			{{ 'summary.couponCodeLabel'|t('foster-checkout') }}
 		</span>
 			<template x-if="isOpen">
@@ -44,7 +66,6 @@
 		aria-describedby="couponCodeDesc"
 		class="pb-3"
 	>
-	{% if couponCodeError or not cart.couponCode %}
 		<form
 			:class="sending ? 'grid-cols-[1fr,_120px]' : 'grid-cols-[1fr,_90px]'"
 			method="post"
@@ -93,38 +114,6 @@
 				</button>
 			</div>
 		</form>
-	{% else %}
-		{% set couponName = craft.fostercheckout.couponName(cart) %}
-		<form
-			class=""
-			:class="sending ? 'grid-cols-[1fr,_120px]' : 'grid-cols-[1fr,_90px]'"
-			method="post"
-			@submit="sending = true"
-		>
-			{{ csrfInput() }}
-			{{ actionInput('commerce/cart/update-cart') }}
-			<input type="hidden" name="couponCode" value="" />
-
-			<div class="flex justify-between items-center text-sm text-grey-400 p-2 rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
-				<p>
-					<span class="font-bold">{{ cart.couponCode }}</span>
-					{% if couponName and couponName != cart.couponCode %}
-						<span class="text-xs font-italic">{{ couponName }}</span>
-					{% endif %}
-				</p>
-				<button
-					type="submit"
-					name="removeCouponCode"
-					value="1"
-					class="hover:cursor-pointer"
-					:disabled="sending"
-				>
-					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" class="fill-current" aria-hidden="true">
-						<path d="M1.22473 13.9682L0.03125 12.7747L5.80625 6.99973L0.03125 1.22473L1.22473 0.03125L6.99973 5.80625L12.7747 0.03125L13.9682 1.22473L8.1932 6.99973L13.9682 12.7747L12.7747 13.9682L6.99973 8.1932L1.22473 13.9682Z" fill="black"></path>
-					</svg>
-				</button>
-			</div>
-		</form>
-	{% endif %}
 	</div>
 </div>
+{% endif %}

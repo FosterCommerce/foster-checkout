@@ -143,7 +143,7 @@ class Settings extends Model
 	public string $savedPaymentSourceDisplay = self::SAVED_PAYMENT_SOURCE_DISPLAY_ADDRESS;
 
 	/**
-	 * Whether Clear cart moves the cart to the trash. Off, Commerce keeps it as an inactive cart.
+	 * Whether the cart page offers Delete this cart, which moves the cart to the trash, or Start a new cart, which keeps the old cart as an inactive cart.
 	 *
 	 * @since 2.1.0
 	 */

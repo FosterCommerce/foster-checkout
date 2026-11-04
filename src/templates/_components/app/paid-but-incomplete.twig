@@ -12,6 +12,7 @@
 		{{ csrfInput() }}
 		{{ actionInput('commerce/cart/forget-cart') }}
 		{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.cart)) }}
+		{{ successMessageInput('') }}
 		<button type="submit" class="px-4 py-3 font-medium text-[var(--brandColor)] bg-white border border-[var(--brandColor)] rounded-lg">{{ 'cart.startNewCart'|t('foster-checkout') }}</button>
 	</form>
 

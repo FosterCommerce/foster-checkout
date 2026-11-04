@@ -6,7 +6,7 @@ return [
 	'partialPayment.removeToEdit' => 'Remove the applied payment before changing your cart, delivery details, or vouchers.',
 	// Cart page
 	'cart.cartTitle' => 'Cart',
-	'cart.clearCart' => 'Clear the cart',
+	'cart.deleteCart' => 'Delete this cart',
 	'cart.paidButIncomplete' => 'We received your payment but couldn’t complete your order. Please contact us.',
 	'cart.paidButIncompleteTitle' => 'Payment received',
 	'cart.authorizedButIncomplete' => 'We authorized your payment but couldn’t complete your order. Please contact us.',
@@ -535,7 +535,7 @@ return [
 	'settings.features.enableSavedPaymentSourcesHelp' => 'Whether a signed-in customer paying with Stripe can choose a saved payment method, and save a new one.',
 	'settings.features.clearCartTitle' => 'Clear cart',
 	'settings.features.deleteClearedCarts' => 'Delete cleared carts',
-	'settings.features.deleteClearedCartsHelp' => 'Whether Clear the cart moves the cart to the trash. When off, Commerce keeps it as an inactive cart in Commerce -> Orders.',
+	'settings.features.deleteClearedCartsHelp' => 'Whether the cart page offers Delete this cart, which moves the cart to the trash. When off, it offers Start a new cart, and Commerce keeps the old cart as an inactive cart in Commerce -> Orders.',
 	'settings.features.customerPickupTitle' => 'Customer pickup',
 	'settings.features.enableNewsletter' => 'Newsletter checkbox',
 	'settings.features.enableNewsletterHelp' => 'Whether the checkout shows the newsletter checkbox. Klaviyo Connect subscribes customers, or a site module handles the sign-up.',

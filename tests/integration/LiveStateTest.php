@@ -26,6 +26,8 @@ final class LiveStateTest extends CartTestCase
 			'couponName',
 			'couponMessages',
 			'paymentBlock',
+			'paymentNeedsRefresh',
+			'partialPaymentsHtml',
 			'molliePaymentMethods',
 		], array_keys($this->checkout()->checkoutLiveState($cart)));
 	}

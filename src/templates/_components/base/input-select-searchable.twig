@@ -40,7 +40,7 @@
 		{% if selectOnlyOption is defined %}
 			selectOnlyOption: {{ selectOnlyOption ? 'true' : 'false' }},
 		{% endif %}
-		value: '{{ value|default('') }}',
+		value: {{ (value|default(''))|json_encode }},
 		requiredError: {{ 'misc.required'|t('foster-checkout')|json_encode }},
 		errors: {{ errors|default([])|json_encode }},
 		success: {{ success|default([])|json_encode }}
@@ -177,7 +177,7 @@
 						:aria-controls="listboxId()"
 						:aria-activedescendant="open && hasOptions ? optionId(activeIndex) : null"
 						placeholder="{{ 'addressFields.typeToSearch'|t('foster-checkout') }}…"
-						class="w-full rounded-lg border border-gray-250 bg-white h-12 px-3 focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-colors duration-300"
+						class="w-full rounded-lg border border-gray-250 bg-white h-12 px-3 focus:!ring-0 focus:!outline-none focus:border-black placeholder:text-gray-400 transition-colors duration-300"
 						@input="updateLastPinned"
 						@keydown.arrow-down.prevent="moveActive(1)"
 						@keydown.arrow-up.prevent="moveActive(-1)"

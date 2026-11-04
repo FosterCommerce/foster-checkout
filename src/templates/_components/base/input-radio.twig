@@ -11,7 +11,7 @@
 	x-data="RadioInput({
 		label: {{ (label|default(''))|json_encode }},
 		name: '{{ name|default('') }}',
-		value: '{{ value|default('') }}',
+		value: {{ (value|default(''))|json_encode }},
 		required: {{ required|default(false) ? 'true' : 'false' }},
 		requiredError: {{ 'misc.required'|t('foster-checkout')|json_encode }},
 		errors: {{ errors|default([])|json_encode }},

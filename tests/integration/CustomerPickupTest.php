@@ -152,9 +152,17 @@ final class CustomerPickupTest extends CartTestCase
 	{
 		$this->requirePickup();
 		[, $cart, $book] = $this->signedInCustomerCart();
+		$storeStreet = $this->storeLocation()?->addressLine1;
+
+		// Exclude the store's own address, since a customer can save it and shipping there is a pickup
+		$addressesElsewhere = array_values(array_filter($book, static fn (Address $address): bool => $address->addressLine1 !== $storeStreet));
+
+		if ($addressesElsewhere === []) {
+			self::markTestSkipped('This customer has no saved address away from the store.');
+		}
 
 		$this->checkout()->applyCustomerAddresses($cart, $this->cartUpdateRequest([
-			'shippingAddressId' => (string) $book[0]->id,
+			'shippingAddressId' => (string) $addressesElsewhere[0]->id,
 			'billingAddressSameAsShipping' => '0',
 		]));
 

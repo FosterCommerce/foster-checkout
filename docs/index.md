@@ -10,7 +10,7 @@ A ready-made, best-practices cart and checkout for Craft Commerce.
 
 - [Single-page checkout](./user-guide/single-page-checkout.md), running the checkout as one page
 - [Notes and links](./user-guide/content.md), editing checkout copy, payment and shipping method notes, and footer links
-- [Cart](./user-guide/cart.md), what **Clear the cart** does with the cart
+- [Cart](./user-guide/cart.md), what **Delete this cart** and **Start a new cart** do with the cart
 - [Line items](./user-guide/line-items.md), the image, SKU and options a cart line shows, and rewriting option names and values
 - [Checkout fields](./user-guide/checkout-fields.md), asking a customer for a detail the checkout does not collect
 - [Address fields](./user-guide/address-fields.md), what the checkout asks for on an address, and address labels

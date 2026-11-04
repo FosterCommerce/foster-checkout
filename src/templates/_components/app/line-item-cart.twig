@@ -60,6 +60,41 @@
 	{% set hasImage = false %}
 {% endif %}
 
+{% set priceBlock %}
+{% if lineItem.getDiscount() %}
+	<p>
+		{% for adjustment in lineItem.getAdjustments() %}
+			{% if adjustment.type == 'discount' %}
+				<span class="text-sm text-[var(--brandColor)]">
+					{{ 'summary.discountLabel'|t('foster-checkout') }}: {{ adjustment.name|raw }}
+				</span><br>
+			{% endif %}
+		{% endfor %}
+		<span class="text-lg font-semibold">{{ lineItem.totalAsCurrency }}</span>
+	</p>
+	<p class="text-sm text-gray-500">
+		{% if lineItem.getOnPromotion() or hasSales %}
+			{{ 'summary.onSaleLabel'|t('foster-checkout') }}: {{ lineItem.subtotalAsCurrency }}<br>
+		{% endif %}
+		{{ 'summary.originalPriceLabel'|t('foster-checkout') }}: <span class="line-through">{{ craft.fostercheckout.lineItemOriginalTotal(lineItem) }}</span>
+	</p>
+{% elseif lineItem.getOnPromotion() or hasSales %}
+	<p>
+		<span class="text-sm text-gray-500">
+			{{ 'summary.onSaleLabel'|t('foster-checkout') }}
+		</span><br>
+		{% if lineItem.salePrice < lineItem.price %}
+			<span class="text-sm text-[var(--brandColor)]">
+				-{{ ((lineItem.price - lineItem.salePrice) / lineItem.price * 100)|round }}%
+			</span>
+		{% endif %}
+		<span class="text-lg font-semibold">{{ lineItem.totalAsCurrency }}</span>
+	</p>
+{% else %}
+	<p class="font-semibold"><span>{{ lineItem.totalAsCurrency }}</span></p>
+{% endif %}
+{% endset %}
+
 {% set removeButton %}
 	<button
 		type="button"
@@ -129,10 +164,11 @@
 
 	<div class="flex flex-col justify-between items-stretch gap-6 flex-grow">
 
-		<div class="flex justify-between items-start">
+		<div class="flex flex-col gap-3 md:flex-row md:justify-between md:items-start">
 
-			<div class="pr-4">
+			<div class="md:pr-4">
 				<h3 class="font-semibold">{{ lineItem.description }}</h3>
+				<div class="mt-1 md:hidden">{{ priceBlock }}</div>
 				{% if onSale %}
 					{# Repeat the badge here, since the image hides its copy below sm and a line item may have no image #}
 					<div class="{{ hasImage ? 'sm:hidden ' }}flex flex-wrap gap-1 mt-1">
@@ -156,9 +192,9 @@
 
 			</div>
 
-			<div class="mt-0 flex flex-col-reverse gap-3 justify-start items-end md:w-1/2">
+			<div class="flex justify-between items-center gap-3 md:flex-col-reverse md:justify-start md:items-end md:w-1/2">
 
-				{# The column is reversed, so this button shows under the quantity #}
+				{# Show Remove beside the quantity below md, since the footer is hidden there #}
 				<div class="md:hidden">{{ removeButton }}</div>
 
 				<form
@@ -262,41 +298,7 @@
 					</div>
 				</form>
 
-				<div class="mt-0 text-right">
-					{% if lineItem.getDiscount() %}
-						<p>
-							{% for adjustment in lineItem.getAdjustments() %}
-								{% if adjustment.type == 'discount' %}
-									<span class="text-sm text-[var(--brandColor)]">
-										{{ 'summary.discountLabel'|t('foster-checkout') }}: {{ adjustment.name|raw }}
-									</span><br>
-								{% endif %}
-							{% endfor %}
-							<span class="text-lg font-semibold">{{ lineItem.totalAsCurrency }}</span>
-						</p>
-						<p class="text-sm text-gray-500">
-							{% if lineItem.getOnPromotion() or hasSales %}
-								{{ 'summary.onSaleLabel'|t('foster-checkout') }}: {{ lineItem.subtotalAsCurrency }}<br>
-							{% endif %}
-							{{ 'summary.originalPriceLabel'|t('foster-checkout') }}: <span class="line-through">{{ craft.fostercheckout.lineItemOriginalTotal(lineItem) }}</span>
-						</p>
-					{% elseif lineItem.getOnPromotion() or hasSales %}
-						<p>
-							<span class="text-sm text-gray-500">
-								{{ 'summary.onSaleLabel'|t('foster-checkout') }}
-							</span><br>
-							{% if lineItem.salePrice < lineItem.price %}
-								<span class="text-sm text-[var(--brandColor)]">
-									-{{ ((lineItem.price - lineItem.salePrice) / lineItem.price * 100)|round }}%
-								</span>
-							{% endif %}
-							<span class="text-lg font-semibold">{{ lineItem.totalAsCurrency }}</span>
-						</p>
-					{% else %}
-						<p class="font-semibold"><span>{{ lineItem.totalAsCurrency }}</span></p>
-					{% endif %}
-
-				</div>
+				<div class="hidden md:block text-right">{{ priceBlock }}</div>
 
 			</div>
 

@@ -6423,6 +6423,10 @@ const cartPersistence = () => ({
     if (this.syncingFromCart) {
       return;
     }
+    const fieldCell = event?.target?.closest?.("[data-fc-checkout-field]");
+    if (event?.type === "blur" && fieldCell && !this.fieldsChanged(this.collectNamedFields(fieldCell))) {
+      return;
+    }
     this.$nextTick(() => {
       if (this.syncingFromCart) {
         return;

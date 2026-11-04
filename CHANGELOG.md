@@ -22,6 +22,7 @@
 
 ### Changed
 
+- The cart page’s “Clear the cart” link now reads “Delete this cart” or “Start a new cart”, based on the “Delete cleared carts” setting.
 - Foster Checkout now requires Craft CMS 5.10.0 or later.
 - “Logo height” now accepts heights from 12 pixels, down from 40.
 - Order summary fields and the order note now save when the customer leaves a field or changes a choice, and no longer have a Save button.
@@ -36,7 +37,8 @@
 - The checkout now passes `order`, `submitButtonText` and `submitButtonClasses` to the payment form of gateways other than Stripe Payment Intents, PayPal, Mollie and Manual.
 - The cart page no longer shows “Continue shopping” when the cart has items.
 - “Placeholder images” now shows a built-in placeholder instead of an image from placehold.co.
-- Cart line items now show their image and Remove link on phones, with Remove under the quantity.
+- The cart and checkout summaries now show the discount code, order fields and order note above the totals.
+- Cart line items now show their image and Remove link on phones, with the price under the title and Remove beside the quantity.
 - The order confirmation page now lists each payment with its amount, date and any refund, and whether it was charged, authorized or applied, instead of only the last payment's card.
 
 ### Deprecated
@@ -49,6 +51,11 @@
 
 ### Fixed
 
+- Fixed a bug where same-named order discounts showed as separate rows in the order summary.
+- Fixed a bug where the order summary left out adjustments from other plugins and shipping on a cart with no shipping address, though both were in the total.
+- Fixed a bug where discounts applied after tax showed above tax in the order summary.
+- Fixed a bug where a saved checkout field or address value containing an apostrophe, quote or line break showed as empty and stopped the field working.
+- Fixed a bug where opening a dropdown or leaving an unchanged order field on the single-page checkout could save the cart.
 - Fixed a bug where leaving a line item's quantity field submitted the cart even when the quantity hadn't changed.
 - Fixed a bug where paying with Stripe or PayPal on the single-page checkout could leave an order with no billing address, or an outdated one.
 - Fixed an error that occurred on the cart page when the cart contained a custom line item.

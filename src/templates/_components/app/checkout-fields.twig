@@ -11,7 +11,7 @@
 		>
 	{% endif %}
 
-	<div class="grid grid-cols-1 gap-y-4 gap-x-4 mt-4 sm:grid-cols-12">
+	<div class="grid grid-cols-1 gap-y-4 gap-x-4 {{ flush|default ? '' : 'mt-4' }} sm:grid-cols-12">
 		{% for field in positionFields %}
 			{# The layout stores width as a percentage; the grid is in twelfths #}
 			<div class="sm:col-span-{{ (field.width / 100 * 12)|round }}" data-fc-checkout-field{% if field.required ?? false %} data-fc-required-label="{{ field.label }}"{% endif %}>

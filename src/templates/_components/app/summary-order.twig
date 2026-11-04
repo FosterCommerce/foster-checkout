@@ -2,11 +2,7 @@
 
 	<h2 class="mb-6 text-xl font-bold text-gray-800 leading-snug">{{ 'summary.title'|t('foster-checkout') }}</h2>
 
-	{% set orderDiscountAdjustments = order.adjustments|filter(
-		adjustment => adjustment.type == 'discount' and not adjustment.lineItemId
-	) %}
-
-	<dl class="grid grid-cols-1 gap-4">
+	<dl class="grid grid-cols-1 gap-2">
 
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">{{ 'summary.itemsLabel'|t('foster-checkout') }}</dt>
@@ -18,15 +14,29 @@
 			<dd class="text-right text-black">{{ order.totalShippingCostAsCurrency }}</dd>
 		</div>
 
+		{% for discount in craft.fostercheckout.orderDiscounts(order) %}
+			<div class="flex justify-between items-center gap-4">
+				<dt class="text-gray-500">{{ discount.name }}</dt>
+				<dd class="text-right text-red-500">{{ discount.amountAsCurrency }}</dd>
+			</div>
+		{% endfor %}
+
+		{% for row in craft.fostercheckout.otherAdjustments(order) %}
+			<div class="flex justify-between items-center gap-4">
+				<dt class="text-gray-500">{{ row.name }}</dt>
+				<dd class="text-right text-black">{{ row.amountAsCurrency }}</dd>
+			</div>
+		{% endfor %}
+
 		<div class="flex justify-between items-center gap-4">
 			<dt class="text-gray-500">{{ 'summary.taxLabel'|t('foster-checkout') }}</dt>
 			<dd class="text-right text-black">{{ order.totalTaxAsCurrency }}</dd>
 		</div>
 
-		{% for adjustment in orderDiscountAdjustments %}
+		{% for row in craft.fostercheckout.afterTaxDiscounts(order) %}
 			<div class="flex justify-between items-center gap-4">
-				<dt class="text-gray-500">{{ adjustment.name }}</dt>
-				<dd class="text-right text-red-500">{{ adjustment.amount|commerceCurrency }}</dd>
+				<dt class="text-gray-500">{{ row.name }}</dt>
+				<dd class="text-right text-red-500">{{ row.amountAsCurrency }}</dd>
 			</div>
 		{% endfor %}
 

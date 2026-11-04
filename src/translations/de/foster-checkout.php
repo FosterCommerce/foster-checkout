@@ -6,7 +6,7 @@ return [
 	'partialPayment.removeToEdit' => 'Entfernen Sie die angewendete Zahlung, bevor Sie Ihren Warenkorb, die Lieferdaten oder Gutscheine ändern.',
 	// Cart page
 	'cart.cartTitle' => 'Warenkorb',
-	'cart.clearCart' => 'Warenkorb leeren',
+	'cart.deleteCart' => 'Diesen Warenkorb löschen',
 	'cart.paidButIncomplete' => 'Wir haben Ihre Zahlung erhalten, konnten Ihre Bestellung aber nicht abschließen. Bitte kontaktieren Sie uns.',
 	'cart.paidButIncompleteTitle' => 'Zahlung erhalten',
 	'cart.authorizedButIncomplete' => 'Wir haben Ihre Zahlung autorisiert, konnten Ihre Bestellung aber nicht abschließen. Bitte kontaktieren Sie uns.',
@@ -534,7 +534,7 @@ return [
 	'settings.features.enableSavedPaymentSourcesHelp' => 'Ob ein angemeldeter Kunde, der mit Stripe bezahlt, eine gespeicherte Zahlungsmethode wählen und eine neue speichern kann.',
 	'settings.features.clearCartTitle' => 'Warenkorb leeren',
 	'settings.features.deleteClearedCarts' => 'Geleerte Warenkörbe löschen',
-	'settings.features.deleteClearedCartsHelp' => 'Ob „Warenkorb leeren“ den Warenkorb in den Papierkorb verschiebt. Wenn aus, behält Commerce ihn als inaktiven Warenkorb unter „Commerce -> Bestellungen“.',
+	'settings.features.deleteClearedCartsHelp' => 'Ob die Warenkorbseite „Diesen Warenkorb löschen“ anbietet, was den Warenkorb in den Papierkorb verschiebt. Wenn aus, bietet sie „Neuen Warenkorb beginnen“ an, und Commerce behält den alten als inaktiven Warenkorb unter „Commerce -> Bestellungen“.',
 	'settings.features.customerPickupTitle' => 'Abholung durch Kunden',
 	'settings.features.enableNewsletter' => 'Newsletter-Checkbox',
 	'settings.features.enableNewsletterHelp' => 'Ob der Checkout die Newsletter-Checkbox anbietet. Klaviyo Connect trägt Kunden ein, oder ein Site-Modul übernimmt die Anmeldung.',

@@ -559,6 +559,16 @@ export const cartPersistence = () => ({
 			return;
 		}
 
+		// Skip a blur from an unchanged field, since opening a dropdown blurs its trigger
+		const fieldCell = event?.target?.closest?.('[data-fc-checkout-field]');
+		if (
+			event?.type === 'blur' &&
+			fieldCell &&
+			!this.fieldsChanged(this.collectNamedFields(fieldCell))
+		) {
+			return;
+		}
+
 		this.$nextTick(() => {
 			if (this.syncingFromCart) {
 				return;

@@ -2,23 +2,31 @@
 	{% set fieldHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
 	{% set currentValue = cart.getFieldValue(fieldHandle) ?? '' %}
 
-	<div class="mt-6" x-data="AutosaveForm({
+	{% set floatingLabel = craft.fostercheckout.settings.branding.labelStyle|default('floating') == 'floating' %}
+
+	<div x-data="AutosaveForm({
 		savingLabel: {{ 'misc.saving'|t('foster-checkout')|json_encode }},
 		savedLabel: {{ 'misc.saved'|t('foster-checkout')|json_encode }},
 		failedLabel: {{ 'misc.saveFailed'|t('foster-checkout')|json_encode }},
 	})">
-		<p class="mb-2 text-gray-500">{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</p>
 		<form method="post" x-ref="form" @submit.prevent="save()" @focusout="save()">
 			{{ csrfInput() }}
 			{{ actionInput('commerce/cart/update-cart') }}
-			<label for="orderNote" class="sr-only">{{ 'summary.addOrderNote'|t('foster-checkout') }}</label>
-			<textarea
-				id="orderNote"
-				name="fields[{{ fieldHandle }}]"
-				rows="2"
-				class="w-full border border-gray-250 rounded-lg px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:!outline-none focus:!ring-0 focus:border-black transition-colors duration-300"
-				placeholder="{{ 'summary.addOrderNote'|t('foster-checkout') }}"
-			>{{ currentValue }}</textarea>
+			{% if not floatingLabel %}
+				<label for="orderNote" class="block mb-2 font-medium text-gray-500">{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</label>
+			{% endif %}
+			<div class="relative">
+				<textarea
+					id="orderNote"
+					name="fields[{{ fieldHandle }}]"
+					rows="2"
+					class="peer block w-full px-3 {{ floatingLabel ? 'pt-7 pb-2 placeholder-shown:pt-3 placeholder-shown:pb-6' : 'py-3' }} text-gray-800 bg-white border border-gray-250 rounded-lg resize-none placeholder:text-gray-400 focus:!outline-none focus:!ring-0 focus:border-black transition-colors duration-300"
+					placeholder="{{ floatingLabel ? ' ' : 'summary.addOrderNote'|t('foster-checkout') }}"
+				>{{ currentValue }}</textarea>
+				{% if floatingLabel %}
+					<label for="orderNote" class="absolute left-3 right-3 top-1.5 truncate text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400">{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</label>
+				{% endif %}
+			</div>
 		</form>
 		<div role="status">
 			<p class="mt-2 text-sm text-gray-500" x-show="statusVisible" x-transition.opacity.duration.300ms x-text="status"></p>

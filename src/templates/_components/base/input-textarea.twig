@@ -13,7 +13,7 @@
 	x-data="ClearableInput({
 		label: {{ (label|default(''))|json_encode }},
 		name: '{{ name|default('') }}',
-		value: '{{ value|default('') }}',
+		value: {{ (value|default(''))|json_encode }},
 		required: {{ required|default(false) ? 'true' : 'false' }},
 		type: 'text',
 		requiredError: {{ 'misc.required'|t('foster-checkout')|json_encode }},
@@ -36,7 +36,7 @@
 		name="{{ fieldName }}"
 		rows="{{ rows|default(4) }}"
 		{{ maxLength ? "maxlength=#{maxLength}" }}
-		class="peer w-full px-3 {{ floatingLabel ? 'pt-7 pb-2 placeholder-shown:py-3' : 'py-3' }} bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-colors duration-300"
+		class="peer w-full px-3 {{ floatingLabel ? 'pt-7 pb-2 placeholder-shown:pt-3 placeholder-shown:pb-6' : 'py-3' }} bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-colors duration-300"
 		:class="{
 			'text-red-500 border-red-500 focus:border-red-500': errors.length,
 			'text-gray-800 border-green-500 focus:border-green-500': success.length,

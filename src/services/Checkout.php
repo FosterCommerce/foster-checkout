@@ -94,6 +94,8 @@ use yii\db\Exception as DbException;
  *     outstandingBalanceAsCurrency: string,
  *     currency: string,
  *     discounts: list<array{name: string, amountAsCurrency: string}>,
+ *     afterTaxDiscounts: list<array{name: string, amountAsCurrency: string}>,
+ *     otherAdjustments: list<array{name: string, amountAsCurrency: string}>,
  *     vouchers: list<array{name: string, amountAsCurrency: string, appliedAmountAsCurrency: string}>,
  *     partialPayments: list<array{gatewayId: int, accountId: int|null, transactionId: int|null, name: string, amountAsCurrency: string}>
  * }
@@ -1554,6 +1556,46 @@ class Checkout extends Component
 	 * @internal
 	 * @since 2.1.0
 	 */
+	/**
+	 * Order-level discounts applied before tax, with same-named discounts merged into one row.
+	 *
+	 * @return list<array{name: string, amountAsCurrency: string}>
+	 * @internal
+	 * @since 2.1.0
+	 */
+	public function orderDiscounts(Order $order): array
+	{
+		return $this->adjustmentRows($order, $this->orderDiscountsByTaxPosition($order)['beforeTax']);
+	}
+
+	/**
+	 * Order-level discounts applied after tax, with same-named discounts merged into one row.
+	 *
+	 * @return list<array{name: string, amountAsCurrency: string}>
+	 * @internal
+	 * @since 2.1.0
+	 */
+	public function afterTaxDiscounts(Order $order): array
+	{
+		return $this->adjustmentRows($order, $this->orderDiscountsByTaxPosition($order)['afterTax']);
+	}
+
+	/**
+	 * Adjustments of a type the summary has no row of its own for, such as a fee from another plugin.
+	 *
+	 * @return list<array{name: string, amountAsCurrency: string}>
+	 * @internal
+	 * @since 2.1.0
+	 */
+	public function otherAdjustments(Order $order): array
+	{
+		return $this->adjustmentRows($order, array_filter(
+			$order->getAdjustments() ?? [],
+			static fn (OrderAdjustment $adjustment): bool => ! $adjustment->included
+				&& ! in_array($adjustment->type, ['shipping', 'tax', 'discount', 'voucher'], true),
+		));
+	}
+
 	public function receipt(Order $order): OrderReceipt
 	{
 		$teller = $order->getTeller();
@@ -2320,22 +2362,9 @@ class Checkout extends Component
 	 */
 	private function checkoutTotals(Order $cart): array
 	{
-		$discounts = [];
 		$vouchers = [];
 
 		foreach ($cart->getAdjustments() ?? [] as $adjustment) {
-			if ($adjustment->type === 'discount') {
-				if ($adjustment->lineItemId) {
-					continue;
-				}
-
-				$discounts[] = [
-					'name' => $adjustment->name,
-					'amountAsCurrency' => $adjustment->amountAsCurrency,
-				];
-				continue;
-			}
-
 			if ($adjustment->type === 'voucher') {
 				$vouchers[] = [
 					'name' => $this->voucherLabel($adjustment),
@@ -2354,7 +2383,9 @@ class Checkout extends Component
 			'totalAsCurrency' => Currency::formatAsCurrency($this->getPartialPayments()->remainingAmount($cart), $cart->currency),
 			'outstandingBalanceAsCurrency' => Currency::formatAsCurrency($this->getPartialPayments()->remainingAmount($cart), $cart->currency),
 			'currency' => (string) $cart->currency,
-			'discounts' => $discounts,
+			'discounts' => $this->orderDiscounts($cart),
+			'afterTaxDiscounts' => $this->afterTaxDiscounts($cart),
+			'otherAdjustments' => $this->otherAdjustments($cart),
 			'vouchers' => $vouchers,
 			'partialPayments' => collect($this->getPartialPayments()->steps($cart))
 				->filter(static fn (\fostercommerce\fostercheckout\models\PartialPaymentStep $step): bool => $step->applied > 0)
@@ -2366,6 +2397,55 @@ class Checkout extends Component
 					'amountAsCurrency' => Currency::formatAsCurrency(-$step->applied, $cart->currency),
 				])->values()->all(),
 		];
+	}
+
+	/**
+	 * @return array{beforeTax: list<OrderAdjustment>, afterTax: list<OrderAdjustment>}
+	 */
+	private function orderDiscountsByTaxPosition(Order $order): array
+	{
+		$discounts = [
+			'beforeTax' => [],
+			'afterTax' => [],
+		];
+		$taxApplied = false;
+
+		// Use the stored order, since adjusters that run after tax save their discounts after it
+		foreach ($order->getAdjustments() ?? [] as $adjustment) {
+			if ($adjustment->type === 'tax') {
+				$taxApplied = true;
+			}
+
+			if ($adjustment->type === 'discount' && ! $adjustment->lineItemId) {
+				$discounts[$taxApplied ? 'afterTax' : 'beforeTax'][] = $adjustment;
+			}
+		}
+
+		return $discounts;
+	}
+
+	/**
+	 * @param array<array-key, OrderAdjustment> $adjustments
+	 * @return list<array{name: string, amountAsCurrency: string}>
+	 */
+	private function adjustmentRows(Order $order, array $adjustments): array
+	{
+		$teller = $order->getTeller();
+		$amounts = [];
+
+		foreach ($adjustments as $adjustment) {
+			$amounts[$adjustment->name] = $teller->add($amounts[$adjustment->name] ?? '0', $adjustment->amount);
+		}
+
+		$rows = [];
+		foreach ($amounts as $name => $amount) {
+			$rows[] = [
+				'name' => (string) $name,
+				'amountAsCurrency' => Currency::formatAsCurrency((float) $amount, $order->currency),
+			];
+		}
+
+		return $rows;
 	}
 
 	/**

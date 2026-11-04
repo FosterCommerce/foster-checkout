@@ -19,7 +19,7 @@
 	x-data="ClearableInput({
 		label: {{ (label|default(''))|json_encode }},
 		name: '{{ name|default('') }}',
-		value: '{{ value|default('') }}',
+		value: {{ (value|default(''))|json_encode }},
 		{# These closures resolve against the address form's scope, so only address fields may pass them. #}
 		{% if addressScope|default(false) %}
 			addressScope: true,
