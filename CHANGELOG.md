@@ -47,6 +47,7 @@
 
 ### Fixed
 
+- Fixed a bug where leaving a line item's quantity field submitted the cart even when the quantity hadn't changed.
 - Fixed a bug where paying with Stripe or PayPal on the single-page checkout could leave an order with no billing address, or an outdated one.
 - Fixed an error that occurred on the cart page when the cart contained a custom line item.
 - Fixed an error that could occur when paying with Stripe on the single-page checkout (“There is no shipping method selected for this order.”).

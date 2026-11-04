@@ -13,7 +13,7 @@
 
 {% set fallbackOptions = fallbackOptions|default ? fallbackOptions : options %}
 {% set floatingLabel = label|default and craft.fostercheckout.settings.branding.labelStyle|default('floating') == 'floating' %}
-{% set fallbackClasses = ['w-full h-12 px-4 ' ~ (floatingLabel ? 'pt-5 pb-1.5 leading-5' : '') ~ ' bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300'] %}
+{% set fallbackClasses = ['w-full h-12 px-4 ' ~ (floatingLabel ? 'pt-5 pb-1.5 leading-5' : '') ~ ' bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-colors duration-300'] %}
 {% if errors|default %}
 	{% set fallbackClasses = fallbackClasses|merge(['border-red-500 focus:border-red-500']) %}
 {% else %}
@@ -120,7 +120,7 @@
 				@keydown="onTriggerKeydown"
 				@input="onTriggerInput"
 				@change="onTriggerInput"
-				class="peer w-full {{ floatingLabel ? 'h-12 pt-5 pb-1.5 leading-5 pl-4' : 'py-[11px] pl-3' }} pr-10 rounded-lg cursor-default border bg-white text-left focus:!ring-0 focus:!outline-none transition-color duration-300 caret-transparent"
+				class="peer w-full {{ floatingLabel ? 'h-12 pt-5 pb-1.5 leading-5 pl-4' : 'py-[11px] pl-3' }} pr-10 rounded-lg cursor-default border bg-white text-left focus:!ring-0 focus:!outline-none transition-colors duration-300 caret-transparent"
 				:class="errors.length ? 'border-red-500 focus:border-red-500' : 'border-gray-250 focus:border-black'"
 				aria-haspopup="listbox"
 				:aria-expanded="open ? 'true' : 'false'"
@@ -130,7 +130,7 @@
 			{% if floatingLabel %}
 				<label
 					:id="labelId()"
-					class="absolute left-4 right-10 top-1.5 truncate text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-gray-500"
+					class="absolute left-4 right-10 top-1.5 truncate text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400"
 					@click="openListbox()"
 				>
 					{{ label ~ (required|default ? '*' : '') }}
@@ -177,7 +177,7 @@
 						:aria-controls="listboxId()"
 						:aria-activedescendant="open && hasOptions ? optionId(activeIndex) : null"
 						placeholder="{{ 'addressFields.typeToSearch'|t('foster-checkout') }}…"
-						class="w-full rounded-md border border-gray-300 bg-white h-12 px-4 focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300"
+						class="w-full rounded-md border border-gray-250 bg-white h-12 px-4 focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-colors duration-300"
 						@input="updateLastPinned"
 						@keydown.arrow-down.prevent="moveActive(1)"
 						@keydown.arrow-up.prevent="moveActive(-1)"

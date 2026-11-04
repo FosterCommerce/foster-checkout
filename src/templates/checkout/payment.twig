@@ -231,10 +231,9 @@
 															/* inputs */
 															[&_input.text]:block [&_input.text]:w-full
 															[&_input.text]:rounded-xl
-															[&_input.text]:border [&_input.text]:border-gray-300
+															[&_input.text]:border [&_input.text]:border-gray-250
 															[&_input.text]:px-3 [&_input.text]:py-2
-															focus:[&_input.text]:outline-none
-															focus:[&_input.text]:ring-2 focus:[&_input.text]:ring-[var(--brandColor)]
+															[&_input.text:focus]:outline-none [&_input.text:focus]:ring-0 [&_input.text:focus]:border-black [&_input.text]:transition-colors [&_input.text]:duration-300
 															[&_input.text::placeholder]:text-gray-400
 
 															/* errors if gateway injects them later */

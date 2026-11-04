@@ -646,6 +646,12 @@ const LineItem = (options) => {
 
 			this.clearPending();
 			this.qty = this.clamp(this.qty);
+
+			// Compare with options.qty, since each post reloads the page with the saved quantity
+			if (this.qty === options.qty) {
+				return;
+			}
+
 			this.post('update');
 		},
 

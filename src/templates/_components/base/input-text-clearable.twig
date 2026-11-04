@@ -57,7 +57,7 @@
 			{{ min is not null ? "min=#{min}" }}
 			{{ max is not null ? "max=#{max}" }}
 			{{ step is not null ? "step=#{step}" }}
-			class="peer w-full h-12 pl-4 pr-12 {{ floatingLabel ? 'pt-5 pb-1.5 leading-5' : '' }} bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-color duration-300 js-clearable"
+			class="peer w-full h-12 pl-4 pr-12 {{ floatingLabel ? 'pt-5 pb-1.5 leading-5 placeholder-shown:py-0' : '' }} bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-colors duration-300 js-clearable"
 			:class="{
 				'text-red-500 border-red-500 focus:border-red-500': errors.length,
 				'text-gray-800 border-green-500 focus:border-green-500': success.length,
@@ -75,7 +75,7 @@
 		{% if floatingLabel %}
 			<label
 				for="{{ fieldId }}"
-				class="absolute left-4 right-12 top-1.5 truncate text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-gray-500"
+				class="absolute left-4 right-12 top-1.5 truncate text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400"
 			>
 				{{ label }}<span x-text="isRequired() ? '*' : ''"></span>
 			</label>

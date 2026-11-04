@@ -8606,6 +8606,9 @@ const LineItem = (options) => {
       }
       this.clearPending();
       this.qty = this.clamp(this.qty);
+      if (this.qty === options.qty) {
+        return;
+      }
       this.post("update");
     },
     onButtonMouseDown() {

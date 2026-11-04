@@ -52,7 +52,7 @@
 								<select
 									:id="'{{ idPrefix }}issuer-' + paymentMethod.id"
 									name="issuer"
-									class="w-full h-12 px-4 {{ floatingLabel ? 'pt-5 pb-1.5 leading-5' }} bg-white rounded-lg border-gray-250 focus:border-black focus:!ring-0 focus:!outline-none transition-color duration-300"
+									class="w-full h-12 px-4 {{ floatingLabel ? 'pt-5 pb-1.5 leading-5' }} bg-white rounded-lg border-gray-250 focus:border-black focus:!ring-0 focus:!outline-none transition-colors duration-300"
 								>
 									<option value="" selected>{{ 'payment.mollieIssuerPlaceholder'|t('foster-checkout') }}</option>
 									<template x-for="issuer in paymentMethod.issuers" :key="issuer.id">
