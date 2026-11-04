@@ -112,55 +112,40 @@
 						<!-- Payment Information -->
 						<div class="flex flex-col gap-1">
 							<h2 class="text-lg font-medium text-gray-700">{{ 'order.payment'|t('foster-checkout') }}</h2>
-							<p>{{ 'order.gateway'|t('foster-checkout') }} {{ craft.fostercheckout.gatewayLabel(order.gateway) }}</p>
 							{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
-								{% if order.orderAdjustments|length >= 1 %}
-									{% set voucherAdjustments = order.orderAdjustments|filter(adjustment => adjustment.type == 'voucher') %}
-									{% if voucherAdjustments|length >= 1 %}
-										<p class="mt-1">{{ 'order.giftCard'|t('foster-checkout') }}</p>
-										{% for voucher in voucherAdjustments %}
-											{% set voucherCode = craft.fostercheckout.voucherCode(voucher) %}
-											{% if voucherCode %}
-												{% set amountRemaining = craft.giftVoucher.codes().codeKey(voucherCode).one().currentAmount %}
-												{% set appliedVoucherAmount = (order.storedItemTotal - (voucher.amount|abs)) < 0 ? order.storedItemTotal : voucher.amount|abs %}
-												<p class="mt-1">{{ voucherCode }} ({{ appliedVoucherAmount|currency }} applied, {{ amountRemaining|currency }} remaining)</p>
-											{% endif %}
-										{% endfor %}
-									{% endif %}
+								{% set voucherAdjustments = order.orderAdjustments|filter(adjustment => adjustment.type == 'voucher') %}
+								{% if voucherAdjustments|length %}
+									<p class="mt-1">{{ 'Voucher/Gift cards applied'|t }}</p>
+									{% for voucher in voucherAdjustments %}
+										{% set voucherCode = craft.fostercheckout.voucherCode(voucher) %}
+										{% set voucherBalance = voucherCode ? craft.giftVoucher.codes().codeKey(voucherCode).one() : null %}
+										<p class="mt-1">{{ craft.fostercheckout.voucherLabel(voucher) }} ({{ voucher.amount|abs|currency(order.currency) }} applied{% if voucherBalance %}, {{ voucherBalance.currentAmount|currency(order.currency) }} remaining{% endif %})</p>
+									{% endfor %}
 								{% endif %}
 							{% endif %}
 
-							{% set transaction = order.transactions|last %}
-							{% if transaction %}
-								{% set paymentResponse = (transaction.response ?? null)|json_decode %}
-								{% set cardBrand = null %}
-								{% set cardLast4 = null %}
-
-								{% if paymentResponse and paymentResponse.payment_method is defined and paymentResponse.payment_method.card is defined %}
-									{% set cardBrand = paymentResponse.payment_method.card.display_brand ?? paymentResponse.payment_method.card.brand ?? null %}
-									{% set cardLast4 = paymentResponse.payment_method.card.last4 ?? null %}
-								{% elseif paymentResponse and paymentResponse.transactionResponse is defined %}
-									{% set cardBrand = paymentResponse.transactionResponse.accountType ?? null %}
-									{% set cardLast4 = paymentResponse.transactionResponse.accountNumber is defined ? paymentResponse.transactionResponse.accountNumber|slice(-4) : null %}
+							{% set receipt = craft.fostercheckout.receipt(order) %}
+							{% for payment in receipt.payments %}
+								<p class="mt-1">{{ payment.label }}</p>
+								{% if payment.cardBrand or payment.cardLast4 %}
+									<p>{{ payment.cardBrand|capitalize }}{% if payment.cardLast4 %} **** {{ payment.cardLast4 }}{% endif %}</p>
 								{% endif %}
-
-								{% if cardBrand or cardLast4 %}
-									<p class="mt-1">
-										{{ 'order.card'|t('foster-checkout') }} {{ cardBrand ? cardBrand|capitalize ~ ' ' : '' }}{{ cardLast4 ? '**** ' ~ cardLast4 : '' }}
-									</p>
+								<p>{{ payment.amount|money }} ({{ (payment.applied ? 'Applied' : (payment.authorized ? 'Authorized' : 'Charged'))|t }}{% if payment.date %} {{ 'on'|t }} {{ payment.date|date('F j, Y') }}{% endif %})</p>
+								{% if payment.refunded.isPositive() %}
+									<p>{{ 'Refunded'|t }} {{ payment.refunded|money }}</p>
 								{% endif %}
-							{% endif %}
+							{% endfor %}
 
 							{# Total Paid #}
 							<p>
 								{{ 'order.totalPaidLabel'|t('foster-checkout') }}
-								{{ order.getTotalPaid()|currency(order.paymentCurrency) }}
+								{{ receipt.paid|money }}
 							</p>
 
 							{# Balance #}
 							<p>
 								{{ 'order.balanceLabel'|t('foster-checkout') }}
-								{{ order.getOutstandingBalance()|currency(order.paymentCurrency) }}
+								{{ receipt.balance|money }}
 							</p>
 
 							{# Balance Due Date #}

@@ -5096,6 +5096,113 @@ function disableScrolling() {
   };
 }
 var module_default = src_default;
+const PartialPaymentControls = (singlePage = false) => ({
+  get busy() {
+    return this.$store.partialPayments.busy;
+  },
+  get error() {
+    return this.$store.partialPayments.error;
+  },
+  async submitPartialPayment(form) {
+    if (this.busy) {
+      return;
+    }
+    this.$store.partialPayments.busy = true;
+    this.$store.partialPayments.error = "";
+    try {
+      const response = await fetch(window.location.href, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: new FormData(form),
+        credentials: "same-origin"
+      });
+      const data2 = await response.json();
+      const error2 = !response.ok || data2.success === false ? data2.error || data2.message || form.dataset.errorMessage : "";
+      this.$store.partialPayments.error = error2;
+      if (!error2 && data2.redirect) {
+        window.location.assign(data2.redirect);
+        return;
+      }
+      const cart = data2.cart || data2.model;
+      if (singlePage) {
+        if (cart) {
+          this.$dispatch("partial-payment-updated", cart);
+          await this.$nextTick();
+        }
+      } else if (cart || !error2) {
+        await this.refreshPaymentPage();
+      }
+    } catch {
+      this.$store.partialPayments.error = form.dataset.errorMessage;
+    } finally {
+      this.$store.partialPayments.busy = false;
+    }
+  },
+  async refreshPaymentPage() {
+    const response = await fetch(window.location.href, {
+      credentials: "same-origin",
+      headers: { Accept: "text/html" }
+    });
+    if (!response.ok) {
+      throw new Error("Unable to refresh checkout.");
+    }
+    const page = new DOMParser().parseFromString(
+      await response.text(),
+      "text/html"
+    );
+    if (new URL(response.url).origin !== window.location.origin) {
+      throw new Error("Checkout refresh changed origin.");
+    }
+    const current = document.querySelector("[data-fc-checkout-content]");
+    const replacement = page.querySelector("[data-fc-checkout-content]");
+    if (!current || !replacement) {
+      throw new Error("Checkout response is missing the payment page.");
+    }
+    current.querySelectorAll(".stripe-payment-elements-form").forEach((element) => {
+      element.handlerInstance?.elements?.destroy();
+    });
+    const content = document.importNode(replacement, true);
+    current.replaceWith(content);
+    for (const source of content.querySelectorAll("script:not([src])")) {
+      if (source.type && !["text/javascript", "application/javascript"].includes(source.type)) {
+        continue;
+      }
+      const script = document.createElement("script");
+      for (const attribute of source.attributes) {
+        script.setAttribute(attribute.name, attribute.value);
+      }
+      script.textContent = source.textContent;
+      source.replaceWith(script);
+    }
+    await this.$nextTick();
+    const loadedScripts = new Set(
+      Array.from(
+        document.querySelectorAll("script[src]"),
+        (script) => script.src
+      )
+    );
+    for (const source of page.querySelectorAll("script[src]")) {
+      const url = new URL(source.getAttribute("src"), response.url).href;
+      if (loadedScripts.has(url)) {
+        continue;
+      }
+      await new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        for (const attribute of source.attributes) {
+          script.setAttribute(attribute.name, attribute.value);
+        }
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.append(script);
+      });
+      loadedScripts.add(url);
+    }
+  }
+});
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
 }
@@ -6208,6 +6315,13 @@ const cartPersistence = () => ({
         );
       }
       const live = cart.fosterCheckout || {};
+      if (live.paymentNeedsRefresh) {
+        this.invalidateStripeCheckout();
+        this.invalidatePaypalCheckout();
+      }
+      if (typeof live.partialPaymentsHtml === "string" && this.$refs.partialPayments) {
+        this.$refs.partialPayments.innerHTML = live.partialPaymentsHtml;
+      }
       if (live.addressLabels && typeof live.addressLabels === "object") {
         this.addressLabels = live.addressLabels;
       }
@@ -6253,6 +6367,7 @@ const cartPersistence = () => ({
           this.totals = {
             discounts: [],
             vouchers: [],
+            partialPayments: [],
             ...live.totals
           };
         }
@@ -7102,7 +7217,8 @@ const SinglePageCheckout = (props) => {
       totalAsCurrency: "",
       currency: "USD",
       discounts: [],
-      vouchers: []
+      vouchers: [],
+      partialPayments: []
     },
     voucherCode: "",
     applyingVoucher: false,
@@ -7226,6 +7342,7 @@ const SinglePageCheckout = (props) => {
       this.syncPayButtons();
       this.$watch("paying", () => this.syncPayButtons());
       this.$watch("stripeMountPending", () => this.syncPayButtons());
+      this.$watch("$store.partialPayments.busy", () => this.syncPayButtons());
       this.$watch(
         () => Number(this.totals.total) === 0,
         () => this.$nextTick(() => this.ensureAvailableGateway())
@@ -7401,18 +7518,24 @@ const SinglePageCheckout = (props) => {
     get canEnterPayment() {
       return [...this.rootEl.querySelectorAll("[data-fc-panel]")].every(
         (section) => this.fieldsReadyIn(section, false, null, this.paymentFormEl)
-      ) && this.pending === 0 && !this.saveTimer && this.statusTone !== "error" && this.hasEmail && this.hasShippingSelection && (this.cartHasShippingAddress || !this.collectShipping) && this.hasShippingMethod && this.hasBilling && this.deliveryReadyForPay && !this.loadingShippingMethods;
+      ) && this.pending === 0 && !this.$store.partialPayments.busy && !this.saveTimer && this.statusTone !== "error" && this.hasEmail && this.hasShippingSelection && (this.cartHasShippingAddress || !this.collectShipping) && this.hasShippingMethod && this.hasBilling && this.deliveryReadyForPay && !this.loadingShippingMethods;
     },
     get canPay() {
       return this.canEnterPayment && this.paymentFieldsReady;
+    },
+    get partialPaymentCoversTotal() {
+      return Number(this.totals.total) === 0 && (this.totals.partialPayments || []).length > 0;
     },
     get payButtonLabel() {
       if (Number(this.totals.total) === 0) {
         return this.completeOrderLabel;
       }
-      return `${this.payButtonText} ${this.totals.totalAsCurrency || ""}`.trim();
+      return `${this.payButtonText} ${this.totals.outstandingBalanceAsCurrency || this.totals.totalAsCurrency || ""}`.trim();
     },
     gatewayFits(el) {
+      if (this.partialPaymentCoversTotal) {
+        return false;
+      }
       const availableAtZero = el?.dataset?.availableAtZero === "1";
       const zeroOnly = el?.dataset?.zeroOnly === "1";
       if (Number(this.totals.total) === 0) {
@@ -8778,6 +8901,7 @@ const enhanceCardFields = () => {
 };
 enhanceCardFields();
 module_default$1.plugin(module_default);
+module_default$1.store("partialPayments", { busy: false, error: "" });
 module_default$1.data("ScrollableItems", ScrollableItems);
 module_default$1.data("SimpleField", SimpleField);
 module_default$1.data("NewsletterSignup", NewsletterSignup);
@@ -8787,6 +8911,7 @@ module_default$1.data("RadioInput", RadioInput);
 module_default$1.data("SearchableSelect", SearchableSelect);
 module_default$1.data("LineItem", LineItem);
 module_default$1.data("SinglePageCheckout", SinglePageCheckout);
+module_default$1.data("PartialPaymentControls", PartialPaymentControls);
 module_default$1.data("AddressVerification", AddressVerification);
 module_default$1.data("AddressAutocomplete", AddressAutocomplete);
 window.Alpine = module_default$1;

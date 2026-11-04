@@ -100,6 +100,7 @@ export const SinglePageCheckout = (props) => {
 			currency: 'USD',
 			discounts: [],
 			vouchers: [],
+			partialPayments: [],
 		},
 		voucherCode: '',
 		applyingVoucher: false,
@@ -232,6 +233,7 @@ export const SinglePageCheckout = (props) => {
 			this.syncPayButtons();
 			this.$watch('paying', () => this.syncPayButtons());
 			this.$watch('stripeMountPending', () => this.syncPayButtons());
+			this.$watch('$store.partialPayments.busy', () => this.syncPayButtons());
 			this.$watch(
 				() => Number(this.totals.total) === 0,
 				() => this.$nextTick(() => this.ensureAvailableGateway())
@@ -466,6 +468,7 @@ export const SinglePageCheckout = (props) => {
 					this.fieldsReadyIn(section, false, null, this.paymentFormEl)
 				) &&
 				this.pending === 0 &&
+				!this.$store.partialPayments.busy &&
 				!this.saveTimer &&
 				this.statusTone !== 'error' &&
 				this.hasEmail &&
@@ -482,15 +485,26 @@ export const SinglePageCheckout = (props) => {
 			return this.canEnterPayment && this.paymentFieldsReady;
 		},
 
+		get partialPaymentCoversTotal() {
+			return (
+				Number(this.totals.total) === 0 &&
+				(this.totals.partialPayments || []).length > 0
+			);
+		},
+
 		get payButtonLabel() {
 			if (Number(this.totals.total) === 0) {
 				return this.completeOrderLabel;
 			}
 
-			return `${this.payButtonText} ${this.totals.totalAsCurrency || ''}`.trim();
+			return `${this.payButtonText} ${this.totals.outstandingBalanceAsCurrency || this.totals.totalAsCurrency || ''}`.trim();
 		},
 
 		gatewayFits(el) {
+			if (this.partialPaymentCoversTotal) {
+				return false;
+			}
+
 			const availableAtZero = el?.dataset?.availableAtZero === '1';
 			const zeroOnly = el?.dataset?.zeroOnly === '1';
 

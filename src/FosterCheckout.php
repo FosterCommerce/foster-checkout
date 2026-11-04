@@ -28,6 +28,7 @@ use craft\events\DefineAddressFieldLabelEvent;
 use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
 use craft\events\DefineRulesEvent;
+use craft\events\ModelEvent as ElementModelEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\fieldlayoutelements\BaseField;
@@ -516,7 +517,7 @@ class FosterCheckout extends Plugin
 				// A cart is filled in a step at a time, so these are only required to pay
 				$action = $request->getBodyParam('action');
 
-				if (! is_string($action) || ! str_starts_with($action, 'commerce/payments/')) {
+				if (! is_string($action) || (! str_starts_with($action, 'commerce/payments/') && $action !== 'foster-checkout/partial-payment/complete')) {
 					return;
 				}
 
@@ -659,6 +660,16 @@ class FosterCheckout extends Plugin
 		$this->listUkCounties();
 		$this->keepCartPagesUncached();
 		$this->lockPaidCarts();
+		$this->serializePartialCheckoutPayments();
+		$this->registerPartialAuthorizations();
+		Event::on(Payments::class, Payments::EVENT_BEFORE_PROCESS_PAYMENT, function (ProcessPaymentEvent $event): void {
+			$gateway = $event->order->getGateway();
+			if (Craft::$app->getRequest()->getIsSiteRequest() && $gateway instanceof \craft\commerce\base\Gateway
+				&& $this->getCheckout()->getPartialPayments()->configured($gateway)
+				&& ! Craft::$app->controller instanceof \fostercommerce\fostercheckout\controllers\PartialPaymentController) {
+				$event->isValid = false;
+			}
+		});
 		$this->releaseStaleVoucherHoldsBeforePayment();
 		$this->releaseStaleVoucherHoldsOnStaffApply();
 	}
@@ -731,11 +742,116 @@ class FosterCheckout extends Plugin
 		);
 	}
 
+	private function serializePartialCheckoutPayments(): void
+	{
+		Event::on(Payments::class, Payments::EVENT_BEFORE_PROCESS_PAYMENT, function (ProcessPaymentEvent $event): void {
+			if (! Craft::$app->getRequest()->getIsSiteRequest()
+				|| Craft::$app->controller instanceof \fostercommerce\fostercheckout\controllers\PartialPaymentController) {
+				return;
+			}
+
+			$order = $event->order;
+			$partialPayments = $this->getCheckout()->getPartialPayments();
+			$hasPartialGateway = collect($order->getAvailableGateways())
+				->contains(fn (\craft\commerce\base\Gateway $gateway): bool => $partialPayments->configured($gateway));
+
+			if (! $partialPayments->hasApplied($order) && ! $hasPartialGateway) {
+				return;
+			}
+
+			$lockName = 'order:' . $order->number;
+			$mutex = Craft::$app->getMutex();
+			$ownsLock = ! $mutex->isAcquired($lockName);
+			if ($ownsLock && ! $mutex->acquire($lockName, 5)) {
+				$event->isValid = false;
+				return;
+			}
+
+			if ($ownsLock) {
+				Craft::$app->on(\yii\base\Application::EVENT_AFTER_REQUEST, static function () use ($mutex, $lockName): void {
+					$mutex->release($lockName);
+				});
+			}
+
+			$order->setTransactions(null);
+			$partialPayments->reconcile($order);
+			if (! $partialPayments->appliedAmountsMatch($order)) {
+				throw new \craft\commerce\errors\PaymentException('The applied credit changed. Review the updated totals before paying.');
+			}
+
+			if (Order::find()->id($order->id)->isCompleted(true)->exists()) {
+				$event->isValid = false;
+				return;
+			}
+
+			if ($partialPayments->hasApplied($order)) {
+				$order->setPaymentAmount($partialPayments->remainingAmount($order));
+			}
+		}, null, false);
+	}
+
+	private function registerPartialAuthorizations(): void
+	{
+		Event::on(Order::class, Order::EVENT_AFTER_SAVE, function (ElementModelEvent $event): void {
+			/** @var Order $order */
+			$order = $event->sender;
+			$this->getCheckout()->getPartialPayments()->reconcile($order);
+		});
+
+		Event::on(Order::class, Order::EVENT_BEFORE_SAVE, function (ElementModelEvent $event): void {
+			/** @var Order $order */
+			$order = $event->sender;
+			$partial = $this->getCheckout()->getPartialPayments();
+			if ($order->isCompleted && $partial->hasApplied($order)
+				&& ! Order::find()->id($order->id)->isCompleted(true)->exists()
+				&& \craft\commerce\helpers\Currency::round($order->getTotalPaid() + $order->getTotalAuthorized(), $order->currency) < $order->getTotalPrice()) {
+				$order->isCompleted = false;
+				$order->dateOrdered = null;
+				$order->addError('payment', 'The remaining balance must be paid before completing this order.');
+				$event->isValid = false;
+			}
+		});
+
+		Event::on(Order::class, Order::EVENT_AFTER_COMPLETE_ORDER, function (Event $event): void {
+			/** @var Order $order */
+			$order = $event->sender;
+			$this->getCheckout()->getPartialPayments()->capture($order);
+		});
+
+		Event::on(Order::class, Order::EVENT_BEFORE_DELETE, function (Event $event): void {
+			/** @var Order $order */
+			$order = $event->sender;
+			if (! $order->isCompleted) {
+				$this->getCheckout()->getPartialPayments()->releaseAll($order);
+			}
+		});
+	}
+
 	/**
 	 * Refuse changes and payments on a cart that is paid but incomplete, since a later payment would charge only the difference.
 	 */
 	private function lockPaidCarts(): void
 	{
+		Event::on(Order::class, Order::EVENT_BEFORE_SAVE, function (ElementModelEvent $event): void {
+			$controller = Craft::$app->controller;
+			if (! $controller instanceof CartController || $controller->action?->id !== 'update-cart' || $this->isStaffRequest()) {
+				return;
+			}
+
+			/** @var Order $order */
+			$order = $event->sender;
+			// Commerce owns the update-cart mutex here; repeat the check after acquiring it to cover a concurrent Apply.
+			$order->setTransactions(null);
+			if ($this->getCheckout()->getPartialPayments()->authorizedAmount($order) > 0) {
+				$this->getCheckout()->getPartialPayments()->prepareCartChange($order);
+			}
+
+			if ($this->getCheckout()->getPartialPayments()->hasPurchasedPayment($order)) {
+				$order->addError('partialPayment', Craft::t('foster-checkout', 'partialPayment.removeToEdit'));
+				$event->isValid = false;
+			}
+		});
+
 		$lockedActions = [
 			CartController::class => ['update-cart', 'forget-cart'],
 			PaymentsController::class => ['pay'],
@@ -756,6 +872,45 @@ class FosterCheckout extends Plugin
 					}
 
 					$order = $this->requestedOrder($actionId);
+					$nativeCartUpdate = $actionEvent->action->controller instanceof CartController && $actionId === 'update-cart';
+					if ($order instanceof Order && ! $order->isCompleted && $actionId !== 'pay' && ! $nativeCartUpdate
+						&& $this->getCheckout()->getPartialPayments()->authorizedAmount($order) > 0) {
+						$this->getCheckout()->getPartialPayments()->prepareCartChange($order);
+						if ($actionId === 'forget-cart') {
+							$this->getCheckout()->getPartialPayments()->releaseAll($order);
+						}
+					}
+
+					if ($order instanceof Order && $actionId !== 'pay' && ! $nativeCartUpdate) {
+						$partialPayments = $this->getCheckout()->getPartialPayments();
+						$hasPartialGateway = collect($order->getAvailableGateways())
+							->contains(fn (\craft\commerce\base\Gateway $gateway): bool => $partialPayments->configured($gateway));
+						if ($partialPayments->hasApplied($order) || $hasPartialGateway) {
+							$lockName = 'order:' . $order->number;
+							$mutex = Craft::$app->getMutex();
+							if (! $mutex->isAcquired($lockName) && ! $mutex->acquire($lockName, 5)) {
+								throw new \yii\web\HttpException(503, 'The cart is busy. Please try again.');
+							}
+
+							Craft::$app->on(\yii\base\Application::EVENT_AFTER_REQUEST, static function () use ($mutex, $lockName): void {
+								$mutex->release($lockName);
+							});
+							$order->setTransactions(null);
+						}
+					}
+
+					if ($order instanceof Order && $this->getCheckout()->getPartialPayments()->hasPurchasedPayment($order) && ! $order->isCompleted && $actionId !== 'pay') {
+						/** @var WebController $controller */
+						$controller = $actionEvent->action->controller;
+						$message = Craft::t('foster-checkout', 'partialPayment.removeToEdit');
+						Craft::$app->getSession()->setError($message);
+						$response = $controller->request->getAcceptsJson()
+							? $controller->asFailure($message, [
+								'error' => $message,
+							])
+							: $controller->redirect(UrlHelper::siteUrl($this->getCheckout()->settings()->paths->checkout . ($this->getCheckout()->settings()->options->isSinglePageCheckout() ? '' : '/payment')));
+						Craft::$app->end(0, $response);
+					}
 
 					if (! $order instanceof Order || ! $this->getCheckout()->isPaidButIncomplete($order)) {
 						return;

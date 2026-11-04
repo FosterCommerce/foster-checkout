@@ -15,6 +15,7 @@ use craft\commerce\helpers\Currency;
 use craft\commerce\models\LineItem;
 use craft\commerce\models\OrderAdjustment;
 use craft\commerce\models\ShippingMethodOption;
+use craft\commerce\models\Transaction;
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\records\Transaction as TransactionRecord;
 use craft\db\Query;
@@ -31,8 +32,10 @@ use craft\fieldlayoutelements\BaseField;
 use craft\fieldlayoutelements\CustomField;
 use craft\fieldlayoutelements\FullNameField;
 use craft\helpers\App;
+use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
+use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\web\Request as WebRequest;
 use DateTime;
@@ -41,6 +44,7 @@ use fostercommerce\advanceddiscounts\variables\AdvancedDiscountsVariable;
 use fostercommerce\fostercheckout\db\Table;
 use fostercommerce\fostercheckout\events\DefineCheckoutContactEvent;
 use fostercommerce\fostercheckout\events\DefineLineItemQtyEditableEvent;
+use fostercommerce\fostercheckout\events\DefinePartialPaymentEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentFormParamsEvent;
 use fostercommerce\fostercheckout\events\DefineSavedPaymentSourcesEvent;
@@ -50,10 +54,14 @@ use fostercommerce\fostercheckout\FosterCheckout;
 use fostercommerce\fostercheckout\helpers\CheckoutAddressFormatter;
 use fostercommerce\fostercheckout\models\DeliveryDate;
 use fostercommerce\fostercheckout\models\LineItemOptionRule;
+use fostercommerce\fostercheckout\models\OrderReceipt;
 use fostercommerce\fostercheckout\models\PaymentGatewayConfig;
+use fostercommerce\fostercheckout\models\ReceiptPayment;
 use fostercommerce\fostercheckout\models\Settings;
 use fostercommerce\fostercheckout\models\ValueConfig;
 use fostercommerce\klaviyoconnect\Plugin as KlaviyoConnect;
+use fostercommerce\netterms\enums\EntryStatus;
+use fostercommerce\netterms\gateways\NetTerms;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
 use KlaviyoAPI\ApiException;
@@ -83,9 +91,11 @@ use yii\db\Exception as DbException;
  *     taxAsCurrency: string,
  *     total: float,
  *     totalAsCurrency: string,
+ *     outstandingBalanceAsCurrency: string,
  *     currency: string,
  *     discounts: list<array{name: string, amountAsCurrency: string}>,
- *     vouchers: list<array{name: string, amountAsCurrency: string, appliedAmountAsCurrency: string}>
+ *     vouchers: list<array{name: string, amountAsCurrency: string, appliedAmountAsCurrency: string}>,
+ *     partialPayments: list<array{gatewayId: int, accountId: int|null, transactionId: int|null, name: string, amountAsCurrency: string}>
  * }
  * @phpstan-type CheckoutLineItemTotals array{
  *     discountNames: list<string>,
@@ -105,12 +115,16 @@ use yii\db\Exception as DbException;
  *     couponName: ?string,
  *     couponMessages: list<string>,
  *     paymentBlock: ?string,
+ *     partialPaymentsHtml: string,
+ *     paymentNeedsRefresh: bool,
  *     molliePaymentMethods: array<int, list<MolliePaymentMethod>>,
  *     couponCodeError?: string
  * }
  */
 class Checkout extends Component
 {
+	public const string EVENT_DEFINE_PARTIAL_PAYMENT = 'definePartialPayment';
+
 	/**
 	 * @event DefineCheckoutContactEvent The event that is triggered when naming the contact shown at checkout.
 	 *
@@ -137,6 +151,7 @@ class Checkout extends Component
 	 *
 	 * ```php
 	 * use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
+use fostercommerce\fostercheckout\events\DefinePartialPaymentEvent;
 	 * use fostercommerce\fostercheckout\services\Checkout;
 	 * use yii\base\Event;
 	 *
@@ -305,6 +320,24 @@ class Checkout extends Component
 	 * @var array<string, bool>
 	 */
 	private array $addressAccess = [];
+
+	public function getPartialPayments(): PartialPayments
+	{
+		return new PartialPayments();
+	}
+
+	/**
+	 * @return array<array-key, Gateway>
+	 */
+	public function paymentGateways(Order $order): array
+	{
+		/** @var \Illuminate\Support\Collection<array-key, Gateway> $gateways */
+		$gateways = $order->getAvailableGateways();
+
+		return $gateways
+			->reject(fn (Gateway $gateway): bool => $this->getPartialPayments()->configured($gateway))
+			->all();
+	}
 
 	/**
 	 * The contact shown at checkout.
@@ -810,7 +843,10 @@ class Checkout extends Component
 	 */
 	public function isPaidButIncomplete(Order $order): bool
 	{
-		return ! $order->isCompleted && ($order->getTotalPaid() > 0 || $order->getTotalAuthorized() > 0);
+		return ! $order->isCompleted
+			&& $this->getPartialPayments()->authorizedAmount($order) === 0.0
+			&& ! $this->getPartialPayments()->awaitingBalance($order)
+			&& ($order->getTotalPaid() > 0 || $order->getTotalAuthorized() > 0);
 	}
 
 	/**
@@ -1343,7 +1379,7 @@ class Checkout extends Component
 					$gateway->setOnlyAllowForZeroPriceOrders(false);
 				}
 
-				return $gateway->availableForUseWithOrder($cart);
+				return ! $this->getPartialPayments()->configured($gateway) && $gateway->availableForUseWithOrder($cart);
 			});
 	}
 
@@ -1422,6 +1458,11 @@ class Checkout extends Component
 			'couponName' => $this->couponName($cart),
 			'couponMessages' => $this->couponMessages($cart),
 			'paymentBlock' => $this->paymentBlock($cart),
+			'paymentNeedsRefresh' => $this->getPartialPayments()->paymentNeedsRefresh($cart),
+			'partialPaymentsHtml' => Craft::$app->getView()->renderTemplate('foster-checkout/_components/app/partial-payments', [
+				'cart' => $cart,
+				'singlePage' => true,
+			], \craft\web\View::TEMPLATE_MODE_CP),
 			'molliePaymentMethods' => $this->molliePaymentMethodLists($cart),
 		];
 	}
@@ -1482,6 +1523,95 @@ class Checkout extends Component
 			$order->getTeller()->multiply($lineItem->price, (string) $lineItem->qty),
 			$order->currency
 		);
+	}
+
+	public function receipt(Order $order): OrderReceipt
+	{
+		$teller = $order->getTeller();
+		$receipt = new OrderReceipt([
+			'customerTotal' => $teller->convertToMoney($order->getTotalPrice()),
+			'paid' => $teller->convertToMoney($order->getTotalPaid()),
+		]);
+		$transactions = collect($order->getTransactions())
+			->filter(static fn (Transaction $transaction): bool => $transaction->status === TransactionRecord::STATUS_SUCCESS)
+			->sortBy('id');
+
+		foreach ($transactions as $transaction) {
+			if (! in_array($transaction->type, [TransactionRecord::TYPE_PURCHASE, TransactionRecord::TYPE_CAPTURE, TransactionRecord::TYPE_AUTHORIZE], true)) {
+				continue;
+			}
+
+			$gateway = $transaction->getGateway();
+			$authorized = $transaction->type === TransactionRecord::TYPE_AUTHORIZE;
+			if ($authorized && ($transactions->contains(static fn (Transaction $child): bool => $child->parentId === $transaction->id && $child->type === TransactionRecord::TYPE_CAPTURE)
+				|| (PartialPayments::isPartialTransaction($transaction) && $gateway instanceof NetTerms && $gateway->getPartialAuthorization($transaction)?->status !== EntryStatus::Authorized))) {
+				continue;
+			}
+
+			$amount = $teller->convertToMoney($transaction->amount);
+			$refunded = $teller->convertToMoney(0);
+			foreach ($transactions as $refund) {
+				if ($refund->type === TransactionRecord::TYPE_REFUND && $refund->parentId === $transaction->id) {
+					$refunded = $refunded->add($teller->convertToMoney($refund->amount));
+				}
+			}
+
+			$coverage = $amount->subtract($refunded);
+			if (! $coverage->isPositive()) {
+				continue;
+			}
+
+			$partial = PartialPayments::isPartialTransaction($transaction);
+			$label = $this->gatewayLabel($gateway);
+			if ($partial && $gateway instanceof Gateway) {
+				$definition = new DefinePartialPaymentEvent([
+					'order' => $order,
+					'gateway' => $gateway,
+				]);
+				$this->trigger(self::EVENT_DEFINE_PARTIAL_PAYMENT, $definition);
+				$label = $definition->summaryLabel ?? $label;
+			}
+
+			$response = is_string($transaction->response) ? Json::decodeIfJson($transaction->response) : $transaction->response;
+			$response = is_array($response) ? $response : [];
+			$cardBrand = ArrayHelper::getValue($response, 'payment_method.card.display_brand')
+				?? ArrayHelper::getValue($response, 'payment_method.card.brand')
+				?? ArrayHelper::getValue($response, 'transactionResponse.accountType');
+			$cardLast4 = ArrayHelper::getValue($response, 'payment_method.card.last4')
+				?? ArrayHelper::getValue($response, 'transactionResponse.accountNumber');
+
+			$payment = new ReceiptPayment([
+				'transactionId' => (int) $transaction->id,
+				'label' => $label,
+				'amount' => $amount,
+				'refunded' => $refunded,
+				'coverage' => $coverage,
+				'date' => $transaction->dateCreated,
+				'authorized' => $authorized,
+				'partial' => $partial,
+				'applied' => $partial && $gateway instanceof NetTerms,
+				'cardBrand' => is_string($cardBrand) ? $cardBrand : null,
+				'cardLast4' => is_string($cardLast4) ? substr($cardLast4, -4) : null,
+			]);
+			$receipt->payments[] = $payment;
+			if ($partial) {
+				$receipt->partialPayments[] = $payment;
+				$receipt->customerTotal = $receipt->customerTotal->subtract($coverage);
+
+				if (! $authorized) {
+					$receipt->paid = $receipt->paid->subtract($coverage);
+				}
+			}
+		}
+
+		$receipt->payments = collect($receipt->payments)
+			->sortBy(static fn (ReceiptPayment $payment): int => $payment->applied ? 0 : 1)
+			->values()
+			->all();
+
+		$receipt->balance = $receipt->customerTotal->subtract($receipt->paid);
+
+		return $receipt;
 	}
 
 	/**
@@ -1626,7 +1756,8 @@ class Checkout extends Component
 		$lockName = 'order:' . $order->number;
 
 		// Share the lock name of Commerce's update-cart and pay actions, so neither saves the order meanwhile
-		if (! $mutex->acquire($lockName, 5)) {
+		$ownsLock = ! $mutex->isAcquired($lockName);
+		if ($ownsLock && ! $mutex->acquire($lockName, 5)) {
 			return;
 		}
 
@@ -1641,7 +1772,9 @@ class Checkout extends Component
 			// Log rather than rethrow, so the page shows the paid-but-incomplete notice
 			Craft::error(sprintf('Could not complete paid order %s: %s', $order->number, $throwable->getMessage()), __METHOD__);
 		} finally {
-			$mutex->release($lockName);
+			if ($ownsLock) {
+				$mutex->release($lockName);
+			}
 		}
 	}
 
@@ -2188,11 +2321,21 @@ class Checkout extends Component
 			'shipping' => $cart->getTotalShippingCost(),
 			'shippingAsCurrency' => $cart->totalShippingCostAsCurrency,
 			'taxAsCurrency' => $cart->totalTaxAsCurrency,
-			'total' => $cart->getTotal(),
-			'totalAsCurrency' => $cart->totalAsCurrency,
+			'total' => $this->getPartialPayments()->remainingAmount($cart),
+			'totalAsCurrency' => Currency::formatAsCurrency($this->getPartialPayments()->remainingAmount($cart), $cart->currency),
+			'outstandingBalanceAsCurrency' => Currency::formatAsCurrency($this->getPartialPayments()->remainingAmount($cart), $cart->currency),
 			'currency' => (string) $cart->currency,
 			'discounts' => $discounts,
 			'vouchers' => $vouchers,
+			'partialPayments' => collect($this->getPartialPayments()->steps($cart))
+				->filter(static fn (\fostercommerce\fostercheckout\models\PartialPaymentStep $step): bool => $step->applied > 0)
+				->map(fn (\fostercommerce\fostercheckout\models\PartialPaymentStep $step): array => [
+					'gatewayId' => (int) $step->gateway->id,
+					'accountId' => $step->accountId,
+					'transactionId' => $step->transactionId,
+					'name' => $step->summaryLabel,
+					'amountAsCurrency' => Currency::formatAsCurrency(-$step->applied, $cart->currency),
+				])->values()->all(),
 		];
 	}
 

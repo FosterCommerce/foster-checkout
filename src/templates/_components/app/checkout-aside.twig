@@ -14,7 +14,7 @@
 				<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"></path>
 			</svg>
 		</span>
-		<span class="font-semibold">{{ cart.totalPriceAsCurrency }}</span>
+		<span class="font-semibold">{{ craft.fostercheckout.partialPayments.remainingAmount(cart)|currency(cart.currency) }}</span>
 	</button>
 
 	{% include 'foster-checkout/_components/app/summary-include' %}

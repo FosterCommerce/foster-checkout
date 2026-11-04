@@ -108,6 +108,7 @@
 	<div
 		class="mt-10 pb-28 lg:pb-32"
 		x-data="SinglePageCheckout(JSON.parse(document.getElementById('fcSinglePageConfig').textContent))"
+		@partial-payment-updated="applyCart($event.detail)"
 	>
 		{# Margin on each message rather than the wrapper, which is never empty while the template is in it #}
 		<div class="[&>div]:mb-6">
