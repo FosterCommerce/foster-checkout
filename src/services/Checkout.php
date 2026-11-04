@@ -805,6 +805,8 @@ class Checkout extends Component
 
 	/**
 	 * Whether a cart has a payment recorded against it but is not a completed order.
+	 *
+	 * @internal
 	 */
 	public function isPaidButIncomplete(Order $order): bool
 	{
@@ -813,6 +815,8 @@ class Checkout extends Component
 
 	/**
 	 * Complete a cart that is paid but incomplete, returning whether it is now a completed order.
+	 *
+	 * @internal
 	 */
 	public function completePaidCart(Order $order): bool
 	{
@@ -830,6 +834,7 @@ class Checkout extends Component
 	 * Release gift voucher holds left by earlier payment attempts on the order, and holds other checkouts left idle on
 	 * its codes or on the code being applied.
 	 *
+	 * @internal
 	 * @since 2.1.0
 	 */
 	public function releaseStaleVoucherHolds(Order $order, ?string $codeKeyBeingApplied = null): void
@@ -896,6 +901,7 @@ class Checkout extends Component
 	 * Minutes until the code has value for the order again, once other checkouts' recent holds on it go idle. Null when
 	 * waiting would not make the code usable.
 	 *
+	 * @internal
 	 * @since 2.1.0
 	 */
 	public function voucherHoldMinutesLeft(Order $order, string $codeKey): ?int
@@ -1318,6 +1324,7 @@ class Checkout extends Component
 	 * The cart's gateways, including one limited to orders totaling zero while the total is above zero.
 	 *
 	 * @return Collection<array-key, mixed>
+	 * @internal
 	 */
 	public function singlePageGateways(Order $cart): Collection
 	{

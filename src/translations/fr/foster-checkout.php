@@ -464,7 +464,7 @@ return [
 	'settings.general.account' => 'Chemin du compte',
 	'settings.general.accountHelp' => 'Chemin relatif au site où la page du compte est accessible.',
 	'settings.general.cancel' => 'Chemin d’annulation',
-	'settings.general.cancelHelp' => 'Destination du lien **Continuer vos achats** sur le panier.',
+	'settings.general.cancelHelp' => 'Destination du lien **Continuer vos achats** sur le panier vide.',
 	'settings.general.useCartTemplate' => 'Utiliser le template de panier intégré',
 	'settings.general.useCartTemplateHelp' => 'Désactivez cette option pour servir votre propre template sur le chemin du panier.',
 	'settings.general.contentTranslationMethod' => 'Méthode de traduction du contenu',

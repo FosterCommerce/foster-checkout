@@ -28,7 +28,7 @@ If you serve your own cart template at the cart path, loading it does not comple
 
 A migration removes `options.enableEstimatedShipping` from the stored settings. If your config file sets the key, the plugin logs a warning and ignores the value. Remove the key from your config file.
 
-### Zero value gateways limited to Manual gateways
+### Stripe, PayPal, Authorize.net and Mollie unavailable at zero
 
 On an order totaling zero, the checkout no longer offers a Stripe, PayPal, Authorize.net or Mollie gateway, even when **Zero value gateways** lists it. If the list held only those gateways, add a Manual gateway to it, or the checkout offers no way to place a free order.
 

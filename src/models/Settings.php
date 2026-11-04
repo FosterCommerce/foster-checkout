@@ -263,6 +263,7 @@ class Settings extends Model
 	/**
 	 * Whether this many saved payment methods are shown as a dropdown rather than a list.
 	 *
+	 * @internal
 	 * @since 2.1.0
 	 */
 	public function usesPaymentSourceDropdown(int $paymentSourceCount): bool
@@ -277,6 +278,7 @@ class Settings extends Model
 	/**
 	 * Whether the gateway can take an order totaling zero.
 	 *
+	 * @internal
 	 * @since 2.1.0
 	 */
 	public function canTakeZeroValue(GatewayInterface $gateway): bool
@@ -293,6 +295,7 @@ class Settings extends Model
 	/**
 	 * Whether the checkout shows the gateway on an order totaling zero.
 	 *
+	 * @internal
 	 * @since 2.1.0
 	 */
 	public function isAvailableAtZero(GatewayInterface $gateway): bool

@@ -465,7 +465,7 @@ return [
 	'settings.general.account' => 'Ruta de la cuenta',
 	'settings.general.accountHelp' => 'Ruta relativa al sitio donde la página de la cuenta está accesible.',
 	'settings.general.cancel' => 'Ruta de cancelación',
-	'settings.general.cancelHelp' => 'Adónde lleva **Seguir comprando** en el carrito.',
+	'settings.general.cancelHelp' => 'Adónde lleva **Seguir comprando** en el carrito vacío.',
 	'settings.general.useCartTemplate' => 'Usar la plantilla de carrito incluida',
 	'settings.general.useCartTemplateHelp' => 'Desactívalo para servir tu propia plantilla en la ruta del carrito.',
 	'settings.general.contentTranslationMethod' => 'Método de traducción del contenido',

@@ -464,7 +464,7 @@ return [
 	'settings.general.account' => 'Pfad zum Konto',
 	'settings.general.accountHelp' => 'Site-relativer Pfad, unter dem die Kontoseite erreichbar ist.',
 	'settings.general.cancel' => 'Pfad bei Abbruch',
-	'settings.general.cancelHelp' => 'Ziel von **Weiter einkaufen** im Warenkorb.',
+	'settings.general.cancelHelp' => 'Ziel von **Weiter einkaufen** im leeren Warenkorb.',
 	'settings.general.useCartTemplate' => 'Mitgeliefertes Warenkorb-Template verwenden',
 	'settings.general.useCartTemplateHelp' => 'Ausschalten, um unter dem Warenkorb-Pfad ein eigenes Template auszuliefern.',
 	'settings.general.contentTranslationMethod' => 'Übersetzungsmethode für Inhalte',

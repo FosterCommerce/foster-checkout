@@ -80,6 +80,8 @@ class LineItemConfig extends Model
 
 	/**
 	 * Handle of the plugin that transforms line item images, or `craft` for Craft's own transforms.
+	 *
+	 * @internal
 	 */
 	public function imageTransformerInUse(): string
 	{
@@ -132,6 +134,7 @@ class LineItemConfig extends Model
 
 	/**
 	 * @return array<non-empty-string, mixed>
+	 * @internal
 	 */
 	public function imageTransformParams(): array
 	{

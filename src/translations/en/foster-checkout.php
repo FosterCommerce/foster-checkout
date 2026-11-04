@@ -465,7 +465,7 @@ return [
 	'settings.general.account' => 'Account path',
 	'settings.general.accountHelp' => 'Site-relative path where the account page is accessible.',
 	'settings.general.cancel' => 'Cancel path',
-	'settings.general.cancelHelp' => 'Where **Continue shopping** on the cart links.',
+	'settings.general.cancelHelp' => 'Where **Continue shopping** on the empty cart links.',
 	'settings.general.useCartTemplate' => 'Use the built-in cart template',
 	'settings.general.useCartTemplateHelp' => 'Turn off to serve your own template at the cart path.',
 	'settings.general.contentTranslationMethod' => 'Content translation method',

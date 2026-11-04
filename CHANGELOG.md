@@ -16,6 +16,9 @@
 - Added the `firstView` variable to the head and body includes on the confirmation page.
 - Added support for Mollie gateways, which show the Mollie account's payment methods at checkout, and `craft.fostercheckout.molliePaymentMethods()`. Foster Commerce hasn't tested Mollie support against a live Mollie account.
 - Added a `data-fc-notice="discount"` attribute to Advanced Discounts messages, for restyling them from the head include.
+- Added the “Use as a partial payment step” setting for Net Terms gateways, which lets a customer apply an amount from their account at checkout and pay the rest with another gateway. The setting is off after updating, and the step needs an amount from the `Checkout::EVENT_DEFINE_PARTIAL_PAYMENT` event.
+- Added the `Checkout::EVENT_DEFINE_PARTIAL_PAYMENT` event, for setting a partial payment step's amount and labels.
+- Added the `foster-checkout/partial-payment/apply`, `foster-checkout/partial-payment/remove` and `foster-checkout/partial-payment/complete` actions.
 
 ### Changed
 
@@ -26,13 +29,13 @@
 - The single-page checkout no longer asks for a billing address on an order totaling zero, unless “Require Billing Address At Checkout” is on.
 - The single-page checkout no longer preselects a gateway when more than one is available.
 - Cart line items now show the percent or amount off from Advanced Discounts, such as “20% off” or “$5.00 off each”, instead of “Sale”.
-- “Zero value gateways” no longer lists Stripe, PayPal, Authorize.net or Mollie gateways, and the checkout no longer uses them on an order totaling zero. To take orders totaling zero, add a Manual gateway to “Zero value gateways”.
+- “Zero value gateways” no longer lists Stripe, PayPal, Authorize.net or Mollie gateways, and the checkout no longer uses them on an order totaling zero. If the list held only those gateways, add a Manual gateway to keep taking orders totaling zero.
 - Saved address dropdowns now show each address on two lines.
-- Foster Checkout now completes a paid cart that isn't a completed order when the customer opens the checkout or the built-in cart page, and blocks changes and further payments on that cart until the order completes.
+- Foster Checkout now completes a cart with a paid or authorized payment that isn't a completed order when the customer opens the checkout or the built-in cart page, and blocks changes and further payments on that cart until the order completes.
 - The cart and checkout pages, including the order confirmation page, now send no-cache headers, and Foster Checkout excludes them from Blitz's cache.
-- Applied coupon and gift voucher codes now show only the code and amount, such as `CODE ($16.00)`.
-- The pay button now reads “Complete order” on an order totaling zero, instead of “Pay $0.00”.
 - The checkout now passes `order`, `submitButtonText` and `submitButtonClasses` to the payment form of gateways other than Stripe Payment Intents, PayPal, Mollie and Manual.
+- The cart page no longer shows “Continue shopping” when the cart has items.
+- The order confirmation page now lists each payment with its amount, date and any refund, and whether it was charged, authorized or applied, instead of only the last payment's card.
 
 ### Deprecated
 
