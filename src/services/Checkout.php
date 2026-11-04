@@ -123,6 +123,26 @@ use yii\db\Exception as DbException;
  */
 class Checkout extends Component
 {
+	/**
+	 * @event DefinePartialPaymentEvent The event that is triggered when setting the amount and labels of a partial payment step.
+	 *
+	 * ```php
+	 * use fostercommerce\fostercheckout\events\DefinePartialPaymentEvent;
+	 * use fostercommerce\fostercheckout\services\Checkout;
+	 * use yii\base\Event;
+	 *
+	 * Event::on(
+	 *     Checkout::class,
+	 *     Checkout::EVENT_DEFINE_PARTIAL_PAYMENT,
+	 *     function (DefinePartialPaymentEvent $event) {
+	 *         $event->amount = 100.00;
+	 *         $event->summaryLabel = 'Account credit';
+	 *     }
+	 * );
+	 * ```
+	 *
+	 * @since 2.1.0
+	 */
 	public const string EVENT_DEFINE_PARTIAL_PAYMENT = 'definePartialPayment';
 
 	/**
@@ -151,7 +171,6 @@ class Checkout extends Component
 	 *
 	 * ```php
 	 * use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
-use fostercommerce\fostercheckout\events\DefinePartialPaymentEvent;
 	 * use fostercommerce\fostercheckout\services\Checkout;
 	 * use yii\base\Event;
 	 *
@@ -321,6 +340,10 @@ use fostercommerce\fostercheckout\events\DefinePartialPaymentEvent;
 	 */
 	private array $addressAccess = [];
 
+	/**
+	 * @internal
+	 * @since 2.1.0
+	 */
 	public function getPartialPayments(): PartialPayments
 	{
 		return new PartialPayments();
@@ -328,6 +351,8 @@ use fostercommerce\fostercheckout\events\DefinePartialPaymentEvent;
 
 	/**
 	 * @return array<array-key, Gateway>
+	 * @internal
+	 * @since 2.1.0
 	 */
 	public function paymentGateways(Order $order): array
 	{
@@ -1525,6 +1550,10 @@ use fostercommerce\fostercheckout\events\DefinePartialPaymentEvent;
 		);
 	}
 
+	/**
+	 * @internal
+	 * @since 2.1.0
+	 */
 	public function receipt(Order $order): OrderReceipt
 	{
 		$teller = $order->getTeller();

@@ -26,6 +26,10 @@ use RuntimeException;
 use Throwable;
 use yii\base\Component;
 
+/**
+ * @internal
+ * @since 2.1.0
+ */
 class PartialPayments extends Component
 {
 	public const string MARKER = '_fosterCheckoutPartialPayment';

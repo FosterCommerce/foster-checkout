@@ -1,6 +1,9 @@
 <?php
 
 return [
+	'partialPayment.remove' => 'Entfernen',
+	'partialPayment.failed' => 'Die Kontozahlung konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.',
+	'partialPayment.removeToEdit' => 'Entfernen Sie die angewendete Zahlung, bevor Sie Ihren Warenkorb, die Lieferdaten oder Gutscheine ändern.',
 	// Cart page
 	'cart.cartTitle' => 'Warenkorb',
 	'cart.clearCart' => 'Warenkorb leeren',
@@ -170,11 +173,13 @@ return [
 	'order.shippingAddress' => 'Lieferadresse',
 	'order.shippingMethod' => 'Versandart',
 	'order.payment' => 'Zahlung',
-	'order.gateway' => 'Zahlungsgateway:',
-	'order.card' => 'Karte:',
-	'order.giftCard' => 'Geschenkkarte',
 	'order.totalPaidLabel' => 'Gesamtbetrag bezahlt:',
 	'order.balanceLabel' => 'Saldo:',
+	'order.paymentApplied' => 'Angewendet',
+	'order.paymentAuthorized' => 'Autorisiert',
+	'order.paymentCharged' => 'Belastet',
+	'order.paymentDateOn' => 'am',
+	'order.refunded' => 'Erstattet',
 	'order.balanceDueLabel' => 'Fälligkeitsdatum des Saldos:',
 	'order.billingAddress' => 'Rechnungsadresse',
 

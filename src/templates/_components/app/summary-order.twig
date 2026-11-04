@@ -38,7 +38,7 @@
 					{% set code = craft.fostercheckout.voucherLabel(adj) %}
 					<div class="flex justify-between items-center gap-4">
 						<dt class="text-gray-500">
-							{{ 'Voucher/Gift cards applied'|t }}
+							{{ 'summary.discountApplied'|t('foster-checkout') }}
 							<span class="block text-xs text-gray-400">{{ code }}</span>
 						</dt>
 						<dd class="text-right">
@@ -57,7 +57,7 @@
 			</div>
 		{% endfor %}
 		<div class="flex justify-between items-center gap-4 mt-4 pt-6 border-t border-gray-200">
-			<dt class="font-semibold">{{ 'Total'|t }}</dt>
+			<dt class="font-semibold">{{ 'summary.total'|t('foster-checkout') }}</dt>
 			<dd class="font-semibold text-right">{{ receipt.customerTotal|money }}</dd>
 		</div>
 

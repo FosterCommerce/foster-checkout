@@ -1,6 +1,9 @@
 <?php
 
 return [
+	'partialPayment.remove' => 'Retirer',
+	'partialPayment.failed' => 'Impossible de mettre à jour le paiement par compte. Veuillez réessayer.',
+	'partialPayment.removeToEdit' => 'Retirez le paiement appliqué avant de modifier votre panier, vos informations de livraison ou vos bons d’achat.',
 	// Cart page
 	'cart.cartTitle' => 'Panier',
 	'cart.clearCart' => 'Vider le panier',
@@ -170,11 +173,13 @@ return [
 	'order.shippingAddress' => 'Adresse de livraison',
 	'order.shippingMethod' => 'Mode de livraison',
 	'order.payment' => 'Paiement',
-	'order.gateway' => 'Méthode:',
-	'order.card' => 'Carte:',
-	'order.giftCard' => 'Carte-cadeau',
 	'order.totalPaidLabel' => 'Total payé :',
 	'order.balanceLabel' => 'Solde :',
+	'order.paymentApplied' => 'Appliqué',
+	'order.paymentAuthorized' => 'Autorisé',
+	'order.paymentCharged' => 'Débité',
+	'order.paymentDateOn' => 'le',
+	'order.refunded' => 'Remboursé',
 	'order.balanceDueLabel' => 'Solde dû :',
 	'order.billingAddress' => 'Adresse de facturation',
 

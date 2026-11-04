@@ -1,6 +1,9 @@
 <?php
 
 return [
+	'partialPayment.remove' => 'Quitar',
+	'partialPayment.failed' => 'No se pudo actualizar el pago con la cuenta. Inténtalo de nuevo.',
+	'partialPayment.removeToEdit' => 'Quita el pago aplicado antes de cambiar tu carrito, los datos de entrega o los vales.',
 	// Cart page
 	'cart.cartTitle' => 'Carrito',
 	'cart.clearCart' => 'Vaciar carrito',
@@ -171,11 +174,13 @@ return [
 	'order.shippingAddress' => 'Dirección de envío',
 	'order.shippingMethod' => 'Método de envío',
 	'order.payment' => 'Pago',
-	'order.gateway' => 'Método:',
-	'order.card' => 'Tarjeta:',
-	'order.giftCard' => 'Cupón',
 	'order.totalPaidLabel' => 'Total pagado:',
 	'order.balanceLabel' => 'Saldo:',
+	'order.paymentApplied' => 'Aplicado',
+	'order.paymentAuthorized' => 'Autorizado',
+	'order.paymentCharged' => 'Cobrado',
+	'order.paymentDateOn' => 'el',
+	'order.refunded' => 'Reembolsado',
 	'order.balanceDueLabel' => 'Saldo pendiente:',
 	'order.billingAddress' => 'Dirección de facturación',
 

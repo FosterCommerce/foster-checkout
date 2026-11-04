@@ -115,7 +115,7 @@
 							{% if craft.app.plugins.isPluginEnabled('gift-voucher') %}
 								{% set voucherAdjustments = order.orderAdjustments|filter(adjustment => adjustment.type == 'voucher') %}
 								{% if voucherAdjustments|length %}
-									<p class="mt-1">{{ 'Voucher/Gift cards applied'|t }}</p>
+									<p class="mt-1">{{ 'summary.discountApplied'|t('foster-checkout') }}</p>
 									{% for voucher in voucherAdjustments %}
 										{% set voucherCode = craft.fostercheckout.voucherCode(voucher) %}
 										{% set voucherBalance = voucherCode ? craft.giftVoucher.codes().codeKey(voucherCode).one() : null %}
@@ -130,9 +130,9 @@
 								{% if payment.cardBrand or payment.cardLast4 %}
 									<p>{{ payment.cardBrand|capitalize }}{% if payment.cardLast4 %} **** {{ payment.cardLast4 }}{% endif %}</p>
 								{% endif %}
-								<p>{{ payment.amount|money }} ({{ (payment.applied ? 'Applied' : (payment.authorized ? 'Authorized' : 'Charged'))|t }}{% if payment.date %} {{ 'on'|t }} {{ payment.date|date('F j, Y') }}{% endif %})</p>
+								<p>{{ payment.amount|money }} ({{ (payment.applied ? 'order.paymentApplied' : (payment.authorized ? 'order.paymentAuthorized' : 'order.paymentCharged'))|t('foster-checkout') }}{% if payment.date %} {{ 'order.paymentDateOn'|t('foster-checkout') }} {{ payment.date|date('F j, Y') }}{% endif %})</p>
 								{% if payment.refunded.isPositive() %}
-									<p>{{ 'Refunded'|t }} {{ payment.refunded|money }}</p>
+									<p>{{ 'order.refunded'|t('foster-checkout') }} {{ payment.refunded|money }}</p>
 								{% endif %}
 							{% endfor %}
 
