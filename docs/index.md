@@ -21,10 +21,10 @@ A ready-made, best-practices cart and checkout for Craft Commerce.
 **Dev guide:**
 
 - [Custom includes](./dev-guide/custom-includes.md), injecting your own templates into every checkout page
-- [Contributed fields](./dev-guide/contributed-fields.md), adding a checkout field your own code stores
 - [Checkout for another customer](./dev-guide/checkout-for-another-customer.md), running the checkout for an account other than the signed-in user's
 - [Blocking payment](./dev-guide/blocking-payment.md), hiding the payment form, with a reason your code sets
 - [Payment form parameters](./dev-guide/payment-form-params.md), changing the parameters a gateway's payment form receives, per order
+- [Order summary rows](./dev-guide/order-summary.md), building a custom summary whose rows match the checkout's
 
 **Reference:**
 

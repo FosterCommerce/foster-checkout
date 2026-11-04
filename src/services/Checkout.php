@@ -1553,14 +1553,9 @@ class Checkout extends Component
 	}
 
 	/**
-	 * @internal
-	 * @since 2.1.0
-	 */
-	/**
 	 * Order-level discounts applied before tax, with same-named discounts merged into one row.
 	 *
 	 * @return list<array{name: string, amountAsCurrency: string}>
-	 * @internal
 	 * @since 2.1.0
 	 */
 	public function orderDiscounts(Order $order): array
@@ -1572,7 +1567,6 @@ class Checkout extends Component
 	 * Order-level discounts applied after tax, with same-named discounts merged into one row.
 	 *
 	 * @return list<array{name: string, amountAsCurrency: string}>
-	 * @internal
 	 * @since 2.1.0
 	 */
 	public function afterTaxDiscounts(Order $order): array
@@ -1584,7 +1578,6 @@ class Checkout extends Component
 	 * Adjustments of a type the summary has no row of its own for, such as a fee from another plugin.
 	 *
 	 * @return list<array{name: string, amountAsCurrency: string}>
-	 * @internal
 	 * @since 2.1.0
 	 */
 	public function otherAdjustments(Order $order): array

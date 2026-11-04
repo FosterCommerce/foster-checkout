@@ -9,6 +9,7 @@
 - Added the `foster-checkout/cart/delete` action.
 - Added the `Checkout::EVENT_DEFINE_SAVED_PAYMENT_SOURCES` event, for changing which saved payment methods the checkout lists or hiding the save checkbox.
 - Added `craft.fostercheckout.savedPaymentSources()`.
+- Added `craft.fostercheckout.orderDiscounts()`, `craft.fostercheckout.otherAdjustments()`, and `craft.fostercheckout.afterTaxDiscounts()`, for the rows of an order summary.
 - Added the “Notes for each shipping method” setting, for a note shown under a shipping method's name.
 - Added the `Checkout::EVENT_DEFINE_SHIPPING_METHOD_NOTE` event and `craft.fostercheckout.shippingMethodNote()`, for changing the line shown under a shipping method.
 - Added the “Image transformer” and “Image transform params” settings, for choosing the transformer for line item images and the params sent with each image, such as a watermark. “Image transformer” is “Auto” after updating, which keeps the transformer used before.
