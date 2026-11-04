@@ -99,7 +99,7 @@
 	{% endset %}
 
 	<div class="mt-10 pb-28 lg:pb-32">
-		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6 xl:gap-8">
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6">
 			<main
 				x-data="{
 				  editExistingAddress: 0,
@@ -118,7 +118,7 @@
 				"
 				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0"
 			>
-				<div class="grid grid-cols-1 gap-4 xl:gap-6 ">
+				<div class="grid grid-cols-1 gap-4 ">
 					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
 
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'address' } %}
@@ -194,7 +194,7 @@
 													</div>
 
 													<template x-if="parseInt(editExistingAddress) === {{ address.id }}">
-														<div class="pt-8">
+														<div class="pt-6">
 															{% include 'foster-checkout/_components/app/address-fields' with { showAddressLabel: true } %}
 															<div class="flex justify-start items-center gap-4 mt-4 pt-4">
 																<button type="submit" class="block min-w-[100px] px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg sm:min-w-[140px] md:min-w-[200px]">

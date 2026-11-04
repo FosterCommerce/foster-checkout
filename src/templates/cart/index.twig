@@ -23,7 +23,7 @@
 
 		<div class="mt-10 pb-32 lg:mt-20">
 		<div
-			class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6 xl:gap-8">
+			class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6">
 
 			<main class="flex flex-col justify-start items-stretch gap-6 lg:justify-between">
 
@@ -93,7 +93,7 @@
 						{% endif %}
 					{% endfor %}
 
-					<ul class="grid grid-cols-1 gap-4 lg:gap-6">
+					<ul class="grid grid-cols-1 gap-4">
 						{% for lineItem in cart.lineItems %}
 							<li>
 								{% include 'foster-checkout/_components/app/line-item-cart' with {
@@ -118,7 +118,7 @@
 
 			<aside>
 				<div
-					class="lg:sticky lg:top-4 lg:p-6 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
+					class="lg:sticky lg:top-4 lg:p-4 lg:bg-white lg:rounded-xl {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 					{% include 'foster-checkout/_components/app/summary-cart' %}
 
 					{% include 'foster-checkout/_components/app/summary-forms' %}

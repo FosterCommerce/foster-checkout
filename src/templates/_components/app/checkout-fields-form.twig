@@ -1,7 +1,7 @@
 {% set positionFields = craft.fostercheckout.checkoutFields('summary', cart) %}
 
 {% if positionFields|length %}
-	<div class="mt-8" x-data="AutosaveForm({
+	<div class="mt-6" x-data="AutosaveForm({
 		reportsMissing: true,
 		savingLabel: {{ 'misc.saving'|t('foster-checkout')|json_encode }},
 		savedLabel: {{ 'misc.saved'|t('foster-checkout')|json_encode }},

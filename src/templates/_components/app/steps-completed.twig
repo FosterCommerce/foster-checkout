@@ -1,6 +1,6 @@
 {% if step|default %}
 
-	<dl class="grid grid-cols-1 gap-4 xl:gap-6 p-4 bg-gray-200 rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
+	<dl class="grid grid-cols-1 gap-4 p-4 bg-gray-200 rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 
 		{% if step == 'address' or step == 'shipping' or step == 'billing' or step == 'payment' %}
 			<div class="sm:grid sm:grid-cols-[140px_1fr] sm:gap-6">

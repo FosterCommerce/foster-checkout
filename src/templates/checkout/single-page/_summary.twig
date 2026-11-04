@@ -24,7 +24,7 @@
 
 	{% include 'foster-checkout/_components/app/summary-include' with { step: 'single-page' } %}
 
-	<div class="grid grid-cols-1 gap-10 mt-4 lg:mt-0 lg:sticky lg:top-4 lg:p-4 lg:bg-white {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:rounded-lg lg:border lg:border-gray-250' }}">
+	<div class="grid grid-cols-1 gap-6 mt-4 lg:mt-0 lg:sticky lg:top-4 lg:p-4 lg:bg-white {{ isFlat ? 'lg:border lg:border-gray-300' : 'lg:rounded-lg lg:border lg:border-gray-250' }}">
 		{# The fields below take input, so only what a customer reads collapses #}
 		<div
 			class="grid-cols-1 gap-6"
@@ -37,11 +37,11 @@
 
 			<article>
 			<div
-				class="mb-6 px-4 border border-gray-250 {{ isFlat ? '' : 'rounded-lg' }}"
+				class="mb-6 px-3 border border-gray-250 {{ isFlat ? '' : 'rounded-lg' }}"
 			>
 				<button
 					type="button"
-					class="flex justify-between items-center w-full py-4"
+					class="flex justify-between items-center w-full py-3"
 					@click="couponOpen = !couponOpen"
 					:aria-expanded="couponOpen ? 'true' : 'false'"
 					aria-controls="spCouponPanel"
@@ -68,7 +68,7 @@
 					id="spCouponPanel"
 					x-show="couponOpen"
 					x-cloak
-					class="pb-6"
+					class="pb-3"
 					role="group"
 					aria-labelledby="spCouponCodeLabel"
 				>
@@ -211,7 +211,7 @@
 			</dl>
 
 			{% if notesHandle %}
-				<div class="mt-8" data-fc-collect>
+				<div class="mt-6" data-fc-collect>
 					<p class="mb-2 inline-flex items-center gap-2 text-gray-500">
 						<span>{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</span>
 						{% include 'foster-checkout/checkout/single-page/_panel-status' with { panel: 'notes' } %}

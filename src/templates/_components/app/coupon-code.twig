@@ -17,7 +17,7 @@
 	x-data="{ isOpen: {{ (cart.couponCode or couponCodeError) ? 'true' : 'false' }}, sending: false }"
 	class="px-3 border border-gray-250 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? '' : 'rounded-lg' }}"
 >
-	<button class="flex justify-between items-center w-full py-4" @click="isOpen = !isOpen">
+	<button class="flex justify-between items-center w-full py-3" @click="isOpen = !isOpen">
 		<span id="couponCodeLabel" class="font-medium text-gray-500">
 			{{ 'summary.couponCodeLabel'|t('foster-checkout') }}
 		</span>
@@ -42,7 +42,7 @@
 		:aria-hidden="!isOpen"
 		aria-labelledby="couponCodeLabel"
 		aria-describedby="couponCodeDesc"
-		class="pb-6"
+		class="pb-3"
 	>
 	{% if couponCodeError or not cart.couponCode %}
 		<form

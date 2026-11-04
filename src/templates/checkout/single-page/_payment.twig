@@ -15,7 +15,7 @@
 
 	{% include 'foster-checkout/checkout/single-page/_panel-error' with { panel: 'payment' } %}
 
-	<div class="grid grid-cols-1 gap-5 xl:gap-6 p-4">
+	<div class="grid grid-cols-1 gap-4 p-4">
 		{% set note = craft.fostercheckout.note('payment', {cart}) %}
 		{% if note %}
 			<div class="text-sm text-gray-500 [&_a]:underline [&_a:hover]:decoration-current">
@@ -194,7 +194,7 @@
 											{% if isPaypal or isStripe %}x-show="parseInt(gatewayId) === {{ gateway.id }}"{% endif %}
 											{% if isPaypal %}x-cloak{% endif %}
 											:class="fittingGatewayRows.length === 1 ? '!pt-0' : ''"
-											class="pt-8
+											class="pt-6
 											[&_form]:grid [&_form]:gap-2
 											[&_fieldset]:border [&_fieldset]:border-gray-250 [&_fieldset]:rounded-lg [&_fieldset]:p-4
 											[&_fieldset+fieldset]:mt-4
@@ -243,7 +243,7 @@
 										>
 											{% set buttonText = cart.total == 0 ? 'payment.completeOrder'|t('foster-checkout') : 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ craft.fostercheckout.partialPayments.remainingAmount(cart)|currency(cart.currency) %}
 											{% set params = {} %}
-											{% set payButtonClasses = 'mt-8 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block' %}
+											{% set payButtonClasses = 'mt-6 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-xl lg:inline-block' %}
 
 											{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
 												{% set stripeConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}

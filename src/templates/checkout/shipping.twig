@@ -39,13 +39,13 @@
 	{% endif %}
 
 	<div class="mt-10 pb-28 lg:pb-32">
-		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6 xl:gap-8">
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6">
 
 			<main
 				x-data="{ shippingMethodHandle: '{{ _initialHandle|e('js') }}' }"
 				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0"
 			>
-				<div class="grid grid-cols-1 gap-4 xl:gap-6">
+				<div class="grid grid-cols-1 gap-4">
 					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
 
 					{% include 'foster-checkout/_components/app/steps-completed' with { step: 'shipping' } %}

@@ -2,7 +2,7 @@
 	{% set fieldHandle = craft.fostercheckout.settings.customerOrderNotesFieldHandle %}
 	{% set currentValue = cart.getFieldValue(fieldHandle) ?? '' %}
 
-	<div class="mt-8" x-data="AutosaveForm({
+	<div class="mt-6" x-data="AutosaveForm({
 		savingLabel: {{ 'misc.saving'|t('foster-checkout')|json_encode }},
 		savedLabel: {{ 'misc.saved'|t('foster-checkout')|json_encode }},
 		failedLabel: {{ 'misc.saveFailed'|t('foster-checkout')|json_encode }},

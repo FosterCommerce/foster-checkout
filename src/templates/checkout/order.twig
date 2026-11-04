@@ -30,9 +30,9 @@
 
 	<div class="mt-10 pb-10 lg:mt-20 lg:pb-20">
 	<div
-		class="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_42%] lg:gap-6 xl:gap-8">
+		class="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_42%] lg:gap-6">
 
-		<main class="grid grid-cols-1 gap-8">
+		<main class="grid grid-cols-1 gap-6">
 			<header>
 				<h1 class="font-semibold text-3xl">
 					{{ 'order.stepName'|t('foster-checkout') }}
@@ -182,9 +182,9 @@
 
 		<aside>
 			<div
-				class="grid grid-cols-1 gap-10 lg:sticky lg:top-4 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
+				class="grid grid-cols-1 gap-6 lg:sticky lg:top-4 lg:p-4 lg:bg-white lg:rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
 
-				<div class="grid grid-cols-1 gap-4 xl:gap-6">
+				<div class="grid grid-cols-1 gap-4">
 
 					<h2 class="text-xl font-bold text-gray-800 leading-snug">
 						{{ 'summary.itemsTitle'|t('foster-checkout') }}

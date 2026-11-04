@@ -121,10 +121,10 @@
 			</template>
 		</div>
 
-		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6 xl:gap-8">
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-[1fr_42%] lg:gap-6">
 			<main class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0 lg:col-start-1 lg:row-start-1">
 				<p class="sr-only" role="status" aria-live="polite" aria-atomic="true" x-text="status"></p>
-				<div class="grid grid-cols-1 gap-6">
+				<div class="grid grid-cols-1 gap-4">
 					{% include 'foster-checkout/checkout/single-page/_contact' %}
 					{% if collectShipping %}
 						{% include 'foster-checkout/checkout/single-page/_delivery' %}
@@ -137,7 +137,7 @@
 
 			{% include 'foster-checkout/checkout/single-page/_summary' %}
 
-			<div class="grid grid-cols-1 gap-6 lg:col-start-1 lg:row-start-2">
+			<div class="grid grid-cols-1 gap-4 lg:col-start-1 lg:row-start-2">
 				{% include 'foster-checkout/checkout/single-page/_payment' %}
 
 				{% include 'foster-checkout/_components/app/return-to-cart' %}
