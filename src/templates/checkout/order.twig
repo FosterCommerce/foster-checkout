@@ -119,7 +119,7 @@
 									{% for voucher in voucherAdjustments %}
 										{% set voucherCode = craft.fostercheckout.voucherCode(voucher) %}
 										{% set voucherBalance = voucherCode ? craft.giftVoucher.codes().codeKey(voucherCode).one() : null %}
-										<p class="mt-1">{{ craft.fostercheckout.voucherLabel(voucher) }} ({{ voucher.amount|abs|currency(order.currency) }} applied{% if voucherBalance %}, {{ voucherBalance.currentAmount|currency(order.currency) }} remaining{% endif %})</p>
+										<p class="mt-1">{{ craft.fostercheckout.voucherLabel(voucher) }} ({{ (voucherBalance ? 'order.voucherAppliedAndRemaining' : 'order.voucherAppliedAmount')|t('foster-checkout', { applied: voucher.amount|abs|currency(order.currency), remaining: voucherBalance ? voucherBalance.currentAmount|currency(order.currency) : '' }) }})</p>
 									{% endfor %}
 								{% endif %}
 							{% endif %}

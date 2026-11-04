@@ -68,8 +68,8 @@ class PartialPayments extends Component
 
 			$entry = $transaction->type === TransactionRecord::TYPE_AUTHORIZE
 				? $gateway->getPartialAuthorization($transaction)
-				: NetTermsPlugin::getInstance()->getLedger()->getChargeByTransactionHash((string) $transaction->hash);
-			$account = $entry?->accountId ? NetTermsPlugin::getInstance()->getAccounts()->getFreshAccountById($entry->accountId) : null;
+				: NetTermsPlugin::getInstance()->ledger->getChargeByTransactionHash((string) $transaction->hash);
+			$account = $entry?->accountId ? NetTermsPlugin::getInstance()->accounts->getFreshAccountById($entry->accountId) : null;
 			$definition = $this->definition($order, $gateway);
 			$steps[] = new PartialPaymentStep([
 				'gateway' => $gateway,
@@ -186,7 +186,7 @@ class PartialPayments extends Component
 					$transaction->amount = $amount;
 
 					$transaction->paymentAmount = Currency::round($amount * $transaction->paymentRate, $transaction->paymentCurrency);
-					$transaction->message = $amount > 0 ? 'Authorization updated after cart changes.' : 'Authorization released after cart changes.';
+					$transaction->message = $amount > 0 ? Craft::t('foster-checkout', 'partialPayment.authorizationUpdated') : Craft::t('foster-checkout', 'partialPayment.authorizationReleasedAfterChanges');
 					if ($amount <= 0) {
 						$transaction->status = TransactionRecord::STATUS_FAILED;
 					}
@@ -252,7 +252,7 @@ class PartialPayments extends Component
 		$this->requireNoPendingPayment($order);
 		$gateway = $this->commerce()->getGateways()->getGatewayById($gatewayId);
 		if (! $gateway instanceof NetTerms || ! $this->supported($gateway) || ! $gateway->availableForUseWithOrder($order)) {
-			throw new RuntimeException('This payment method is not available.');
+			throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.methodUnavailable'));
 		}
 
 
@@ -274,11 +274,11 @@ class PartialPayments extends Component
 		$amount = $this->amount($order, $gateway, is_numeric($attributes['accountId'] ?? null) ? (int) $attributes['accountId'] : null);
 		if ($originalTotal !== $order->getTotalPrice() || $originalQuantity !== $order->getTotalQty()
 			|| ($expectedAmount !== null && $expectedAmount !== $amount)) {
-			throw new RuntimeException('Your order changed. Review the updated totals and apply the payment again.');
+			throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.orderChanged'));
 		}
 
 		if ($amount <= 0) {
-			throw new RuntimeException('There is no amount to apply.');
+			throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.nothingToApply'));
 		}
 
 		$form = $gateway->getPaymentFormModel();
@@ -302,7 +302,7 @@ class PartialPayments extends Component
 		]);
 		$payments->trigger(Payments::EVENT_BEFORE_PROCESS_PAYMENT, $event);
 		if (! $event->isValid) {
-			throw new RuntimeException('Unable to apply this payment at this time.');
+			throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.unableToApply'));
 		}
 
 		$transaction = $this->commerce()->getTransactions()->createTransaction($order, null, TransactionRecord::TYPE_AUTHORIZE);
@@ -315,12 +315,12 @@ class PartialPayments extends Component
 			'response' => $response,
 		]));
 		if ($transaction->status !== TransactionRecord::STATUS_SUCCESS) {
-			throw new RuntimeException($transaction->message ?? 'The payment could not be applied.');
+			throw new RuntimeException($transaction->message ?? Craft::t('foster-checkout', 'partialPayment.applyFailed'));
 		}
 
 		$order->setTransactions(null);
 		if (! Craft::$app->getElements()->saveElement($order, false)) {
-			throw new RuntimeException('The applied payment could not be saved.');
+			throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.appliedSaveFailed'));
 		}
 	}
 
@@ -340,11 +340,11 @@ class PartialPayments extends Component
 			if ($gateway instanceof NetTerms && $gateway->getPartialAuthorization($transaction)?->status === EntryStatus::Authorized) {
 				$response = $gateway->releaseAuthorization($transaction);
 				if (! $response->isSuccessful()) {
-					throw new RuntimeException($response->getMessage() !== '' ? $response->getMessage() : 'The authorization could not be released.');
+					throw new RuntimeException($response->getMessage() !== '' ? $response->getMessage() : Craft::t('foster-checkout', 'partialPayment.releaseFailed'));
 				}
 
 				$transaction->status = TransactionRecord::STATUS_FAILED;
-				$transaction->message = 'Authorization released by customer.';
+				$transaction->message = Craft::t('foster-checkout', 'partialPayment.authorizationReleasedByCustomer');
 				$this->persist($transaction);
 			}
 		}
@@ -360,7 +360,7 @@ class PartialPayments extends Component
 		foreach ($purchases as $purchase) {
 			$gateway = $purchase->getGateway();
 			if (! $gateway instanceof NetTerms) {
-				throw new RuntimeException('This payment cannot be removed.');
+				throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.cannotRemove'));
 			}
 
 			$refund = $this->commerce()->getTransactions()->createTransaction(null, $purchase, TransactionRecord::TYPE_REFUND);
@@ -369,14 +369,14 @@ class PartialPayments extends Component
 			$refund->setOrder($order);
 			$this->save($refund, $gateway->refund($refund));
 			if ($refund->status !== TransactionRecord::STATUS_SUCCESS) {
-				throw new RuntimeException($refund->message ?? 'The payment could not be removed.');
+				throw new RuntimeException($refund->message ?? Craft::t('foster-checkout', 'partialPayment.removeFailed'));
 			}
 		}
 
 		$order->setTransactions(null);
 		$order->setRecalculationMode(Order::RECALCULATION_MODE_NONE);
 		if (! Craft::$app->getElements()->saveElement($order, false)) {
-			throw new RuntimeException('The removed payment could not be saved.');
+			throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.removedSaveFailed'));
 		}
 	}
 
@@ -386,7 +386,7 @@ class PartialPayments extends Component
 		$lockName = 'order:' . $order->number;
 		if (! $mutex->isAcquired($lockName)) {
 			if (! $mutex->acquire($lockName, 5)) {
-				throw new RuntimeException('The cart is busy. Please try again.');
+				throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.cartBusy'));
 			}
 
 			Craft::$app->on(\yii\base\Application::EVENT_AFTER_REQUEST, static function () use ($mutex, $lockName): void {
@@ -421,12 +421,12 @@ class PartialPayments extends Component
 		$this->reconcile($order);
 		$this->validateCheckout($order);
 		if (! $this->hasApplied($order) || $this->remainingAmount($order) > 0 || $this->checkout()->paymentBlock($order) !== null) {
-			throw new RuntimeException('Review your order and payment details before completing checkout.');
+			throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.reviewBeforeCompleting'));
 		}
 
 		$gateway = $order->getGateway();
 		if (! $gateway instanceof Gateway) {
-			throw new RuntimeException('The payment method is no longer available.');
+			throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.methodNoLongerAvailable'));
 		}
 
 		$event = new ProcessPaymentEvent([
@@ -435,12 +435,12 @@ class PartialPayments extends Component
 		]);
 		$this->commerce()->getPayments()->trigger(Payments::EVENT_BEFORE_PROCESS_PAYMENT, $event);
 		if (! $event->isValid) {
-			throw new RuntimeException('Unable to complete this order at this time.');
+			throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.unableToComplete'));
 		}
 
 		$order->updateOrderPaidInformation();
 		if (! $order->isCompleted) {
-			throw new RuntimeException('The order could not be completed. Review your checkout details.');
+			throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.completeFailed'));
 		}
 	}
 
@@ -477,7 +477,7 @@ class PartialPayments extends Component
 		if ($order->getLineItems() === [] || $order->email === null || $order->email === '' || ($order->getStore()->getRequireShippingAddressAtCheckout() && $order->shippingAddressId === null)
 			|| ($order->getStore()->getRequireBillingAddressAtCheckout() && $order->billingAddressId === null)
 			|| ($order->getStore()->getRequireShippingMethodSelectionAtCheckout() && ($order->shippingMethodHandle === null || $order->shippingMethodHandle === ''))) {
-			throw new RuntimeException('Complete your checkout details before applying this payment.');
+			throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.completeDetails'));
 		}
 	}
 
@@ -529,10 +529,10 @@ class PartialPayments extends Component
 					$cancelled = $this->commerce()->getTransactions()->createTransaction(null, $transaction);
 					$cancelled->setOrder($order);
 					$cancelled->status = TransactionRecord::STATUS_FAILED;
-					$cancelled->message = 'Payment canceled before changing the applied payment.';
+					$cancelled->message = Craft::t('foster-checkout', 'partialPayment.paymentCanceled');
 					$cancelled->response = $intent->toArray();
 					if (! $this->commerce()->getTransactions()->saveTransaction($cancelled)) {
-						throw new RuntimeException('The canceled payment could not be saved.');
+						throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.canceledSaveFailed'));
 					}
 
 					self::$cancelledPayments[(int) $order->id] = true;
@@ -540,7 +540,7 @@ class PartialPayments extends Component
 				}
 			}
 
-			throw new RuntimeException('Another payment is in progress. Finish or cancel that payment before changing the applied payment.');
+			throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.paymentInProgress'));
 		}
 	}
 
@@ -571,7 +571,7 @@ class PartialPayments extends Component
 		// Commerce's saveTransaction completes an order after any payment, including a partial authorization.
 		$record = $transaction->id !== null && $transaction->id !== 0 ? TransactionRecord::findOne($transaction->id) : new TransactionRecord();
 		if (! $record instanceof TransactionRecord) {
-			throw new RuntimeException('The payment transaction no longer exists.');
+			throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.transactionMissing'));
 		}
 
 		$record->setAttributes($transaction->getAttributes([
@@ -579,7 +579,7 @@ class PartialPayments extends Component
 			'paymentRate', 'reference', 'message', 'note', 'code', 'response', 'userId', 'parentId',
 		]), false);
 		if (! $record->save(false)) {
-			throw new RuntimeException('The payment transaction could not be saved.');
+			throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.transactionSaveFailed'));
 		}
 
 		$transaction->id = $record->id;
@@ -594,7 +594,7 @@ class PartialPayments extends Component
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
 
-		return $plugin->getCheckout();
+		return $plugin->checkout;
 	}
 
 	private function commerce(): Commerce

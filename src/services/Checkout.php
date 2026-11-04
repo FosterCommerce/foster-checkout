@@ -348,7 +348,10 @@ class Checkout extends Component
 	 */
 	public function getPartialPayments(): PartialPayments
 	{
-		return new PartialPayments();
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $plugin->partialPayments;
 	}
 
 	/**
@@ -358,11 +361,14 @@ class Checkout extends Component
 	 */
 	public function paymentGateways(Order $order): array
 	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
 		/** @var \Illuminate\Support\Collection<array-key, Gateway> $gateways */
 		$gateways = $order->getAvailableGateways();
 
 		return $gateways
-			->reject(fn (Gateway $gateway): bool => $this->getPartialPayments()->configured($gateway))
+			->reject(fn (Gateway $gateway): bool => $plugin->partialPayments->configured($gateway))
 			->all();
 	}
 
@@ -870,9 +876,12 @@ class Checkout extends Component
 	 */
 	public function isPaidButIncomplete(Order $order): bool
 	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
 		return ! $order->isCompleted
-			&& $this->getPartialPayments()->authorizedAmount($order) === 0.0
-			&& ! $this->getPartialPayments()->awaitingBalance($order)
+			&& $plugin->partialPayments->authorizedAmount($order) === 0.0
+			&& ! $plugin->partialPayments->awaitingBalance($order)
 			&& ($order->getTotalPaid() > 0 || $order->getTotalAuthorized() > 0);
 	}
 
@@ -1391,11 +1400,14 @@ class Checkout extends Component
 	 */
 	public function singlePageGateways(Order $cart): Collection
 	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
 		/** @var Commerce $commerce */
 		$commerce = Commerce::getInstance();
 
 		return $commerce->getGateways()->getAllCustomerEnabledGateways()
-			->filter(function (mixed $gateway) use ($cart): bool {
+			->filter(function (mixed $gateway) use ($cart, $plugin): bool {
 				if (! $gateway instanceof Gateway) {
 					return false;
 				}
@@ -1406,7 +1418,7 @@ class Checkout extends Component
 					$gateway->setOnlyAllowForZeroPriceOrders(false);
 				}
 
-				return ! $this->getPartialPayments()->configured($gateway) && $gateway->availableForUseWithOrder($cart);
+				return ! $plugin->partialPayments->configured($gateway) && $gateway->availableForUseWithOrder($cart);
 			});
 	}
 
@@ -1465,6 +1477,9 @@ class Checkout extends Component
 	 */
 	public function checkoutLiveState(Order $cart): array
 	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
 		$shippingMethods = $this->checkoutShippingMethods($cart);
 		$handles = array_column($shippingMethods, 'handle');
 		$cartHandle = $cart->shippingMethodHandle ?? '';
@@ -1485,7 +1500,7 @@ class Checkout extends Component
 			'couponName' => $this->couponName($cart),
 			'couponMessages' => $this->couponMessages($cart),
 			'paymentBlock' => $this->paymentBlock($cart),
-			'paymentNeedsRefresh' => $this->getPartialPayments()->paymentNeedsRefresh($cart),
+			'paymentNeedsRefresh' => $plugin->partialPayments->paymentNeedsRefresh($cart),
 			'partialPaymentsHtml' => Craft::$app->getView()->renderTemplate('foster-checkout/_components/app/partial-payments', [
 				'cart' => $cart,
 				'singlePage' => true,
@@ -2355,6 +2370,9 @@ class Checkout extends Component
 	 */
 	private function checkoutTotals(Order $cart): array
 	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
 		$vouchers = [];
 
 		foreach ($cart->getAdjustments() ?? [] as $adjustment) {
@@ -2372,15 +2390,15 @@ class Checkout extends Component
 			'shipping' => $cart->getTotalShippingCost(),
 			'shippingAsCurrency' => $cart->totalShippingCostAsCurrency,
 			'taxAsCurrency' => $cart->totalTaxAsCurrency,
-			'total' => $this->getPartialPayments()->remainingAmount($cart),
-			'totalAsCurrency' => Currency::formatAsCurrency($this->getPartialPayments()->remainingAmount($cart), $cart->currency),
-			'outstandingBalanceAsCurrency' => Currency::formatAsCurrency($this->getPartialPayments()->remainingAmount($cart), $cart->currency),
+			'total' => $plugin->partialPayments->remainingAmount($cart),
+			'totalAsCurrency' => Currency::formatAsCurrency($plugin->partialPayments->remainingAmount($cart), $cart->currency),
+			'outstandingBalanceAsCurrency' => Currency::formatAsCurrency($plugin->partialPayments->remainingAmount($cart), $cart->currency),
 			'currency' => (string) $cart->currency,
 			'discounts' => $this->orderDiscounts($cart),
 			'afterTaxDiscounts' => $this->afterTaxDiscounts($cart),
 			'otherAdjustments' => $this->otherAdjustments($cart),
 			'vouchers' => $vouchers,
-			'partialPayments' => collect($this->getPartialPayments()->steps($cart))
+			'partialPayments' => collect($plugin->partialPayments->steps($cart))
 				->filter(static fn (\fostercommerce\fostercheckout\models\PartialPaymentStep $step): bool => $step->applied > 0)
 				->map(fn (\fostercommerce\fostercheckout\models\PartialPaymentStep $step): array => [
 					'gatewayId' => (int) $step->gateway->id,

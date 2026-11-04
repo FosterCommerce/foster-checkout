@@ -42,22 +42,27 @@ class PartialPaymentController extends BaseFrontEndController
 		$cart = $commerce->getCarts()->getCart();
 		/** @var FosterCheckout $plugin */
 		$plugin = FosterCheckout::getInstance();
-		$checkout = $plugin->getCheckout();
+		$checkout = $plugin->checkout;
 		$lockName = 'order:' . $cart->number;
 		$mutex = Craft::$app->getMutex();
 		if (! $cart->id || ! $mutex->acquire($lockName, 5)) {
-			throw new BadRequestHttpException('The cart is busy. Please try again.');
+			if (! $this->request->getAcceptsJson()) {
+				Craft::$app->getSession()->setError(Craft::t('foster-checkout', 'partialPayment.cartBusy'));
+				return $this->redirectToPostedUrl();
+			}
+
+			throw new BadRequestHttpException(Craft::t('foster-checkout', 'partialPayment.cartBusy'));
 		}
 
 		$error = '';
 		try {
 			$order = Order::find()->id($cart->id)->one();
-			if (! $order instanceof Order || $order->isCompleted) {
-				throw new BadRequestHttpException('This cart is no longer available.');
-			}
-
 			try {
-				$partialPayments = $checkout->getPartialPayments();
+				if (! $order instanceof Order || $order->isCompleted) {
+					throw new BadRequestHttpException(Craft::t('foster-checkout', 'partialPayment.cartUnavailable'));
+				}
+
+				$partialPayments = $plugin->partialPayments;
 				if ($operation === 'complete') {
 					$partialPayments->complete($order);
 				} else {
@@ -65,7 +70,7 @@ class PartialPaymentController extends BaseFrontEndController
 					$gatewayId = is_scalar($gatewayValue) ? (int) $gatewayValue : 0;
 					$gateway = $commerce->getGateways()->getGatewayById($gatewayId);
 					if (! $gateway instanceof NetTerms) {
-						throw new RuntimeException('This payment method is not available.');
+						throw new RuntimeException(Craft::t('foster-checkout', 'partialPayment.methodUnavailable'));
 					}
 
 					$attributes = $this->request->getBodyParam('paymentForm', []);
@@ -129,6 +134,6 @@ class PartialPaymentController extends BaseFrontEndController
 			]);
 		}
 
-		return $this->redirect($redirect ?? UrlHelper::siteUrl($path . ($checkout->settings()->options->isSinglePageCheckout() ? '' : '/payment')));
+		return $redirect !== null ? $this->redirect($redirect) : $this->redirectToPostedUrl();
 	}
 }

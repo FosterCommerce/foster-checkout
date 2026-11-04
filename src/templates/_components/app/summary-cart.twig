@@ -48,50 +48,28 @@
 
 			{% set voucherAdjustments = cart.adjustments|filter(adjustment => adjustment.type == 'voucher') %}
 
-			{% if voucherAdjustments|length %}
-				<div class="border-gray-400 border-b flex flex-col space-y-2 pb-4">
-					<h3 class="font-semibold text-gray-800">{{ 'summary.discountApplied'|t('foster-checkout') }}</h3>
-
-					{% for adj in voucherAdjustments %}
-						{% set code = craft.fostercheckout.voucherLabel(adj) %}
-
-						<div class="flex justify-between items-center">
-							<dt class="text-gray-500">{{ code }}</dt>
-
-							<dd class="text-right text-red-500">
-								<form method="post">
-									{{ csrfInput() }}
-									{{ actionInput('gift-voucher/cart/remove-code') }}
-									{{ hiddenInput('voucherCode', code) }}
-									<button
-										type="submit"
-										class="inline-flex justify-start items-center gap-2 text-sm underline text-gray-500 hover:no-underline hover:text-gray-700"
-									>
-										<svg xmlns="http://www.w3.org/2000/svg" width="12" height="14" viewBox="0 0 12 14"
-												 class="fill-current">
-											<path
-												d="M2.31807 13.0996C2.01032 13.0996 1.74346 12.9871 1.51751 12.7619C1.29155 12.5367 1.17857 12.2708 1.17857 11.9641V2.5319H0.42749V1.39638H3.73221V0.824646H8.26372V1.39638H11.5724V2.5319H10.8213V11.9641C10.8213 12.2708 10.7084 12.5367 10.4824 12.7619C10.2565 12.9871 9.9896 13.0996 9.68184 13.0996H2.31807ZM4.06481 10.5627H5.13257V3.9127H4.06481V10.5627ZM6.86734 10.5627H7.93909V3.9127H6.86734V10.5627Z"
-												fill="#6B7280"/>
-										</svg>
-										<span class="inline">{{ 'summary.removeCoupon'|t('foster-checkout') }}</span>
-									</button>
-								</form>
-							</dd>
-
-							<dd class="text-right text-red-500">- {{ adj.amount|abs|currency }}</dd>
-
-						</div>
-					{% endfor %}
+			{% for adj in voucherAdjustments %}
+				<div class="flex justify-between items-center gap-4">
+					<dt class="text-gray-500">{{ craft.fostercheckout.voucherLabel(adj) }}</dt>
+					<dd class="text-right text-red-500">
+						<form method="post" class="inline">
+							{{ csrfInput() }}
+							{{ actionInput('gift-voucher/cart/remove-code') }}
+							{{ hiddenInput('voucherCode', craft.fostercheckout.voucherCode(adj)) }}
+							<button type="submit" class="mr-2 text-sm underline text-gray-500">{{ 'summary.removeCoupon'|t('foster-checkout') }}</button>
+						</form>
+						<span>{{ adj.amountAsCurrency }}</span>
+					</dd>
 				</div>
-			{% endif %}
+			{% endfor %}
 
 		{% endif %}
 
 		{% for payment in craft.fostercheckout.partialPayments.steps(cart)|filter(payment => payment.applied > 0) %}
-			<div x-data="PartialPaymentControls(false)" class="flex flex-wrap justify-between items-center gap-4">
+			<div x-data="PartialPaymentControls()" class="flex flex-wrap justify-between items-center gap-4">
 				<dt class="text-gray-500">{{ payment.summaryLabel }}</dt>
 				<dd class="text-right text-red-500">
-					<form method="post" class="inline" @submit.prevent="submitPartialPayment($el)" data-error-message="{{ 'partialPayment.failed'|t('foster-checkout') }}">
+					<form method="post" class="inline" data-error-message="{{ 'partialPayment.failed'|t('foster-checkout') }}">
 						{{ csrfInput() }}
 						{{ actionInput('foster-checkout/partial-payment/remove') }}
 						{{ hiddenInput('gatewayId', payment.gateway.id) }}

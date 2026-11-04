@@ -2,6 +2,7 @@
 
 namespace fostercommerce\fostercheckout\events;
 
+use Craft;
 use craft\commerce\base\GatewayInterface;
 use craft\commerce\elements\Order;
 use yii\base\Event;
@@ -18,5 +19,14 @@ class DefinePartialPaymentEvent extends Event
 
 	public string $label = '{amount}';
 
-	public string $appliedLabel = '{amount} applied';
+	public string $appliedLabel;
+
+	/**
+	 * @param array<array-key, mixed> $config
+	 */
+	public function __construct($config = [])
+	{
+		$this->appliedLabel = Craft::t('foster-checkout', 'partialPayment.applied');
+		parent::__construct($config);
+	}
 }

@@ -1,13 +1,13 @@
 {% set partialSteps = craft.fostercheckout.partialPayments.steps(cart) %}
 {% for step in partialSteps %}
-	<section class="my-6" x-data="PartialPaymentControls({{ singlePage|default(false) ? 'true' : 'false' }})">
+	<section class="my-6" x-data="PartialPaymentControls()">
 		<h3 class="mb-4 font-semibold">{{ craft.fostercheckout.gatewayLabel(step.gateway) }}</h3>
 		{% if step.applied > 0 %}
 			<div class="p-4 bg-gray-200 {{ craft.fostercheckout.settings.branding.style == 'flat' ? '' : 'rounded-lg' }}">
 				<p class="text-gray-500">{{ step.appliedLabel|replace({'{amount}': step.applied|currency(cart.currency)}) }}</p>
 			</div>
 		{% else %}
-			<form method="post" @submit.prevent="submitPartialPayment($el)" data-error-message="{{ 'partialPayment.failed'|t('foster-checkout') }}" {% if singlePage|default(false) %}:inert="!canEnterPayment || saving || pending > 0"{% endif %}>
+			<form method="post" {% if singlePage|default(false) %}@submit.prevent="submitPartialPayment($el)"{% endif %} data-error-message="{{ 'partialPayment.failed'|t('foster-checkout') }}" {% if singlePage|default(false) %}:inert="!canEnterPayment || saving || pending > 0"{% endif %}>
 				{{ csrfInput() }}
 				{{ actionInput('foster-checkout/partial-payment/apply') }}
 				{{ hiddenInput('expectedAmount', step.amount) }}

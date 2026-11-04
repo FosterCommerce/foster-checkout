@@ -265,7 +265,7 @@
 				{% endif %}
 
 				<template x-for="payment in (totals.partialPayments || [])" :key="payment.transactionId">
-					<div x-data="PartialPaymentControls(true)" class="flex flex-wrap justify-between items-center gap-4">
+					<div x-data="PartialPaymentControls()" class="flex flex-wrap justify-between items-center gap-4">
 						<dt class="text-gray-500" x-text="payment.name"></dt>
 						<dd class="text-right text-red-500">
 							<form method="post" class="inline" @submit.prevent="submitPartialPayment($el)" data-error-message="{{ 'partialPayment.failed'|t('foster-checkout') }}">

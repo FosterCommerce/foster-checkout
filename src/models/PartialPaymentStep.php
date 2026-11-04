@@ -2,6 +2,7 @@
 
 namespace fostercommerce\fostercheckout\models;
 
+use Craft;
 use craft\base\Model;
 use craft\commerce\base\Gateway;
 
@@ -23,5 +24,14 @@ class PartialPaymentStep extends Model
 
 	public string $label = '{amount}';
 
-	public string $appliedLabel = '{amount} applied';
+	public string $appliedLabel;
+
+	/**
+	 * @param array<array-key, mixed> $config
+	 */
+	public function __construct($config = [])
+	{
+		$this->appliedLabel = Craft::t('foster-checkout', 'partialPayment.applied');
+		parent::__construct($config);
+	}
 }

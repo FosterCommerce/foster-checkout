@@ -55,6 +55,10 @@ use yii\base\Event;
 use yii\base\ModelEvent;
 use yii\web\Response as YiiResponse;
 
+/**
+ * @property-read \fostercommerce\fostercheckout\services\Checkout $checkout
+ * @property-read \fostercommerce\fostercheckout\services\PartialPayments $partialPayments
+ */
 class FosterCheckout extends Plugin
 {
 	use Routes;
@@ -665,7 +669,7 @@ class FosterCheckout extends Plugin
 		Event::on(Payments::class, Payments::EVENT_BEFORE_PROCESS_PAYMENT, function (ProcessPaymentEvent $event): void {
 			$gateway = $event->order->getGateway();
 			if (Craft::$app->getRequest()->getIsSiteRequest() && $gateway instanceof \craft\commerce\base\Gateway
-				&& $this->getCheckout()->getPartialPayments()->configured($gateway)
+				&& $this->partialPayments->configured($gateway)
 				&& ! Craft::$app->controller instanceof \fostercommerce\fostercheckout\controllers\PartialPaymentController) {
 				$event->isValid = false;
 			}
@@ -751,7 +755,7 @@ class FosterCheckout extends Plugin
 			}
 
 			$order = $event->order;
-			$partialPayments = $this->getCheckout()->getPartialPayments();
+			$partialPayments = $this->partialPayments;
 			$hasPartialGateway = collect($order->getAvailableGateways())
 				->contains(fn (\craft\commerce\base\Gateway $gateway): bool => $partialPayments->configured($gateway));
 
@@ -776,7 +780,7 @@ class FosterCheckout extends Plugin
 			$order->setTransactions(null);
 			$partialPayments->reconcile($order);
 			if (! $partialPayments->appliedAmountsMatch($order)) {
-				throw new \craft\commerce\errors\PaymentException('The applied credit changed. Review the updated totals before paying.');
+				throw new \craft\commerce\errors\PaymentException(Craft::t('foster-checkout', 'partialPayment.creditChanged'));
 			}
 
 			if (Order::find()->id($order->id)->isCompleted(true)->exists()) {
@@ -785,7 +789,13 @@ class FosterCheckout extends Plugin
 			}
 
 			if ($partialPayments->hasApplied($order)) {
-				$order->setPaymentAmount($partialPayments->remainingAmount($order));
+				$remainingAmount = $partialPayments->remainingAmount($order);
+				if ($remainingAmount <= 0) {
+					$event->isValid = false;
+					return;
+				}
+
+				$order->setPaymentAmount($remainingAmount);
 			}
 		}, null, false);
 	}
@@ -795,19 +805,19 @@ class FosterCheckout extends Plugin
 		Event::on(Order::class, Order::EVENT_AFTER_SAVE, function (ElementModelEvent $event): void {
 			/** @var Order $order */
 			$order = $event->sender;
-			$this->getCheckout()->getPartialPayments()->reconcile($order);
+			$this->partialPayments->reconcile($order);
 		});
 
 		Event::on(Order::class, Order::EVENT_BEFORE_SAVE, function (ElementModelEvent $event): void {
 			/** @var Order $order */
 			$order = $event->sender;
-			$partial = $this->getCheckout()->getPartialPayments();
+			$partial = $this->partialPayments;
 			if ($order->isCompleted && $partial->hasApplied($order)
 				&& ! Order::find()->id($order->id)->isCompleted(true)->exists()
 				&& \craft\commerce\helpers\Currency::round($order->getTotalPaid() + $order->getTotalAuthorized(), $order->currency) < $order->getTotalPrice()) {
 				$order->isCompleted = false;
 				$order->dateOrdered = null;
-				$order->addError('payment', 'The remaining balance must be paid before completing this order.');
+				$order->addError('payment', Craft::t('foster-checkout', 'partialPayment.remainingBalanceRequired'));
 				$event->isValid = false;
 			}
 		});
@@ -815,14 +825,14 @@ class FosterCheckout extends Plugin
 		Event::on(Order::class, Order::EVENT_AFTER_COMPLETE_ORDER, function (Event $event): void {
 			/** @var Order $order */
 			$order = $event->sender;
-			$this->getCheckout()->getPartialPayments()->capture($order);
+			$this->partialPayments->capture($order);
 		});
 
 		Event::on(Order::class, Order::EVENT_BEFORE_DELETE, function (Event $event): void {
 			/** @var Order $order */
 			$order = $event->sender;
 			if (! $order->isCompleted) {
-				$this->getCheckout()->getPartialPayments()->releaseAll($order);
+				$this->partialPayments->releaseAll($order);
 			}
 		});
 	}
@@ -842,11 +852,11 @@ class FosterCheckout extends Plugin
 			$order = $event->sender;
 			// Commerce owns the update-cart mutex here; repeat the check after acquiring it to cover a concurrent Apply.
 			$order->setTransactions(null);
-			if ($this->getCheckout()->getPartialPayments()->authorizedAmount($order) > 0) {
-				$this->getCheckout()->getPartialPayments()->prepareCartChange($order);
+			if ($this->partialPayments->authorizedAmount($order) > 0) {
+				$this->partialPayments->prepareCartChange($order);
 			}
 
-			if ($this->getCheckout()->getPartialPayments()->hasPurchasedPayment($order)) {
+			if ($this->partialPayments->hasPurchasedPayment($order)) {
 				$order->addError('partialPayment', Craft::t('foster-checkout', 'partialPayment.removeToEdit'));
 				$event->isValid = false;
 			}
@@ -874,22 +884,22 @@ class FosterCheckout extends Plugin
 					$order = $this->requestedOrder($actionId);
 					$nativeCartUpdate = $actionEvent->action->controller instanceof CartController && $actionId === 'update-cart';
 					if ($order instanceof Order && ! $order->isCompleted && $actionId !== 'pay' && ! $nativeCartUpdate
-						&& $this->getCheckout()->getPartialPayments()->authorizedAmount($order) > 0) {
-						$this->getCheckout()->getPartialPayments()->prepareCartChange($order);
+						&& $this->partialPayments->authorizedAmount($order) > 0) {
+						$this->partialPayments->prepareCartChange($order);
 						if ($actionId === 'forget-cart') {
-							$this->getCheckout()->getPartialPayments()->releaseAll($order);
+							$this->partialPayments->releaseAll($order);
 						}
 					}
 
 					if ($order instanceof Order && $actionId !== 'pay' && ! $nativeCartUpdate) {
-						$partialPayments = $this->getCheckout()->getPartialPayments();
+						$partialPayments = $this->partialPayments;
 						$hasPartialGateway = collect($order->getAvailableGateways())
 							->contains(fn (\craft\commerce\base\Gateway $gateway): bool => $partialPayments->configured($gateway));
 						if ($partialPayments->hasApplied($order) || $hasPartialGateway) {
 							$lockName = 'order:' . $order->number;
 							$mutex = Craft::$app->getMutex();
 							if (! $mutex->isAcquired($lockName) && ! $mutex->acquire($lockName, 5)) {
-								throw new \yii\web\HttpException(503, 'The cart is busy. Please try again.');
+								throw new \yii\web\HttpException(503, Craft::t('foster-checkout', 'partialPayment.cartBusy'));
 							}
 
 							Craft::$app->on(\yii\base\Application::EVENT_AFTER_REQUEST, static function () use ($mutex, $lockName): void {
@@ -899,7 +909,7 @@ class FosterCheckout extends Plugin
 						}
 					}
 
-					if ($order instanceof Order && $this->getCheckout()->getPartialPayments()->hasPurchasedPayment($order) && ! $order->isCompleted && $actionId !== 'pay') {
+					if ($order instanceof Order && $this->partialPayments->hasPurchasedPayment($order) && ! $order->isCompleted && $actionId !== 'pay') {
 						/** @var WebController $controller */
 						$controller = $actionEvent->action->controller;
 						$message = Craft::t('foster-checkout', 'partialPayment.removeToEdit');

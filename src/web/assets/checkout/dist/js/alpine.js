@@ -5096,7 +5096,7 @@ function disableScrolling() {
   };
 }
 var module_default = src_default;
-const PartialPaymentControls = (singlePage = false) => ({
+const PartialPaymentControls = () => ({
   get busy() {
     return this.$store.partialPayments.busy;
   },
@@ -5127,79 +5127,15 @@ const PartialPaymentControls = (singlePage = false) => ({
         return;
       }
       const cart = data2.cart || data2.model;
-      if (singlePage) {
-        if (cart) {
-          this.$dispatch("partial-payment-updated", cart);
-          await this.$nextTick();
-        }
-      } else if (cart || !error2) {
-        await this.refreshPaymentPage();
+      if (cart) {
+        this.$dispatch("partial-payment-updated", cart);
+        await this.$nextTick();
       }
-    } catch {
+    } catch (error2) {
+      console.error(error2);
       this.$store.partialPayments.error = form.dataset.errorMessage;
     } finally {
       this.$store.partialPayments.busy = false;
-    }
-  },
-  async refreshPaymentPage() {
-    const response = await fetch(window.location.href, {
-      credentials: "same-origin",
-      headers: { Accept: "text/html" }
-    });
-    if (!response.ok) {
-      throw new Error("Unable to refresh checkout.");
-    }
-    const page = new DOMParser().parseFromString(
-      await response.text(),
-      "text/html"
-    );
-    if (new URL(response.url).origin !== window.location.origin) {
-      throw new Error("Checkout refresh changed origin.");
-    }
-    const current = document.querySelector("[data-fc-checkout-content]");
-    const replacement = page.querySelector("[data-fc-checkout-content]");
-    if (!current || !replacement) {
-      throw new Error("Checkout response is missing the payment page.");
-    }
-    current.querySelectorAll(".stripe-payment-elements-form").forEach((element) => {
-      element.handlerInstance?.elements?.destroy();
-    });
-    const content = document.importNode(replacement, true);
-    current.replaceWith(content);
-    for (const source of content.querySelectorAll("script:not([src])")) {
-      if (source.type && !["text/javascript", "application/javascript"].includes(source.type)) {
-        continue;
-      }
-      const script = document.createElement("script");
-      for (const attribute of source.attributes) {
-        script.setAttribute(attribute.name, attribute.value);
-      }
-      script.textContent = source.textContent;
-      source.replaceWith(script);
-    }
-    await this.$nextTick();
-    const loadedScripts = new Set(
-      Array.from(
-        document.querySelectorAll("script[src]"),
-        (script) => script.src
-      )
-    );
-    for (const source of page.querySelectorAll("script[src]")) {
-      const url = new URL(source.getAttribute("src"), response.url).href;
-      if (loadedScripts.has(url)) {
-        continue;
-      }
-      await new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        for (const attribute of source.attributes) {
-          script.setAttribute(attribute.name, attribute.value);
-        }
-        script.src = url;
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.append(script);
-      });
-      loadedScripts.add(url);
     }
   }
 });
