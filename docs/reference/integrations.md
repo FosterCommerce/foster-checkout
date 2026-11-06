@@ -1,6 +1,6 @@
 # Plugin integrations
 
-Foster Checkout changes the checkout when one of these plugins is installed. AvaTax and Klaviyo Connect also need settings turned on.
+Foster Checkout changes the checkout when one of these plugins is installed. AvaTax, Klaviyo Connect, and Net Terms also need settings turned on.
 
 | Plugin | Package | What it adds |
 | --- | --- | --- |
@@ -8,6 +8,7 @@ Foster Checkout changes the checkout when one of these plugins is installed. Ava
 | Blitz | `putyourlightson/craft-blitz` | Cart and checkout pages kept out of its cache |
 | Gift Voucher | `verbb/gift-voucher` | A voucher and gift card field on the payment step |
 | Klaviyo Connect | `fostercommerce/klaviyoconnect` 7.3.0 or later | Newsletter checkbox subscriptions to a Klaviyo list |
+| Net Terms | `fostercommerce/commerce-net-terms` | A [partial payment step](../dev-guide/partial-payments.md), with a setting at **Checkout -> Gateways** |
 | Postie | `verbb/postie` | Carrier shipping rates |
 | Stripe for Craft Commerce | `craftcms/commerce-stripe` | Stripe's payment element, with settings at **Checkout -> Gateways** for its layout, payment method order and Link |
 | PayPal Checkout for Craft Commerce | `craftcms/commerce-paypal-checkout` | PayPal buttons and card fields, with settings at **Checkout -> Gateways** for funding sources, card brands, locale and SDK components |

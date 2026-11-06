@@ -3,10 +3,6 @@ export const PartialPaymentControls = () => ({
 		return this.$store.partialPayments.busy;
 	},
 
-	get error() {
-		return this.$store.partialPayments.error;
-	},
-
 	async submitPartialPayment(form) {
 		if (this.busy) {
 			return;

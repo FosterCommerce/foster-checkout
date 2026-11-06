@@ -5,6 +5,7 @@
 ### Added
 
 - Added the “Enable saved payment methods” and “Saved payment method display” settings, which let a signed-in customer paying with Stripe choose a saved payment method or save a new one. Saved payment methods are off after updating.
+- Added a loading message to the Stripe payment form.
 - Added the “Delete cleared carts” setting, which moves a cleared cart to the trash. The setting is off after updating.
 - Added the `foster-checkout/cart/delete` action.
 - Added the `Checkout::EVENT_DEFINE_SAVED_PAYMENT_SOURCES` event, for changing which saved payment methods the checkout lists or hiding the save checkbox.
@@ -33,6 +34,7 @@
 - Cart line items now show the percent or amount off from Advanced Discounts, such as “20% off” or “$5.00 off each”, instead of “Sale”.
 - “Zero value gateways” no longer lists Stripe, PayPal, Authorize.net or Mollie gateways, and the checkout no longer uses them on an order totaling zero. If the list held only those gateways, add a Manual gateway to keep taking orders totaling zero.
 - Saved address dropdowns now show each address on two lines.
+- The cart page and multi-page checkout summaries now list each voucher as its own row, instead of a “Voucher/Gift cards applied” section.
 - Foster Checkout now completes a cart with a paid or authorized payment that isn't a completed order when the customer opens the checkout or the built-in cart page, and blocks changes and further payments on that cart until the order completes.
 - The cart and checkout pages, including the order confirmation page, now send no-cache headers, and Foster Checkout excludes them from Blitz's cache.
 - The checkout now passes `order`, `submitButtonText` and `submitButtonClasses` to the payment form of gateways other than Stripe Payment Intents, PayPal, Mollie and Manual.
@@ -52,6 +54,8 @@
 
 ### Fixed
 
+- Fixed a bug where clicking a floating field label didn’t show the browser’s autofill options.
+- Fixed a bug where the multi-page checkout could switch to the first available shipping method when the selected method's handle contained a hyphen.
 - Fixed a bug where same-named order discounts showed as separate rows in the order summary.
 - Fixed a bug where the order summary left out adjustments from other plugins and shipping on a cart with no shipping address, though both were in the total.
 - Fixed a bug where discounts applied after tax showed above tax in the order summary.

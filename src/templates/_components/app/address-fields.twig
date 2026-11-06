@@ -139,7 +139,7 @@ since the array key will be the same #}
 					name: 'title',
 					type: 'text',
 					placeholder: 'addressFields.savedAddressPlaceholder'|t('foster-checkout'),
-					value: address ? address.title|e('js') : '',
+					value: address ? address.title : '',
 					required: element.required,
 					errors: errors.title ?? []
 				} %}
@@ -173,7 +173,7 @@ since the array key will be the same #}
 					type: 'text',
 					autocomplete: 'name',
 					placeholder: 'addressFields.fullnamePlaceholder'|t('foster-checkout'),
-					value: address ? address.fullName|e('js') : '',
+					value: address ? address.fullName : '',
 					required: element.required,
 					errors: errors.fullName ?? []
 				} %}
@@ -185,7 +185,7 @@ since the array key will be the same #}
 					name: 'organization',
 					type: 'text',
 					autocomplete: 'organization',
-					value: address ? address.organization|e('js') : '',
+					value: address ? address.organization : '',
 					required: element.required,
 					errors: errors.organization ?? []
 				} %}
@@ -196,7 +196,7 @@ since the array key will be the same #}
 					id: 'organizationTaxId',
 					name: 'organizationTaxId',
 					type: 'text',
-					value: address ? address.organizationTaxId|e('js') : '',
+					value: address ? address.organizationTaxId : '',
 					required: element.required,
 					errors: errors.organizationTaxId ?? []
 				} %}

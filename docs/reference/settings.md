@@ -120,6 +120,7 @@ Every setting and its default, as the plugin ships.
 | Turned away card brands (PayPal) | `paymentGateways.<handle>.disableCard` | empty. PayPal has deprecated this parameter |
 | Locale (PayPal) | `paymentGateways.<handle>.locale` | empty |
 | SDK components (PayPal) | `paymentGateways.<handle>.components` | empty |
+| Use as a partial payment step (Net Terms) | `paymentGateways.<handle>.useAsPartialPaymentStep` | `false`. See [partial payments](../dev-guide/partial-payments.md) |
 
 Two settings have no control panel field. Set them in `config/foster-checkout.php`: `branding.faviconConfig` and `options.paymentDueDateFieldHandle`.
 

@@ -84,7 +84,7 @@
 											{% set voucherMessage = voucherCodeError %}
 										{% else %}
 											{% if voucherCodeSuccess %}
-												{% set voucherMessage = 'payment.voucherAdded'|t('Foster Checkout') %}
+												{% set voucherMessage = 'payment.voucherApplied'|t('foster-checkout') %}
 											{% else %}
 												{% set voucherMessage = null %}
 											{% endif %}
@@ -140,7 +140,6 @@
 								</section>
 							{% endif %}
 
-							<p x-show="$store.partialPayments.error" x-cloak class="text-sm text-red-500" role="alert" x-text="$store.partialPayments.error"></p>
 							{% include 'foster-checkout/_components/app/partial-payments' with { singlePage: false } %}
 
 							{% set paymentBlock = craft.fostercheckout.paymentBlock(cart) %}
@@ -388,10 +387,12 @@
 																	   Mounting Stripe's form posts the pay action, which would charge a selected saved source. #}
 																	<template x-if="paymentSourceId === 'new'">
 																		{# Mount the form here when it renders after Stripe's script has loaded #}
-																		<div x-init="typeof initStripe === 'function' && initStripe()">
+																		<div x-data="StripeLoadingMessage" x-init="typeof initStripe === 'function' && initStripe()">
 																			{% if canSavePaymentSource %}
 																				{% include 'foster-checkout/_components/app/save-payment-source-checkbox' %}
 																			{% endif %}
+
+																			{% include 'foster-checkout/_components/app/stripe-loading-message' %}
 
 																			{% namespace gateway.handle|commercePaymentFormNamespace %}
 																				{{ gateway.getPaymentFormHtml(params)|raw }}

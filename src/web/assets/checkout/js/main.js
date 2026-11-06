@@ -9,6 +9,7 @@ import {
 } from './single-page-checkout.js';
 import { AddressAutocomplete } from './checkout/address-autocomplete.js';
 import { AddressVerification } from './checkout/address-verification.js';
+import { StripeLoadingMessage } from './checkout/gateways.js';
 
 const setErrors = (field, messages) => {
 	const next = messages.filter(Boolean);
@@ -1073,6 +1074,12 @@ enhanceCardFields();
 
 Alpine.plugin(focus);
 Alpine.store('partialPayments', { busy: false, error: '' });
+// Clear the busy flag on a page restored from the back-forward cache, since a form's submit sets the flag
+window.addEventListener('pageshow', (event) => {
+	if (event.persisted) {
+		Alpine.store('partialPayments').busy = false;
+	}
+});
 Alpine.data('ScrollableItems', ScrollableItems);
 Alpine.data('SimpleField', SimpleField);
 Alpine.data('NewsletterSignup', NewsletterSignup);
@@ -1085,6 +1092,7 @@ Alpine.data('SinglePageCheckout', SinglePageCheckout);
 Alpine.data('PartialPaymentControls', PartialPaymentControls);
 Alpine.data('AddressVerification', AddressVerification);
 Alpine.data('AddressAutocomplete', AddressAutocomplete);
+Alpine.data('StripeLoadingMessage', StripeLoadingMessage);
 
 window.Alpine = Alpine;
 Alpine.start();

@@ -53,7 +53,7 @@ Keep this order, which matches the checkout's summary. Labels are yours to chang
 
 Gift Voucher's `voucher` adjustments have no row helper. To add them, loop over `order.adjustments` before the Total, and keep the ones whose `type` is `voucher`. `craft.fostercheckout.voucherLabel(adjustment)` returns the label the checkout shows.
 
-The checkout also lists partial payments and subtracts them from its Total. This example leaves them out.
+The checkout also lists [partial payments](./partial-payments.md) and subtracts them from its Total. This example leaves them out.
 
 ## Subtotal
 

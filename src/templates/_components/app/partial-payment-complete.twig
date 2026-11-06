@@ -1,5 +1,5 @@
 <section x-data="PartialPaymentControls()" {% if singlePage|default(false) %}x-show="partialPaymentCoversTotal && !paymentBlock" x-cloak{% endif %}>
-	<form method="post" {% if singlePage|default(false) %}@submit.prevent="submitPartialPayment($el)"{% endif %} data-error-message="{{ 'partialPayment.failed'|t('foster-checkout') }}">
+	<form method="post" {% if singlePage|default(false) %}@submit.prevent="submitPartialPayment($el)" data-error-message="{{ 'partialPayment.failed'|t('foster-checkout') }}"{% else %}@submit="$store.partialPayments.busy = true"{% endif %}>
 		{{ csrfInput() }}
 		{{ actionInput('foster-checkout/partial-payment/complete') }}
 		<button type="submit" :disabled="busy{{ singlePage|default(false) ? ' || !canEnterPayment' : '' }}" class="w-full h-12 px-4 font-medium text-white bg-[var(--brandColor)] rounded-lg">{{ 'payment.completeOrder'|t('foster-checkout') }}</button>

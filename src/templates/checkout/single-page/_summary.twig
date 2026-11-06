@@ -74,7 +74,7 @@
 									@blur="saveNotes()"
 								>{{ notesValue }}</textarea>
 								{% if floatingLabel %}
-									<label for="spOrderNote" class="absolute left-3 right-3 top-1.5 truncate text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400">{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</label>
+									<label for="spOrderNote" class="absolute left-3 right-3 top-1.5 truncate text-xs text-gray-500 pointer-events-none transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400">{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</label>
 								{% endif %}
 							</div>
 							<button
@@ -272,13 +272,11 @@
 								{{ csrfInput() }}
 								{{ actionInput('foster-checkout/partial-payment/remove') }}
 								<input type="hidden" name="gatewayId" :value="payment.gatewayId">
-								<input type="hidden" name="accountId" :value="payment.accountId">
 								<input type="hidden" name="transactionId" :value="payment.transactionId">
 								<button type="submit" :disabled="busy" :aria-disabled="busy" :class="busy ? 'opacity-50 cursor-not-allowed' : ''" class="mr-2 text-sm underline text-gray-500">{{ 'partialPayment.remove'|t('foster-checkout') }}</button>
 							</form>
 							<span x-text="payment.amountAsCurrency"></span>
 						</dd>
-						<p x-show="error" x-cloak class="w-full text-sm text-red-500" role="alert" x-text="error"></p>
 					</div>
 				</template>
 
