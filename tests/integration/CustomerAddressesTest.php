@@ -4,6 +4,7 @@ namespace fostercommerce\fostercheckout\tests\integration;
 
 use Craft;
 use craft\elements\Address;
+use fostercommerce\fostercheckout\events\DefineShippingAddressesEvent;
 use fostercommerce\fostercheckout\services\Checkout;
 use fostercommerce\fostercheckout\tests\Support\CartTestCase;
 
@@ -27,6 +28,44 @@ final class CustomerAddressesTest extends CartTestCase
 		self::assertSame($chosen->id, $cart->sourceShippingAddressId);
 		self::assertNotSame($chosen->id, $cart->getShippingAddress()?->id, 'The order was given the book address itself');
 		self::assertSame($chosen->addressLine1, $cart->getShippingAddress()?->addressLine1);
+	}
+
+	public function testAHandlerRemovesAnAddressFromTheShippingListOnly(): void
+	{
+		[, $cart, $book] = $this->signedInCustomerCart();
+		$removedId = $book[0]->id;
+		$this->onCheckoutEvent(Checkout::EVENT_DEFINE_SHIPPING_ADDRESSES, static function (DefineShippingAddressesEvent $defineShippingAddressesEvent) use ($removedId): void {
+			$defineShippingAddressesEvent->addresses = array_filter(
+				$defineShippingAddressesEvent->addresses,
+				static fn (Address $address): bool => $address->id !== $removedId,
+			);
+		});
+
+		$shippingAddresses = $this->checkout()->shippingAddresses($cart);
+		$billingIds = array_column($this->checkout()->customerAddresses($cart), 'id');
+
+		self::assertNotContains($removedId, array_column($shippingAddresses, 'id'));
+		self::assertContains($removedId, $billingIds);
+		self::assertTrue(array_is_list($shippingAddresses));
+	}
+
+	public function testIncompleteAddressesAreCheckedAgainstTheirOwnRequiredFields(): void
+	{
+		[, , $book] = $this->signedInCustomerCart();
+		$settings = $this->checkout()->settings();
+		$requiredAddressFields = $settings->requiredAddressFields;
+		$requiredBillingAddressFields = $settings->requiredBillingAddressFields;
+		$settings->requiredAddressFields = ['fullName'];
+		$settings->requiredBillingAddressFields = [];
+		$book[0]->fullName = null;
+
+		try {
+			self::assertContains((int) $book[0]->id, $this->checkout()->incompleteAddressIds($book));
+			self::assertNotContains((int) $book[0]->id, $this->checkout()->incompleteAddressIds($book, true));
+		} finally {
+			$settings->requiredAddressFields = $requiredAddressFields;
+			$settings->requiredBillingAddressFields = $requiredBillingAddressFields;
+		}
 	}
 
 	public function testRepostingTheSameAddressChangesNothing(): void

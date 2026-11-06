@@ -331,7 +331,13 @@ export const cartPersistence = () => ({
 			this.setPanelsStatus(panels, 'saved');
 			Object.assign(this.savedFieldValues, saved);
 			if (!fieldOnly) {
-				this.lastSaved = JSON.stringify(saved);
+				// Record the cart's method, since it can differ from the posted one
+				this.lastSaved = JSON.stringify({
+					...saved,
+					shippingMethodHandle: cart
+						? cart.shippingMethodHandle || ''
+						: saved.shippingMethodHandle,
+				});
 			}
 			if (savingNotes) {
 				this.notesButtonVisible = false;

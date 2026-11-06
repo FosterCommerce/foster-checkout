@@ -3,7 +3,6 @@ const CARD_FIELDS = ['number', 'month', 'year', 'cvv'];
 // Treat an older mount as failed, since Commerce Stripe's pay request has no error handler
 const STRIPE_MOUNT_LIMIT_MS = 15000;
 
-const STRIPE_LOADING_DELAY_MS = 3000;
 const STRIPE_LOADING_LIMIT_MS = 60000;
 
 // Accept.js response codes, from Authorize.net's API reference
@@ -42,25 +41,20 @@ const whenStripeFormSettles = (form, isSettled, limitMs, onSettled) => {
 	});
 };
 
-// Time the message apart from stripeMountPending, which clears at its limit during a slow pay request
-const showLoadingWhileStripeRenders = (form, setSlow) => {
-	const showTimer = setTimeout(() => setSlow(true), STRIPE_LOADING_DELAY_MS);
-
-	setSlow(false);
+// Time the placeholder apart from stripeMountPending, which clears at its limit during a slow pay request
+const showPlaceholderWhileStripeRenders = (form, setLoading) => {
+	setLoading(true);
 	whenStripeFormSettles(
 		form,
 		() => stripeFormRendered(form),
 		STRIPE_LOADING_LIMIT_MS,
-		() => {
-			clearTimeout(showTimer);
-			setSlow(false);
-		}
+		() => setLoading(false)
 	);
 };
 
-// Loading message for the multi-page payment step, which has no SinglePageCheckout component
-export const StripeLoadingMessage = () => ({
-	stripeMountSlow: false,
+// Loading placeholder for the multi-page payment step, which has no SinglePageCheckout component
+export const StripeLoadingPlaceholder = () => ({
+	stripeFormLoading: false,
 
 	init() {
 		const form = this.$el.querySelector('.stripe-payment-elements-form');
@@ -70,8 +64,8 @@ export const StripeLoadingMessage = () => ({
 			return;
 		}
 
-		showLoadingWhileStripeRenders(form, (slow) => {
-			this.stripeMountSlow = slow;
+		showPlaceholderWhileStripeRenders(form, (loading) => {
+			this.stripeFormLoading = loading;
 		});
 	},
 });
@@ -561,6 +555,7 @@ export const gatewayHandling = () => ({
 		}
 
 		this.stripeReinitQueued = true;
+		this.stripeFormLoading = !isMounted;
 
 		this.$nextTick(async () => {
 			// Save the cart first, since Stripe's pay button confirms without saving it
@@ -569,6 +564,7 @@ export const gatewayHandling = () => ({
 			this.stripeReinitQueued = false;
 			// Recheck after the save, which can fail or bring the total to zero
 			if (!this.canPay || Number(this.totals.total) === 0) {
+				this.stripeFormLoading = false;
 				return;
 			}
 
@@ -634,9 +630,9 @@ export const gatewayHandling = () => ({
 		const mountNumber = this.stripeMountNumber;
 		initStripe();
 		this.clearPendingWhenMounted(form, mountNumber);
-		showLoadingWhileStripeRenders(form, (slow) => {
+		showPlaceholderWhileStripeRenders(form, (loading) => {
 			if (this.stripeMountNumber === mountNumber) {
-				this.stripeMountSlow = slow;
+				this.stripeFormLoading = loading;
 			}
 		});
 	},

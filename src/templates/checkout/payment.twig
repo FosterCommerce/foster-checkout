@@ -387,12 +387,12 @@
 																	   Mounting Stripe's form posts the pay action, which would charge a selected saved source. #}
 																	<template x-if="paymentSourceId === 'new'">
 																		{# Mount the form here when it renders after Stripe's script has loaded #}
-																		<div x-data="StripeLoadingMessage" x-init="typeof initStripe === 'function' && initStripe()">
+																		<div x-data="StripeLoadingPlaceholder" x-init="typeof initStripe === 'function' && initStripe()">
 																			{% if canSavePaymentSource %}
 																				{% include 'foster-checkout/_components/app/save-payment-source-checkbox' %}
 																			{% endif %}
 
-																			{% include 'foster-checkout/_components/app/stripe-loading-message' %}
+																			{% include 'foster-checkout/_components/app/stripe-loading-placeholder' %}
 
 																			{% namespace gateway.handle|commercePaymentFormNamespace %}
 																				{{ gateway.getPaymentFormHtml(params)|raw }}

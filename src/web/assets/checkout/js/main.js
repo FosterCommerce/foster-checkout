@@ -9,7 +9,7 @@ import {
 } from './single-page-checkout.js';
 import { AddressAutocomplete } from './checkout/address-autocomplete.js';
 import { AddressVerification } from './checkout/address-verification.js';
-import { StripeLoadingMessage } from './checkout/gateways.js';
+import { StripeLoadingPlaceholder } from './checkout/gateways.js';
 
 const setErrors = (field, messages) => {
 	const next = messages.filter(Boolean);
@@ -1092,7 +1092,7 @@ Alpine.data('SinglePageCheckout', SinglePageCheckout);
 Alpine.data('PartialPaymentControls', PartialPaymentControls);
 Alpine.data('AddressVerification', AddressVerification);
 Alpine.data('AddressAutocomplete', AddressAutocomplete);
-Alpine.data('StripeLoadingMessage', StripeLoadingMessage);
+Alpine.data('StripeLoadingPlaceholder', StripeLoadingPlaceholder);
 
 window.Alpine = Alpine;
 Alpine.start();

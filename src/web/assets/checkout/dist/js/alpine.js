@@ -5886,6 +5886,9 @@ const addressBook = () => ({
         return;
       }
       this.rememberAddressFields(addressId, null, fields);
+      const savedId = parseInt(addressId, 10);
+      this.incompleteShippingAddressIds = this.incompleteShippingAddressIds.filter((id) => id !== savedId);
+      this.incompleteBillingAddressIds = this.incompleteBillingAddressIds.filter((id) => id !== savedId);
       await this.saveCart({
         panel,
         force: isCurrentShipping || isCurrentBilling
@@ -5893,6 +5896,7 @@ const addressBook = () => ({
       if (this.statusTone !== "error") {
         this.editExistingAddress = 0;
         this.editBillingAddressId = 0;
+        this.openIncompleteAddresses();
       } else {
         this.setPanelStatus(panel, "error");
       }
@@ -6191,7 +6195,10 @@ const cartPersistence = () => ({
       this.setPanelsStatus(panels, "saved");
       Object.assign(this.savedFieldValues, saved);
       if (!fieldOnly) {
-        this.lastSaved = JSON.stringify(saved);
+        this.lastSaved = JSON.stringify({
+          ...saved,
+          shippingMethodHandle: cart ? cart.shippingMethodHandle || "" : saved.shippingMethodHandle
+        });
       }
       if (savingNotes) {
         this.notesButtonVisible = false;
@@ -6604,7 +6611,6 @@ const cartPersistence = () => ({
 });
 const CARD_FIELDS = ["number", "month", "year", "cvv"];
 const STRIPE_MOUNT_LIMIT_MS = 15e3;
-const STRIPE_LOADING_DELAY_MS = 3e3;
 const STRIPE_LOADING_LIMIT_MS = 6e4;
 const AUTHORIZE_ERROR_FIELDS = {
   E_WC_04: "number",
@@ -6635,28 +6641,24 @@ const whenStripeFormSettles = (form, isSettled, limitMs, onSettled) => {
     characterData: true
   });
 };
-const showLoadingWhileStripeRenders = (form, setSlow) => {
-  const showTimer = setTimeout(() => setSlow(true), STRIPE_LOADING_DELAY_MS);
-  setSlow(false);
+const showPlaceholderWhileStripeRenders = (form, setLoading) => {
+  setLoading(true);
   whenStripeFormSettles(
     form,
     () => stripeFormRendered(form),
     STRIPE_LOADING_LIMIT_MS,
-    () => {
-      clearTimeout(showTimer);
-      setSlow(false);
-    }
+    () => setLoading(false)
   );
 };
-const StripeLoadingMessage = () => ({
-  stripeMountSlow: false,
+const StripeLoadingPlaceholder = () => ({
+  stripeFormLoading: false,
   init() {
     const form = this.$el.querySelector(".stripe-payment-elements-form");
     if (!form) {
       return;
     }
-    showLoadingWhileStripeRenders(form, (slow) => {
-      this.stripeMountSlow = slow;
+    showPlaceholderWhileStripeRenders(form, (loading) => {
+      this.stripeFormLoading = loading;
     });
   }
 });
@@ -7005,10 +7007,12 @@ const gatewayHandling = () => ({
       return;
     }
     this.stripeReinitQueued = true;
+    this.stripeFormLoading = !isMounted;
     this.$nextTick(async () => {
       await this.saveCart({ panel: "payment" });
       this.stripeReinitQueued = false;
       if (!this.canPay || Number(this.totals.total) === 0) {
+        this.stripeFormLoading = false;
         return;
       }
       this.stripeOptionsChanged = false;
@@ -7058,9 +7062,9 @@ const gatewayHandling = () => ({
     const mountNumber = this.stripeMountNumber;
     initStripe();
     this.clearPendingWhenMounted(form, mountNumber);
-    showLoadingWhileStripeRenders(form, (slow) => {
+    showPlaceholderWhileStripeRenders(form, (loading) => {
       if (this.stripeMountNumber === mountNumber) {
-        this.stripeMountSlow = slow;
+        this.stripeFormLoading = loading;
       }
     });
   },
@@ -7216,6 +7220,9 @@ const SinglePageCheckout = (props) => {
     stripeMountedTotal: null,
     editExistingAddress: 0,
     editBillingAddressId: 0,
+    incompleteShippingAddressIds: props.incompleteShippingAddressIds,
+    incompleteBillingAddressIds: props.incompleteBillingAddressIds,
+    canSaveAddresses: props.canSaveAddresses,
     gatewayId: props.gatewayId,
     emailNeededLabel: props.emailNeededLabel ?? "",
     addressPhoneFieldHandle: props.addressPhoneFieldHandle ?? "",
@@ -7247,7 +7254,7 @@ const SinglePageCheckout = (props) => {
     paypalInvalidated: false,
     stripeInvalidated: false,
     stripeMountPending: false,
-    stripeMountSlow: false,
+    stripeFormLoading: false,
     stripeMountNumber: 0,
     paying: false,
     onPageShow: null,
@@ -7261,6 +7268,15 @@ const SinglePageCheckout = (props) => {
     init() {
       this.rootEl = this.$root;
       this.paymentFormEl = this.$refs.paymentForm;
+      this.openIncompleteAddresses();
+      this.$watch(
+        "shippingAddressId",
+        () => this.openIncompleteShippingAddress()
+      );
+      this.$watch(
+        "billingAddressId",
+        () => this.openIncompleteBillingAddress()
+      );
       this.$nextTick(
         () => this.rootEl.querySelectorAll("[data-fc-checkout-field]").forEach(
           (fieldCell) => Object.assign(
@@ -7418,6 +7434,33 @@ const SinglePageCheckout = (props) => {
     get shippingPickup() {
       return this.pickupAvailable && this.shippingAddressId === "pickup";
     },
+    get shippingAddressIncomplete() {
+      return !this.useNewAddress && this.incompleteShippingAddressIds.includes(
+        Number(this.shippingAddressId)
+      );
+    },
+    get billingAddressIncomplete() {
+      return !this.billingSameAsShipping && !this.useNewBillingAddress && this.incompleteBillingAddressIds.includes(Number(this.billingAddressId));
+    },
+    openIncompleteShippingAddress() {
+      if (this.canSaveAddresses && this.shippingAddressIncomplete) {
+        this.editExistingAddress = this.shippingAddressId;
+        this.editBillingAddressId = 0;
+      }
+    },
+    openIncompleteBillingAddress() {
+      if (this.canSaveAddresses && this.billingAddressIncomplete) {
+        this.editBillingAddressId = this.billingAddressId;
+        this.editExistingAddress = 0;
+      }
+    },
+    // Open one form at a time, as the edit buttons do
+    openIncompleteAddresses() {
+      this.openIncompleteShippingAddress();
+      if (!parseInt(this.editExistingAddress, 10)) {
+        this.openIncompleteBillingAddress();
+      }
+    },
     get shippingChoice() {
       return this.useNewAddress ? "new" : String(this.shippingAddressId);
     },
@@ -7492,7 +7535,7 @@ const SinglePageCheckout = (props) => {
     get canEnterPayment() {
       return [...this.rootEl.querySelectorAll("[data-fc-panel]")].every(
         (section) => this.fieldsReadyIn(section, false, null, this.paymentFormEl)
-      ) && this.pending === 0 && !this.$store.partialPayments.busy && !this.saveTimer && this.statusTone !== "error" && this.hasEmail && this.hasShippingSelection && (this.cartHasShippingAddress || !this.collectShipping) && this.hasShippingMethod && this.hasBilling && this.deliveryReadyForPay && !this.loadingShippingMethods;
+      ) && this.pending === 0 && !this.$store.partialPayments.busy && !this.saveTimer && this.statusTone !== "error" && !this.shippingAddressIncomplete && !this.billingAddressIncomplete && this.hasEmail && this.hasShippingSelection && (this.cartHasShippingAddress || !this.collectShipping) && this.hasShippingMethod && this.hasBilling && this.deliveryReadyForPay && !this.loadingShippingMethods;
     },
     get canPay() {
       return this.canEnterPayment && this.paymentFieldsReady;
@@ -8912,6 +8955,6 @@ module_default$1.data("SinglePageCheckout", SinglePageCheckout);
 module_default$1.data("PartialPaymentControls", PartialPaymentControls);
 module_default$1.data("AddressVerification", AddressVerification);
 module_default$1.data("AddressAutocomplete", AddressAutocomplete);
-module_default$1.data("StripeLoadingMessage", StripeLoadingMessage);
+module_default$1.data("StripeLoadingPlaceholder", StripeLoadingPlaceholder);
 window.Alpine = module_default$1;
 module_default$1.start();
