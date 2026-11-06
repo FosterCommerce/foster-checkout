@@ -1,0 +1,39 @@
+{% set bar = 'h-[13px] bg-[#f5f5f5]' %}
+{% set field = 'flex items-center h-[70px] px-4 bg-[#f0f0f0]' %}
+{% set fieldBar = 'h-[13px] bg-[#e6e6e6]' %}
+{% set row %}
+	<div class="flex gap-5 p-4 border-t border-[#f0f0f0]">
+		<div class="w-6 {{ bar }}"></div>
+		<div class="w-48 {{ bar }}"></div>
+	</div>
+{% endset %}
+
+<div
+	x-show="stripeFormLoading"
+	x-cloak
+	role="status"
+	class="mb-4 bg-white border border-[#f0f0f0] animate-pulse"
+>
+	<span class="sr-only">{{ 'payment.loadingForm'|t('foster-checkout') }}</span>
+	<div aria-hidden="true">
+		<div class="p-4">
+			<div class="flex gap-5 mb-4">
+				<div class="w-6 {{ bar }}"></div>
+				<div class="w-48 {{ bar }}"></div>
+			</div>
+			<div class="{{ field }}">
+				<div class="w-20 {{ fieldBar }}"></div>
+			</div>
+			<div class="grid grid-cols-2 gap-6 mt-6 mb-5">
+				<div class="{{ field }}">
+					<div class="w-12 {{ fieldBar }}"></div>
+				</div>
+				<div class="{{ field }}">
+					<div class="w-8 {{ fieldBar }}"></div>
+				</div>
+			</div>
+		</div>
+		{{ row }}
+		{{ row }}
+	</div>
+</div>

@@ -3,6 +3,8 @@
 namespace fostercommerce\fostercheckout\services;
 
 use Craft;
+use craft\base\Element;
+use craft\base\FieldInterface;
 use craft\base\FieldLayoutElement;
 use craft\commerce\base\Gateway;
 use craft\commerce\base\GatewayInterface;
@@ -48,6 +50,7 @@ use fostercommerce\fostercheckout\events\DefinePartialPaymentEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentBlockEvent;
 use fostercommerce\fostercheckout\events\DefinePaymentFormParamsEvent;
 use fostercommerce\fostercheckout\events\DefineSavedPaymentSourcesEvent;
+use fostercommerce\fostercheckout\events\DefineShippingAddressesEvent;
 use fostercommerce\fostercheckout\events\DefineShippingMethodNoteEvent;
 use fostercommerce\fostercheckout\events\NewsletterSubscribeEvent;
 use fostercommerce\fostercheckout\FosterCheckout;
@@ -257,6 +260,33 @@ class Checkout extends Component
 	 * @since 2.1.0
 	 */
 	public const string EVENT_DEFINE_SAVED_PAYMENT_SOURCES = 'defineSavedPaymentSources';
+
+	/**
+	 * @event DefineShippingAddressesEvent The event that is triggered when the checkout lists saved addresses for shipping.
+	 *
+	 * Remove an address the order can't ship to. The billing list keeps it.
+	 *
+	 * ```php
+	 * use craft\elements\Address;
+	 * use fostercommerce\fostercheckout\events\DefineShippingAddressesEvent;
+	 * use fostercommerce\fostercheckout\services\Checkout;
+	 * use yii\base\Event;
+	 *
+	 * Event::on(
+	 *     Checkout::class,
+	 *     Checkout::EVENT_DEFINE_SHIPPING_ADDRESSES,
+	 *     function (DefineShippingAddressesEvent $event) {
+	 *         $event->addresses = array_filter(
+	 *             $event->addresses,
+	 *             fn (Address $address): bool => $address->countryCode === 'US',
+	 *         );
+	 *     }
+	 * );
+	 * ```
+	 *
+	 * @since 2.1.0
+	 */
+	public const string EVENT_DEFINE_SHIPPING_ADDRESSES = 'defineShippingAddresses';
 
 	/**
 	 * @event DefineLineItemQtyEditableEvent The event that is triggered for each line item the cart page lists.
@@ -594,6 +624,68 @@ class Checkout extends Component
 		$this->customerAddresses[$customerId] = $addresses;
 
 		return $this->withOrderAddresses($order, $customer, $addresses);
+	}
+
+	/**
+	 * The order customer's saved addresses that the shipping step lists, after any handler has run.
+	 *
+	 * @return array<int, Address>
+	 * @since 2.1.0
+	 */
+	public function shippingAddresses(Order $order): array
+	{
+		$defineShippingAddressesEvent = new DefineShippingAddressesEvent([
+			'order' => $order,
+			'addresses' => $this->customerAddresses($order),
+		]);
+
+		$this->trigger(self::EVENT_DEFINE_SHIPPING_ADDRESSES, $defineShippingAddressesEvent);
+
+		return array_values($defineShippingAddressesEvent->addresses);
+	}
+
+	/**
+	 * The address attributes the checkout requires on this address, limited to those its form renders.
+	 *
+	 * @return list<string>
+	 * @internal
+	 */
+	public function requiredAddressAttributes(Address $address, bool $isBilling): array
+	{
+		$settings = $this->settings();
+		$hiddenAttributes = $isBilling
+			? [...$settings->hiddenAddressFields, ...$settings->hiddenBillingAddressFields]
+			: $settings->hiddenAddressFields;
+		$requiredAttributes = $isBilling ? $settings->requiredBillingAddressFields : $settings->requiredAddressFields;
+
+		// Match what the address form renders, since a rule on anything else can never be met
+		$renderedAttributes = array_map(
+			static fn (BaseField $layoutField): string => $layoutField->attribute(),
+			$address->getFieldLayout()?->getVisibleElementsByType(BaseField::class, $address) ?? []
+		);
+
+		return array_values(array_diff(array_intersect($requiredAttributes, $renderedAttributes), $hiddenAttributes));
+	}
+
+	/**
+	 * The saved addresses missing a field the checkout requires, so the checkout can ask for it before using one.
+	 * A store can require a field after customers saved their addresses.
+	 *
+	 * @param array<int, Address> $addresses
+	 * @return list<int>
+	 * @since 2.1.0
+	 */
+	public function incompleteAddressIds(array $addresses, bool $forBilling = false): array
+	{
+		$incompleteAddressIds = [];
+
+		foreach ($addresses as $address) {
+			if ($this->isMissingRequiredField($address, $forBilling)) {
+				$incompleteAddressIds[] = (int) $address->id;
+			}
+		}
+
+		return $incompleteAddressIds;
 	}
 
 	/**
@@ -1778,6 +1870,29 @@ class Checkout extends Component
 		}
 
 		return $options;
+	}
+
+	private function isMissingRequiredField(Address $address, bool $forBilling): bool
+	{
+		$layout = $address->getFieldLayout();
+
+		foreach ($this->requiredAddressAttributes($address, $forBilling) as $attribute) {
+			$field = $layout?->getFieldByHandle($attribute);
+			$isEmpty = $field instanceof FieldInterface
+				? $field->isValueEmpty($address->getFieldValue($attribute), $address)
+				: trim((string) $address->{$attribute}) === '';
+
+			if ($isEmpty) {
+				return true;
+			}
+		}
+
+		// Validate a copy in the scenario an order uses, for fields Craft itself requires by country
+		$copy = clone $address;
+		$copy->setScenario(Element::SCENARIO_LIVE);
+		$copy->validate();
+
+		return array_diff(array_keys($copy->getErrors()), $this->requiredAddressAttributes($address, false)) !== [];
 	}
 
 	/**

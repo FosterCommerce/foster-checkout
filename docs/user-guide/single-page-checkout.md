@@ -26,6 +26,8 @@ These settings apply to both layouts: checkout copy, checkout fields, payment ga
 
 **A checkout field saves before its panel is complete.** While a panel has an unfilled required field, a checkout field in that panel saves on its own when the customer leaves it. The rest of the panel saves once it is complete.
 
+**The checkout selects the first shipping method.** When a save includes a shipping address and the cart has no shipping method, or its method is no longer available, the checkout selects the first method the **Shipping method** panel lists. The **Auto Set Cart Shipping Method Option** setting at **Commerce -> Settings -> Stores** does not change this.
+
 ## Payment forms
 
 With more than one gateway available, the checkout does not select a gateway until the customer chooses one. Stripe's form loads only for the selected Stripe gateway.

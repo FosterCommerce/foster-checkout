@@ -300,6 +300,12 @@ export const addressBook = () => ({
 
 			this.rememberAddressFields(addressId, null, fields);
 
+			const savedId = parseInt(addressId, 10);
+			this.incompleteShippingAddressIds =
+				this.incompleteShippingAddressIds.filter((id) => id !== savedId);
+			this.incompleteBillingAddressIds =
+				this.incompleteBillingAddressIds.filter((id) => id !== savedId);
+
 			await this.saveCart({
 				panel,
 				force: isCurrentShipping || isCurrentBilling,
@@ -307,6 +313,7 @@ export const addressBook = () => ({
 			if (this.statusTone !== 'error') {
 				this.editExistingAddress = 0;
 				this.editBillingAddressId = 0;
+				this.openIncompleteAddresses();
 			} else {
 				this.setPanelStatus(panel, 'error');
 			}

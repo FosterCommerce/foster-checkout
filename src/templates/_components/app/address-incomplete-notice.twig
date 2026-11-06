@@ -1,0 +1,3 @@
+<p class="mt-2 mb-2 text-sm text-red-600" role="status" x-show="{{ condition }}" x-cloak>
+	{{ (craft.fostercheckout.canSaveAddresses(cart) ? 'address.incompleteCanEdit' : 'address.incompleteCannotEdit')|t('foster-checkout') }}
+</p>

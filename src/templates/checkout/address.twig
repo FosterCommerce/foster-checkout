@@ -11,7 +11,7 @@
 {% set showCartLink = true %}
 {% set cart = cart is not defined ? craft.commerce.carts.cart : cart %}
 {% set canViewAddresses = craft.fostercheckout.canViewAddresses(cart) %}
-{% set addresses = craft.fostercheckout.customerAddresses(cart) %}
+{% set addresses = craft.fostercheckout.shippingAddresses(cart) %}
 {% set addressDropdown = addresses|length and craft.fostercheckout.settings.usesAddressDropdown(addresses|length) %}
 {% set primaryShippingAddressId = canViewAddresses ? (cart.customer.getPrimaryShippingAddressId() ?? -1) : -1 %}
 {% set canSaveAddresses = craft.fostercheckout.canSaveAddresses(cart) %}
@@ -38,7 +38,7 @@
 {% block body %}
 	{# If a user address was chosen, Commerce sets cart.sourceShippingAddressId to that address-book id. #}
 	{# If "new address" was chosen, sourceShippingAddressId is null but cart.shippingAddressId exists. #}
-	{% set _sourceId = cart.sourceShippingAddressId ?? null %}
+	{% set _sourceId = cart.sourceShippingAddressId in addresses|map(address => address.id) ? cart.sourceShippingAddressId : null %}
 	{% set _hasCartShip = cart.shippingAddressId is not empty %}
 	{% set _hasBookAddresses = currentUser and addresses|length %}
 	{% set _pickupAvailable = craft.fostercheckout.customerPickupAvailable(cart) %}
@@ -106,8 +106,17 @@
 				  shippingAddressId: {{ _pickup ? "'pickup'" : _initialRadio }},
 				  useNewAddress: {{ _isNew ? 1 : 0 }},
 				  get shippingPickup() { return this.shippingAddressId === 'pickup'; },
+				  incompleteAddressIds: {{ craft.fostercheckout.incompleteAddressIds(addresses)|json_encode }},
+				  get shippingAddressIncomplete() {
+				    return !parseInt(this.useNewAddress) && this.incompleteAddressIds.includes(Number(this.shippingAddressId));
+				  },
+				  openIncompleteAddress() {
+				    if ({{ canSaveAddresses ? 'true' : 'false' }} && this.shippingAddressIncomplete) {
+				      this.editExistingAddress = this.shippingAddressId;
+				    }
+				  },
 				}"
-				x-init="useNewAddress = Number(shippingAddressId) === 0 ? 1 : useNewAddress"
+				x-init="useNewAddress = Number(shippingAddressId) === 0 ? 1 : useNewAddress; openIncompleteAddress(); $watch('shippingAddressId', () => openIncompleteAddress())"
 				x-effect="
 				  $refs.postShipId.value = shippingPickup ? 0 : shippingAddressId;
 				  $refs.postUseNew.value = useNewAddress ? 1 : 0;
@@ -156,6 +165,7 @@
 
 							<div class="p-4">
 								<div{% if not addressDropdown %} class="xl:border xl:border-gray-250 xl:rounded-lg"{% endif %}>
+									{% include 'foster-checkout/_components/app/address-incomplete-notice' with { condition: 'shippingAddressIncomplete' } %}
 									{% if addressDropdown %}
 										{% include 'foster-checkout/checkout/_address-select' with { pickupAvailable: _pickupAvailable } %}
 									{% else %}
@@ -171,7 +181,7 @@
 															type="radio"
 															class="sr-only"
 															value="{{ address.id }}"
-															@change="useNewAddress = 0; editExistingAddress = 0"
+															@change="useNewAddress = 0; editExistingAddress = 0; openIncompleteAddress()"
 														/>
 														<label
 															for="address_{{ address.id }}"
@@ -244,7 +254,7 @@
 													class="sr-only"
 													x-model="shippingAddressId"
 													value="pickup"
-													@change="useNewAddress = 0; editExistingAddress = 0"
+													@change="useNewAddress = 0; editExistingAddress = 0; openIncompleteAddress()"
 												/>
 												<label
 													for="address_pickup"

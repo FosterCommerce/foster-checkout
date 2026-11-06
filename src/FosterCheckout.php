@@ -31,7 +31,6 @@ use craft\events\DefineRulesEvent;
 use craft\events\ModelEvent as ElementModelEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUserPermissionsEvent;
-use craft\fieldlayoutelements\BaseField;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
 use craft\helpers\UrlHelper;
 use craft\i18n\PhpMessageSource;
@@ -489,6 +488,11 @@ class FosterCheckout extends Plugin
 					return;
 				}
 
+				// Keep a blank phone's error on payment, since no later request checks it
+				if ($this->isPaymentRequest()) {
+					return;
+				}
+
 				$address = $event->sender;
 				if (! $address instanceof Address || ! $address->isFieldEmpty('phone')) {
 					return;
@@ -515,9 +519,7 @@ class FosterCheckout extends Plugin
 				}
 
 				// A cart is filled in a step at a time, so these are only required to pay
-				$action = $request->getBodyParam('action');
-
-				if (! is_string($action) || (! str_starts_with($action, 'commerce/payments/') && $action !== 'foster-checkout/partial-payment/complete')) {
+				if (! $this->isPaymentRequest()) {
 					return;
 				}
 
@@ -586,29 +588,14 @@ class FosterCheckout extends Plugin
 					return;
 				}
 
+				// Skip the rule while copying, since the copy's order reports what's missing and a throw would end the request
+				if ($address->duplicateOf instanceof Address || $this->isCopyingToOrder($request, $address)) {
+					return;
+				}
+
 				$layout = $address->getFieldLayout();
-				$settings = $this->getCheckout()->settings();
-				$isBilling = $this->isBillingOnlyAddress($address);
-				$hiddenAttributes = $isBilling
-					? [...$settings->hiddenAddressFields, ...$settings->hiddenBillingAddressFields]
-					: $settings->hiddenAddressFields;
-				$requiredAttributes = $isBilling ? $settings->requiredBillingAddressFields : $settings->requiredAddressFields;
 
-				// Match what the address form renders, since a rule on anything else can never be met
-				$renderedAttributes = array_map(
-					static fn (BaseField $layoutField): string => $layoutField->attribute(),
-					$layout?->getVisibleElementsByType(BaseField::class, $address) ?? []
-				);
-
-				foreach ($requiredAttributes as $requiredAttribute) {
-					if (! in_array($requiredAttribute, $renderedAttributes, true)) {
-						continue;
-					}
-
-					if (in_array($requiredAttribute, $hiddenAttributes, true)) {
-						continue;
-					}
-
+				foreach ($this->getCheckout()->requiredAddressAttributes($address, $this->isBillingOnlyAddress($address)) as $requiredAttribute) {
 					$field = $layout?->getFieldByHandle($requiredAttribute);
 
 					if ($field instanceof FieldInterface) {
@@ -626,6 +613,40 @@ class FosterCheckout extends Plugin
 				}
 			}
 		);
+	}
+
+	/**
+	 * Whether this address is on its way onto an order or already there, on a request that can't fill in its fields.
+	 */
+	private function isCopyingToOrder(WebRequest $request, Address $address): bool
+	{
+		if ($address->getPrimaryOwner() instanceof Order) {
+			$sentAddress = array_filter(array_intersect_key(
+				$request->getBodyParams(),
+				array_flip(['shippingAddress', 'billingAddress', 'shippingAddressId', 'billingAddressId'])
+			));
+
+			return $sentAddress === [] && ! $this->isPaymentRequest();
+		}
+		if ($this->actionRoute() === 'commerce/cart/update-cart') {
+			return true;
+		}
+		return $this->isPaymentRequest();
+	}
+
+	private function isPaymentRequest(): bool
+	{
+		$route = $this->actionRoute();
+
+		return str_starts_with($route, 'commerce/payments/') || $route === 'foster-checkout/partial-payment/complete';
+	}
+
+	private function actionRoute(): string
+	{
+		/** @var WebRequest $request */
+		$request = Craft::$app->getRequest();
+
+		return implode('/', $request->getActionSegments() ?? []);
 	}
 
 	/**
@@ -662,6 +683,7 @@ class FosterCheckout extends Plugin
 		$this->listUkCounties();
 		$this->keepCartPagesUncached();
 		$this->lockPaidCarts();
+		$this->selectSinglePageShippingMethod();
 		$this->serializePartialCheckoutPayments();
 		$this->registerPartialAuthorizations();
 		Event::on(Payments::class, Payments::EVENT_BEFORE_PROCESS_PAYMENT, function (ProcessPaymentEvent $event): void {
@@ -1098,6 +1120,23 @@ class FosterCheckout extends Plugin
 				$this->getCheckout()->applyCustomerAddresses($order, $request);
 			}
 		);
+	}
+
+	/**
+	 * Select the first shipping method during a single-page save, since autoSetShippingMethod() stops when the store setting is off.
+	 */
+	private function selectSinglePageShippingMethod(): void
+	{
+		Event::on(Order::class, Order::EVENT_BEFORE_SAVE, function (ElementModelEvent $event): void {
+			/** @var Order $order */
+			$order = $event->sender;
+
+			if ($order->isCompleted || ! in_array($order->shippingMethodHandle, [null, ''], true) || ! $this->cartUpdateRequest() instanceof WebRequest || ! $this->isSinglePageJsonRequest() || ! $order->getShippingAddress() instanceof Address || ! $order->hasShippableItems()) {
+				return;
+			}
+
+			$order->shippingMethodHandle = (string) array_key_first($order->getAvailableShippingMethodOptions());
+		});
 	}
 
 	private function cartUpdateRequest(): ?WebRequest

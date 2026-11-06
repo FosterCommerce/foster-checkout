@@ -114,6 +114,8 @@ return [
 	// Register page
 
 	// Shipping Address page
+	'address.incompleteCanEdit' => 'Il manque des informations obligatoires à cette adresse. Ajoutez-les pour l\'utiliser.',
+	'address.incompleteCannotEdit' => 'Il manque des informations obligatoires à cette adresse. Choisissez une autre adresse ou saisissez-en une nouvelle.',
 	'address.stepTitle' => 'Adresse de livraison',
 	'address.stepName' => 'Adresse de livraison',
 	'address.newAddress' => 'Nouvelle adresse de livraison',

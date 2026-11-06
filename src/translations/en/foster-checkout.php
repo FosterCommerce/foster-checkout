@@ -116,6 +116,8 @@ return [
 	// Register page
 
 	// Shipping Address page
+	'address.incompleteCanEdit' => 'This address is missing required details. Add them to use it.',
+	'address.incompleteCannotEdit' => 'This address is missing required details. Choose another address or enter a new one.',
 	'address.stepTitle' => 'Shipping Address',
 	'address.stepName' => 'Shipping address',
 	'address.newAddress' => 'New shipping address',

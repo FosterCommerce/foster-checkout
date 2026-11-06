@@ -39,6 +39,7 @@
 	</h3>
 
 	<div{% if not addressDropdown %} class="xl:border xl:border-gray-250 xl:rounded-lg"{% endif %}>
+		{% include 'foster-checkout/_components/app/address-incomplete-notice' with { condition: 'billingAddressIncomplete' } %}
 		{% if addressDropdown %}
 			{% include 'foster-checkout/checkout/single-page/_billing-select' %}
 		{% else %}
@@ -81,7 +82,7 @@
 							name="billingAddressId_radio"
 							x-model.number="billingAddressId"
 							value="{{ address.id }}"
-							@change="billingSameAsShipping = false; useNewBillingAddress = false; editBillingAddressId = 0"
+							@change="billingSameAsShipping = false; useNewBillingAddress = false; editBillingAddressId = 0; openIncompleteBillingAddress()"
 						>
 						<label
 							for="sp_bill_addr_{{ address.id }}"

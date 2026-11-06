@@ -115,6 +115,8 @@ return [
 	// Register page
 
 	// Shipping Address page
+	'address.incompleteCanEdit' => 'Faltan datos obligatorios en esta dirección. Añádelos para usarla.',
+	'address.incompleteCannotEdit' => 'Faltan datos obligatorios en esta dirección. Elige otra dirección o introduce una nueva.',
 	'address.stepTitle' => 'Dirección de envío',
 	'address.stepName' => 'Dirección de envío',
 	'address.newAddress' => 'Nueva dirección de envío',

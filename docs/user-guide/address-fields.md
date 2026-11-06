@@ -107,3 +107,7 @@ With a revoked key, an exhausted account or an unreachable provider, the checkou
 ### Limiting provider costs
 
 Both providers bill per lookup, and the endpoint that calls them is public. **Set a spending limit at the provider.** In Google Cloud, set a daily and a per-minute quota on the Places API. Loqate sells prepaid credit. The plugin sets no rate limit of its own.
+
+## Saved addresses missing a required field
+
+If you require a field after customers saved their addresses, the checkout still lists those addresses. When a customer selects one, its edit form opens, and they can't pay until they fill in the field. A customer who can't edit saved addresses sees a notice to choose another address or enter a new one. For the Twig function and for removing saved addresses from the shipping step, see [saved addresses for shipping](../dev-guide/shipping-addresses.md).

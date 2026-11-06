@@ -25,15 +25,16 @@
 	{% include 'foster-checkout/_components/app/subscribe-storage-key' %}
 
 	{% set addresses = craft.fostercheckout.customerAddresses(cart) %}
+	{% set shippingAddresses = craft.fostercheckout.shippingAddresses(cart) %}
 	{% set addressDropdown = addresses|length and craft.fostercheckout.settings.usesAddressDropdown(addresses|length) %}
-	{% set sourceId = cart.sourceShippingAddressId ?? null %}
+	{% set sourceId = cart.sourceShippingAddressId in shippingAddresses|map(address => address.id) ? cart.sourceShippingAddressId : null %}
 	{% set hasCartShip = cart.shippingAddressId is not empty %}
 	{% set hasBookAddresses = currentUser and addresses|length %}
 	{% set pickupAvailable = craft.fostercheckout.customerPickupAvailable(cart) %}
 	{% set customerPickup = craft.fostercheckout.isCustomerPickup(cart) %}
-	{# Open on the new address form when the book is empty, since no radio renders #}
-	{% set isNewAddress = not customerPickup and (not hasBookAddresses or ((sourceId is null) and hasCartShip)) %}
-	{% set initialShippingAddressId = customerPickup ? 'pickup' : (isNewAddress ? 0 : (sourceId ?? (addresses|length ? addresses|first.id : 0))) %}
+	{# Open on the new address form when the shipping list is empty, since no radio renders #}
+	{% set isNewAddress = not customerPickup and (not (currentUser and shippingAddresses|length) or ((sourceId is null) and hasCartShip)) %}
+	{% set initialShippingAddressId = customerPickup ? 'pickup' : (isNewAddress ? 0 : (sourceId ?? (shippingAddresses|length ? shippingAddresses|first.id : 0))) %}
 
 	{% set live = craft.fostercheckout.checkoutLiveState(cart) %}
 	{% set shippable = cart.hasShippableItems() %}
@@ -70,6 +71,9 @@
 		lineItemTotals: live.lineItemTotals,
 		billingSameAsShipping: (hasMatch and collectShipping and not customerPickup) ? true : false,
 		billingAddressId: hasMatch ? null : sourceBillId,
+		incompleteShippingAddressIds: craft.fostercheckout.incompleteAddressIds(shippingAddresses),
+		incompleteBillingAddressIds: craft.fostercheckout.incompleteAddressIds(addresses, true),
+		canSaveAddresses: craft.fostercheckout.canSaveAddresses(cart),
 		useNewBillingAddress: (isNewBilling or billingFormOnly) ? true : false,
 		gatewayId: null,
 		hasShippingAddress: cart.shippingAddressId ? true : false,

@@ -80,6 +80,15 @@
 				billingAddressId: {{ _initialBillingAddressId is not null ? _initialBillingAddressId : 'null' }},
 				newBillingAddress: {{ _initialNewBilling }},
 				editBillingAddressId: 0,
+				incompleteAddressIds: {{ craft.fostercheckout.incompleteAddressIds(addresses, true)|json_encode }},
+				get billingAddressIncomplete() {
+					return !parseInt(this.billingSameAsShipping) && !parseInt(this.newBillingAddress) && this.incompleteAddressIds.includes(Number(this.billingAddressId));
+				},
+				openIncompleteAddress() {
+					if ({{ canSaveAddresses ? 'true' : 'false' }} && this.billingAddressIncomplete) {
+						this.editBillingAddressId = this.billingAddressId;
+					}
+				},
 
 
 
@@ -91,7 +100,7 @@
 					if (this.$refs.postGateway) this.$refs.postGateway.value = this.gatewayId ?? '';
 				}
 				}"
-				x-init="syncHidden()"
+				x-init="syncHidden(); openIncompleteAddress(); $watch('billingAddressId', () => openIncompleteAddress())"
 				x-effect="syncHidden()"
 				class="pb-8 border-b border-gray-300 lg:pb-0 lg:border-b-0">
 
@@ -144,6 +153,7 @@
 											<input type="hidden" x-ref="postBillingId" name="billingAddressId" value="">
 											<input type="hidden" x-ref="postNewBilling" name="useNewBillingAddress" value="">
 
+											{% include 'foster-checkout/_components/app/address-incomplete-notice' with { condition: 'billingAddressIncomplete' } %}
 											{% if addressDropdown %}
 												{% include 'foster-checkout/checkout/_billing-address-select' with { offerSameAsShipping: _offerSameAsShipping } %}
 											{% else %}
@@ -185,7 +195,7 @@
 																name="billingAddressId_radio"
 																x-model.number="billingAddressId"
 																value="{{ address.id }}"
-																@change="billingSameAsShipping = 0; newBillingAddress = 0; editBillingAddressId = 0"
+																@change="billingSameAsShipping = 0; newBillingAddress = 0; editBillingAddressId = 0; openIncompleteAddress()"
 															>
 															<label
 																for="bill_addr_{{ address.id }}"

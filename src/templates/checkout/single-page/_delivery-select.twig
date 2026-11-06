@@ -1,4 +1,4 @@
-{% set savedAddressOptions = craft.fostercheckout.savedAddressOptions(addresses)|merge([{ value: 'new', label: 'address.newAddress'|t('foster-checkout') }]) %}
+{% set savedAddressOptions = craft.fostercheckout.savedAddressOptions(shippingAddresses)|merge([{ value: 'new', label: 'address.newAddress'|t('foster-checkout') }]) %}
 {% if pickupAvailable %}
 	{% set savedAddressOptions = savedAddressOptions|merge([{ value: 'pickup', label: craft.fostercheckout.customerPickupLabel() }]) %}
 {% endif %}
@@ -33,7 +33,7 @@
 		{% endif %}
 	</div>
 
-	{% include 'foster-checkout/checkout/single-page/_saved-address-edit' with { addresses: addresses, editState: 'editExistingAddress' } %}
+	{% include 'foster-checkout/checkout/single-page/_saved-address-edit' with { addresses: shippingAddresses, editState: 'editExistingAddress' } %}
 
 	{% if pickupAvailable %}
 		<template x-if="shippingPickup">

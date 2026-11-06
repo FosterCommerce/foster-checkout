@@ -5,11 +5,13 @@
 ### Added
 
 - Added the “Enable saved payment methods” and “Saved payment method display” settings, which let a signed-in customer paying with Stripe choose a saved payment method or save a new one. Saved payment methods are off after updating.
-- Added a loading message to the Stripe payment form.
+- Added a loading placeholder to the Stripe payment form.
 - Added the “Delete cleared carts” setting, which moves a cleared cart to the trash. The setting is off after updating.
 - Added the `foster-checkout/cart/delete` action.
 - Added the `Checkout::EVENT_DEFINE_SAVED_PAYMENT_SOURCES` event, for changing which saved payment methods the checkout lists or hiding the save checkbox.
 - Added `craft.fostercheckout.savedPaymentSources()`.
+- Added `craft.fostercheckout.incompleteAddressIds()`. A saved address missing a required field now opens its edit form when selected, and can't be paid with until it's updated.
+- Added the `Checkout::EVENT_DEFINE_SHIPPING_ADDRESSES` event and `craft.fostercheckout.shippingAddresses()`, for removing saved addresses from the shipping step.
 - Added `craft.fostercheckout.orderDiscounts()`, `craft.fostercheckout.otherAdjustments()`, and `craft.fostercheckout.afterTaxDiscounts()`, for the rows of an order summary.
 - Added the “Notes for each shipping method” setting, for a note shown under a shipping method's name.
 - Added the `Checkout::EVENT_DEFINE_SHIPPING_METHOD_NOTE` event and `craft.fostercheckout.shippingMethodNote()`, for changing the line shown under a shipping method.
@@ -31,6 +33,7 @@
 - On the single-page checkout, a checkout field now saves even while its panel is incomplete.
 - The single-page checkout no longer asks for a billing address on an order totaling zero, unless “Require Billing Address At Checkout” is on.
 - The single-page checkout no longer preselects a gateway when more than one is available.
+- The single-page checkout now selects the first shipping method in the same save as the shipping address, whatever “Auto Set Cart Shipping Method Option” says.
 - Cart line items now show the percent or amount off from Advanced Discounts, such as “20% off” or “$5.00 off each”, instead of “Sale”.
 - “Zero value gateways” no longer lists Stripe, PayPal, Authorize.net or Mollie gateways, and the checkout no longer uses them on an order totaling zero. If the list held only those gateways, add a Manual gateway to keep taking orders totaling zero.
 - Saved address dropdowns now show each address on two lines.

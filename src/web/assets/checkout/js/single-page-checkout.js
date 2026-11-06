@@ -126,6 +126,9 @@ export const SinglePageCheckout = (props) => {
 		stripeMountedTotal: null,
 		editExistingAddress: 0,
 		editBillingAddressId: 0,
+		incompleteShippingAddressIds: props.incompleteShippingAddressIds,
+		incompleteBillingAddressIds: props.incompleteBillingAddressIds,
+		canSaveAddresses: props.canSaveAddresses,
 		gatewayId: props.gatewayId,
 		emailNeededLabel: props.emailNeededLabel ?? '',
 		addressPhoneFieldHandle: props.addressPhoneFieldHandle ?? '',
@@ -157,7 +160,7 @@ export const SinglePageCheckout = (props) => {
 		paypalInvalidated: false,
 		stripeInvalidated: false,
 		stripeMountPending: false,
-		stripeMountSlow: false,
+		stripeFormLoading: false,
 		stripeMountNumber: 0,
 		paying: false,
 		onPageShow: null,
@@ -174,6 +177,14 @@ export const SinglePageCheckout = (props) => {
 			// $root is relative to the element evaluating it, so it is pinned here to the component root
 			this.rootEl = this.$root;
 			this.paymentFormEl = this.$refs.paymentForm;
+
+			this.openIncompleteAddresses();
+			this.$watch('shippingAddressId', () =>
+				this.openIncompleteShippingAddress()
+			);
+			this.$watch('billingAddressId', () =>
+				this.openIncompleteBillingAddress()
+			);
 
 			// Record the values the page loaded with, so leaving an unchanged field doesn't save it.
 			// Wait a tick, since the billing fields render from an x-if template after this runs.
@@ -366,6 +377,46 @@ export const SinglePageCheckout = (props) => {
 			return this.pickupAvailable && this.shippingAddressId === 'pickup';
 		},
 
+		get shippingAddressIncomplete() {
+			return (
+				!this.useNewAddress &&
+				this.incompleteShippingAddressIds.includes(
+					Number(this.shippingAddressId)
+				)
+			);
+		},
+
+		get billingAddressIncomplete() {
+			return (
+				!this.billingSameAsShipping &&
+				!this.useNewBillingAddress &&
+				this.incompleteBillingAddressIds.includes(Number(this.billingAddressId))
+			);
+		},
+
+		openIncompleteShippingAddress() {
+			if (this.canSaveAddresses && this.shippingAddressIncomplete) {
+				this.editExistingAddress = this.shippingAddressId;
+				this.editBillingAddressId = 0;
+			}
+		},
+
+		openIncompleteBillingAddress() {
+			if (this.canSaveAddresses && this.billingAddressIncomplete) {
+				this.editBillingAddressId = this.billingAddressId;
+				this.editExistingAddress = 0;
+			}
+		},
+
+		// Open one form at a time, as the edit buttons do
+		openIncompleteAddresses() {
+			this.openIncompleteShippingAddress();
+
+			if (!parseInt(this.editExistingAddress, 10)) {
+				this.openIncompleteBillingAddress();
+			}
+		},
+
 		get shippingChoice() {
 			return this.useNewAddress ? 'new' : String(this.shippingAddressId);
 		},
@@ -473,6 +524,8 @@ export const SinglePageCheckout = (props) => {
 				!this.$store.partialPayments.busy &&
 				!this.saveTimer &&
 				this.statusTone !== 'error' &&
+				!this.shippingAddressIncomplete &&
+				!this.billingAddressIncomplete &&
 				this.hasEmail &&
 				this.hasShippingSelection &&
 				(this.cartHasShippingAddress || !this.collectShipping) &&

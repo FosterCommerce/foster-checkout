@@ -114,6 +114,8 @@ return [
 	// Register page
 
 	// Shipping Address page
+	'address.incompleteCanEdit' => 'Bei dieser Adresse fehlen Pflichtangaben. Ergänzen Sie sie, um die Adresse zu verwenden.',
+	'address.incompleteCannotEdit' => 'Bei dieser Adresse fehlen Pflichtangaben. Wählen Sie eine andere Adresse oder geben Sie eine neue ein.',
 	'address.stepTitle' => 'Lieferadresse',
 	'address.stepName' => 'Lieferadresse',
 	'address.newAddress' => 'Neue Lieferadresse',

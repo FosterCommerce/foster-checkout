@@ -61,10 +61,11 @@
 		{% endset %}
 
 		<div{% if not addressDropdown %} class="xl:border xl:border-gray-250 xl:rounded-lg"{% endif %}>
+			{% include 'foster-checkout/_components/app/address-incomplete-notice' with { condition: 'shippingAddressIncomplete' } %}
 			{% if addressDropdown %}
 				{% include 'foster-checkout/checkout/single-page/_delivery-select' %}
-			{% elseif (currentUser and addresses|length) or pickupAvailable %}
-				{% for address in addresses %}
+			{% elseif (currentUser and shippingAddresses|length) or pickupAvailable %}
+				{% for address in shippingAddresses %}
 					<div class="p-4 border-b border-gray-250" :class="{ 'bg-gray-100': parseInt(shippingAddressId) === {{ address.id }} && !useNewAddress }">
 						<div class="flex justify-between items-center gap-4 radio">
 							<input
@@ -74,7 +75,7 @@
 								type="radio"
 								class="sr-only"
 								value="{{ address.id }}"
-								@change="useNewAddress = false; editExistingAddress = 0"
+								@change="useNewAddress = false; editExistingAddress = 0; openIncompleteShippingAddress()"
 							/>
 							<label
 								for="sp_address_{{ address.id }}"
