@@ -130,8 +130,7 @@
 			{% if floatingLabel %}
 				<label
 					:id="labelId()"
-					class="absolute left-3 right-10 top-1.5 truncate text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400"
-					@click="openListbox()"
+					class="absolute left-3 right-10 top-1.5 truncate text-xs text-gray-500 pointer-events-none transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400"
 				>
 					{{ label ~ (required|default ? '*' : '') }}
 				</label>

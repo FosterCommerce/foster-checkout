@@ -3,6 +3,9 @@ const CARD_FIELDS = ['number', 'month', 'year', 'cvv'];
 // Treat an older mount as failed, since Commerce Stripe's pay request has no error handler
 const STRIPE_MOUNT_LIMIT_MS = 15000;
 
+const STRIPE_LOADING_DELAY_MS = 3000;
+const STRIPE_LOADING_LIMIT_MS = 60000;
+
 // Accept.js response codes, from Authorize.net's API reference
 const AUTHORIZE_ERROR_FIELDS = {
 	E_WC_04: 'number',
@@ -12,6 +15,66 @@ const AUTHORIZE_ERROR_FIELDS = {
 	E_WC_08: 'year',
 	E_WC_15: 'cvv',
 };
+
+const stripeFormRendered = (form) =>
+	Boolean(
+		form.querySelector('.stripe-payment-element')?.childElementCount ||
+		form.querySelector('.stripe-error-message')?.textContent?.trim()
+	);
+
+const whenStripeFormSettles = (form, isSettled, limitMs, onSettled) => {
+	const finish = () => {
+		observer.disconnect();
+		clearTimeout(timer);
+		onSettled();
+	};
+	const observer = new MutationObserver(() => {
+		if (isSettled()) {
+			finish();
+		}
+	});
+	const timer = setTimeout(finish, limitMs);
+
+	observer.observe(form, {
+		childList: true,
+		subtree: true,
+		characterData: true,
+	});
+};
+
+// Time the message apart from stripeMountPending, which clears at its limit during a slow pay request
+const showLoadingWhileStripeRenders = (form, setSlow) => {
+	const showTimer = setTimeout(() => setSlow(true), STRIPE_LOADING_DELAY_MS);
+
+	setSlow(false);
+	whenStripeFormSettles(
+		form,
+		() => stripeFormRendered(form),
+		STRIPE_LOADING_LIMIT_MS,
+		() => {
+			clearTimeout(showTimer);
+			setSlow(false);
+		}
+	);
+};
+
+// Loading message for the multi-page payment step, which has no SinglePageCheckout component
+export const StripeLoadingMessage = () => ({
+	stripeMountSlow: false,
+
+	init() {
+		const form = this.$el.querySelector('.stripe-payment-elements-form');
+
+		// Skip another payment form type, since EVENT_DEFINE_PAYMENT_FORM_PARAMS can replace the elements form
+		if (!form) {
+			return;
+		}
+
+		showLoadingWhileStripeRenders(form, (slow) => {
+			this.stripeMountSlow = slow;
+		});
+	},
+});
 
 /**
  * Payment gateway forms, and the card fields Authorize.net injects.
@@ -520,38 +583,25 @@ export const gatewayHandling = () => ({
 		return (
 			Boolean(form.handlerInstance) &&
 			Date.now() - (form.mountStartedAt ?? 0) < STRIPE_MOUNT_LIMIT_MS &&
-			!form.querySelector('.stripe-payment-element')?.childElementCount &&
-			!form.querySelector('.stripe-error-message')?.textContent?.trim()
+			!stripeFormRendered(form)
 		);
 	},
 
-	// Keep the observer and timer on the form rather than in Alpine state, since a reactive proxy breaks the observer's methods
 	remountStripeWhenRendered(form) {
-		if (form.remountObserver) {
+		if (form.remountPending) {
 			return;
 		}
 
-		const remount = () => {
-			form.remountObserver.disconnect();
-			form.remountObserver = null;
-			clearTimeout(form.remountTimer);
-			this.scheduleStripeReinit();
-		};
-
-		form.remountObserver = new MutationObserver(() => {
-			if (!this.stripeMountInFlight(form)) {
-				remount();
+		form.remountPending = true;
+		whenStripeFormSettles(
+			form,
+			() => !this.stripeMountInFlight(form),
+			form.mountStartedAt + STRIPE_MOUNT_LIMIT_MS - Date.now(),
+			() => {
+				form.remountPending = false;
+				this.scheduleStripeReinit();
 			}
-		});
-		form.remountTimer = setTimeout(
-			remount,
-			form.mountStartedAt + STRIPE_MOUNT_LIMIT_MS - Date.now()
 		);
-		form.remountObserver.observe(form, {
-			childList: true,
-			subtree: true,
-			characterData: true,
-		});
 	},
 
 	maybeReinitStripeCheckout() {
@@ -581,30 +631,28 @@ export const gatewayHandling = () => ({
 		form.mountStartedAt = Date.now();
 		this.stripeMountPending = true;
 		this.stripeMountNumber += 1;
+		const mountNumber = this.stripeMountNumber;
 		initStripe();
-		this.clearPendingWhenMounted(form, this.stripeMountNumber);
+		this.clearPendingWhenMounted(form, mountNumber);
+		showLoadingWhileStripeRenders(form, (slow) => {
+			if (this.stripeMountNumber === mountNumber) {
+				this.stripeMountSlow = slow;
+			}
+		});
 	},
 
 	// Clear the flag only for the latest mount, since an earlier mount's timer can fire during a later one
 	clearPendingWhenMounted(form, mountNumber) {
-		const release = () => {
-			observer.disconnect();
-			clearTimeout(timer);
-			if (this.stripeMountNumber === mountNumber) {
-				this.stripeMountPending = false;
+		whenStripeFormSettles(
+			form,
+			() => !this.stripeMountInFlight(form),
+			STRIPE_MOUNT_LIMIT_MS,
+			() => {
+				if (this.stripeMountNumber === mountNumber) {
+					this.stripeMountPending = false;
+				}
 			}
-		};
-		const observer = new MutationObserver(() => {
-			if (!this.stripeMountInFlight(form)) {
-				release();
-			}
-		});
-		const timer = setTimeout(release, STRIPE_MOUNT_LIMIT_MS);
-		observer.observe(form, {
-			childList: true,
-			subtree: true,
-			characterData: true,
-		});
+		);
 	},
 
 	restoreStripeIfSkipped() {

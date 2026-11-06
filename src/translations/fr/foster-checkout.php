@@ -1,6 +1,7 @@
 <?php
 
 return [
+	// Partial payments
 	'partialPayment.remove' => 'Retirer',
 	'partialPayment.failed' => 'Impossible de mettre à jour le paiement par compte. Veuillez réessayer.',
 	'partialPayment.removeToEdit' => 'Retirez le paiement appliqué avant de modifier votre panier, vos informations de livraison ou vos bons d’achat.',
@@ -23,7 +24,7 @@ return [
 	'partialPayment.methodNoLongerAvailable' => 'Ce moyen de paiement n’est plus disponible.',
 	'partialPayment.unableToComplete' => 'Impossible de finaliser cette commande pour le moment.',
 	'partialPayment.completeFailed' => 'La commande n’a pas pu être finalisée. Vérifiez les informations saisies lors du paiement.',
-	'partialPayment.completeDetails' => 'Complétez les informations nécessaires à la commande avant d’appliquer ce paiement.',
+	'partialPayment.completeDetails' => 'Complétez d’abord les informations nécessaires à la commande.',
 	'partialPayment.paymentCanceled' => 'Paiement annulé avant modification du paiement appliqué.',
 	'partialPayment.canceledSaveFailed' => 'Le paiement annulé n’a pas pu être enregistré.',
 	'partialPayment.paymentInProgress' => 'Un autre paiement est en cours. Terminez-le ou annulez-le avant de modifier le paiement appliqué.',
@@ -160,6 +161,7 @@ return [
 	'payment.paymentMethod' => 'Moyen de paiement',
 	'payment.payButtonText' => 'Payer',
 	'payment.completeOrder' => 'Finaliser la commande',
+	'payment.loadingForm' => 'Chargement du formulaire de paiement…',
 	'payment.processing' => 'Veuillez patienter pendant le traitement de votre paiement.',
 	'payment.placingOrder' => 'Veuillez patienter pendant que nous enregistrons votre commande.',
 	'payment.cardNumberError' => 'Saisissez un numéro de carte valide.',
@@ -398,6 +400,7 @@ return [
 	'settings.gateways.labelHelp' => 'Laissez vide pour utiliser le nom de la passerelle.',
 	'settings.gateways.netTermsTitle' => 'Net Terms',
 	'settings.gateways.useAsPartialPaymentStep' => 'Utiliser comme étape de paiement partiel',
+	'settings.gateways.useAsPartialPaymentStepHelp' => 'Affiche cette passerelle comme une étape de paiement partiel au lieu d’un moyen de paiement. L’étape nécessite le type de paiement **Purchase (bill on invoices)** et un montant fourni par un module du site.',
 	'settings.gateways.paypalTitle' => 'PayPal',
 	'settings.gateways.paypalDisableFunding' => 'Sources de financement masquées',
 	'settings.gateways.paypalDisableFundingHelp' => 'Sources de financement que PayPal n’affichera pas sur ses boutons. [Voir les options dans la documentation PayPal](https://developer.paypal.com/sdk/js/configuration/#disable-funding).',

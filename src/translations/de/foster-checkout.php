@@ -1,6 +1,7 @@
 <?php
 
 return [
+	// Partial payments
 	'partialPayment.remove' => 'Entfernen',
 	'partialPayment.failed' => 'Die Kontozahlung konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.',
 	'partialPayment.removeToEdit' => 'Entfernen Sie die angewendete Zahlung, bevor Sie Ihren Warenkorb, die Lieferdaten oder Gutscheine ändern.',
@@ -23,7 +24,7 @@ return [
 	'partialPayment.methodNoLongerAvailable' => 'Die Zahlungsmethode ist nicht mehr verfügbar.',
 	'partialPayment.unableToComplete' => 'Diese Bestellung kann derzeit nicht abgeschlossen werden.',
 	'partialPayment.completeFailed' => 'Die Bestellung konnte nicht abgeschlossen werden. Prüfen Sie Ihre Angaben zur Bestellung.',
-	'partialPayment.completeDetails' => 'Vervollständigen Sie Ihre Angaben zur Bestellung, bevor Sie diese Zahlung anwenden.',
+	'partialPayment.completeDetails' => 'Vervollständigen Sie zuerst Ihre Angaben zur Bestellung.',
 	'partialPayment.paymentCanceled' => 'Zahlung vor Änderung der angewendeten Zahlung storniert.',
 	'partialPayment.canceledSaveFailed' => 'Die stornierte Zahlung konnte nicht gespeichert werden.',
 	'partialPayment.paymentInProgress' => 'Eine andere Zahlung wird gerade bearbeitet. Schließen Sie diese Zahlung ab oder stornieren Sie sie, bevor Sie die angewendete Zahlung ändern.',
@@ -160,6 +161,7 @@ return [
 	'payment.paymentMethod' => 'Zahlungsart',
 	'payment.payButtonText' => 'Bezahlen',
 	'payment.completeOrder' => 'Bestellung abschließen',
+	'payment.loadingForm' => 'Zahlungsformular wird geladen…',
 	'payment.processing' => 'Bitte warten Sie, während wir die Zahlung verarbeiten.',
 	'payment.placingOrder' => 'Bitte warten Sie, während wir Ihre Bestellung aufgeben.',
 	'payment.cardNumberError' => 'Geben Sie eine gültige Kartennummer ein.',
@@ -398,6 +400,7 @@ return [
 	'settings.gateways.labelHelp' => 'Leer lassen, um den eigenen Namen des Zahlungsanbieters zu verwenden.',
 	'settings.gateways.netTermsTitle' => 'Net Terms',
 	'settings.gateways.useAsPartialPaymentStep' => 'Als Teilzahlungsschritt verwenden',
+	'settings.gateways.useAsPartialPaymentStepHelp' => 'Zeigt dieses Gateway als Teilzahlungsschritt statt als Zahlungsmethode an. Der Schritt benötigt die Zahlungsart **Purchase (bill on invoices)** und einen Betrag aus einem Website-Modul.',
 	'settings.gateways.paypalTitle' => 'PayPal',
 	'settings.gateways.paypalDisableFunding' => 'Ausgeblendete Zahlungsquellen',
 	'settings.gateways.paypalDisableFundingHelp' => 'Zahlungsquellen, die PayPal auf seinen Buttons nicht anbietet. [Optionen in der PayPal-Dokumentation](https://developer.paypal.com/sdk/js/configuration/#disable-funding).',

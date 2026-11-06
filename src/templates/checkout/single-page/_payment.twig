@@ -384,6 +384,8 @@
 																{% include 'foster-checkout/_components/app/save-payment-source-checkbox' %}
 															{% endif %}
 
+															{% include 'foster-checkout/_components/app/stripe-loading-message' %}
+
 															{% namespace gateway.handle|commercePaymentFormNamespace %}
 																{{ gateway.getPaymentFormHtml(params)|raw }}
 															{% endnamespace %}

@@ -5100,9 +5100,6 @@ const PartialPaymentControls = () => ({
   get busy() {
     return this.$store.partialPayments.busy;
   },
-  get error() {
-    return this.$store.partialPayments.error;
-  },
   async submitPartialPayment(form) {
     if (this.busy) {
       return;
@@ -6607,6 +6604,8 @@ const cartPersistence = () => ({
 });
 const CARD_FIELDS = ["number", "month", "year", "cvv"];
 const STRIPE_MOUNT_LIMIT_MS = 15e3;
+const STRIPE_LOADING_DELAY_MS = 3e3;
+const STRIPE_LOADING_LIMIT_MS = 6e4;
 const AUTHORIZE_ERROR_FIELDS = {
   E_WC_04: "number",
   E_WC_05: "number",
@@ -6615,6 +6614,52 @@ const AUTHORIZE_ERROR_FIELDS = {
   E_WC_08: "year",
   E_WC_15: "cvv"
 };
+const stripeFormRendered = (form) => Boolean(
+  form.querySelector(".stripe-payment-element")?.childElementCount || form.querySelector(".stripe-error-message")?.textContent?.trim()
+);
+const whenStripeFormSettles = (form, isSettled, limitMs, onSettled) => {
+  const finish = () => {
+    observer2.disconnect();
+    clearTimeout(timer);
+    onSettled();
+  };
+  const observer2 = new MutationObserver(() => {
+    if (isSettled()) {
+      finish();
+    }
+  });
+  const timer = setTimeout(finish, limitMs);
+  observer2.observe(form, {
+    childList: true,
+    subtree: true,
+    characterData: true
+  });
+};
+const showLoadingWhileStripeRenders = (form, setSlow) => {
+  const showTimer = setTimeout(() => setSlow(true), STRIPE_LOADING_DELAY_MS);
+  setSlow(false);
+  whenStripeFormSettles(
+    form,
+    () => stripeFormRendered(form),
+    STRIPE_LOADING_LIMIT_MS,
+    () => {
+      clearTimeout(showTimer);
+      setSlow(false);
+    }
+  );
+};
+const StripeLoadingMessage = () => ({
+  stripeMountSlow: false,
+  init() {
+    const form = this.$el.querySelector(".stripe-payment-elements-form");
+    if (!form) {
+      return;
+    }
+    showLoadingWhileStripeRenders(form, (slow) => {
+      this.stripeMountSlow = slow;
+    });
+  }
+});
 const gatewayHandling = () => ({
   async onPaySubmit(event) {
     if (event.submitter?.id?.endsWith("authorizeSubmit")) {
@@ -6973,33 +7018,22 @@ const gatewayHandling = () => ({
     });
   },
   stripeMountInFlight(form) {
-    return Boolean(form.handlerInstance) && Date.now() - (form.mountStartedAt ?? 0) < STRIPE_MOUNT_LIMIT_MS && !form.querySelector(".stripe-payment-element")?.childElementCount && !form.querySelector(".stripe-error-message")?.textContent?.trim();
+    return Boolean(form.handlerInstance) && Date.now() - (form.mountStartedAt ?? 0) < STRIPE_MOUNT_LIMIT_MS && !stripeFormRendered(form);
   },
-  // Keep the observer and timer on the form rather than in Alpine state, since a reactive proxy breaks the observer's methods
   remountStripeWhenRendered(form) {
-    if (form.remountObserver) {
+    if (form.remountPending) {
       return;
     }
-    const remount = () => {
-      form.remountObserver.disconnect();
-      form.remountObserver = null;
-      clearTimeout(form.remountTimer);
-      this.scheduleStripeReinit();
-    };
-    form.remountObserver = new MutationObserver(() => {
-      if (!this.stripeMountInFlight(form)) {
-        remount();
+    form.remountPending = true;
+    whenStripeFormSettles(
+      form,
+      () => !this.stripeMountInFlight(form),
+      form.mountStartedAt + STRIPE_MOUNT_LIMIT_MS - Date.now(),
+      () => {
+        form.remountPending = false;
+        this.scheduleStripeReinit();
       }
-    });
-    form.remountTimer = setTimeout(
-      remount,
-      form.mountStartedAt + STRIPE_MOUNT_LIMIT_MS - Date.now()
     );
-    form.remountObserver.observe(form, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
   },
   maybeReinitStripeCheckout() {
     if (!this.stripeInvalidated) {
@@ -7021,29 +7055,27 @@ const gatewayHandling = () => ({
     form.mountStartedAt = Date.now();
     this.stripeMountPending = true;
     this.stripeMountNumber += 1;
+    const mountNumber = this.stripeMountNumber;
     initStripe();
-    this.clearPendingWhenMounted(form, this.stripeMountNumber);
+    this.clearPendingWhenMounted(form, mountNumber);
+    showLoadingWhileStripeRenders(form, (slow) => {
+      if (this.stripeMountNumber === mountNumber) {
+        this.stripeMountSlow = slow;
+      }
+    });
   },
   // Clear the flag only for the latest mount, since an earlier mount's timer can fire during a later one
   clearPendingWhenMounted(form, mountNumber) {
-    const release2 = () => {
-      observer2.disconnect();
-      clearTimeout(timer);
-      if (this.stripeMountNumber === mountNumber) {
-        this.stripeMountPending = false;
+    whenStripeFormSettles(
+      form,
+      () => !this.stripeMountInFlight(form),
+      STRIPE_MOUNT_LIMIT_MS,
+      () => {
+        if (this.stripeMountNumber === mountNumber) {
+          this.stripeMountPending = false;
+        }
       }
-    };
-    const observer2 = new MutationObserver(() => {
-      if (!this.stripeMountInFlight(form)) {
-        release2();
-      }
-    });
-    const timer = setTimeout(release2, STRIPE_MOUNT_LIMIT_MS);
-    observer2.observe(form, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
+    );
   },
   restoreStripeIfSkipped() {
     if (this.stripeInvalidated && !this.saving && !this.saveTimer) {
@@ -7215,6 +7247,7 @@ const SinglePageCheckout = (props) => {
     paypalInvalidated: false,
     stripeInvalidated: false,
     stripeMountPending: false,
+    stripeMountSlow: false,
     stripeMountNumber: 0,
     paying: false,
     onPageShow: null,
@@ -8862,6 +8895,11 @@ const enhanceCardFields = () => {
 enhanceCardFields();
 module_default$1.plugin(module_default);
 module_default$1.store("partialPayments", { busy: false, error: "" });
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) {
+    module_default$1.store("partialPayments").busy = false;
+  }
+});
 module_default$1.data("ScrollableItems", ScrollableItems);
 module_default$1.data("SimpleField", SimpleField);
 module_default$1.data("NewsletterSignup", NewsletterSignup);
@@ -8874,5 +8912,6 @@ module_default$1.data("SinglePageCheckout", SinglePageCheckout);
 module_default$1.data("PartialPaymentControls", PartialPaymentControls);
 module_default$1.data("AddressVerification", AddressVerification);
 module_default$1.data("AddressAutocomplete", AddressAutocomplete);
+module_default$1.data("StripeLoadingMessage", StripeLoadingMessage);
 window.Alpine = module_default$1;
 module_default$1.start();

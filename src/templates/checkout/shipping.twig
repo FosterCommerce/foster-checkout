@@ -58,7 +58,7 @@
 
 						{{ actionInput('commerce/cart/update-cart') }}
 
-						<input type="hidden" x-ref="postShipMethod" name="shippingMethodHandle" value="{{ _initialHandle|e('js') }}">
+						<input type="hidden" x-ref="postShipMethod" name="shippingMethodHandle" value="{{ _initialHandle }}">
 
 						{% if optionCount >= 1 %}
 							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/billing') }}

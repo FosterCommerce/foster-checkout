@@ -24,7 +24,7 @@
 					placeholder="{{ floatingLabel ? ' ' : 'summary.addOrderNote'|t('foster-checkout') }}"
 				>{{ currentValue }}</textarea>
 				{% if floatingLabel %}
-					<label for="orderNote" class="absolute left-3 right-3 top-1.5 truncate text-xs text-gray-500 transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400">{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</label>
+					<label for="orderNote" class="absolute left-3 right-3 top-1.5 truncate text-xs text-gray-500 pointer-events-none transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400">{{ 'summary.orderNoteHeading'|t('foster-checkout') }}</label>
 				{% endif %}
 			</div>
 		</form>

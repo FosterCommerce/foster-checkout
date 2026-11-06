@@ -157,6 +157,7 @@ export const SinglePageCheckout = (props) => {
 		paypalInvalidated: false,
 		stripeInvalidated: false,
 		stripeMountPending: false,
+		stripeMountSlow: false,
 		stripeMountNumber: 0,
 		paying: false,
 		onPageShow: null,

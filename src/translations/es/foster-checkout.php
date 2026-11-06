@@ -1,6 +1,7 @@
 <?php
 
 return [
+	// Partial payments
 	'partialPayment.remove' => 'Quitar',
 	'partialPayment.failed' => 'No se pudo actualizar el pago con la cuenta. Inténtalo de nuevo.',
 	'partialPayment.removeToEdit' => 'Quita el pago aplicado antes de cambiar tu carrito, los datos de entrega o los vales.',
@@ -23,7 +24,7 @@ return [
 	'partialPayment.methodNoLongerAvailable' => 'El método de pago ya no está disponible.',
 	'partialPayment.unableToComplete' => 'No se puede completar este pedido en este momento.',
 	'partialPayment.completeFailed' => 'No se pudo completar el pedido. Revisa los datos de la compra.',
-	'partialPayment.completeDetails' => 'Completa los datos de la compra antes de aplicar este pago.',
+	'partialPayment.completeDetails' => 'Completa primero los datos de la compra.',
 	'partialPayment.paymentCanceled' => 'Pago cancelado antes de modificar el pago aplicado.',
 	'partialPayment.canceledSaveFailed' => 'No se pudo guardar el pago cancelado.',
 	'partialPayment.paymentInProgress' => 'Hay otro pago en curso. Complétalo o cancélalo antes de modificar el pago aplicado.',
@@ -161,6 +162,7 @@ return [
 	'payment.paymentMethod' => 'Método de pago',
 	'payment.payButtonText' => 'Pagar',
 	'payment.completeOrder' => 'Completar pedido',
+	'payment.loadingForm' => 'Cargando el formulario de pago…',
 	'payment.processing' => 'Espera mientras procesamos el pago.',
 	'payment.placingOrder' => 'Espera mientras registramos tu pedido.',
 	'payment.cardNumberError' => 'Introduce un número de tarjeta válido.',
@@ -399,6 +401,7 @@ return [
 	'settings.gateways.labelHelp' => 'Déjalo en blanco para usar el nombre propio de la pasarela.',
 	'settings.gateways.netTermsTitle' => 'Net Terms',
 	'settings.gateways.useAsPartialPaymentStep' => 'Usar como paso de pago parcial',
+	'settings.gateways.useAsPartialPaymentStepHelp' => 'Muestra esta pasarela como un paso de pago parcial en lugar de un método de pago. El paso necesita el tipo de pago **Purchase (bill on invoices)** y un importe de un módulo del sitio.',
 	'settings.gateways.paypalTitle' => 'PayPal',
 	'settings.gateways.paypalDisableFunding' => 'Fuentes de pago ocultas',
 	'settings.gateways.paypalDisableFundingHelp' => 'Fuentes de pago que PayPal no ofrecerá en sus botones. [Consulta las opciones en la documentación de PayPal](https://developer.paypal.com/sdk/js/configuration/#disable-funding).',

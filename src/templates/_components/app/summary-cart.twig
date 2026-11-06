@@ -69,17 +69,15 @@
 			<div x-data="PartialPaymentControls()" class="flex flex-wrap justify-between items-center gap-4">
 				<dt class="text-gray-500">{{ payment.summaryLabel }}</dt>
 				<dd class="text-right text-red-500">
-					<form method="post" class="inline" data-error-message="{{ 'partialPayment.failed'|t('foster-checkout') }}">
+					<form method="post" class="inline" @submit="$store.partialPayments.busy = true">
 						{{ csrfInput() }}
 						{{ actionInput('foster-checkout/partial-payment/remove') }}
 						{{ hiddenInput('gatewayId', payment.gateway.id) }}
-						{{ hiddenInput('accountId', payment.accountId) }}
 						{{ hiddenInput('transactionId', payment.transactionId) }}
 						<button type="submit" :disabled="busy" :aria-disabled="busy" :class="busy ? 'opacity-50 cursor-not-allowed' : ''" class="mr-2 text-sm underline text-gray-500">{{ 'partialPayment.remove'|t('foster-checkout') }}</button>
 					</form>
 					<span>{{ (-payment.applied)|currency(cart.currency) }}</span>
 				</dd>
-				<p x-show="error" x-cloak class="w-full text-sm text-red-500" role="alert" x-text="error"></p>
 			</div>
 		{% endfor %}
 

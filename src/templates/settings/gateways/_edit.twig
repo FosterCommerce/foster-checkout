@@ -148,6 +148,7 @@
 
 		{{ forms.lightswitchField({
 			label: 'settings.gateways.useAsPartialPaymentStep'|t('foster-checkout'),
+			instructions: 'settings.gateways.useAsPartialPaymentStepHelp'|t('foster-checkout'),
 			id: 'useAsPartialPaymentStep',
 			name: 'useAsPartialPaymentStep',
 			on: gatewayConfig ? gatewayConfig.useAsPartialPaymentStep : false,

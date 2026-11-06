@@ -1,6 +1,7 @@
 <?php
 
 return [
+	// Partial payments
 	'partialPayment.remove' => 'Remove',
 	'partialPayment.failed' => 'Unable to update the account payment. Please try again.',
 	'partialPayment.removeToEdit' => 'Remove the applied payment before changing your cart, delivery details, or vouchers.',
@@ -23,7 +24,7 @@ return [
 	'partialPayment.methodNoLongerAvailable' => 'The payment method is no longer available.',
 	'partialPayment.unableToComplete' => 'Unable to complete this order at this time.',
 	'partialPayment.completeFailed' => 'The order could not be completed. Review your checkout details.',
-	'partialPayment.completeDetails' => 'Complete your checkout details before applying this payment.',
+	'partialPayment.completeDetails' => 'Complete your checkout details first.',
 	'partialPayment.paymentCanceled' => 'Payment canceled before changing the applied payment.',
 	'partialPayment.canceledSaveFailed' => 'The canceled payment could not be saved.',
 	'partialPayment.paymentInProgress' => 'Another payment is in progress. Finish or cancel that payment before changing the applied payment.',
@@ -167,6 +168,7 @@ return [
 	'payment.paymentMethod' => 'Payment method',
 	'payment.payButtonText' => 'Pay',
 	'payment.completeOrder' => 'Complete order',
+	'payment.loadingForm' => 'Loading payment form…',
 	'payment.processing' => 'Please wait while we process your payment.',
 	'payment.placingOrder' => 'Please wait while we place your order.',
 	'payment.cardNumberError' => 'Enter a valid card number.',
@@ -399,6 +401,7 @@ return [
 	'settings.gateways.labelHelp' => 'Leave it blank to use the gateway’s own name.',
 	'settings.gateways.netTermsTitle' => 'Net Terms',
 	'settings.gateways.useAsPartialPaymentStep' => 'Use as a partial payment step',
+	'settings.gateways.useAsPartialPaymentStepHelp' => 'Lists this gateway as a partial payment step instead of a payment method. The step needs the **Purchase (bill on invoices)** payment type and an amount from a site module.',
 	'settings.gateways.paypalTitle' => 'PayPal',
 	'settings.gateways.paypalDisableFunding' => 'Hidden funding sources',
 	'settings.gateways.paypalDisableFundingHelp' => 'Funding sources PayPal leaves off its buttons. [See PayPal docs for options](https://developer.paypal.com/sdk/js/configuration/#disable-funding).',
