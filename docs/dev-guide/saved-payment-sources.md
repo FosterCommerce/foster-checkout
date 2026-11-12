@@ -1,6 +1,6 @@
 # Saved payment methods per user
 
-Change which saved payment methods the checkout lists for the signed-in user, and whether it shows the **Save this payment method for future purchases** checkbox. The checkout lists the order customer's saved payment methods for the gateway, then fires this event with the list before rendering. The checkout fires the event only for a signed-in user paying through a Stripe gateway, while **Enable saved payment methods** at **Checkout -> Features** is on.
+Change which saved payment methods the checkout lists for the signed-in user, and whether it shows the **Save this payment method for future purchases** checkbox. The checkout lists the order customer's saved payment methods for the gateway, then fires this event with the list before rendering. At checkout, Foster Checkout fires the event only for a signed-in user paying through a Stripe gateway, while **Enable saved payment methods** at **Checkout -> Features** is on.
 
 Use the event when the order's customer is not the person paying, such as a company account that several buyers share. For that setup, see [checkout for another customer](./checkout-for-another-customer.md).
 
@@ -43,9 +43,11 @@ class Module extends BaseModule
 
 `paymentSources` is the list of the order customer's saved payment methods for `gateway`. Remove each payment method the signed-in user cannot use. Set `canSave` to `false` to hide the save checkbox.
 
+On the [payment request](../user-guide/payment-requests.md) pay page, the event fires for every gateway the page lists, not only Stripe, while a user is signed in and **Enable saved payment methods** is on. The list starts empty unless the signed-in user is the order's customer, because anyone with the link can open the page. To let a buyer charge a company account's saved cards, add them to the list. The pay page ignores `canSave` and does not show a save checkbox.
+
 ## What it does not do
 
-The event changes only what the checkout lists. Commerce still pays with a `paymentSourceId` that a request posts, when the payment method belongs to the order's customer. Refuse that payment in your module with `craft\commerce\services\Payments::EVENT_BEFORE_PROCESS_PAYMENT`.
+The event changes only what the checkout lists. Commerce still pays with a `paymentSourceId` that a request posts, when the payment method belongs to the order's customer. Refuse that payment in your module with `craft\commerce\services\Payments::EVENT_BEFORE_PROCESS_PAYMENT`. On the pay page, Foster Checkout returns a 403 for a `paymentSourceId` that the event's list leaves out.
 
 ## In Twig
 

@@ -8,7 +8,9 @@ At payment, the checkout lists the saved payment methods of the order's customer
 
 The checkout preselects the payment method already on the cart. Without one, it preselects the customer's primary payment method, and without that, the first in the list. With a saved payment method selected, the customer sees a pay button and no Stripe form. With **Use a new payment method** selected, or with no saved payment methods, the customer sees Stripe's form and a **Save this payment method for future purchases** checkbox.
 
-A guest sees only Stripe's form, and so does every customer while **Enable saved payment methods** is off. Other gateways do not list saved payment methods.
+A guest sees only Stripe's form, and so does every customer while **Enable saved payment methods** is off. At checkout, other gateways do not list saved payment methods.
+
+On the [payment request](./payment-requests.md) pay page, every gateway lists saved payment methods, and the pay page doesn't show a save checkbox.
 
 ## List or dropdown
 

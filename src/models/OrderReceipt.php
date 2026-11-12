@@ -22,4 +22,9 @@ class OrderReceipt extends Model
 	public Money $paid;
 
 	public Money $balance;
+
+	/**
+	 * Nothing paid remains and refunds reach the order total, so the order counts as settled.
+	 */
+	public bool $refundedInFull = false;
 }

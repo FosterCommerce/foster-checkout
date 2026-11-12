@@ -90,6 +90,9 @@ return [
 	'summary.submitCouponCode' => 'Anwenden',
 	'summary.estimatedTotal' => 'Geschätzte Gesamtsumme',
 	'summary.total' => 'Gesamtbetrag',
+	'summary.paid' => 'Bezahlt',
+	'summary.balanceDue' => 'Offener Betrag',
+	'summary.credit' => 'Guthaben',
 	'summary.lineItem.quantity' => 'Menge',
 	'summary.orderNoteHeading' => 'Hinweise',
 	'summary.saveOrderNote' => 'Hinweis speichern',
@@ -205,8 +208,6 @@ return [
 	'order.shippingAddress' => 'Lieferadresse',
 	'order.shippingMethod' => 'Versandart',
 	'order.payment' => 'Zahlung',
-	'order.totalPaidLabel' => 'Gesamtbetrag bezahlt:',
-	'order.balanceLabel' => 'Saldo:',
 	'order.voucherAppliedAmount' => '{applied} angewendet',
 	'order.voucherAppliedAndRemaining' => '{applied} angewendet, {remaining} verbleibend',
 	'order.paymentApplied' => 'Angewendet',
@@ -214,6 +215,7 @@ return [
 	'order.paymentCharged' => 'Belastet',
 	'order.paymentDateOn' => 'am',
 	'order.refunded' => 'Erstattet',
+	'order.refundedInFull' => 'Vollständig erstattet',
 	'order.balanceDueLabel' => 'Fälligkeitsdatum des Saldos:',
 	'order.billingAddress' => 'Rechnungsadresse',
 
@@ -577,4 +579,21 @@ return [
 	'settings.addresses.addressPhoneFieldHandleHelp' => 'Handle des Adressfelds mit der Telefonnummer, damit dessen Eingabe ein Telefontastenfeld anfordert.',
 	'settings.general.includesSummary' => 'Zusammenfassungs-Include',
 	'settings.general.includesSummaryHelp' => 'Vorlagenpfad, der in einem eigenen Container über der Checkout-Zusammenfassung gerendert wird. Erhält den Warenkorb.',
+
+	// pay
+	'pay.stepTitle' => 'Restbetrag bezahlen',
+	'pay.heading' => 'Zahlung fällig',
+	'pay.signIn' => 'Anmelden, um eine gespeicherte Zahlungsmethode zu verwenden',
+	'pay.linkInvalidHeading' => 'Dieser Zahlungslink ist ungültig',
+	'pay.linkInvalid' => 'Bitten Sie den Shop um einen neuen Link.',
+
+	// paymentRequest
+	'paymentRequest.button' => 'Zahlung anfordern',
+	'paymentRequest.confirm' => 'Dem Kunden einen Link zur Zahlung von {amount} senden?',
+	'paymentRequest.sent' => 'Zahlungsanforderung über {amount} gesendet.',
+	'paymentRequest.notSent' => 'Die Zahlungsanforderung konnte nicht gesendet werden.',
+	'paymentRequest.nothingDue' => 'Die Bestellung ist vollständig bezahlt.',
+	'paymentRequest.emailHeading' => 'Wenn Mitarbeiter die Zahlung des Restbetrags einer Bestellung anfordern',
+	'paymentRequest.emailSubject' => 'Zahlung von {{amount}} für Bestellung {{order.reference}} fällig',
+	'paymentRequest.emailBody' => "Für Bestellung {{order.reference}} ist ein Betrag von {{amount}} offen.\n\n[Jetzt bezahlen]({{link}})\n\nDer Link läuft am {{expires|date('j. F Y')}} ab.",
 ];

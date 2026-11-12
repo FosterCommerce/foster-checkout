@@ -9,13 +9,15 @@
 	{% include 'foster-checkout/_components/app/favicon' %}
 
 	{% set cart = cart is not defined ? craft.commerce.carts.cart : cart %}
+	{# The confirmation and pay pages show a completed order, not the visitor's cart #}
+	{% set isOrderPage = craft.app.request.getSegment(-1) in ['order', 'pay'] %}
 
 	{# Redirect a paid cart to its confirmation once it completes, since the cart would otherwise stay editable #}
-	{% if craft.app.request.getSegment(-1) != 'order' and craft.fostercheckout.isPaidButIncomplete(cart) and craft.fostercheckout.completePaidCart(cart) %}
+	{% if not isOrderPage and craft.fostercheckout.isPaidButIncomplete(cart) and craft.fostercheckout.completePaidCart(cart) %}
 		{% redirect siteUrl(craft.fostercheckout.settings.paths.checkout ~ '/order', { number: cart.number, success: 'true' }) %}
 	{% endif %}
 
-	{% if cart.lineItems|length == 0 and craft.app.request.getPathInfo() != craft.fostercheckout.settings.paths.cart and craft.app.request.getSegment(-1) != 'order' %}
+	{% if cart.lineItems|length == 0 and craft.app.request.getPathInfo() != craft.fostercheckout.settings.paths.cart and not isOrderPage %}
 		{% redirect siteUrl(craft.fostercheckout.settings.paths.cart) %}
 	{% endif %}
 
@@ -160,7 +162,7 @@
 
 	<div data-fc-checkout-content class="max-w-[1200px] mx-auto px-4 text-gray-800 bg-white sm:px-6">
 		{# Show the notice in place of the checkout forms while a paid cart stays incomplete #}
-		{% if craft.app.request.getSegment(-1) != 'order' and craft.fostercheckout.isPaidButIncomplete(cart) %}
+		{% if not isOrderPage and craft.fostercheckout.isPaidButIncomplete(cart) %}
 			{% include 'foster-checkout/_components/app/paid-but-incomplete' %}
 		{% else %}
 			{% block body %}

@@ -14,7 +14,7 @@ Every key is required.
 | `label` | The input's label |
 | `instructions` | Help text, or null |
 | `value` | The stored value, read back from your own storage. A string, or a list of strings for `checkboxes` |
-| `required` | Whether the input is marked required. The checkout's scripts check it in every position. On the server, only the cart page checks it, and only for a `summary` field. The payment request does not check it |
+| `required` | Whether the input is marked required. The checkout's scripts check it in every position. On the server, only the cart page checks it, and only for a `summary` field. `commerce/payments/pay` does not check it |
 | `width` | A percentage, which the grid rounds to twelfths |
 | `type` | `text`, `textarea`, `number`, `select`, `radio`, `checkbox`, `checkboxes`, `date`, `datetime-local` or `time` |
 | `placeholder`, `maxLength`, `initialRows` | Text and textarea inputs only, else null |

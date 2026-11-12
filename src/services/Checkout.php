@@ -16,6 +16,7 @@ use craft\commerce\gateways\Manual;
 use craft\commerce\helpers\Currency;
 use craft\commerce\models\LineItem;
 use craft\commerce\models\OrderAdjustment;
+use craft\commerce\models\PaymentSource;
 use craft\commerce\models\ShippingMethodOption;
 use craft\commerce\models\Transaction;
 use craft\commerce\Plugin as Commerce;
@@ -68,6 +69,7 @@ use fostercommerce\netterms\gateways\NetTerms;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
 use KlaviyoAPI\ApiException;
+use Money\Money;
 use Throwable;
 use verbb\giftvoucher\elements\Code;
 use verbb\giftvoucher\GiftVoucher;
@@ -338,6 +340,9 @@ class Checkout extends Component
 	public const string EVENT_NEWSLETTER_SUBSCRIBE = 'newsletterSubscribe';
 
 	// Minutes after a checkout's last payment request before another checkout can take its hold
+	// Net Terms is optional, so its CreditOrders constant can't be read here
+	private const string NET_TERMS_REVERSAL_CODE = 'net-terms-reversal';
+
 	private const int VOUCHER_HOLD_IDLE_MINUTES = 15;
 
 	/**
@@ -371,6 +376,18 @@ class Checkout extends Component
 	 * @var array<string, bool>
 	 */
 	private array $addressAccess = [];
+
+	/**
+	 * @internal
+	 * @since 2.1.0
+	 */
+	public function getPaymentRequests(): PaymentRequests
+	{
+		/** @var FosterCheckout $plugin */
+		$plugin = FosterCheckout::getInstance();
+
+		return $plugin->getPaymentRequests();
+	}
 
 	/**
 	 * @internal
@@ -517,9 +534,10 @@ class Checkout extends Component
 	 * The order customer's saved payment methods for the gateway and the save checkbox flag, after any handler has run.
 	 * Does not check the signed-in user or `enableSavedPaymentSources`.
 	 *
+	 * @param array<int, PaymentSource>|null $paymentSources the list handlers start from, in place of the customer's
 	 * @since 2.1.0
 	 */
-	public function savedPaymentSources(Order $order, GatewayInterface $gateway): DefineSavedPaymentSourcesEvent
+	public function savedPaymentSources(Order $order, GatewayInterface $gateway, ?array $paymentSources = null): DefineSavedPaymentSourcesEvent
 	{
 		/** @var Commerce $commerce */
 		$commerce = Commerce::getInstance();
@@ -527,7 +545,7 @@ class Checkout extends Component
 		$defineSavedPaymentSourcesEvent = new DefineSavedPaymentSourcesEvent([
 			'order' => $order,
 			'gateway' => $gateway,
-			'paymentSources' => $commerce->getPaymentSources()->getAllPaymentSourcesByCustomerId($order->getCustomerId(), (int) $gateway->id)->all(),
+			'paymentSources' => $paymentSources ?? $commerce->getPaymentSources()->getAllPaymentSourcesByCustomerId($order->getCustomerId(), (int) $gateway->id)->all(),
 		]);
 
 		$this->trigger(self::EVENT_DEFINE_SAVED_PAYMENT_SOURCES, $defineSavedPaymentSourcesEvent);
@@ -1753,7 +1771,9 @@ class Checkout extends Component
 				'cardLast4' => is_string($cardLast4) ? substr($cardLast4, -4) : null,
 			]);
 			$receipt->payments[] = $payment;
-			if ($partial) {
+
+			// Keep a completed order's open authorization in its balance, matching Commerce
+			if ($partial && ! ($authorized && $order->isCompleted)) {
 				$receipt->partialPayments[] = $payment;
 				$receipt->customerTotal = $receipt->customerTotal->subtract($coverage);
 
@@ -1769,6 +1789,13 @@ class Checkout extends Component
 			->all();
 
 		$receipt->balance = $receipt->customerTotal->subtract($receipt->paid);
+
+		// Leave out Net Terms reversals, which return no money and leave the order owing again
+		$refunded = $transactions
+			->filter(static fn (Transaction $transaction): bool => $transaction->type === TransactionRecord::TYPE_REFUND && $transaction->code !== self::NET_TERMS_REVERSAL_CODE)
+			->reduce(static fn (Money $total, Transaction $refund): Money => $total->add($teller->convertToMoney($refund->amount)), $teller->convertToMoney(0));
+		$receipt->refundedInFull = ! $receipt->paid->isPositive()
+			&& $refunded->greaterThanOrEqual($teller->convertToMoney($order->getTotalPrice()));
 
 		return $receipt;
 	}

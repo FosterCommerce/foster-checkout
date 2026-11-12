@@ -71,6 +71,18 @@
 			<dd class="font-semibold text-right">{{ receipt.customerTotal|money }}</dd>
 		</div>
 
+		{# Include an order with no payment yet, so its balance still shows #}
+		{% if not receipt.refundedInFull and (receipt.paid.isPositive() or receipt.balance.isPositive()) %}
+			<div class="flex justify-between items-center gap-4">
+				<dt class="text-gray-500">{{ 'summary.paid'|t('foster-checkout') }}</dt>
+				<dd class="text-right">{{ receipt.paid|money }}</dd>
+			</div>
+			<div class="flex justify-between items-center gap-4">
+				<dt class="font-semibold">{{ (receipt.balance.isNegative() ? 'summary.credit' : 'summary.balanceDue')|t('foster-checkout') }}</dt>
+				<dd class="font-semibold text-right">{{ receipt.balance.absolute()|money }}</dd>
+			</div>
+		{% endif %}
+
 	</dl>
 
 </article>

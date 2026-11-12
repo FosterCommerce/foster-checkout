@@ -1,6 +1,6 @@
 # Blocking payment
 
-Stop an order from being paid at the checkout and tell the customer why. On both layouts, the checkout shows the reason in place of the payment form and the pay button.
+Stop an order from being paid at the checkout and tell the customer why. On both layouts and on the [payment request](../user-guide/payment-requests.md) pay page, Foster Checkout shows the reason in place of the payment form and the pay button.
 
 Commerce's own payment events can refuse a payment, but only once the customer submits. This event fires when the checkout renders, so the checkout shows the reason before the customer fills in a card.
 

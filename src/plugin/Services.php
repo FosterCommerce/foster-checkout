@@ -8,6 +8,7 @@ use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
 use fostercommerce\fostercheckout\services\Content;
 use fostercommerce\fostercheckout\services\MolliePaymentMethods;
 use fostercommerce\fostercheckout\services\PartialPayments;
+use fostercommerce\fostercheckout\services\PaymentRequests;
 use yii\base\InvalidConfigException;
 
 trait Services
@@ -96,6 +97,20 @@ trait Services
 		return $service;
 	}
 
+	/**
+	 * @throws InvalidConfigException
+	 */
+	public function getPaymentRequests(): PaymentRequests
+	{
+		$service = $this->get('paymentRequests');
+
+		if (! $service instanceof PaymentRequests) {
+			throw new InvalidConfigException('The `paymentRequests` service is not configured.');
+		}
+
+		return $service;
+	}
+
 	private function registerComponents(): void
 	{
 		$this->setComponents([
@@ -105,6 +120,7 @@ trait Services
 			'checkoutFieldLayouts' => CheckoutFieldLayouts::class,
 			'molliePaymentMethods' => MolliePaymentMethods::class,
 			'partialPayments' => PartialPayments::class,
+			'paymentRequests' => PaymentRequests::class,
 		]);
 	}
 }

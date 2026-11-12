@@ -23,9 +23,12 @@
 - Added the “Use as a partial payment step” setting for Net Terms gateways, which lets a customer apply an amount from their account at checkout and pay the rest with another gateway. The setting is off after updating, and the step needs an amount from the `Checkout::EVENT_DEFINE_PARTIAL_PAYMENT` event.
 - Added the `Checkout::EVENT_DEFINE_PARTIAL_PAYMENT` event, for setting a partial payment step's amount and labels.
 - Added the `foster-checkout/partial-payment/apply`, `foster-checkout/partial-payment/remove` and `foster-checkout/partial-payment/complete` actions.
+- Added the ability to email a customer a link to pay a completed order's balance.
+- Added the `foster-checkout/payment-requests/send` action.
 
 ### Changed
 
+- The order confirmation page now shows “Paid” and “Balance due” in the order summary, in place of “Total paid” and “Balance” under “Payment”. A negative balance shows as “Credit”, and an order refunded in full shows neither row. An open authorization from a partial payment step now counts toward a completed order’s balance, as in Commerce. Override them with the `summary.paid` and `summary.balanceDue` translation keys.
 - The cart page’s “Clear the cart” link now reads “Delete this cart” or “Start a new cart”, based on the “Delete cleared carts” setting.
 - Foster Checkout now requires Craft CMS 5.10.0 or later.
 - “Logo height” now accepts heights from 12 pixels, down from 40.

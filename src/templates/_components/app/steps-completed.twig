@@ -1,3 +1,4 @@
+{# readOnly leaves out the Change, Edit and View account links #}
 {% if step|default %}
 
 	<dl class="grid grid-cols-1 gap-4 p-4 bg-gray-200 rounded-lg {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250' }}">
@@ -9,15 +10,19 @@
 						{{ 'steps.contact'|t('foster-checkout') }}
 					</span>
 					{% if currentUser %}
+						{% if not readOnly|default(false) %}
 						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}"
 						   class="inline-block underline text-[var(--brandColor)] sm:hidden">
 							{{ 'misc.viewAccount'|t('foster-checkout') }}
 						</a>
+						{% endif %}
 					{% else %}
+						{% if not readOnly|default(false) %}
 						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/email' }}"
 						   class="inline-block underline text-[var(--brandColor)] sm:hidden">
 							{{ 'misc.edit'|t('foster-checkout') }}
 						</a>
+						{% endif %}
 					{% endif %}
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
@@ -29,15 +34,19 @@
 						{% endif %}
 					</span>
 					{% if currentUser %}
+						{% if not readOnly|default(false) %}
 						<a href="{{ siteUrl(craft.fostercheckout.settings.paths.account) }}"
 						   class="hidden sm:inline-block shrink-0 whitespace-nowrap underline text-[var(--brandColor)]">
 							{{ 'misc.viewAccount'|t('foster-checkout') }}
 						</a>
+						{% endif %}
 					{% else %}
+						{% if not readOnly|default(false) %}
 						<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]"
 						   href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/email' }}">
 							{{ 'misc.edit'|t('foster-checkout') }}
 						</a>
+						{% endif %}
 					{% endif %}
 				</dd>
 			</div>
@@ -49,23 +58,28 @@
 					<span class="inline-block font-semibold text-black">
 						{{ 'steps.shipTo'|t('foster-checkout') }}
 					</span>
+					{% if not readOnly|default(false) %}
 					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address' }}"
 						 class="inline-block underline text-[var(--brandColor)] sm:hidden">
 						{{ 'misc.change'|t('foster-checkout') }}
 					</a>
+					{% endif %}
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
 					{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.shippingAddress, 'sourceAddressId': cart.sourceShippingAddressId } %}
+					{% if not readOnly|default(false) %}
 					<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]"
 						 href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/address' }}">
 						{{ 'misc.change'|t('foster-checkout') }}
 					</a>
+					{% endif %}
 				</dd>
 			</div>
 		{% endif %}
 
 		{% if step == 'billing' or step == 'payment' %}
-			{% set options = cart.availableShippingMethodOptions ?? [] %}
+			{# Skip the rate lookup when read-only, since it only decides whether Change links show #}
+			{% set options = readOnly|default(false) ? [] : cart.availableShippingMethodOptions ?? [] %}
 			{% set hasSelectedMethod = (cart.shippingMethodHandle ?? null)
 				or (cart.shippingMethod ?? null)
 				or ((cart.shippingMethodName ?? '')|length) %}
@@ -77,10 +91,12 @@
 						  {{ 'steps.shippingMethod'|t('foster-checkout') }}
 						</span>
 						{% if options|length > 1 %}
+							{% if not readOnly|default(false) %}
 							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/shipping' }}"
 							   class="inline-block underline text-[var(--brandColor)] sm:hidden">
 								{{ 'misc.change'|t('foster-checkout') }}
 							</a>
+							{% endif %}
 						{% endif %}
 					</dt>
 
@@ -92,10 +108,12 @@
 							?? '' }}
 						</p>
 						{% if options|length > 1 %}
+							{% if not readOnly|default(false) %}
 							<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]"
 							   href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/shipping' }}">
 								{{ 'misc.change'|t('foster-checkout') }}
 							</a>
+							{% endif %}
 						{% endif %}
 					</dd>
 				</div>
@@ -109,17 +127,21 @@
 					<span class="inline-block font-semibold text-black">
 						{{ 'steps.billTo'|t('foster-checkout') }}
 					</span>
+					{% if not readOnly|default(false) %}
 					<a href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/billing' }}"
 						 class="inline-block underline text-[var(--brandColor)] sm:hidden">
 						{{ 'misc.change'|t('foster-checkout') }}
 					</a>
+					{% endif %}
 				</dt>
 				<dd class="mt-1 sm:flex sm:justify-between sm:items-start sm:gap-4 sm:mt-0">
 					{% include'foster-checkout/_components/app/formatted-address' with { 'address': cart.billingAddress, 'sourceAddressId': cart.sourceBillingAddressId } %}
+					{% if not readOnly|default(false) %}
 					<a class="hidden sm:inline-block sm:underline sm:text-[var(--brandColor)]"
 						 href="{{ siteUrl(craft.fostercheckout.settings.paths.checkout) ~ '/billing' }}">
 						{{ 'misc.change'|t('foster-checkout') }}
 					</a>
+					{% endif %}
 				</dd>
 			</div>
 		{% endif %}

@@ -1,0 +1,39 @@
+{% set voucherAdjustments = craft.app.plugins.isPluginEnabled('gift-voucher') ? order.orderAdjustments|filter(adjustment => adjustment.type == 'voucher') : [] %}
+{% set receipt = craft.fostercheckout.receipt(order) %}
+
+{# Leave out a paid order with no transaction, such as a zero-total one #}
+{% if voucherAdjustments|length or receipt.payments|length or not order.getIsPaid() %}
+	<h2 class="text-lg font-medium text-gray-700">{{ 'order.payment'|t('foster-checkout') }}</h2>
+
+	{% if receipt.refundedInFull %}
+		<p class="mt-1">{{ 'order.refundedInFull'|t('foster-checkout') }}</p>
+	{% endif %}
+	{% if voucherAdjustments|length %}
+		<p class="mt-1">{{ 'summary.discountApplied'|t('foster-checkout') }}</p>
+		{% for voucher in voucherAdjustments %}
+			{% set voucherCode = craft.fostercheckout.voucherCode(voucher) %}
+			{% set voucherBalance = voucherCode ? craft.giftVoucher.codes().codeKey(voucherCode).one() : null %}
+			<p class="mt-1">{{ craft.fostercheckout.voucherLabel(voucher) }} ({{ (voucherBalance ? 'order.voucherAppliedAndRemaining' : 'order.voucherAppliedAmount')|t('foster-checkout', { applied: voucher.amount|abs|currency(order.currency), remaining: voucherBalance ? voucherBalance.currentAmount|currency(order.currency) : '' }) }})</p>
+		{% endfor %}
+	{% endif %}
+
+	{% for payment in receipt.payments %}
+		<p class="mt-1">{{ payment.label }}</p>
+		{% if payment.cardBrand or payment.cardLast4 %}
+			<p>{{ payment.cardBrand|capitalize }}{% if payment.cardLast4 %} **** {{ payment.cardLast4 }}{% endif %}</p>
+		{% endif %}
+		<p>{{ payment.amount|money }} ({{ (payment.applied ? 'order.paymentApplied' : (payment.authorized ? 'order.paymentAuthorized' : 'order.paymentCharged'))|t('foster-checkout') }}{% if payment.date %} {{ 'order.paymentDateOn'|t('foster-checkout') }} {{ payment.date|date('F j, Y') }}{% endif %})</p>
+		{% if payment.refunded.isPositive() %}
+			<p>{{ 'order.refunded'|t('foster-checkout') }} {{ payment.refunded|money }}</p>
+		{% endif %}
+	{% endfor %}
+
+	{# Balance Due Date #}
+	{% set paymentDueDateFieldHandle = craft.fostercheckout.settings.options.paymentDueDateFieldHandle %}
+	{% if not order.getIsPaid() and not receipt.refundedInFull and paymentDueDateFieldHandle and order[paymentDueDateFieldHandle] is defined and order[paymentDueDateFieldHandle] %}
+		<p>
+			{{ 'order.balanceDueLabel'|t('foster-checkout') }}
+			{{ order[paymentDueDateFieldHandle]|date }}
+		</p>
+	{% endif %}
+{% endif %}
