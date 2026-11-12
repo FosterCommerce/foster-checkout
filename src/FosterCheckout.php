@@ -628,9 +628,11 @@ class FosterCheckout extends Plugin
 
 			return $sentAddress === [] && ! $this->isPaymentRequest();
 		}
+
 		if ($this->actionRoute() === 'commerce/cart/update-cart') {
 			return true;
 		}
+
 		return $this->isPaymentRequest();
 	}
 
