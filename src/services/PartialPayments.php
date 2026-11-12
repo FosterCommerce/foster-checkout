@@ -23,6 +23,8 @@ use fostercommerce\netterms\gateways\NetTerms;
 use fostercommerce\netterms\models\payments\NetTermsPaymentForm;
 use fostercommerce\netterms\models\responses\NetTermsResponse;
 use Throwable;
+use verbb\giftvoucher\records\Reservation;
+use verbb\giftvoucher\services\Reservations;
 use yii\base\Component;
 use yii\base\UserException;
 
@@ -551,10 +553,7 @@ class PartialPayments extends Component
 					$cancelled->status = TransactionRecord::STATUS_FAILED;
 					$cancelled->message = $this->staffMessage('partialPayment.paymentCanceled');
 					$cancelled->response = $intent->toArray();
-					if (! $this->commerce()->getTransactions()->saveTransaction($cancelled)) {
-						Craft::error("Unable to save the canceled payment on order {$order->id}.", __METHOD__);
-						throw new UserException(Craft::t('foster-checkout', 'partialPayment.canceledSaveFailed'));
-					}
+					$this->saveConfirmedCancellation($order, $cancelled);
 
 					$this->cancelledPayments[(int) $order->id] = true;
 					continue;
@@ -563,6 +562,47 @@ class PartialPayments extends Component
 
 			throw new UserException(Craft::t('foster-checkout', 'partialPayment.paymentInProgress'));
 		}
+	}
+
+	private function saveConfirmedCancellation(Order $order, Transaction $cancelled): void
+	{
+		$saveCancellation = function () use ($order, $cancelled): void {
+			if (! $this->commerce()->getTransactions()->saveTransaction($cancelled)) {
+				Craft::error("Unable to save the canceled payment on order {$order->id}.", __METHOD__);
+				throw new UserException(Craft::t('foster-checkout', 'partialPayment.canceledSaveFailed'));
+			}
+		};
+
+		// Skip Gift Voucher before 4.0.20, which has no holds
+		if (! class_exists(Reservation::class)) {
+			$saveCancellation();
+			return;
+		}
+
+		$db = Craft::$app->getDb();
+		$db->transaction(function () use ($db, $order, $cancelled, $saveCancellation): void {
+			// Lock the original holds so an independent review cannot be overwritten during the save.
+			$holds = $db->createCommand('SELECT [[id]], [[transactionHash]] FROM ' . Reservation::tableName()
+				. ' WHERE [[orderId]] = :orderId AND [[status]] = :status FOR UPDATE', [
+					':orderId' => $order->id,
+					':status' => Reservations::STATUS_HELD,
+				])
+				->queryAll();
+
+			$saveCancellation();
+
+			foreach ($holds as $hold) {
+				Reservation::updateAll([
+					'status' => Reservations::STATUS_HELD,
+					'transactionHash' => $hold['transactionHash'],
+					'message' => null,
+				], [
+					'id' => $hold['id'],
+					'status' => Reservations::STATUS_REVIEW,
+					'transactionHash' => $cancelled->hash,
+				]);
+			}
+		});
 	}
 
 	private function supported(NetTerms $gateway): bool
