@@ -90,6 +90,9 @@ return [
 	'summary.submitCouponCode' => 'Aplicar',
 	'summary.estimatedTotal' => 'Total estimado',
 	'summary.total' => 'Total',
+	'summary.paid' => 'Pagado',
+	'summary.balanceDue' => 'Saldo pendiente',
+	'summary.credit' => 'Saldo a favor',
 	'summary.lineItem.quantity' => 'Cant.',
 	'summary.orderNoteHeading' => 'Notas',
 	'summary.saveOrderNote' => 'Guardar nota',
@@ -206,8 +209,6 @@ return [
 	'order.shippingAddress' => 'Dirección de envío',
 	'order.shippingMethod' => 'Método de envío',
 	'order.payment' => 'Pago',
-	'order.totalPaidLabel' => 'Total pagado:',
-	'order.balanceLabel' => 'Saldo:',
 	'order.voucherAppliedAmount' => '{applied} aplicado',
 	'order.voucherAppliedAndRemaining' => '{applied} aplicado, {remaining} restante',
 	'order.paymentApplied' => 'Aplicado',
@@ -215,7 +216,8 @@ return [
 	'order.paymentCharged' => 'Cobrado',
 	'order.paymentDateOn' => 'el',
 	'order.refunded' => 'Reembolsado',
-	'order.balanceDueLabel' => 'Saldo pendiente:',
+	'order.refundedInFull' => 'Reembolsado en su totalidad',
+	'order.balanceDueLabel' => 'Fecha de vencimiento del pago:',
 	'order.billingAddress' => 'Dirección de facturación',
 
 	// Steps
@@ -578,4 +580,21 @@ return [
 	'settings.addresses.addressPhoneFieldHandleHelp' => 'Handle del campo de dirección con el número de teléfono, para que su entrada pida un teclado telefónico.',
 	'settings.general.includesSummary' => 'Include del resumen',
 	'settings.general.includesSummaryHelp' => 'Ruta de plantilla que se renderiza en su propio contenedor sobre el resumen de pago. Recibe el carrito.',
+
+	// pay
+	'pay.stepTitle' => 'Pagar saldo',
+	'pay.heading' => 'Pago pendiente',
+	'pay.signIn' => 'Inicia sesión para usar un método de pago guardado',
+	'pay.linkInvalidHeading' => 'Este enlace de pago no es válido',
+	'pay.linkInvalid' => 'Pide a la tienda un enlace nuevo.',
+
+	// paymentRequest
+	'paymentRequest.button' => 'Solicitar pago',
+	'paymentRequest.confirm' => '¿Enviar al cliente un enlace para pagar {amount}?',
+	'paymentRequest.sent' => 'Solicitud de pago de {amount} enviada.',
+	'paymentRequest.notSent' => 'No se pudo enviar la solicitud de pago.',
+	'paymentRequest.nothingDue' => 'El pedido está pagado en su totalidad.',
+	'paymentRequest.emailHeading' => 'Cuando el personal solicita el pago del saldo de un pedido',
+	'paymentRequest.emailSubject' => 'Pago de {{amount}} pendiente en el pedido {{order.reference}}',
+	'paymentRequest.emailBody' => "El pedido {{order.reference}} tiene un saldo de {{amount}}.\n\n[Pagar ahora]({{link}})\n\nEl enlace caduca el {{expires|date('j/n/Y')}}.",
 ];

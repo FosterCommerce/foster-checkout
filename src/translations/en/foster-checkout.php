@@ -90,6 +90,9 @@ return [
 	'summary.submitCouponCode' => 'Apply',
 	'summary.estimatedTotal' => 'Estimated total',
 	'summary.total' => 'Total',
+	'summary.paid' => 'Paid',
+	'summary.balanceDue' => 'Balance due',
+	'summary.credit' => 'Credit',
 	'summary.lineItem.quantity' => 'Qty',
 	'summary.orderNoteHeading' => 'Notes',
 	'summary.saveOrderNote' => 'Save note',
@@ -207,8 +210,6 @@ return [
 	'order.shippingAddress' => 'Shipping Address',
 	'order.shippingMethod' => 'Shipping Method',
 	'order.payment' => 'Payment',
-	'order.totalPaidLabel' => 'Total paid:',
-	'order.balanceLabel' => 'Balance:',
 	'order.voucherAppliedAmount' => '{applied} applied',
 	'order.voucherAppliedAndRemaining' => '{applied} applied, {remaining} remaining',
 	'order.paymentApplied' => 'Applied',
@@ -216,7 +217,8 @@ return [
 	'order.paymentCharged' => 'Charged',
 	'order.paymentDateOn' => 'on',
 	'order.refunded' => 'Refunded',
-	'order.balanceDueLabel' => 'Balance due:',
+	'order.refundedInFull' => 'Refunded in full',
+	'order.balanceDueLabel' => 'Payment due by:',
 	'order.billingAddress' => 'Billing Address',
 
 	// Steps
@@ -578,4 +580,21 @@ return [
 	'settings.addresses.addressPhoneFieldHandleHelp' => 'Handle of the address field holding a phone number, so its input asks for a phone keypad.',
 	'settings.general.includesSummary' => 'Summary include',
 	'settings.general.includesSummaryHelp' => 'Template path rendered in its own container above the checkout summary. Receives the cart.',
+
+	// pay
+	'pay.stepTitle' => 'Pay balance',
+	'pay.heading' => 'Payment due',
+	'pay.signIn' => 'Sign in to use a saved payment method',
+	'pay.linkInvalidHeading' => 'This payment link isn’t valid',
+	'pay.linkInvalid' => 'Ask the store for a new link.',
+
+	// paymentRequest
+	'paymentRequest.button' => 'Request payment',
+	'paymentRequest.confirm' => 'Email the customer a link to pay {amount}?',
+	'paymentRequest.sent' => 'Payment request for {amount} sent.',
+	'paymentRequest.notSent' => 'Couldn’t send the payment request.',
+	'paymentRequest.nothingDue' => 'The order is paid in full.',
+	'paymentRequest.emailHeading' => 'When staff request payment of an order’s balance',
+	'paymentRequest.emailSubject' => 'Payment of {{amount}} is due on order {{order.reference}}',
+	'paymentRequest.emailBody' => "Order {{order.reference}} has a balance of {{amount}}.\n\n[Pay now]({{link}})\n\nThe link expires on {{expires|date('F j, Y')}}.",
 ];

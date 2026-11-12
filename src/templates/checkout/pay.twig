@@ -1,0 +1,210 @@
+{% extends 'foster-checkout/_layouts/default' %}
+
+{% set paymentRequests = craft.fostercheckout.paymentRequests %}
+{% set token = craft.app.request.getQueryParam(constant('fostercommerce\\fostercheckout\\services\\PaymentRequests::TOKEN_PARAM')) %}
+{% set order = token is string ? paymentRequests.orderForToken(token) : null %}
+{% if order %}
+	{% set cart = order %}
+{% endif %}
+{% set isFlat = craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' %}
+{% set panelClasses = 'lg:bg-white lg:rounded-lg ' ~ (isFlat ? 'lg:border lg:border-gray-300' : 'lg:border lg:border-gray-250') %}
+
+{% block head %}
+	<title>
+		{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }} |
+		{{ 'pay.stepTitle'|t('foster-checkout') }}
+	</title>
+{% endblock %}
+
+{% block includeHead %}
+	{% set headInclude = craft.fostercheckout.settings.includes.head %}
+	{% if headInclude|default and order %}
+		{% include headInclude with {
+			context: 'checkout',
+			location: 'head',
+			step: 'pay',
+			cart: order,
+		} %}
+	{% endif %}
+{% endblock %}
+
+{% block body %}
+	<div class="mt-10 pb-10 lg:mt-20 lg:pb-20">
+		{% if not order %}
+			<main class="max-w-xl">
+				<h1 class="font-semibold text-3xl">{{ 'pay.linkInvalidHeading'|t('foster-checkout') }}</h1>
+				<p class="mt-4">{{ 'pay.linkInvalid'|t('foster-checkout') }}</p>
+			</main>
+		{% else %}
+			{% set payUrl = paymentRequests.payPageUrl(token) %}
+			{% set isDue = paymentRequests.canRequest(order) %}
+
+			<div class="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_42%] lg:gap-6">
+				<main class="grid grid-cols-1 gap-6 content-start">
+					<header>
+						<h1 class="font-semibold text-3xl">
+							{{ isDue ? 'pay.heading'|t('foster-checkout') : order.orderStatus.name }}
+						</h1>
+						<p class="mt-4">
+							{{ 'order.orderNumberLabel'|t('foster-checkout') }}
+							<strong>{{ order.reference }}</strong>
+						</p>
+					</header>
+
+					{{ include('foster-checkout/_components/app/flash-message') }}
+
+					{% include 'foster-checkout/_components/app/steps-completed' with {
+						step: 'payment',
+						cart: order,
+						readOnly: true,
+					} %}
+
+					{% set paymentBlock = isDue ? craft.fostercheckout.paymentBlock(order) : null %}
+					{% if paymentBlock %}
+						<p class="text-sm text-gray-500" role="status">{{ paymentBlock }}</p>
+					{% elseif isDue %}
+						{% if not currentUser and craft.fostercheckout.settings.enableSavedPaymentSources and order.customer.getIsCredentialed() %}
+							<a
+								href="{{ actionUrl('foster-checkout/sign-in', { (constant('fostercommerce\\fostercheckout\\services\\PaymentRequests::TOKEN_PARAM')): token }) }}"
+								class="flex justify-center items-center w-full h-12 px-6 font-medium text-[var(--brandColor)] text-center bg-white border border-[var(--brandColor)] rounded-lg"
+							>
+								{{ 'pay.signIn'|t('foster-checkout') }}
+							</a>
+						{% endif %}
+
+						{% set gateways = paymentRequests.gateways(order) %}
+						{% set buttonText = 'payment.payButtonText'|t('foster-checkout') ~ ' ' ~ order.outstandingBalance|currency(order.currency) %}
+						{% set payButtonClasses = 'mt-6 justify-between items-center gap-4 w-full px-4 py-3 font-medium text-white text-center bg-[var(--brandColor)] border border-[var(--brandColor)] rounded-lg lg:inline-block' %}
+
+						<div class="p-4 {{ panelClasses }}" x-data="{ gatewayId: {{ (gateways|first).id ?? 'null' }} }">
+							<h2 class="mb-4 text-lg font-medium text-gray-700">{{ 'payment.paymentMethod'|t('foster-checkout') }}</h2>
+
+							{% for gateway in gateways %}
+								{% set gatewayClass = className(gateway) %}
+								{% set paymentSources = paymentRequests.paymentSources(order, gateway) %}
+
+								{% if gateways|length > 1 %}
+									<div class="relative flex items-center gap-4 py-2 radio">
+										<input id="gateway_{{ gateway.id }}" type="radio" class="absolute opacity-0 w-px h-px" x-model.number="gatewayId" value="{{ gateway.id }}">
+										<label for="gateway_{{ gateway.id }}" class="inline-flex items-center gap-4 cursor-pointer">{{ craft.fostercheckout.gatewayLabel(gateway) }}</label>
+									</div>
+								{% endif %}
+
+								<template x-if="parseInt(gatewayId) === {{ gateway.id }}">
+									<form method="post" class="grid gap-4 pt-4">
+										{{ csrfInput() }}
+										{{ actionInput('commerce/payments/pay') }}
+										{{ redirectInput(payUrl) }}
+										{{ hiddenInput('cancelUrl', payUrl|hash) }}
+										{{ hiddenInput('number', order.number) }}
+										{{ hiddenInput('gatewayId', gateway.id) }}
+										{{ hiddenInput(constant('fostercommerce\\fostercheckout\\services\\PaymentRequests::TOKEN_PARAM'), token) }}
+
+										<div x-data="{ paymentSourceId: '{{ (paymentSources|first).id ?? 'new' }}' }">
+											{% if paymentSources %}
+												{% include 'foster-checkout/_components/app/payment-sources' %}
+
+												<template x-if="paymentSourceId !== 'new'">
+													<div>
+														<input type="hidden" name="paymentSourceId" :value="paymentSourceId">
+														<button type="submit" class="{{ payButtonClasses }}">{{ buttonText }}</button>
+													</div>
+												</template>
+											{% endif %}
+
+											{# Mount the gateway form only for a new payment method, since mounting Stripe's form posts the pay action #}
+											<template x-if="paymentSourceId === 'new'">
+												{% if gatewayClass == 'craft\\commerce\\stripe\\gateways\\PaymentIntents' %}
+													{% set stripeConfig = craft.fostercheckout.getManualGatewayConfig(gateway.handle) %}
+													{% set params = craft.fostercheckout.paymentFormParams(order, gateway, {
+														order: order,
+														paymentFormType: 'elements',
+														appearance: {
+															theme: isFlat ? 'flat' : 'stripe',
+															labels: 'floating',
+															variables: {
+																colorPrimary: craft.fostercheckout.settings.branding.color ?? '#1F2937',
+																borderRadius: isFlat ? '0px' : '6px',
+															},
+														},
+														submitButtonText: buttonText,
+														submitButtonClasses: payButtonClasses,
+														elementOptions: {
+															layout: {
+																type: stripeConfig.layout|default('tabs'),
+															},
+															wallets: {
+																link: (stripeConfig.enableLink ?? true) ? 'auto' : 'never',
+															},
+														},
+													}) %}
+													<div x-data="StripeLoadingPlaceholder" x-init="typeof initStripe === 'function' && initStripe()">
+														{% include 'foster-checkout/_components/app/stripe-loading-placeholder' %}
+
+														{% namespace gateway.handle|commercePaymentFormNamespace %}
+															{{ gateway.getPaymentFormHtml(params)|raw }}
+														{% endnamespace %}
+													</div>
+												{% else %}
+													<div>
+														{% namespace gateway.handle|commercePaymentFormNamespace %}
+															{{ gateway.getPaymentFormHtml(craft.fostercheckout.paymentFormParams(order, gateway, {
+																order: order,
+																submitButtonText: buttonText,
+																submitButtonClasses: payButtonClasses,
+															}))|raw }}
+														{% endnamespace %}
+													</div>
+												{% endif %}
+											</template>
+										</div>
+									</form>
+								</template>
+							{% endfor %}
+						</div>
+					{% else %}
+						<div class="flex flex-col gap-1 p-4 {{ panelClasses }}">
+							{% include 'foster-checkout/_components/app/order-payments' %}
+						</div>
+					{% endif %}
+				</main>
+
+				<aside>
+					<div class="grid grid-cols-1 gap-6 lg:sticky lg:top-4 lg:p-4 {{ panelClasses }}">
+						<div class="grid grid-cols-1 gap-4">
+							<h2 class="text-xl font-bold text-gray-800 leading-snug">
+								{{ 'summary.itemsTitle'|t('foster-checkout') }}
+							</h2>
+
+							<ul class="grid grid-cols-1 divide-y {{ isFlat ? 'divide-gray-300' : 'divide-gray-250' }}">
+								{% for lineItem in order.lineItems %}
+									<li>
+										{% include 'foster-checkout/_components/app/line-item-checkout' with {
+											lineItem: lineItem
+										} %}
+									</li>
+								{% endfor %}
+							</ul>
+						</div>
+
+						{% include 'foster-checkout/_components/app/summary-order' %}
+					</div>
+				</aside>
+			</div>
+		{% endif %}
+
+		{% include 'foster-checkout/_components/app/checkout-footer-links' %}
+	</div>
+{% endblock %}
+
+{% block includeBody %}
+	{% set bodyInclude = craft.fostercheckout.settings.includes.body %}
+	{% if bodyInclude|default and order %}
+		{% include bodyInclude with {
+			context: 'checkout',
+			location: 'body',
+			step: 'pay',
+			cart: order,
+		} %}
+	{% endif %}
+{% endblock %}

@@ -26,11 +26,11 @@ When you save in the control panel, the plugin rejects a **Head include** or **B
 | --- | --- |
 | `context` | `cart` or `checkout` |
 | `location` | `head`, `body` or `summary` |
-| `step` | `email`, `shipping-address`, `shipping-method`, `billing`, `payment`, `confirmation`, `single-page`, or empty on the cart |
+| `step` | `email`, `shipping-address`, `shipping-method`, `billing`, `payment`, `confirmation`, `pay`, `single-page`, or empty on the cart |
 | `cart` | The current order. Passed to the head and summary includes on every page. The body include receives it on every page except the shipping address step |
 | `firstView` | On the confirmation page only. `true` the first time the plugin renders the order's confirmation page, for any visitor, and `false` after that. An order completed before the update to Foster Checkout 2.1.0 gets `true` the next time its confirmation page renders |
 
-The head and body includes render on every cart and checkout page, so check `step` to target one page. The summary include renders wherever the checkout summary does: `single-page` on the single-page checkout, and the step's name on each step of the stepped checkout.
+The head and body includes render on every cart and checkout page, so check `step` to target one page. The summary include renders wherever the checkout summary does: `single-page` on the single-page checkout, and the step's name on each step of the stepped checkout. On the [payment request](../user-guide/payment-requests.md) pay page, `step` is `pay` and `cart` is the completed order. The summary include doesn't render on the pay page, and the head and body includes don't render for an invalid link.
 
 ```twig
 {% if step == 'confirmation' and firstView %}

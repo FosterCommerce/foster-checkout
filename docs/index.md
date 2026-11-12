@@ -17,6 +17,7 @@ A ready-made, best-practices cart and checkout for Craft Commerce.
 - [Products that don’t require shipping](./user-guide/products-that-dont-require-shipping.md), skipping shipping for services and other unshippable products
 - [Customer pickup](./user-guide/customer-pickup.md), listing the store location as a shipping address
 - [Saved payment methods](./user-guide/saved-payment-methods.md), paying with a payment method the customer saved with Stripe
+- [Payment requests](./user-guide/payment-requests.md), emailing a customer a link to pay a completed order's balance
 
 **Dev guide:**
 

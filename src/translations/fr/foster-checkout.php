@@ -90,6 +90,9 @@ return [
 	'summary.submitCouponCode' => 'Appliquer',
 	'summary.estimatedTotal' => 'Total estimé',
 	'summary.total' => 'Total',
+	'summary.paid' => 'Payé',
+	'summary.balanceDue' => 'Solde dû',
+	'summary.credit' => 'Avoir',
 	'summary.lineItem.quantity' => 'Qté',
 	'summary.orderNoteHeading' => 'Notes',
 	'summary.saveOrderNote' => 'Enregistrer la note',
@@ -205,8 +208,6 @@ return [
 	'order.shippingAddress' => 'Adresse de livraison',
 	'order.shippingMethod' => 'Mode de livraison',
 	'order.payment' => 'Paiement',
-	'order.totalPaidLabel' => 'Total payé :',
-	'order.balanceLabel' => 'Solde :',
 	'order.voucherAppliedAmount' => '{applied} appliqué',
 	'order.voucherAppliedAndRemaining' => '{applied} appliqué, {remaining} restant',
 	'order.paymentApplied' => 'Appliqué',
@@ -214,7 +215,8 @@ return [
 	'order.paymentCharged' => 'Débité',
 	'order.paymentDateOn' => 'le',
 	'order.refunded' => 'Remboursé',
-	'order.balanceDueLabel' => 'Solde dû :',
+	'order.refundedInFull' => 'Entièrement remboursé',
+	'order.balanceDueLabel' => 'Paiement dû le :',
 	'order.billingAddress' => 'Adresse de facturation',
 
 	// Steps
@@ -577,4 +579,21 @@ return [
 	'settings.addresses.addressPhoneFieldHandleHelp' => 'Handle du champ d’adresse contenant le numéro de téléphone, pour que sa saisie demande un clavier téléphonique.',
 	'settings.general.includesSummary' => 'Include du récapitulatif',
 	'settings.general.includesSummaryHelp' => 'Chemin du gabarit rendu dans son propre conteneur au-dessus du récapitulatif de paiement. Reçoit le panier.',
+
+	// pay
+	'pay.stepTitle' => 'Payer le solde',
+	'pay.heading' => 'Paiement dû',
+	'pay.signIn' => 'Connectez-vous pour utiliser un moyen de paiement enregistré',
+	'pay.linkInvalidHeading' => 'Ce lien de paiement n’est pas valide',
+	'pay.linkInvalid' => 'Demandez un nouveau lien à la boutique.',
+
+	// paymentRequest
+	'paymentRequest.button' => 'Demander le paiement',
+	'paymentRequest.confirm' => 'Envoyer au client un lien pour payer {amount} ?',
+	'paymentRequest.sent' => 'Demande de paiement de {amount} envoyée.',
+	'paymentRequest.notSent' => 'Impossible d’envoyer la demande de paiement.',
+	'paymentRequest.nothingDue' => 'La commande est payée en totalité.',
+	'paymentRequest.emailHeading' => 'Quand le personnel demande le paiement du solde d’une commande',
+	'paymentRequest.emailSubject' => 'Paiement de {{amount}} dû pour la commande {{order.reference}}',
+	'paymentRequest.emailBody' => "La commande {{order.reference}} a un solde de {{amount}}.\n\n[Payer maintenant]({{link}})\n\nLe lien expire le {{expires|date('d/m/Y')}}.",
 ];

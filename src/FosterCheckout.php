@@ -7,6 +7,7 @@ use Craft;
 use craft\base\FieldInterface;
 use craft\base\Model;
 use craft\base\Plugin;
+use craft\commerce\base\Gateway;
 use craft\commerce\controllers\BaseFrontEndController;
 use craft\commerce\controllers\CartController;
 use craft\commerce\controllers\PaymentsController;
@@ -18,6 +19,7 @@ use craft\commerce\events\ModifyCartInfoEvent;
 use craft\commerce\events\OrderNoticeEvent;
 use craft\commerce\events\ProcessPaymentEvent;
 use craft\commerce\events\PurchasableShippableEvent;
+use craft\commerce\models\PaymentSource;
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\services\Payments;
 use craft\commerce\services\Purchasables;
@@ -29,13 +31,16 @@ use craft\events\DefineAddressFieldsEvent;
 use craft\events\DefineAddressSubdivisionsEvent;
 use craft\events\DefineRulesEvent;
 use craft\events\ModelEvent as ElementModelEvent;
+use craft\events\RegisterEmailMessagesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUserPermissionsEvent;
+use craft\helpers\Html;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
 use craft\helpers\UrlHelper;
 use craft\i18n\PhpMessageSource;
 use craft\services\Addresses;
 use craft\services\ProjectConfig;
+use craft\services\SystemMessages;
 use craft\services\UserPermissions;
 use craft\web\Controller as WebController;
 use craft\web\Request as WebRequest;
@@ -48,10 +53,12 @@ use fostercommerce\fostercheckout\plugin\Routes;
 use fostercommerce\fostercheckout\plugin\Services;
 use fostercommerce\fostercheckout\plugin\Variables;
 use fostercommerce\fostercheckout\services\CheckoutFieldLayouts;
+use fostercommerce\fostercheckout\services\PaymentRequests;
 use verbb\giftvoucher\GiftVoucher;
 use yii\base\ActionEvent;
 use yii\base\Event;
 use yii\base\ModelEvent;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response as YiiResponse;
 
 class FosterCheckout extends Plugin
@@ -92,6 +99,7 @@ class FosterCheckout extends Plugin
 		'/billing' => 'foster-checkout/checkout/billing',
 		'/payment' => 'foster-checkout/checkout/payment',
 		'/order' => 'foster-checkout/checkout/order',
+		'/pay' => 'foster-checkout/checkout/pay',
 	];
 
 	/**
@@ -236,6 +244,9 @@ class FosterCheckout extends Plugin
 
 	// Built once, since the shippable handler runs per line item for every shipping rule
 	private ?ProductCondition $notShippableProductsCondition = null;
+
+	// Skips required address fields, since the pay page has no address form
+	private bool $isPayingPaymentRequest = false;
 
 	#[\Override]
 	public function init(): void
@@ -578,7 +589,7 @@ class FosterCheckout extends Plugin
 			function (DefineRulesEvent $event): void {
 				$request = Craft::$app->getRequest();
 
-				if (! $request instanceof WebRequest || ! $request->getIsSiteRequest()) {
+				if (! $request instanceof WebRequest || ! $request->getIsSiteRequest() || $this->isPayingPaymentRequest) {
 					return;
 				}
 
@@ -698,6 +709,103 @@ class FosterCheckout extends Plugin
 		});
 		$this->releaseStaleVoucherHoldsBeforePayment();
 		$this->releaseStaleVoucherHoldsOnStaffApply();
+		$this->registerPaymentRequests();
+	}
+
+	private function registerPaymentRequests(): void
+	{
+		Event::on(
+			SystemMessages::class,
+			SystemMessages::EVENT_REGISTER_MESSAGES,
+			static function (RegisterEmailMessagesEvent $registerEmailMessagesEvent): void {
+				$registerEmailMessagesEvent->messages[] = [
+					'key' => PaymentRequests::SYSTEM_MESSAGE_KEY,
+					'heading' => Craft::t(self::HANDLE, 'paymentRequest.emailHeading'),
+					'subject' => Craft::t(self::HANDLE, 'paymentRequest.emailSubject'),
+					'body' => Craft::t(self::HANDLE, 'paymentRequest.emailBody'),
+				];
+			}
+		);
+
+		Craft::$app->getView()->hook('cp.commerce.order.edit.order-secondary-actions', function (array $context): string {
+			/** @var Order $order */
+			$order = $context['order'];
+
+			if (! $this->getPaymentRequests()->canRequest($order) || ! Craft::$app->getUser()->checkPermission(PaymentRequests::PERMISSION)) {
+				return '';
+			}
+
+			return Html::button(Craft::t(self::HANDLE, 'paymentRequest.button'), [
+				'class' => ['btn', 'formsubmit'],
+				'data' => [
+					'form' => 'false',
+					'action' => 'foster-checkout/payment-requests/send',
+					'params' => [
+						'orderId' => $order->id,
+					],
+					'confirm' => Craft::t(self::HANDLE, 'paymentRequest.confirm', [
+						'amount' => $this->getPaymentRequests()->balance($order),
+					]),
+				],
+			]);
+		});
+
+		// Add the order's email for a valid pay link, so the link doesn't carry it
+		Event::on(
+			PaymentsController::class,
+			WebController::EVENT_BEFORE_ACTION,
+			function (ActionEvent $actionEvent): void {
+				/** @var WebRequest $request */
+				$request = Craft::$app->getRequest();
+				$token = $request->getParam(PaymentRequests::TOKEN_PARAM);
+
+				if ($actionEvent->action->id !== 'pay' || ! is_string($token)) {
+					return;
+				}
+
+				$paymentRequests = $this->getPaymentRequests();
+				$order = $paymentRequests->orderForToken($token);
+
+				// Read params as Commerce does, which checks the query string first
+				if (! $order instanceof Order || $order->number !== $request->getParam('number')) {
+					return;
+				}
+
+				// Refuse an order refunded in full, which keeps a balance in Commerce
+				if (! $paymentRequests->canRequest($order)) {
+					throw new ForbiddenHttpException('This order has no balance to pay.');
+				}
+
+				/** @var Commerce $commerce */
+				$commerce = Commerce::getInstance();
+
+				// Require a gateway the page lists, since Commerce otherwise uses the order's, possibly Manual
+				$gatewayIds = array_map(static fn (Gateway $gateway): string => (string) $gateway->id, $paymentRequests->gateways($order));
+				if (! in_array($request->getParam('gatewayId'), $gatewayIds, true)) {
+					throw new ForbiddenHttpException('A pay link takes only the gateways its page lists.');
+				}
+
+				// Refuse a saved payment method that paymentSources() doesn't list
+				$paymentSourceId = $request->getParam('paymentSourceId');
+				if ($paymentSourceId !== null) {
+					$gateway = is_numeric($paymentSourceId) ? $commerce->getPaymentSources()->getPaymentSourceById((int) $paymentSourceId)?->getGateway() : null;
+					$allowedIds = $gateway === null ? [] : array_map(
+						static fn (PaymentSource $paymentSource): string => (string) $paymentSource->id,
+						$paymentRequests->paymentSources($order, $gateway),
+					);
+
+					if (! is_string($paymentSourceId) || ! in_array($paymentSourceId, $allowedIds, true)) {
+						throw new ForbiddenHttpException('This visitor can’t use this saved payment method.');
+					}
+				}
+
+				$request->setBodyParams([
+					...$request->getBodyParams(),
+					'email' => $order->email,
+				]);
+				$this->isPayingPaymentRequest = true;
+			}
+		);
 	}
 
 	/**
