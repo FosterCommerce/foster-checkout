@@ -59,3 +59,15 @@ Messages from [Advanced Discounts](../reference/integrations.md#advanced-discoun
 **The summary include renders once, on page load.** It does not re-render when the single-page checkout changes the shipping method or coupon.
 
 **The summary include gets a bordered container only when its template outputs markup.** A template that outputs an empty string leaves no empty box. Put the condition inside the template rather than setting the include path conditionally.
+
+## Replacing the line item placeholder
+
+With **Placeholder images** on, a line item without an image shows a tag icon. To show your own, add `templates/foster-checkout/_components/app/line-item-placeholder.twig` to your site. Craft renders a site template in place of the plugin template at the same path.
+
+The template fills the line item's square image box and receives `iconClass`, the icon's size classes: `w-10 h-10` in the cart and `w-6 h-6` in the checkout summary.
+
+```twig
+<div class="flex justify-center items-center w-full h-full bg-gray-100">
+	<img src="/assets/images/logo-mark.svg" alt="" class="{{ iconClass }} object-contain">
+</div>
+```

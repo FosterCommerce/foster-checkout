@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added the `foster-checkout/_components/app/line-item-placeholder` template, which a site can override to replace the placeholder for a line item without an image.
 - Added the “Enable saved payment methods” and “Saved payment method display” settings, which let a signed-in customer paying with Stripe choose a saved payment method or save a new one. Saved payment methods are off after updating.
 - Added a loading placeholder to the Stripe payment form.
 - Added the “Delete cleared carts” setting, which moves a cleared cart to the trash. The setting is off after updating.
