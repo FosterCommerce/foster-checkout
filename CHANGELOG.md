@@ -60,6 +60,7 @@
 
 ### Fixed
 
+- Fixed a bug where the cart page showed a refused cart change as if it were saved. The cart page now lists the reasons the change was refused.
 - Fixed a bug where clicking a floating field label didn’t show the browser’s autofill options.
 - Fixed a bug where the multi-page checkout could switch to the first available shipping method when the selected method's handle contained a hyphen.
 - Fixed a bug where same-named order discounts showed as separate rows in the order summary.

@@ -1,5 +1,11 @@
 {% extends 'foster-checkout/_layouts/default' %}
 
+{# Reload the saved cart, because a refused update passes the unsaved cart #}
+{% set cartErrors = cart is defined ? cart.getErrorSummary(true) : [] %}
+{% if cartErrors and cart.id %}
+	{% set cart = craft.orders.id(cart.id).one() %}
+{% endif %}
+
 {% block head %}
 	<title>{{ craft.fostercheckout.settings.branding.title ? craft.fostercheckout.settings.branding.title : siteName }}
 		| {{ 'misc.cartTitle'|t('foster-checkout') }}</title>
@@ -51,7 +57,7 @@
 						</form>
 					</header>
 
-					{{ include('foster-checkout/_components/app/flash-message') }}
+					{{ include('foster-checkout/_components/app/flash-message', { errors: cartErrors }) }}
 
 					{{ include('foster-checkout/_components/app/advanced-coupons-messages') }}
 
@@ -162,7 +168,7 @@
 
 		<div class="mt-10 pb-32 lg:mt-20">
 
-			{{ include('foster-checkout/_components/app/flash-message') }}
+			{{ include('foster-checkout/_components/app/flash-message', { errors: cartErrors }) }}
 
 			<header class="inline-flex justify-start items-center gap-2 mb-24 lg:mb-16">
 				<h1 class="font-semibold text-3xl">{{ 'cart.cartTitle'|t('foster-checkout') }}</h1>

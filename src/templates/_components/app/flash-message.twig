@@ -1,8 +1,17 @@
 {% set flashError = craft.app.session.getFlash('error') %}
 
-{% if flashError %}
+{% set errors = errors ?? [] %}
+
+{% if flashError or errors %}
 	<div class="p-4 text-sm text-red-700 bg-red-100 border border-red-300 {{ craft.fostercheckout.settings.branding.style|default('rounded') == 'flat' ? 'flat' : 'rounded-lg' }}">
 		{{ flashError }}
+		{% if errors %}
+			<ul class="{{ flashError ? 'mt-2' }} list-disc pl-5">
+				{% for error in errors %}
+					<li>{{ error }}</li>
+				{% endfor %}
+			</ul>
+		{% endif %}
 	</div>
 {% endif %}
 
