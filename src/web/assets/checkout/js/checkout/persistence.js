@@ -348,7 +348,7 @@ export const cartPersistence = () => ({
 						errorText ||
 						fieldErrorPanels.includes(panel) ||
 						(panel === 'coupon' && this.couponError) ||
-						(panel === 'notes' && this.notesError);
+						(panel === 'notes' && (this.notesError || savingNotes));
 					const tone = hasOwnError ? 'error' : 'idle';
 					this.setPanelStatus(panel, tone, errorText);
 
