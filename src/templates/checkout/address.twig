@@ -43,6 +43,8 @@
 	{% set _hasBookAddresses = currentUser and addresses|length %}
 	{% set _pickupAvailable = craft.fostercheckout.customerPickupAvailable(cart) %}
 	{% set _pickup = craft.fostercheckout.isCustomerPickup(cart) %}
+	{% set _pickupRadios = _pickupAvailable and craft.fostercheckout.settings.customerPickupDisplay == 'radios' %}
+	{% set _pickupInList = _pickupAvailable and not _pickupRadios %}
 	{# Treat as "new address" if no source ID and either a cart address exists or user has no saved addresses #}
 	{% set _isNew = (not _pickup) and (_sourceId is null) and (_hasCartShip or not _hasBookAddresses) %}
 	{# Default to first saved address if available, otherwise source ID, otherwise new address (0) #}
@@ -106,6 +108,12 @@
 				  shippingAddressId: {{ _pickup ? "'pickup'" : _initialRadio }},
 				  useNewAddress: {{ _isNew ? 1 : 0 }},
 				  get shippingPickup() { return this.shippingAddressId === 'pickup'; },
+				  get shippingChoice() { return this.useNewAddress ? 'new' : String(this.shippingAddressId); },
+				  set shippingChoice(choice) {
+				    this.editExistingAddress = 0;
+				    this.useNewAddress = choice === 'new' ? 1 : 0;
+				    this.shippingAddressId = choice === 'new' ? 0 : (choice === 'pickup' ? 'pickup' : Number(choice));
+				  },
 				  incompleteAddressIds: {{ craft.fostercheckout.incompleteAddressIds(addresses)|json_encode }},
 				  get shippingAddressIncomplete() {
 				    return !parseInt(this.useNewAddress) && this.incompleteAddressIds.includes(Number(this.shippingAddressId));
@@ -164,12 +172,13 @@
 							</h2>
 
 							<div class="p-4">
-								<div{% if not addressDropdown %} class="xl:border xl:border-gray-250 xl:rounded-lg"{% endif %}>
+								{% set addressPicker %}
+								<div{% if not addressDropdown and not _pickupRadios %} class="xl:border xl:border-gray-250 xl:rounded-lg"{% endif %}>
 									{% include 'foster-checkout/_components/app/address-incomplete-notice' with { condition: 'shippingAddressIncomplete' } %}
 									{% if addressDropdown %}
-										{% include 'foster-checkout/checkout/_address-select' with { pickupAvailable: _pickupAvailable } %}
+										{% include 'foster-checkout/checkout/_address-select' with { pickupAvailable: _pickupInList, labelHidden: _pickupRadios } %}
 									{% else %}
-										{% if _hasBookAddresses or _pickupAvailable %}
+										{% if _hasBookAddresses or _pickupInList %}
 											{% for address in addresses %}
 												<div class="p-4 border-b border-gray-250"
 														 :class="{ 'bg-gray-100': (parseInt(shippingAddressId) === {{ address.id }} && useNewAddress === 0) }">
@@ -221,6 +230,10 @@
 										{% endif %}
 										{# end address list #}
 
+										{# Render the form alone, since Ship to an address already names the choice #}
+										{% if _pickupRadios and not _hasBookAddresses %}
+											{{ newAddressForm }}
+										{% else %}
 										<div :class="{ 'bg-gray-100': parseInt(shippingAddressId) === 0 || useNewAddress }">
 											<div class="p-4 radio">
 												<input
@@ -244,8 +257,9 @@
 
 											{{ newAddressForm }}
 										</div>
+										{% endif %}
 
-										{% if _pickupAvailable %}
+										{% if _pickupInList %}
 											<div class="p-4 radio border-t border-gray-250" :class="{ 'bg-gray-100': shippingPickup }">
 												<input
 													id="address_pickup"
@@ -270,6 +284,18 @@
 										{% endif %}
 									{% endif %}
 								</div>
+								{% endset %}
+
+								{% if _pickupRadios %}
+									{% include 'foster-checkout/checkout/_pickup-choice' with {
+										idPrefix: 'address_destination',
+										pickup: _pickup,
+										choiceAfterPickup: _initialRadio ? _initialRadio ~ '' : 'new',
+										listsSavedAddresses: not addressDropdown and _hasBookAddresses,
+									} %}
+								{% else %}
+									{{ addressPicker }}
+								{% endif %}
 
 								{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'shippingAddress' } %}
 

@@ -43,7 +43,8 @@
 	{% set _initialBillingSame = (_hasMatch and _offerSameAsShipping) ? 1 : 0 %}
 	{# Leave the book id null when same as shipping, so only one radio reads as selected #}
 	{% set _initialBillingAddressId = _hasMatch ? null : _sourceBillId %}
-	{% set _billingFormOnly = not _collectShipping and not (currentUser and addresses|length) %}
+	{# Show the billing form alone when it is the only choice, as on a pickup order with no saved address #}
+	{% set _billingFormOnly = not _offerSameAsShipping and not (currentUser and billingAddresses|length) %}
 	{% set _initialNewBilling = (_isNewBilling or _billingFormOnly) ? 1 : 0 %}
 
 	{# Share the new billing address form between the radio list and the dropdown #}
@@ -251,7 +252,7 @@
 															class="inline-flex justify-start items-center gap-4 cursor-pointer"
 															:class="{ 'font-medium text-black': parseInt(newBillingAddress) === 1 }"
 														>
-															{{ 'billing.useDifferentBillingAddress'|t('foster-checkout') }}
+															{{ (_offerSameAsShipping ? 'billing.useDifferentBillingAddress' : 'billing.newBillingAddress')|t('foster-checkout') }}
 														</label>
 													</div>
 													{% endif %}

@@ -10,19 +10,7 @@ import {
 import { AddressAutocomplete } from './checkout/address-autocomplete.js';
 import { AddressVerification } from './checkout/address-verification.js';
 import { StripeLoadingPlaceholder } from './checkout/gateways.js';
-
-const setErrors = (field, messages) => {
-	const next = messages.filter(Boolean);
-	if (
-		Array.isArray(field.errors) &&
-		field.errors.length === next.length &&
-		field.errors.every((message, index) => message === next[index])
-	) {
-		return;
-	}
-
-	field.errors = next;
-};
+import { setErrors } from './checkout/field-errors.js';
 
 const ClearableInput = (props) => {
 	return {
@@ -35,6 +23,8 @@ const ClearableInput = (props) => {
 		addressScope: props.addressScope ?? false,
 		required: props.required,
 		errors: props.errors,
+		serverErrors: props.errors || [],
+		serverErrorValue: props.value,
 		success: props.success,
 		requiredError: props.requiredError || '',
 		invalidEmailError: props.invalidEmailError || '',
@@ -178,6 +168,8 @@ const SearchableSelect = (props) => {
 		required: props.required || false,
 		selectOnlyOption: props.selectOnlyOption ?? true,
 		errors: props.errors || [],
+		serverErrors: props.errors || [],
+		serverErrorValue: props.value || null,
 		success: props.success || [],
 		requiredError: props.requiredError || '',
 		modelValue: props.value || null,
@@ -246,7 +238,7 @@ const SearchableSelect = (props) => {
 
 				if (this.selectedOption) {
 					this.touched = true;
-					this.errors = [];
+					setErrors(this, []);
 					this.$nextTick(() => {
 						// Make sure that the value is set on the hidden input in the next tick so that everything else
 						// in the current tick has completed.
@@ -704,6 +696,8 @@ const SimpleField = (props) => {
 		required: Boolean(props.required),
 		requiredError: props.requiredError || '',
 		errors: props.errors || [],
+		serverErrors: props.errors || [],
+		serverErrorValue: props.value ?? '',
 		// A field rendered with an error has already been flagged, so validate keeps reporting it
 		touched: (props.errors || []).length > 0,
 
@@ -713,11 +707,11 @@ const SimpleField = (props) => {
 
 		validate(showRequired = false) {
 			if (!this.isRequired() || !isEmptyValue(this.value)) {
-				this.errors = [];
+				setErrors(this, []);
 				return true;
 			}
 
-			this.errors = showRequired || this.touched ? [this.requiredError] : [];
+			setErrors(this, showRequired || this.touched ? [this.requiredError] : []);
 			return false;
 		},
 	};
@@ -754,6 +748,8 @@ const RadioInput = (props) => {
 		value: props.value || '',
 		required: props.required || false,
 		errors: props.errors || [],
+		serverErrors: props.errors || [],
+		serverErrorValue: props.value || '',
 		success: props.success || [],
 		requiredError: props.requiredError || '',
 		touched: (props.errors || []).length > 0,

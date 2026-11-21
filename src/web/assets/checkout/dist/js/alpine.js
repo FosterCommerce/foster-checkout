@@ -5874,13 +5874,18 @@ const addressBook = () => ({
         fields
       );
       if (!isJson || !response.ok || data2.success === false) {
+        let errorText = this.failedLabel;
         if (isJson) {
-          this.applyErrors(data2);
+          errorText = this.panelErrorText(
+            this.applyErrors(data2, fields, scope2),
+            panel,
+            true
+          );
         } else {
           this.status = this.failedLabel;
           this.statusTone = "error";
         }
-        this.setPanelStatus(panel, "error");
+        this.setPanelStatus(panel, "error", errorText);
         this.restorePaypalIfSkipped();
         this.restoreStripeIfSkipped();
         return;
@@ -5897,8 +5902,6 @@ const addressBook = () => ({
         this.editExistingAddress = 0;
         this.editBillingAddressId = 0;
         this.openIncompleteAddresses();
-      } else {
-        this.setPanelStatus(panel, "error");
       }
     } catch {
       this.status = this.failedLabel;
@@ -5940,6 +5943,34 @@ const addressBook = () => ({
     });
   }
 });
+const fieldValue = (field) => "modelValue" in field ? field.modelValue : field.value;
+const setServerErrors = (field, messages) => {
+  field.serverErrors = messages;
+  field.serverErrorValue = fieldValue(field);
+  field.errors = messages;
+};
+const setErrors = (field, messages) => {
+  const serverErrors = field.serverErrorValue === fieldValue(field) ? field.serverErrors : [];
+  const clientMessages = messages.filter(Boolean);
+  const next = clientMessages.length ? clientMessages : serverErrors.filter(Boolean);
+  if (Array.isArray(field.errors) && field.errors.length === next.length && field.errors.every((message, index) => message === next[index])) {
+    return;
+  }
+  field.errors = next;
+};
+const ERROR_KEY_PANELS = {
+  shippingAddress: "delivery",
+  billingAddress: "payment"
+};
+const INPUT_ERROR = {
+  placed: "placed",
+  stale: "stale",
+  noInput: "noInput"
+};
+const valueList = (value) => [].concat(value ?? []).map(String).filter((item) => item !== "").sort();
+const sameValue = (current, posted) => valueList(current).join("\0") === valueList(posted).join("\0");
+const keyPrefix = (key) => key.split(/[.[]/)[0];
+const errorKeyPanel = (key) => ERROR_KEY_PANELS[keyPrefix(key)] ?? null;
 const cartPersistence = () => ({
   buildPayload(extra = {}) {
     const payload = {
@@ -6167,8 +6198,30 @@ const cartPersistence = () => ({
         return;
       }
       if (!response.ok || data2.success === false) {
-        this.applyErrors(data2);
-        this.setPanelsStatus(panels, "error");
+        const result = this.applyErrors(data2, fields);
+        const fieldErrorPanels = Object.keys(this.panelStatus).filter(
+          (panel) => this.panelHasFieldErrors(panel)
+        );
+        const ownerPanels = [
+          ...result.unplaced.map((error2) => errorKeyPanel(error2.key)),
+          ...fieldErrorPanels
+        ].filter(Boolean);
+        [.../* @__PURE__ */ new Set([...panels, ...ownerPanels])].forEach((panel) => {
+          const errorText = this.panelErrorText(
+            result,
+            panel,
+            panels.includes(panel)
+          );
+          const hasOwnError = errorText || fieldErrorPanels.includes(panel) || panel === "coupon" && this.couponError || panel === "notes" && this.notesError;
+          const tone = hasOwnError ? "error" : "idle";
+          this.setPanelStatus(panel, tone, errorText);
+          if (panel === "coupon" && errorText) {
+            this.couponError = errorText;
+          }
+          if (panel === "notes" && errorText) {
+            this.notesError = errorText;
+          }
+        });
         this.markNotesError(savingNotes);
         return;
       }
@@ -6179,20 +6232,13 @@ const cartPersistence = () => ({
       this.applyCart(cart, fieldOnly ? "" : this.shippingRateKey(saved));
       cartSynced = Boolean(cart) && typeof cart === "object";
       const couponError = this.couponRejectedMessage(saved, cart);
-      if (couponError) {
-        this.applyFieldErrors({
-          couponCode: [couponError]
-        });
-        this.couponOpen = true;
-        this.setPanelsStatus(panels, "error");
-        this.status = "";
-        this.statusTone = "idle";
-        return;
-      }
       this.clearInputErrors();
       this.status = this.savedLabel;
       this.statusTone = "saved";
-      this.setPanelsStatus(panels, "saved");
+      this.setPanelsStatus(
+        panels.filter((panel) => !couponError || panel !== "coupon"),
+        "saved"
+      );
       Object.assign(this.savedFieldValues, saved);
       if (!fieldOnly) {
         this.lastSaved = JSON.stringify({
@@ -6202,6 +6248,15 @@ const cartPersistence = () => ({
       }
       if (savingNotes) {
         this.notesButtonVisible = false;
+      }
+      if (couponError) {
+        this.applyFieldErrors({
+          couponCode: [couponError]
+        });
+        this.couponOpen = true;
+        this.setPanelStatus("coupon", "error", "");
+        this.status = "";
+        this.statusTone = "idle";
       }
     } catch (error2) {
       if (error2.name === "AbortError") {
@@ -6255,6 +6310,9 @@ const cartPersistence = () => ({
         );
       }
       const live = cart.fosterCheckout || {};
+      if (typeof live.customerPickup === "boolean") {
+        this.cartIsPickup = live.customerPickup;
+      }
       if (live.paymentNeedsRefresh) {
         this.invalidateStripeCheckout();
         this.invalidatePaypalCheckout();
@@ -6374,6 +6432,15 @@ const cartPersistence = () => ({
       if (panel === "delivery") {
         this.refreshShippingPreview();
       }
+      if (panel === "delivery" && this.cartIsPickup && !this.shippingPickup && !this.canSavePanel(panel)) {
+        this.saveCart({
+          ...this.collectNamedFields(fieldCell),
+          shippingPickup: "0",
+          panel,
+          fieldOnly: true
+        });
+        return;
+      }
       if (!this.canSavePanel(panel)) {
         this.saveCheckoutField(panel, event);
         return;
@@ -6479,24 +6546,27 @@ const cartPersistence = () => ({
     }
     return `${parts[0]}[${parts.slice(1).join("][")}]`;
   },
-  findNamedInput(name) {
-    return this.rootEl.querySelector(`[name="${this.escapeName(name)}"]`);
+  findNamedInput(name, scope2 = this.rootEl) {
+    return scope2.querySelector(`[name="${this.escapeName(name)}"]`);
   },
-  setInputErrors(name, messages) {
-    const input = this.findNamedInput(name);
+  setInputErrors(name, messages, postedValue, scope2) {
+    const input = this.findNamedInput(name, scope2);
     if (!input) {
-      return false;
+      return INPUT_ERROR.noInput;
     }
     const root = input.closest("[x-data]");
     if (!root || root === this.rootEl) {
-      return false;
+      return INPUT_ERROR.noInput;
     }
     const data2 = window.Alpine.$data(root);
     if (!data2 || !Array.isArray(data2.errors)) {
-      return false;
+      return INPUT_ERROR.noInput;
     }
-    data2.errors = messages;
-    return true;
+    if (postedValue !== void 0 && !sameValue(fieldValue(data2), postedValue)) {
+      return INPUT_ERROR.stale;
+    }
+    setServerErrors(data2, messages);
+    return INPUT_ERROR.placed;
   },
   clearInputErrors() {
     this.couponError = "";
@@ -6506,34 +6576,45 @@ const cartPersistence = () => ({
     ).forEach((root) => {
       const data2 = window.Alpine.$data(root);
       if (data2 && Array.isArray(data2.errors)) {
-        data2.errors = [];
+        setServerErrors(data2, []);
       }
     });
   },
   /**
-   * @returns {string[]} messages for errors with no input to show them against
+   * @returns {{unplaced: {key: string, messages: string[]}[], applied: {key: string, messages: string[]}[]}} errors with no input to show them against, and errors shown
    */
-  applyFieldErrors(errors) {
+  applyFieldErrors(errors, posted = {}, scope2 = this.rootEl) {
     this.clearInputErrors();
     const flattened = this.flattenErrors(errors);
     const noteName = this.$refs.orderNote?.name;
     const unplaced = [];
+    const applied = [];
     Object.entries(flattened).forEach(([key, messages]) => {
       const name = this.errorKeyToName(key);
-      const placed = this.setInputErrors(name, messages);
+      const placed = this.setInputErrors(
+        name,
+        messages,
+        posted[`${name}[]`] ?? posted[name],
+        scope2
+      );
       if (name === "couponCode") {
         this.couponError = messages.join(" ");
+        applied.push({ key, messages });
         return;
       }
       if (noteName && name === noteName) {
         this.notesError = messages.join(" ");
+        applied.push({ key, messages });
         return;
       }
-      if (!placed) {
-        unplaced.push(...messages);
+      if (placed === INPUT_ERROR.placed) {
+        applied.push({ key, messages });
+      }
+      if (placed === INPUT_ERROR.noInput) {
+        unplaced.push({ key, messages });
       }
     });
-    return unplaced;
+    return { unplaced, applied };
   },
   collectResponseErrors(data2) {
     return {
@@ -6541,10 +6622,57 @@ const cartPersistence = () => ({
       ...data2.cart && data2.cart.errors || {}
     };
   },
-  applyErrors(data2) {
-    const unplaced = this.applyFieldErrors(this.collectResponseErrors(data2));
-    this.status = unplaced.length ? unplaced.join(" ") : data2.message || data2.error || this.failedLabel;
+  /**
+   * @returns {{unplaced: {key: string, messages: string[]}[], applied: string[], general: string}}
+   */
+  applyErrors(data2, posted, scope2 = this.rootEl) {
+    const errors = this.collectResponseErrors(data2);
+    if (posted.billingAddressSameAsShipping === "1") {
+      Object.keys(errors).filter((key) => key.startsWith("billingAddress")).forEach((key) => {
+        const shippingKey = `shippingAddress${key.slice("billingAddress".length)}`;
+        errors[shippingKey] = [
+          .../* @__PURE__ */ new Set([
+            ...[].concat(errors[shippingKey] ?? []),
+            ...[].concat(errors[key])
+          ])
+        ];
+        delete errors[key];
+      });
+    }
+    const { unplaced, applied } = this.applyFieldErrors(errors, posted, scope2);
+    const unplacedShown = unplaced.map((error2) => ({
+      ...error2,
+      messages: error2.messages.filter(
+        (message) => !applied.some(
+          (placed) => keyPrefix(placed.key) === keyPrefix(error2.key) && placed.messages.includes(message)
+        )
+      )
+    })).filter((error2) => error2.messages.length);
+    const appliedMessages = applied.flatMap((placed) => placed.messages);
+    const general = data2.message || data2.error || this.failedLabel;
+    this.status = [
+      .../* @__PURE__ */ new Set([
+        ...unplacedShown.flatMap((error2) => error2.messages),
+        ...appliedMessages
+      ])
+    ].join(" ") || general;
     this.statusTone = "error";
+    return { unplaced: unplacedShown, applied: appliedMessages, general };
+  },
+  // Box text: unplaced errors routed to this panel; in a save, unrouted ones or the general message
+  panelErrorText({ unplaced, applied, general }, panel, inSave) {
+    if (!unplaced.length) {
+      return inSave && !applied.length ? general : "";
+    }
+    return unplaced.filter((error2) => {
+      const owner = errorKeyPanel(error2.key);
+      return owner ? owner === panel : inSave;
+    }).flatMap((error2) => error2.messages).join(" ");
+  },
+  panelHasFieldErrors(panel) {
+    return [
+      ...this.rootEl.querySelectorAll(`[data-fc-panel="${panel}"] [x-data]`)
+    ].some((root) => window.Alpine.$data(root)?.errors?.length > 0);
   },
   applyCoupon() {
     const code = String(this.couponInput || "").trim();
@@ -6590,7 +6718,7 @@ const cartPersistence = () => ({
       return;
     }
     if (!this.notesError) {
-      this.notesError = this.status || this.failedLabel;
+      this.notesError = this.failedLabel;
     }
     this.notesButtonVisible = true;
   },
@@ -7160,6 +7288,7 @@ const SinglePageCheckout = (props) => {
     billingSameAsShipping: props.billingSameAsShipping ?? true,
     billingAddressId: props.billingAddressId,
     useNewBillingAddress: props.useNewBillingAddress ?? false,
+    hasSavedBillingAddresses: props.hasSavedBillingAddresses ?? false,
     cartHasShippingAddress: props.hasShippingAddress ?? false,
     couponCode: props.couponCode ?? "",
     couponInput: props.couponCode ?? "",
@@ -7179,6 +7308,7 @@ const SinglePageCheckout = (props) => {
     addressFields: {},
     shippingPreview: props.shippingPreview ?? "",
     pickupAvailable: props.pickupAvailable ?? false,
+    cartIsPickup: props.cartIsPickup ?? false,
     pickupPreview: props.pickupPreview ?? "",
     latestShippingAddress: null,
     latestBillingAddress: null,
@@ -7431,6 +7561,12 @@ const SinglePageCheckout = (props) => {
       }
       return Boolean(this.billingAddressId);
     },
+    get showsSameAsShipping() {
+      return this.collectShipping && !this.shippingPickup;
+    },
+    get billingFormOnly() {
+      return !this.hasSavedBillingAddresses && !this.showsSameAsShipping;
+    },
     get shippingPickup() {
       return this.pickupAvailable && this.shippingAddressId === "pickup";
     },
@@ -7474,6 +7610,9 @@ const SinglePageCheckout = (props) => {
       if (choice === "pickup") {
         this.shippingAddressId = "pickup";
         this.billingSameAsShipping = false;
+        if (this.billingFormOnly) {
+          this.useNewBillingAddress = true;
+        }
         return;
       }
       this.shippingAddressId = Number(choice);
@@ -7623,7 +7762,7 @@ const SinglePageCheckout = (props) => {
     setPanelsStatus(panels, tone) {
       panels.forEach((panel) => this.setPanelStatus(panel, tone));
     },
-    setPanelStatus(panel, tone) {
+    setPanelStatus(panel, tone, errorText = this.status) {
       if (!panel) {
         return;
       }
@@ -7645,7 +7784,7 @@ const SinglePageCheckout = (props) => {
       if (tone !== "saved") {
         this.panelErrors = {
           ...this.panelErrors,
-          [panel]: tone === "error" ? this.status : ""
+          [panel]: tone === "error" ? errorText : ""
         };
         return;
       }
@@ -8150,13 +8289,6 @@ const AddressVerification = (props) => ({
     ].map((part) => String(part || "").trim()).filter(Boolean).join(", ");
   }
 });
-const setErrors = (field, messages) => {
-  const next = messages.filter(Boolean);
-  if (Array.isArray(field.errors) && field.errors.length === next.length && field.errors.every((message, index) => message === next[index])) {
-    return;
-  }
-  field.errors = next;
-};
 const ClearableInput = (props) => {
   return {
     label: props.label || "",
@@ -8168,6 +8300,8 @@ const ClearableInput = (props) => {
     addressScope: props.addressScope ?? false,
     required: props.required,
     errors: props.errors,
+    serverErrors: props.errors || [],
+    serverErrorValue: props.value,
     success: props.success,
     requiredError: props.requiredError || "",
     invalidEmailError: props.invalidEmailError || "",
@@ -8277,6 +8411,8 @@ const SearchableSelect = (props) => {
     required: props.required || false,
     selectOnlyOption: props.selectOnlyOption ?? true,
     errors: props.errors || [],
+    serverErrors: props.errors || [],
+    serverErrorValue: props.value || null,
     success: props.success || [],
     requiredError: props.requiredError || "",
     modelValue: props.value || null,
@@ -8331,7 +8467,7 @@ const SearchableSelect = (props) => {
         }
         if (this.selectedOption) {
           this.touched = true;
-          this.errors = [];
+          setErrors(this, []);
           this.$nextTick(() => {
             this.$refs.hiddenValue.value = this.selectedOption.value;
           });
@@ -8676,6 +8812,8 @@ const SimpleField = (props) => {
     required: Boolean(props.required),
     requiredError: props.requiredError || "",
     errors: props.errors || [],
+    serverErrors: props.errors || [],
+    serverErrorValue: props.value ?? "",
     // A field rendered with an error has already been flagged, so validate keeps reporting it
     touched: (props.errors || []).length > 0,
     isRequired() {
@@ -8683,10 +8821,10 @@ const SimpleField = (props) => {
     },
     validate(showRequired = false) {
       if (!this.isRequired() || !isEmptyValue(this.value)) {
-        this.errors = [];
+        setErrors(this, []);
         return true;
       }
-      this.errors = showRequired || this.touched ? [this.requiredError] : [];
+      setErrors(this, showRequired || this.touched ? [this.requiredError] : []);
       return false;
     }
   };
@@ -8716,6 +8854,8 @@ const RadioInput = (props) => {
     value: props.value || "",
     required: props.required || false,
     errors: props.errors || [],
+    serverErrors: props.errors || [],
+    serverErrorValue: props.value || "",
     success: props.success || [],
     requiredError: props.requiredError || "",
     touched: (props.errors || []).length > 0,

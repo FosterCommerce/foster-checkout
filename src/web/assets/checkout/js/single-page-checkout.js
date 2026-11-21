@@ -66,6 +66,7 @@ export const SinglePageCheckout = (props) => {
 		billingSameAsShipping: props.billingSameAsShipping ?? true,
 		billingAddressId: props.billingAddressId,
 		useNewBillingAddress: props.useNewBillingAddress ?? false,
+		hasSavedBillingAddresses: props.hasSavedBillingAddresses ?? false,
 		cartHasShippingAddress: props.hasShippingAddress ?? false,
 		couponCode: props.couponCode ?? '',
 		couponInput: props.couponCode ?? '',
@@ -85,6 +86,7 @@ export const SinglePageCheckout = (props) => {
 		addressFields: {},
 		shippingPreview: props.shippingPreview ?? '',
 		pickupAvailable: props.pickupAvailable ?? false,
+		cartIsPickup: props.cartIsPickup ?? false,
 		pickupPreview: props.pickupPreview ?? '',
 		latestShippingAddress: null,
 		latestBillingAddress: null,
@@ -373,6 +375,14 @@ export const SinglePageCheckout = (props) => {
 			return Boolean(this.billingAddressId);
 		},
 
+		get showsSameAsShipping() {
+			return this.collectShipping && !this.shippingPickup;
+		},
+
+		get billingFormOnly() {
+			return !this.hasSavedBillingAddresses && !this.showsSameAsShipping;
+		},
+
 		get shippingPickup() {
 			return this.pickupAvailable && this.shippingAddressId === 'pickup';
 		},
@@ -433,6 +443,9 @@ export const SinglePageCheckout = (props) => {
 			if (choice === 'pickup') {
 				this.shippingAddressId = 'pickup';
 				this.billingSameAsShipping = false;
+				if (this.billingFormOnly) {
+					this.useNewBillingAddress = true;
+				}
 				return;
 			}
 
@@ -660,7 +673,7 @@ export const SinglePageCheckout = (props) => {
 			panels.forEach((panel) => this.setPanelStatus(panel, tone));
 		},
 
-		setPanelStatus(panel, tone) {
+		setPanelStatus(panel, tone, errorText = this.status) {
 			if (!panel) {
 				return;
 			}
@@ -683,12 +696,12 @@ export const SinglePageCheckout = (props) => {
 				[panel]: tone,
 			};
 
-			// The page level status is screen reader only, so the panel keeps its own copy to show.
+			// The page level status is screen reader only, so the panel keeps its own error text to show.
 			// A save accepts the whole cart, so it clears every panel's copy, not only this one's.
 			if (tone !== 'saved') {
 				this.panelErrors = {
 					...this.panelErrors,
-					[panel]: tone === 'error' ? this.status : '',
+					[panel]: tone === 'error' ? errorText : '',
 				};
 
 				return;

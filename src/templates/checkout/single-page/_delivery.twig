@@ -60,11 +60,12 @@
 			</template>
 		{% endset %}
 
-		<div{% if not addressDropdown %} class="xl:border xl:border-gray-250 xl:rounded-lg"{% endif %}>
+		{% set addressPicker %}
+		<div{% if not addressDropdown and not pickupRadios %} class="xl:border xl:border-gray-250 xl:rounded-lg"{% endif %}>
 			{% include 'foster-checkout/_components/app/address-incomplete-notice' with { condition: 'shippingAddressIncomplete' } %}
 			{% if addressDropdown %}
-				{% include 'foster-checkout/checkout/single-page/_delivery-select' %}
-			{% elseif (currentUser and shippingAddresses|length) or pickupAvailable %}
+				{% include 'foster-checkout/checkout/single-page/_delivery-select' with { pickupAvailable: pickupInList, labelHidden: pickupRadios } %}
+			{% elseif (currentUser and shippingAddresses|length) or pickupInList %}
 				{% for address in shippingAddresses %}
 					<div class="p-4 border-b border-gray-250" :class="{ 'bg-gray-100': parseInt(shippingAddressId) === {{ address.id }} && !useNewAddress }">
 						<div class="flex justify-between items-center gap-4 radio">
@@ -153,7 +154,7 @@
 					{{ newAddressForm }}
 				</div>
 
-				{% if pickupAvailable %}
+				{% if pickupInList %}
 					<div class="border-t border-gray-250" :class="{ 'bg-gray-100': shippingPickup }">
 						<div class="p-4 radio">
 							<input
@@ -163,7 +164,7 @@
 								class="sr-only"
 								x-model="shippingAddressId"
 								value="pickup"
-								@change="useNewAddress = false; editExistingAddress = 0; billingSameAsShipping = false"
+								@change="shippingChoice = 'pickup'"
 							/>
 							<label
 								for="sp_address_pickup"
@@ -182,6 +183,18 @@
 				{{ newAddressForm }}
 			{% endif %}
 		</div>
+		{% endset %}
+
+		{% if pickupRadios %}
+			{% include 'foster-checkout/checkout/_pickup-choice' with {
+				idPrefix: 'sp_destination',
+				pickup: customerPickup,
+				choiceAfterPickup: (currentUser and shippingAddresses|length) ? shippingAddresses|first.id ~ '' : 'new',
+				listsSavedAddresses: not addressDropdown and currentUser and shippingAddresses|length,
+			} %}
+		{% else %}
+			{{ addressPicker }}
+		{% endif %}
 
 		{% include 'foster-checkout/_components/app/checkout-fields' with { position: 'shippingAddress', showRequired: true } %}
 

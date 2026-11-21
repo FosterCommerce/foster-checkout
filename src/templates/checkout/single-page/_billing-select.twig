@@ -6,8 +6,11 @@
 <div
 	x-data="{
 		billingAddressOptions: {{ billingAddressOptions|json_encode }},
+		newBillingLabel: {{ 'billing.newBillingAddress'|t('foster-checkout')|json_encode }},
 		get offeredOptions() {
-			const options = this.liveAddressOptions(this.billingAddressOptions).filter((option) => (option.value !== 'same' || !this.shippingPickup) && this.offersAsBilling(option.value));
+			const options = this.liveAddressOptions(this.billingAddressOptions)
+				.filter((option) => (option.value !== 'same' || !this.shippingPickup) && this.offersAsBilling(option.value))
+				.map((option) => option.value === 'new' && !this.showsSameAsShipping ? { ...option, label: this.newBillingLabel } : option);
 			{# Re-mark the divider, since the filter can remove the last saved address #}
 			const lastSaved = options.findLast((option) => !['same', 'new'].includes(option.value));
 			return options.map((option) => ({ ...option, isLastPinned: option === lastSaved }));
@@ -23,7 +26,7 @@
 	<div class="flex items-center gap-4">
 		<div class="flex-1" x-show="!parseInt(editBillingAddressId)">
 			{# Rebuild the dropdown when its options change, since replacing them clears the selection.
-			   Leave a lone option unpicked, since it can only be "Use a different billing address". #}
+			   Leave a lone option unpicked, since it can only be the new billing address choice. #}
 			<template x-for="labels in [offeredOptions.map((option) => option.label).join('|')]" :key="labels">
 				{% include 'foster-checkout/_components/base/input-select-searchable' with {
 					id: 'billingAddressId_display',

@@ -32,6 +32,8 @@
 	{% set hasBookAddresses = currentUser and addresses|length %}
 	{% set pickupAvailable = craft.fostercheckout.customerPickupAvailable(cart) %}
 	{% set customerPickup = craft.fostercheckout.isCustomerPickup(cart) %}
+	{% set pickupRadios = pickupAvailable and craft.fostercheckout.settings.customerPickupDisplay == 'radios' %}
+	{% set pickupInList = pickupAvailable and not pickupRadios %}
 	{# Open on the new address form when the shipping list is empty, since no radio renders #}
 	{% set isNewAddress = not customerPickup and (not (currentUser and shippingAddresses|length) or ((sourceId is null) and hasCartShip)) %}
 	{% set initialShippingAddressId = customerPickup ? 'pickup' : (isNewAddress ? 0 : (sourceId ?? (shippingAddresses|length ? shippingAddresses|first.id : 0))) %}
@@ -45,7 +47,9 @@
 	{% set hasMatch = cart.hasMatchingAddresses() %}
 	{% set hasBillingRecord = cart.billingAddressId is not empty %}
 	{% set isNewBilling = (not hasMatch) and (sourceBillId is null) and hasBillingRecord %}
-	{% set billingFormOnly = not collectShipping and not hasBookAddresses %}
+	{# A pickup order ships to the store location, which isn't a billing address #}
+	{% set showsSameAsShipping = collectShipping and not customerPickup %}
+	{% set billingFormOnly = not hasBookAddresses and not showsSameAsShipping %}
 
 	{% set gateways = craft.fostercheckout.singlePageGateways(cart) %}
 	{% set manualGatewayIds = [] %}
@@ -75,6 +79,7 @@
 		incompleteBillingAddressIds: craft.fostercheckout.incompleteAddressIds(addresses, true),
 		canSaveAddresses: craft.fostercheckout.canSaveAddresses(cart),
 		useNewBillingAddress: (isNewBilling or billingFormOnly) ? true : false,
+		hasSavedBillingAddresses: hasBookAddresses ? true : false,
 		gatewayId: null,
 		hasShippingAddress: cart.shippingAddressId ? true : false,
 		couponCode: cart.couponCode ?? '',
@@ -86,6 +91,7 @@
 		addressLabels: live.addressLabels,
 		addressLines: live.addressLines,
 		pickupAvailable: pickupAvailable,
+		cartIsPickup: customerPickup,
 		pickupPreview: pickupAvailable ? craft.fostercheckout.customerPickupPreview(cart) : '',
 		payButtonText: 'payment.payButtonText'|t('foster-checkout'),
 		completeOrderLabel: 'payment.completeOrder'|t('foster-checkout'),

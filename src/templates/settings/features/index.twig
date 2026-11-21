@@ -58,20 +58,39 @@
 		name: 'settings[enableCustomerPickup]',
 		on: settings.enableCustomerPickup,
 		disabled: enableCustomerPickupOverridden or readOnly,
+		toggle: 'customer-pickup-detail',
 		warning: enableCustomerPickupOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'enableCustomerPickup' }),
 	}) }}
 
-	{% set customerPickupLabelOverridden = 'customerPickupLabel' in overriddenSettings %}
-	{{ forms.textField({
-		label: 'settings.features.customerPickupLabel'|t('foster-checkout'),
-		instructions: 'settings.features.customerPickupLabelHelp'|t('foster-checkout'),
-		id: 'customer-pickup-label',
-		name: 'settings[customerPickupLabel]',
-		value: settings.customerPickupLabel,
-		placeholder: 'address.customerPickup'|t('foster-checkout'),
-		disabled: customerPickupLabelOverridden or readOnly,
-		warning: customerPickupLabelOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'customerPickupLabel' }),
-	}) }}
+	<div id="customer-pickup-detail"{% if not settings.enableCustomerPickup and not settings.hasErrors('customerPickupDisplay') %} class="hidden"{% endif %}>
+		{% set customerPickupLabelOverridden = 'customerPickupLabel' in overriddenSettings %}
+		{{ forms.textField({
+			label: 'settings.features.customerPickupLabel'|t('foster-checkout'),
+			instructions: 'settings.features.customerPickupLabelHelp'|t('foster-checkout'),
+			id: 'customer-pickup-label',
+			name: 'settings[customerPickupLabel]',
+			value: settings.customerPickupLabel,
+			placeholder: 'address.customerPickup'|t('foster-checkout'),
+			disabled: customerPickupLabelOverridden or readOnly,
+			warning: customerPickupLabelOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'customerPickupLabel' }),
+		}) }}
+
+		{% set customerPickupDisplayOverridden = 'customerPickupDisplay' in overriddenSettings %}
+		{{ forms.selectField({
+			label: 'settings.features.customerPickupDisplay'|t('foster-checkout'),
+			instructions: 'settings.features.customerPickupDisplayHelp'|t('foster-checkout'),
+			id: 'customer-pickup-display',
+			name: 'settings[customerPickupDisplay]',
+			value: settings.customerPickupDisplay,
+			errors: settings.getErrors('customerPickupDisplay'),
+			options: [
+				{ label: 'settings.features.customerPickupDisplayChoice'|t('foster-checkout'), value: 'choice' },
+				{ label: 'settings.features.customerPickupDisplayRadios'|t('foster-checkout'), value: 'radios' },
+			],
+			disabled: customerPickupDisplayOverridden or readOnly,
+			warning: customerPickupDisplayOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'customerPickupDisplay' }),
+		}) }}
+	</div>
 
 	<hr>
 
@@ -120,6 +139,36 @@
 		disabled: deleteClearedCartsOverridden or readOnly,
 		warning: deleteClearedCartsOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'deleteClearedCarts' }),
 	}) }}
+
+	{# Only the plugin's cart renders the link #}
+	{% if settings.paths.useCartTemplate %}
+	<hr>
+
+	<h2>{{ 'settings.features.continueShoppingTitle'|t('foster-checkout') }}</h2>
+
+	{% set showContinueShoppingOverridden = 'showContinueShopping' in overriddenSettings %}
+	{{ forms.lightswitchField({
+		label: 'settings.features.showContinueShopping'|t('foster-checkout'),
+		instructions: 'settings.features.showContinueShoppingHelp'|t('foster-checkout'),
+		id: 'show-continue-shopping',
+		name: 'settings[showContinueShopping]',
+		on: settings.showContinueShopping,
+		disabled: showContinueShoppingOverridden or readOnly,
+		warning: showContinueShoppingOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'showContinueShopping' }),
+	}) }}
+
+	{% set continueShoppingLabelOverridden = 'continueShoppingLabel' in overriddenSettings %}
+	{{ forms.textField({
+		label: 'settings.features.continueShoppingLabel'|t('foster-checkout'),
+		instructions: 'settings.features.continueShoppingLabelHelp'|t('foster-checkout'),
+		id: 'continue-shopping-label',
+		name: 'settings[continueShoppingLabel]',
+		value: settings.continueShoppingLabel,
+		placeholder: 'cart.continueShopping'|t('foster-checkout'),
+		disabled: continueShoppingLabelOverridden or readOnly,
+		warning: continueShoppingLabelOverridden ? 'settings.overridden'|t('foster-checkout', { setting: 'continueShoppingLabel' }),
+	}) }}
+	{% endif %}
 
 	{% include 'foster-checkout/_includes/plugin-footer' %}
 

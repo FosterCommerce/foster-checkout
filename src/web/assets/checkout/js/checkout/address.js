@@ -286,13 +286,18 @@ export const addressBook = () => ({
 				fields
 			);
 			if (!isJson || !response.ok || data.success === false) {
+				let errorText = this.failedLabel;
 				if (isJson) {
-					this.applyErrors(data);
+					errorText = this.panelErrorText(
+						this.applyErrors(data, fields, scope),
+						panel,
+						true
+					);
 				} else {
 					this.status = this.failedLabel;
 					this.statusTone = 'error';
 				}
-				this.setPanelStatus(panel, 'error');
+				this.setPanelStatus(panel, 'error', errorText);
 				this.restorePaypalIfSkipped();
 				this.restoreStripeIfSkipped();
 				return;
@@ -314,8 +319,6 @@ export const addressBook = () => ({
 				this.editExistingAddress = 0;
 				this.editBillingAddressId = 0;
 				this.openIncompleteAddresses();
-			} else {
-				this.setPanelStatus(panel, 'error');
 			}
 		} catch {
 			this.status = this.failedLabel;

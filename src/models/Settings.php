@@ -25,6 +25,10 @@ class Settings extends Model
 
 	public const string SAVED_PAYMENT_SOURCE_DISPLAY_DROPDOWN = 'dropdown';
 
+	public const string CUSTOMER_PICKUP_DISPLAY_CHOICE = 'choice';
+
+	public const string CUSTOMER_PICKUP_DISPLAY_RADIOS = 'radios';
+
 	// Leave out gateways that ask for payment details, since a free order takes no payment
 	private const array NONZERO_GATEWAY_CLASSES = [
 		'craft\\commerce\\stripe\\gateways\\PaymentIntents',
@@ -150,6 +154,20 @@ class Settings extends Model
 	public bool $deleteClearedCarts = false;
 
 	/**
+	 * Whether a cart with items shows Continue shopping under Checkout.
+	 *
+	 * @since 2.1.0
+	 */
+	public bool $showContinueShopping = false;
+
+	/**
+	 * Text of the Continue shopping link. Blank shows “Continue shopping”.
+	 *
+	 * @since 2.1.0
+	 */
+	public ?string $continueShoppingLabel = null;
+
+	/**
 	 * Handle of the address field holding a phone number, so its input asks for a phone keypad.
 	 * Named here, since Craft has no phone field type to recognize.
 	 */
@@ -210,7 +228,7 @@ class Settings extends Model
 	public bool $showAddressLabelInPreview = false;
 
 	/**
-	 * Whether the store location is listed among the shipping addresses, for orders collected there.
+	 * Whether a customer can choose the store location as the shipping address, for pickup.
 	 */
 	public bool $enableCustomerPickup = false;
 
@@ -218,6 +236,14 @@ class Settings extends Model
 	 * Text of the pickup choice. Blank shows “Customer pickup”.
 	 */
 	public ?string $customerPickupLabel = null;
+
+	/**
+	 * How the checkout shows pickup: `choice` among the shipping addresses, or `radios` as a second
+	 * option after Ship to an address.
+	 *
+	 * @since 2.1.0
+	 */
+	public string $customerPickupDisplay = self::CUSTOMER_PICKUP_DISPLAY_CHOICE;
 
 	/**
 	 * @param array<array-key, mixed> $config
@@ -326,6 +352,7 @@ class Settings extends Model
 			'savedAddressDisplay' => Craft::t(FosterCheckout::HANDLE, 'settings.addresses.savedAddressDisplay'),
 			'savedAddressDropdownThreshold' => Craft::t(FosterCheckout::HANDLE, 'settings.addresses.savedAddressDropdownThreshold'),
 			'savedPaymentSourceDisplay' => Craft::t(FosterCheckout::HANDLE, 'settings.features.savedPaymentSourceDisplay'),
+			'customerPickupDisplay' => Craft::t(FosterCheckout::HANDLE, 'settings.features.customerPickupDisplay'),
 		];
 	}
 
@@ -352,6 +379,11 @@ class Settings extends Model
 				'savedPaymentSourceDisplay',
 				'in',
 				'range' => [self::SAVED_PAYMENT_SOURCE_DISPLAY_ADDRESS, self::SAVED_PAYMENT_SOURCE_DISPLAY_LIST, self::SAVED_PAYMENT_SOURCE_DISPLAY_DROPDOWN],
+			],
+			[
+				'customerPickupDisplay',
+				'in',
+				'range' => [self::CUSTOMER_PICKUP_DISPLAY_CHOICE, self::CUSTOMER_PICKUP_DISPLAY_RADIOS],
 			],
 			[['branding', 'lineItems', 'addressLookup'], 'validateConfigNode'],
 			['paymentGateways', 'validateGatewayNodes'],
