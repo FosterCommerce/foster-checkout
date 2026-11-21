@@ -8,19 +8,10 @@
 	x-data="{
 		savedAddressOptions: {{ savedAddressOptions|json_encode }},
 		get offeredChoice() {
-			const choice = this.useNewAddress ? 'new' : String(this.shippingAddressId);
-			return this.savedAddressOptions.some((option) => option.value === choice) ? choice : '';
+			return this.savedAddressOptions.some((option) => option.value === this.shippingChoice) ? this.shippingChoice : '';
 		},
 		set offeredChoice(choice) {
-			this.editExistingAddress = 0;
-			this.useNewAddress = choice === 'new' ? 1 : 0;
-			if (choice === 'new') {
-				this.shippingAddressId = 0;
-			} else if (choice === 'pickup') {
-				this.shippingAddressId = 'pickup';
-			} else {
-				this.shippingAddressId = Number(choice);
-			}
+			this.shippingChoice = choice;
 		},
 	}"
 >
@@ -32,6 +23,7 @@
 				model: 'offeredChoice',
 				options: savedAddressOptions,
 				label: 'address.savedAddresses'|t('foster-checkout'),
+				labelHidden: labelHidden,
 			} %}
 		</div>
 		{% if canSaveAddresses %}

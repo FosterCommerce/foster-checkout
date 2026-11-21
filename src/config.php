@@ -271,6 +271,13 @@ return [
 	// Move a cart the customer clears to the trash. Off, Commerce keeps it as an inactive cart.
 	// 'deleteClearedCarts' => false, // true|false
 
+	// Whether a cart with items shows Continue shopping under Checkout.
+	// The link goes to paths.cancel.
+	// 'showContinueShopping' => false, // true|false
+
+	// Text of the Continue shopping link. Null shows "Continue shopping"
+	// 'continueShoppingLabel' => null,
+
 	// Handle of the address field holding a phone number, so its input asks for a phone keypad.
 	// 'addressPhoneFieldHandle' => null,
 
@@ -303,9 +310,13 @@ return [
 	// order's own addresses and the store location are left out
 	// 'showAddressLabelInPreview' => false, // true|false
 
-	// Whether the shipping address choices include the store location, for orders collected there
+	// Whether a customer can choose the store location as the shipping address, for pickup
 	// 'enableCustomerPickup' => false, // true|false
 
 	// Text of the pickup choice. Null shows "Customer pickup"
 	// 'customerPickupLabel' => null,
+
+	// How the checkout shows pickup. 'choice' lists it among the shipping addresses, and 'radios'
+	// shows it as a second option after "Ship to an address".
+	// 'customerPickupDisplay' => 'choice', // choice|radios
 ];

@@ -138,9 +138,8 @@
 				</div>
 			{% endfor %}
 
-			<div {% if not billingFormOnly %}class="border-t border-gray-250" :class="{ 'bg-gray-100': useNewBillingAddress }"{% endif %}>
-				{% if not billingFormOnly %}
-				<div class="p-4 radio">
+			<div class="border-gray-250" :class="{ 'border-t': !billingFormOnly, 'bg-gray-100': !billingFormOnly && useNewBillingAddress }">
+				<div class="p-4 radio" x-show="!billingFormOnly"{{ billingFormOnly ? ' x-cloak' }}>
 					<input
 						id="sp_newBillingAddress"
 						type="radio"
@@ -154,10 +153,10 @@
 						class="inline-flex justify-start items-center gap-4 cursor-pointer"
 						:class="{ 'font-medium text-black': useNewBillingAddress }"
 					>
-						{{ 'billing.useDifferentBillingAddress'|t('foster-checkout') }}
+						<span x-show="showsSameAsShipping"{{ not showsSameAsShipping ? ' x-cloak' }}>{{ 'billing.useDifferentBillingAddress'|t('foster-checkout') }}</span>
+						<span x-show="!showsSameAsShipping"{{ showsSameAsShipping ? ' x-cloak' }}>{{ 'billing.newBillingAddress'|t('foster-checkout') }}</span>
 					</label>
 				</div>
-				{% endif %}
 
 				{{ newBillingForm }}
 			</div>

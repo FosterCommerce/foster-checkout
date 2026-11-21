@@ -9,6 +9,8 @@
 - Added a loading placeholder to the Stripe payment form.
 - Added the “Delete cleared carts” setting, which moves a cleared cart to the trash. The setting is off after updating.
 - Added the `foster-checkout/cart/delete` action.
+- Added the “Pickup display” setting, which can show customer pickup as a separate option after “Ship to an address” instead of as one of the address choices. “Pickup display” is “Address choice” after updating.
+- Added the “Continue shopping link” setting, which shows “Continue shopping” under “Checkout” on a cart with items, and the “Continue shopping text” setting for its text. “Continue shopping link” is off after updating.
 - Added the `Checkout::EVENT_DEFINE_SAVED_PAYMENT_SOURCES` event, for changing which saved payment methods the checkout lists or hiding the save checkbox.
 - Added `craft.fostercheckout.savedPaymentSources()`.
 - Added `craft.fostercheckout.incompleteAddressIds()`. A saved address missing a required field now opens its edit form when selected, and can't be paid with until it's updated.
@@ -29,6 +31,8 @@
 
 ### Changed
 
+- On a pickup order, the billing step now shows the billing address form alone when the customer has no saved address, instead of a single “Use a different billing address” choice. Without “Same as shipping address”, the new address choice reads “New billing address”.
+- “Pickup label” no longer shows in the control panel while “Enable customer pickup” is off.
 - The order confirmation page now shows “Paid” and “Balance due” in the order summary, in place of “Total paid” and “Balance” under “Payment”. A negative balance shows as “Credit”, and an order refunded in full shows neither row. An open authorization from a partial payment step now counts toward a completed order’s balance, as in Commerce. Override them with the `summary.paid` and `summary.balanceDue` translation keys.
 - The cart page’s “Clear the cart” link now reads “Delete this cart” or “Start a new cart”, based on the “Delete cleared carts” setting.
 - Foster Checkout now requires Craft CMS 5.10.0 or later.
@@ -45,7 +49,7 @@
 - Foster Checkout now completes a cart with a paid or authorized payment that isn't a completed order when the customer opens the checkout or the built-in cart page, and blocks changes and further payments on that cart until the order completes.
 - The cart and checkout pages, including the order confirmation page, now send no-cache headers, and Foster Checkout excludes them from Blitz's cache.
 - The checkout now passes `order`, `submitButtonText` and `submitButtonClasses` to the payment form of gateways other than Stripe Payment Intents, PayPal, Mollie and Manual.
-- The cart page no longer shows “Continue shopping” when the cart has items.
+- The cart page no longer shows “Continue shopping” when the cart has items, unless “Continue shopping link” is on.
 - “Placeholder images” now shows a built-in placeholder instead of an image from placehold.co.
 - The cart and checkout summaries now show the discount code, order fields and order note above the totals.
 - Cart line items now show their image and Remove link on phones, with the price under the title and Remove beside the quantity.
@@ -61,6 +65,8 @@
 
 ### Fixed
 
+- Fixed a bug where the checkout cleared an error the server reported for a field, such as the email, and showed only “Unable to update cart.” The error now shows once, under the field, until the customer changes the value. A panel's error box now shows only errors with no field to show them under, and only in the panel they belong to.
+- Fixed a bug where a pickup cart stayed on the store location after the customer chose a new or incomplete shipping address.
 - Fixed a bug where the cart page showed a refused cart change as if it were saved. The cart page now lists the reasons the change was refused.
 - Fixed a bug where clicking a floating field label didn’t show the browser’s autofill options.
 - Fixed a bug where the multi-page checkout could switch to the first available shipping method when the selected method's handle contained a hyphen.

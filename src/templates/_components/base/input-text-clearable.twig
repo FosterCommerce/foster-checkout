@@ -66,6 +66,7 @@
 			placeholder="{{ floatingLabel ? ' ' : placeholder|default('') }}"
 			:aria-invalid="errors.length ? true : false"
 			aria-errormessage="{{ fieldId }}-error"
+			:aria-describedby="errors.length ? '{{ fieldId }}-error' : null"
 			@input="input"
 			@focus="focus"
 			@blur="blur()"

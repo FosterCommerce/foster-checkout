@@ -1,12 +1,14 @@
 # Customer pickup
 
-Let a customer collect an order instead of having it shipped. The store location becomes one of the shipping address choices, so a pickup order is a normal order shipped to your own address.
+Let a customer collect an order instead of having it shipped. The customer chooses the store location as the shipping address, so a pickup order is a normal order shipped to your own address.
 
-Turn it on with **Enable customer pickup** at **Checkout -> Features**. **Pickup label** sets the choice's name. When **Pickup label** is blank, the choice reads "Customer pickup".
+Turn it on with **Enable customer pickup** at **Checkout -> Features**. **Pickup label** sets the text of the pickup choice. When **Pickup label** is blank, the text reads "Customer pickup".
 
 ## What the customer sees
 
-Both checkout layouts list the choice last, after the saved addresses and the new address option, and show the store location beneath it. Choosing it hides the address form. A guest sees the choice too, next to the new address form.
+With **Pickup display** set to **Address choice**, the default, both checkout layouts list the choice last, after the saved addresses and the new address option, and show the store location beneath it. Choosing it hides the address form. A guest sees the choice too, next to the new address form.
+
+With **Pickup display** set to **Separate options**, both checkout layouts show two options instead. **Ship to an address** lists the saved addresses and the new address form under it, laid out like **Use a different billing address** at the billing step. The pickup choice comes second, with the store location beneath it, and choosing it hides the addresses. Choosing **Ship to an address** again restores the address the customer had chosen before. The address list does not include a pickup choice. A cart already set for pickup opens with the pickup choice selected, and choosing **Ship to an address** then selects the first saved address, or shows the new address form when the customer has no saved address.
 
 A pickup order does not show the **Same as shipping address** billing choice, because the store location is not the customer's billing address. The customer picks or enters a billing address instead.
 

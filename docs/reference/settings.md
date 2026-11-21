@@ -7,7 +7,7 @@ You edit most settings under **Checkout**. Set the config-only settings, listed 
 | Screen | Config key | Covers |
 | --- | --- | --- |
 | **Appearance** | `branding`, `options.enableSinglePageCheckout` and `options.enablePageTransitions` | Whether the checkout runs as one page or separate steps, whether steps animate, and **Brand color**, **Header background color**, **Header text color**, **Font**, **Logo**, **Logo height**, **Component style**, **Field labels** and **Title prefix** |
-| **Features** | `options.enableNewsletter`, `options.newsletterListId`, `enableCustomerPickup`, `customerPickupLabel`, `enableSavedPaymentSources`, `savedPaymentSourceDisplay` and `deleteClearedCarts` | Whether the checkout shows the newsletter checkbox and the list it subscribes customers to, whether the shipping address choices include the store location, whether a signed-in customer paying with Stripe can choose a saved payment method and how they are listed, and whether the cart page offers **Delete this cart** or **Start a new cart**. See [customer pickup](../user-guide/customer-pickup.md), [saved payment methods](../user-guide/saved-payment-methods.md), [cart](../user-guide/cart.md) and [integrations](./integrations.md) |
+| **Features** | `options.enableNewsletter`, `options.newsletterListId`, `enableCustomerPickup`, `customerPickupLabel`, `customerPickupDisplay`, `enableSavedPaymentSources`, `savedPaymentSourceDisplay`, `deleteClearedCarts`, `showContinueShopping` and `continueShoppingLabel` | Whether the checkout shows the newsletter checkbox and the list it subscribes customers to, whether the checkout lists the store location among the shipping address choices or as a separate option, whether a signed-in customer paying with Stripe can choose a saved payment method and how they are listed, and whether the cart page shows **Delete this cart** or **Start a new cart**. With `paths.useCartTemplate` on, also whether a cart with items shows **Continue shopping** and the link's text. See [customer pickup](../user-guide/customer-pickup.md), [saved payment methods](../user-guide/saved-payment-methods.md), [cart](../user-guide/cart.md) and [integrations](./integrations.md) |
 | **Line Items** | `lineItems`, `products` and `lineItemOptionRules` | Which field each product type's preview image comes from, how a line item image fills its box, what transforms it and with which params, and whether a placeholder stands in for a missing one. With `paths.useCartTemplate` on, also **Image size**, **Show the SKU**, **Show the stock count**, **Show line item options**, **Hidden option prefix**, **Truncate values to**, and the rules that rewrite an option's name and value |
 | **Gateways** | `paymentGateways` and `zeroValueGatewayHandles` | Per gateway: **Name shown to customers**, and on a Manual gateway, a field layout. For a Stripe gateway, also how its payment element lists payment methods, their order and whether it includes Link. For a PayPal gateway, also which funding sources its buttons show, which card brands its card fields accept, the locale and the SDK components. Also which gateways an order totaling zero can be paid with, except Stripe, PayPal, Authorize.net and Mollie gateways |
 | **Custom Fields** | `customerOrderNotesFieldHandle` and the checkout field layouts | The extra fields shown at each checkout position, and the field on Orders that stores a customer's note. Blank hides the order notes form |
@@ -100,10 +100,13 @@ Every setting and its default, as the plugin ships.
 | Show the address label | `showAddressLabelInPreview` | `false` |
 | Enable customer pickup | `enableCustomerPickup` | `false` |
 | Pickup label | `customerPickupLabel` | empty |
+| Pickup display | `customerPickupDisplay` | `choice`. One of `choice` or `radios` |
 | Zero value gateways | `zeroValueGatewayHandles` | empty |
 | Enable saved payment methods | `enableSavedPaymentSources` | `false` |
 | Saved payment method display | `savedPaymentSourceDisplay` | `address` |
 | Delete cleared carts | `deleteClearedCarts` | `false` |
+| Continue shopping link | `showContinueShopping` | `false` |
+| Continue shopping text | `continueShoppingLabel` | empty, which shows “Continue shopping” |
 | Line item option rules | `lineItemOptionRules` | empty |
 | Preview image fields | `products` | empty |
 | Product image field | `products.<handle>.productImageHandle` | empty |

@@ -1,3 +1,32 @@
+import { fieldValue, setServerErrors } from './field-errors.js';
+
+// The panel an error with no input belongs to, by the error key's first segment
+const ERROR_KEY_PANELS = {
+	shippingAddress: 'delivery',
+	billingAddress: 'payment',
+};
+
+const INPUT_ERROR = {
+	placed: 'placed',
+	stale: 'stale',
+	noInput: 'noInput',
+};
+
+// Compare as sorted lists, since a ticked checkbox group posts both an empty value and an array
+const valueList = (value) =>
+	[]
+		.concat(value ?? [])
+		.map(String)
+		.filter((item) => item !== '')
+		.sort();
+
+const sameValue = (current, posted) =>
+	valueList(current).join('\u0000') === valueList(posted).join('\u0000');
+
+const keyPrefix = (key) => key.split(/[.[]/)[0];
+
+const errorKeyPanel = (key) => ERROR_KEY_PANELS[keyPrefix(key)] ?? null;
+
 /**
  * Building the cart payload, posting it, and applying what comes back.
  */
@@ -299,8 +328,39 @@ export const cartPersistence = () => ({
 			}
 
 			if (!response.ok || data.success === false) {
-				this.applyErrors(data);
-				this.setPanelsStatus(panels, 'error');
+				const result = this.applyErrors(data, fields);
+				// Include a panel outside the save that has an error, so every error shows in a panel
+				const fieldErrorPanels = Object.keys(this.panelStatus).filter((panel) =>
+					this.panelHasFieldErrors(panel)
+				);
+				const ownerPanels = [
+					...result.unplaced.map((error) => errorKeyPanel(error.key)),
+					...fieldErrorPanels,
+				].filter(Boolean);
+				// Mark only a panel with an error of its own, since one save posts several panels' fields
+				[...new Set([...panels, ...ownerPanels])].forEach((panel) => {
+					const errorText = this.panelErrorText(
+						result,
+						panel,
+						panels.includes(panel)
+					);
+					const hasOwnError =
+						errorText ||
+						fieldErrorPanels.includes(panel) ||
+						(panel === 'coupon' && this.couponError) ||
+						(panel === 'notes' && this.notesError);
+					const tone = hasOwnError ? 'error' : 'idle';
+					this.setPanelStatus(panel, tone, errorText);
+
+					// The coupon and notes panels show their own error text, not a box
+					if (panel === 'coupon' && errorText) {
+						this.couponError = errorText;
+					}
+
+					if (panel === 'notes' && errorText) {
+						this.notesError = errorText;
+					}
+				});
 				this.markNotesError(savingNotes);
 				return;
 			}
@@ -314,21 +374,14 @@ export const cartPersistence = () => ({
 			cartSynced = Boolean(cart) && typeof cart === 'object';
 
 			const couponError = this.couponRejectedMessage(saved, cart);
-			if (couponError) {
-				this.applyFieldErrors({
-					couponCode: [couponError],
-				});
-				this.couponOpen = true;
-				this.setPanelsStatus(panels, 'error');
-				this.status = '';
-				this.statusTone = 'idle';
-				return;
-			}
 
 			this.clearInputErrors();
 			this.status = this.savedLabel;
 			this.statusTone = 'saved';
-			this.setPanelsStatus(panels, 'saved');
+			this.setPanelsStatus(
+				panels.filter((panel) => !couponError || panel !== 'coupon'),
+				'saved'
+			);
 			Object.assign(this.savedFieldValues, saved);
 			if (!fieldOnly) {
 				// Record the cart's method, since it can differ from the posted one
@@ -341,6 +394,17 @@ export const cartPersistence = () => ({
 			}
 			if (savingNotes) {
 				this.notesButtonVisible = false;
+			}
+
+			// Mark the coupon only, since the cart accepted the rest of the save
+			if (couponError) {
+				this.applyFieldErrors({
+					couponCode: [couponError],
+				});
+				this.couponOpen = true;
+				this.setPanelStatus('coupon', 'error', '');
+				this.status = '';
+				this.statusTone = 'idle';
 			}
 		} catch (error) {
 			if (error.name === 'AbortError') {
@@ -407,6 +471,10 @@ export const cartPersistence = () => ({
 			}
 
 			const live = cart.fosterCheckout || {};
+
+			if (typeof live.customerPickup === 'boolean') {
+				this.cartIsPickup = live.customerPickup;
+			}
 
 			if (live.paymentNeedsRefresh) {
 				this.invalidateStripeCheckout();
@@ -584,6 +652,22 @@ export const cartPersistence = () => ({
 				this.refreshShippingPreview();
 			}
 
+			// Clear the pickup address, since the panel can't save until the address is complete
+			if (
+				panel === 'delivery' &&
+				this.cartIsPickup &&
+				!this.shippingPickup &&
+				!this.canSavePanel(panel)
+			) {
+				this.saveCart({
+					...this.collectNamedFields(fieldCell),
+					shippingPickup: '0',
+					panel,
+					fieldOnly: true,
+				});
+				return;
+			}
+
 			if (!this.canSavePanel(panel)) {
 				this.saveCheckoutField(panel, event);
 				return;
@@ -725,29 +809,37 @@ export const cartPersistence = () => ({
 		return `${parts[0]}[${parts.slice(1).join('][')}]`;
 	},
 
-	findNamedInput(name) {
-		return this.rootEl.querySelector(`[name="${this.escapeName(name)}"]`);
+	findNamedInput(name, scope = this.rootEl) {
+		return scope.querySelector(`[name="${this.escapeName(name)}"]`);
 	},
 
-	setInputErrors(name, messages) {
-		const input = this.findNamedInput(name);
+	setInputErrors(name, messages, postedValue, scope) {
+		const input = this.findNamedInput(name, scope);
 		if (!input) {
-			return false;
+			return INPUT_ERROR.noInput;
 		}
 
 		const root = input.closest('[x-data]');
 		if (!root || root === this.rootEl) {
-			return false;
+			return INPUT_ERROR.noInput;
 		}
 
 		const data = window.Alpine.$data(root);
 		if (!data || !Array.isArray(data.errors)) {
-			return false;
+			return INPUT_ERROR.noInput;
 		}
 
-		data.errors = messages;
+		// Skip an error for a value the customer has changed since the save posted it
+		if (
+			postedValue !== undefined &&
+			!sameValue(fieldValue(data), postedValue)
+		) {
+			return INPUT_ERROR.stale;
+		}
 
-		return true;
+		setServerErrors(data, messages);
+
+		return INPUT_ERROR.placed;
 	},
 
 	clearInputErrors() {
@@ -760,41 +852,53 @@ export const cartPersistence = () => ({
 			.forEach((root) => {
 				const data = window.Alpine.$data(root);
 				if (data && Array.isArray(data.errors)) {
-					data.errors = [];
+					setServerErrors(data, []);
 				}
 			});
 	},
 
 	/**
-	 * @returns {string[]} messages for errors with no input to show them against
+	 * @returns {{unplaced: {key: string, messages: string[]}[], applied: {key: string, messages: string[]}[]}} errors with no input to show them against, and errors shown
 	 */
-	applyFieldErrors(errors) {
+	applyFieldErrors(errors, posted = {}, scope = this.rootEl) {
 		this.clearInputErrors();
 		const flattened = this.flattenErrors(errors);
 		const noteName = this.$refs.orderNote?.name;
 		const unplaced = [];
+		const applied = [];
 
 		Object.entries(flattened).forEach(([key, messages]) => {
 			const name = this.errorKeyToName(key);
-			const placed = this.setInputErrors(name, messages);
+			const placed = this.setInputErrors(
+				name,
+				messages,
+				posted[`${name}[]`] ?? posted[name],
+				scope
+			);
 
 			if (name === 'couponCode') {
 				this.couponError = messages.join(' ');
+				applied.push({ key, messages });
 				return;
 			}
 
 			if (noteName && name === noteName) {
 				this.notesError = messages.join(' ');
+				applied.push({ key, messages });
 				return;
 			}
 
+			if (placed === INPUT_ERROR.placed) {
+				applied.push({ key, messages });
+			}
+
 			// An address rejected as a whole names no field, such as one outside the store's market
-			if (!placed) {
-				unplaced.push(...messages);
+			if (placed === INPUT_ERROR.noInput) {
+				unplaced.push({ key, messages });
 			}
 		});
 
-		return unplaced;
+		return { unplaced, applied };
 	},
 
 	collectResponseErrors(data) {
@@ -804,13 +908,78 @@ export const cartPersistence = () => ({
 		};
 	},
 
-	applyErrors(data) {
-		const unplaced = this.applyFieldErrors(this.collectResponseErrors(data));
+	/**
+	 * @returns {{unplaced: {key: string, messages: string[]}[], applied: string[], general: string}}
+	 */
+	applyErrors(data, posted, scope = this.rootEl) {
+		const errors = this.collectResponseErrors(data);
 
-		this.status = unplaced.length
-			? unplaced.join(' ')
-			: data.message || data.error || this.failedLabel;
+		// Show billing errors on the shipping address when the save posted billing as the same
+		if (posted.billingAddressSameAsShipping === '1') {
+			Object.keys(errors)
+				.filter((key) => key.startsWith('billingAddress'))
+				.forEach((key) => {
+					const shippingKey = `shippingAddress${key.slice('billingAddress'.length)}`;
+					errors[shippingKey] = [
+						...new Set([
+							...[].concat(errors[shippingKey] ?? []),
+							...[].concat(errors[key]),
+						]),
+					];
+					delete errors[key];
+				});
+		}
+
+		const { unplaced, applied } = this.applyFieldErrors(errors, posted, scope);
+		// Drop a message a field with the same key prefix already shows
+		const unplacedShown = unplaced
+			.map((error) => ({
+				...error,
+				messages: error.messages.filter(
+					(message) =>
+						!applied.some(
+							(placed) =>
+								keyPrefix(placed.key) === keyPrefix(error.key) &&
+								placed.messages.includes(message)
+						)
+				),
+			}))
+			.filter((error) => error.messages.length);
+		const appliedMessages = applied.flatMap((placed) => placed.messages);
+		const general = data.message || data.error || this.failedLabel;
+
+		// Announce every message in the screen-reader-only status region
+		this.status =
+			[
+				...new Set([
+					...unplacedShown.flatMap((error) => error.messages),
+					...appliedMessages,
+				]),
+			].join(' ') || general;
 		this.statusTone = 'error';
+
+		return { unplaced: unplacedShown, applied: appliedMessages, general };
+	},
+
+	// Box text: unplaced errors routed to this panel; in a save, unrouted ones or the general message
+	panelErrorText({ unplaced, applied, general }, panel, inSave) {
+		if (!unplaced.length) {
+			return inSave && !applied.length ? general : '';
+		}
+
+		return unplaced
+			.filter((error) => {
+				const owner = errorKeyPanel(error.key);
+				return owner ? owner === panel : inSave;
+			})
+			.flatMap((error) => error.messages)
+			.join(' ');
+	},
+
+	panelHasFieldErrors(panel) {
+		return [
+			...this.rootEl.querySelectorAll(`[data-fc-panel="${panel}"] [x-data]`),
+		].some((root) => window.Alpine.$data(root)?.errors?.length > 0);
 	},
 
 	applyCoupon() {
@@ -868,8 +1037,9 @@ export const cartPersistence = () => ({
 			return;
 		}
 
+		// Fall back to the failed label when the save set no notes error
 		if (!this.notesError) {
-			this.notesError = this.status || this.failedLabel;
+			this.notesError = this.failedLabel;
 		}
 
 		this.notesButtonVisible = true;

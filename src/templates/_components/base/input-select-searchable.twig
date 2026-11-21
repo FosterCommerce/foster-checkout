@@ -12,7 +12,9 @@
 {% set autocomplete = autocomplete ?? 'off' %}
 
 {% set fallbackOptions = fallbackOptions|default ? fallbackOptions : options %}
-{% set floatingLabel = label|default and craft.fostercheckout.settings.branding.labelStyle|default('floating') == 'floating' %}
+{# `labelHidden` keeps the label for screen readers only #}
+{% set labelHidden = labelHidden|default(false) %}
+{% set floatingLabel = label|default and not labelHidden and craft.fostercheckout.settings.branding.labelStyle|default('floating') == 'floating' %}
 {% set fallbackClasses = ['w-full h-12 px-3 ' ~ (floatingLabel ? 'pt-5 pb-1.5 leading-5' : '') ~ ' bg-white rounded-lg focus:!ring-0 focus:!outline-none placeholder:text-gray-400 transition-colors duration-300'] %}
 {% if errors|default %}
 	{% set fallbackClasses = fallbackClasses|merge(['border-red-500 focus:border-red-500']) %}
@@ -58,7 +60,7 @@
 	<!-- No JS Fallback (standard select element styled to match) -->
 	<div x-ref="fallback" class="relative">
 		{% if label|default and not floatingLabel %}
-			<label for="{{ fieldId }}" class="block mb-2 font-medium text-gray-500">
+			<label for="{{ fieldId }}" class="{{ labelHidden ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}">
 				{{ label ~ (required|default ? '*' : '') }}
 			</label>
 		{% endif %}
@@ -96,7 +98,7 @@
 		{% if label|default and not floatingLabel %}
 			<label
 				:id="labelId()"
-				class="block mb-2 font-medium text-gray-500"
+				class="{{ labelHidden ? 'sr-only' : 'block mb-2 font-medium text-gray-500' }}"
 				@click="openListbox()"
 			>
 				{{ label ~ (required|default ? '*' : '') }}

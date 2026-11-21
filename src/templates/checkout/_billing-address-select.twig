@@ -1,5 +1,5 @@
 {% set billingAddressOptions = offerSameAsShipping ? [{ value: 'same', label: 'billing.sameAsShippingAddress'|t('foster-checkout') }] : [] %}
-{% set billingAddressOptions = billingAddressOptions|merge(craft.fostercheckout.savedAddressOptions(billingAddresses))|merge([{ value: 'new', label: 'billing.useDifferentBillingAddress'|t('foster-checkout') }]) %}
+{% set billingAddressOptions = billingAddressOptions|merge(craft.fostercheckout.savedAddressOptions(billingAddresses))|merge([{ value: 'new', label: (offerSameAsShipping ? 'billing.useDifferentBillingAddress' : 'billing.newBillingAddress')|t('foster-checkout') }]) %}
 
 {# Leave the dropdown empty for an address it doesn't list, since the dropdown would match another option by label #}
 <div

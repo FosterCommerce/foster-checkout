@@ -157,6 +157,17 @@
 						</a>
 					</div>
 
+					{% if craft.fostercheckout.settings.showContinueShopping %}
+						{% set continueShoppingLabel = craft.fostercheckout.settings.continueShoppingLabel|trim %}
+						<p class="mt-4 text-center md:text-left lg:text-center">
+							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
+								 class="font-medium text-[var(--brandColor)] underline hover:no-underline"
+							>
+								{{ continueShoppingLabel ? continueShoppingLabel|t('site') : 'cart.continueShopping'|t('foster-checkout') }}
+							</a>
+						</p>
+					{% endif %}
+
 				</div>
 			</aside>
 		</div>
