@@ -6212,7 +6212,7 @@ const cartPersistence = () => ({
             panel,
             panels.includes(panel)
           );
-          const hasOwnError = errorText || fieldErrorPanels.includes(panel) || panel === "coupon" && this.couponError || panel === "notes" && this.notesError;
+          const hasOwnError = errorText || fieldErrorPanels.includes(panel) || panel === "coupon" && this.couponError || panel === "notes" && (this.notesError || savingNotes);
           const tone = hasOwnError ? "error" : "idle";
           this.setPanelStatus(panel, tone, errorText);
           if (panel === "coupon" && errorText) {
