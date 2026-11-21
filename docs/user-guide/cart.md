@@ -10,7 +10,7 @@ A cart template of your own can post to the `foster-checkout/cart/delete` action
 
 ## Continue shopping
 
-With **Continue shopping link** off, the default, only the empty cart shows **Continue shopping**. Turn the setting on at **Checkout -> Features** to show the link under **Checkout** on a cart with items as well. **Continue shopping text** sets that link's text; blank shows “Continue shopping”.
+With **Continue shopping link** off, the default, only the empty cart shows **Continue shopping**. Turn the setting on at **Checkout -> Features** to show the link after **Start a new cart** or **Delete this cart** on a cart with items as well. **Continue shopping text** sets that link's text; blank shows “Continue shopping”.
 
 **Continue shopping link** and **Continue shopping text** appear only while **Use the built-in cart template** is on at **Checkout -> General**.
 

@@ -10,7 +10,7 @@
 - Added the “Delete cleared carts” setting, which moves a cleared cart to the trash. The setting is off after updating.
 - Added the `foster-checkout/cart/delete` action.
 - Added the “Pickup display” setting, which can show customer pickup as a separate option after “Ship to an address” instead of as one of the address choices. “Pickup display” is “Address choice” after updating.
-- Added the “Continue shopping link” setting, which shows “Continue shopping” under “Checkout” on a cart with items, and the “Continue shopping text” setting for its text. “Continue shopping link” is off after updating.
+- Added the “Continue shopping link” setting, which shows “Continue shopping” after “Start a new cart” or “Delete this cart” on a cart with items, and the “Continue shopping text” setting for its text. “Continue shopping link” is off after updating.
 - Added the `Checkout::EVENT_DEFINE_SAVED_PAYMENT_SOURCES` event, for changing which saved payment methods the checkout lists or hiding the save checkbox.
 - Added `craft.fostercheckout.savedPaymentSources()`.
 - Added `craft.fostercheckout.incompleteAddressIds()`. A saved address missing a required field now opens its edit form when selected, and can't be paid with until it's updated.

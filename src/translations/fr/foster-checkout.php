@@ -580,7 +580,7 @@ return [
 	'settings.features.deleteClearedCartsHelp' => 'Si la page du panier propose « Supprimer ce panier », qui place le panier dans la corbeille. Désactivé, elle propose « Commencer un nouveau panier », et Commerce conserve l’ancien comme panier inactif dans « Commerce -> Commandes ».',
 	'settings.features.continueShoppingTitle' => 'Continuer vos achats',
 	'settings.features.showContinueShopping' => 'Lien « Continuer vos achats »',
-	'settings.features.showContinueShoppingHelp' => 'Si la page du panier affiche un lien « Continuer vos achats » sous « Commander » lorsque le panier contient des articles. Le lien mène au « Chemin d’annulation » dans Paiement -> Général.',
+	'settings.features.showContinueShoppingHelp' => 'Si la page du panier affiche un lien « Continuer vos achats » en haut lorsque le panier contient des articles. Le lien mène au « Chemin d’annulation » dans Paiement -> Général.',
 	'settings.features.continueShoppingLabel' => 'Texte de « Continuer vos achats »',
 	'settings.features.continueShoppingLabelHelp' => 'Texte du lien « Continuer vos achats ».',
 	'settings.features.customerPickupTitle' => 'Retrait en magasin',
