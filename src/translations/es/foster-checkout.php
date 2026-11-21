@@ -581,7 +581,7 @@ return [
 	'settings.features.deleteClearedCartsHelp' => 'Si la página del carrito ofrece «Eliminar este carrito», que mueve el carrito a la papelera. Si está desactivado, ofrece «Empezar un carrito nuevo», y Commerce conserva el anterior como carrito inactivo en «Commerce -> Pedidos».',
 	'settings.features.continueShoppingTitle' => 'Seguir comprando',
 	'settings.features.showContinueShopping' => 'Enlace «Seguir comprando»',
-	'settings.features.showContinueShoppingHelp' => 'Si la página del carrito muestra un enlace «Seguir comprando» bajo «Finalizar compra» cuando el carrito tiene artículos. El enlace lleva a la «Ruta de cancelación» en Pago -> General.',
+	'settings.features.showContinueShoppingHelp' => 'Si la página del carrito muestra un enlace «Seguir comprando» arriba cuando el carrito tiene artículos. El enlace lleva a la «Ruta de cancelación» en Pago -> General.',
 	'settings.features.continueShoppingLabel' => 'Texto de «Seguir comprando»',
 	'settings.features.continueShoppingLabelHelp' => 'Texto del enlace «Seguir comprando».',
 	'settings.features.customerPickupTitle' => 'Recogida en tienda',

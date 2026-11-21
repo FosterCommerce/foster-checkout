@@ -581,7 +581,7 @@ return [
 	'settings.features.deleteClearedCartsHelp' => 'Whether the cart page offers Delete this cart, which moves the cart to the trash. When off, it offers Start a new cart, and Commerce keeps the old cart as an inactive cart in Commerce -> Orders.',
 	'settings.features.continueShoppingTitle' => 'Continue shopping',
 	'settings.features.showContinueShopping' => 'Continue shopping link',
-	'settings.features.showContinueShoppingHelp' => 'Whether the cart page shows a Continue shopping link under Checkout when the cart has items. The link goes to Cancel path at Checkout -> General.',
+	'settings.features.showContinueShoppingHelp' => 'Whether the cart page shows a Continue shopping link at the top when the cart has items. The link goes to Cancel path at Checkout -> General.',
 	'settings.features.continueShoppingLabel' => 'Continue shopping text',
 	'settings.features.continueShoppingLabelHelp' => 'Text of the Continue shopping link.',
 	'settings.features.customerPickupTitle' => 'Customer pickup',

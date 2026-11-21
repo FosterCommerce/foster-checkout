@@ -35,7 +35,7 @@
 
 				<div class="flex flex-col justify-start items-stretch gap-6">
 
-					<header class="flex justify-between items-center gap-4 lg:items-end">
+					<header class="flex flex-wrap justify-between items-center gap-4 lg:items-end">
 						<div class="inline-flex justify-start items-center gap-2">
 							<h1 class="font-semibold text-3xl">{{ 'cart.cartTitle'|t('foster-checkout') }}</h1>
 							<p
@@ -46,15 +46,27 @@
 							</p>
 						</div>
 
-						<form method="post">
-							{{ csrfInput() }}
-							{% set deleteClearedCarts = craft.fostercheckout.settings.deleteClearedCarts %}
-							{{ actionInput(deleteClearedCarts ? 'foster-checkout/cart/delete' : 'commerce/cart/forget-cart') }}
-							{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.cart)) }}
-							{{ successMessageInput('') }}
-							<button type="submit"
-											class="text-sm underline text-gray-500 hover:no-underline hover:text-gray-700">{{ (deleteClearedCarts ? 'cart.deleteCart' : 'cart.startNewCart')|t('foster-checkout') }}</button>
-						</form>
+						<div class="inline-flex flex-wrap items-baseline gap-x-2">
+							<form method="post">
+								{{ csrfInput() }}
+								{% set deleteClearedCarts = craft.fostercheckout.settings.deleteClearedCarts %}
+								{{ actionInput(deleteClearedCarts ? 'foster-checkout/cart/delete' : 'commerce/cart/forget-cart') }}
+								{{ redirectInput(siteUrl(craft.fostercheckout.settings.paths.cart)) }}
+								{{ successMessageInput('') }}
+								<button type="submit"
+												class="text-sm underline text-gray-500 hover:no-underline hover:text-gray-700">{{ (deleteClearedCarts ? 'cart.deleteCart' : 'cart.startNewCart')|t('foster-checkout') }}</button>
+							</form>
+
+							{% if craft.fostercheckout.settings.showContinueShopping %}
+								{% set continueShoppingLabel = craft.fostercheckout.settings.continueShoppingLabel|trim %}
+								<span class="text-sm text-gray-500" aria-hidden="true">·</span>
+								<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
+									 class="text-sm underline text-[var(--brandColor)] hover:no-underline"
+								>
+									{{ continueShoppingLabel ? continueShoppingLabel|t('site') : 'cart.continueShopping'|t('foster-checkout') }}
+								</a>
+							{% endif %}
+						</div>
 					</header>
 
 					{{ include('foster-checkout/_components/app/flash-message', { errors: cartErrors }) }}
@@ -156,17 +168,6 @@
 							{{ 'cart.checkout'|t('foster-checkout') }}
 						</a>
 					</div>
-
-					{% if craft.fostercheckout.settings.showContinueShopping %}
-						{% set continueShoppingLabel = craft.fostercheckout.settings.continueShoppingLabel|trim %}
-						<p class="mt-4 text-center md:text-left lg:text-center">
-							<a href="{{ siteUrl(craft.fostercheckout.settings.paths.cancel) }}"
-								 class="font-medium text-[var(--brandColor)] underline hover:no-underline"
-							>
-								{{ continueShoppingLabel ? continueShoppingLabel|t('site') : 'cart.continueShopping'|t('foster-checkout') }}
-							</a>
-						</p>
-					{% endif %}
 
 				</div>
 			</aside>

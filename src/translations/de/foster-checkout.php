@@ -580,7 +580,7 @@ return [
 	'settings.features.deleteClearedCartsHelp' => 'Ob die Warenkorbseite „Diesen Warenkorb löschen“ anbietet, was den Warenkorb in den Papierkorb verschiebt. Wenn aus, bietet sie „Neuen Warenkorb beginnen“ an, und Commerce behält den alten als inaktiven Warenkorb unter „Commerce -> Bestellungen“.',
 	'settings.features.continueShoppingTitle' => 'Weiter einkaufen',
 	'settings.features.showContinueShopping' => 'Link „Weiter einkaufen“',
-	'settings.features.showContinueShoppingHelp' => 'Ob die Warenkorbseite unter „Zur Kasse“ einen Link „Weiter einkaufen“ zeigt, wenn der Warenkorb Artikel enthält. Der Link führt zum „Pfad bei Abbruch“ unter Checkout -> Allgemein.',
+	'settings.features.showContinueShoppingHelp' => 'Ob die Warenkorbseite oben einen Link „Weiter einkaufen“ zeigt, wenn der Warenkorb Artikel enthält. Der Link führt zum „Pfad bei Abbruch“ unter Checkout -> Allgemein.',
 	'settings.features.continueShoppingLabel' => 'Text für „Weiter einkaufen“',
 	'settings.features.continueShoppingLabelHelp' => 'Text des Links „Weiter einkaufen“.',
 	'settings.features.customerPickupTitle' => 'Abholung durch Kunden',
