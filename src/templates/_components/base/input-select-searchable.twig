@@ -130,9 +130,11 @@
 				:aria-controls="listboxId()"
 			/>
 			{% if floatingLabel %}
+				{# Safari doesn’t update :placeholder-shown when a script sets the value #}
 				<label
 					:id="labelId()"
-					class="absolute left-3 right-10 top-1.5 truncate text-xs text-gray-500 pointer-events-none transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400"
+					class="absolute left-3 right-10 truncate pointer-events-none transition-all duration-150"
+					:class="selectedOption ? 'top-1.5 text-xs text-gray-500' : 'top-3 text-base text-gray-400'"
 				>
 					{{ label ~ (required|default ? '*' : '') }}
 				</label>
